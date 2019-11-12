@@ -330,8 +330,18 @@ public class Messenger extends Transceiver implements ConnectionDelegate {
     }
 
     private boolean sendMessage(ReliableMessage rMsg, Callback callback) {
+        CompletionHandler handler = new CompletionHandler() {
+            @Override
+            public void onSuccess() {
+                callback.onFinished(rMsg, null);
+            }
+
+            @Override
+            public void onFailed(Error error) {
+                callback.onFinished(rMsg, error);
+            }
+        };
         byte[] data = serializeMessage(rMsg);
-        MessageCallback handler = new MessageCallback(rMsg, callback);
         return getDelegate().sendPackage(data, handler);
     }
 
@@ -391,32 +401,5 @@ public class Messenger extends Transceiver implements ConnectionDelegate {
         //
         ID sender = facebook.getID(rMsg.envelope.sender);
         return getCPU().process(content, sender, iMsg);
-    }
-}
-
-
-class MessageCallback implements CompletionHandler {
-
-    private final ReliableMessage msg;
-    private final Callback cb;
-
-    MessageCallback(ReliableMessage rMsg, Callback callback) {
-        super();
-        msg = rMsg;
-        cb = callback;
-    }
-
-    @Override
-    public void onSuccess() {
-        if (cb != null) {
-            cb.onFinished(msg, null);
-        }
-    }
-
-    @Override
-    public void onFailed(Error error) {
-        if (cb != null) {
-            cb.onFinished(msg, error);
-        }
     }
 }
