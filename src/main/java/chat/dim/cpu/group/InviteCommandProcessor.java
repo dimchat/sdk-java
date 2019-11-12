@@ -1,0 +1,144 @@
+/* license: https://mit-license.org
+ *
+ *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
+ *
+ *                                Written in 2019 by Moky <albert.moky@gmail.com>
+ *
+ * ==============================================================================
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2019 Albert Moky
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * ==============================================================================
+ */
+package chat.dim.cpu.group;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import chat.dim.Facebook;
+import chat.dim.Messenger;
+import chat.dim.cpu.CommandProcessor;
+import chat.dim.cpu.GroupCommandProcessor;
+import chat.dim.dkd.Content;
+import chat.dim.dkd.InstantMessage;
+import chat.dim.mkm.ID;
+import chat.dim.protocol.GroupCommand;
+import chat.dim.protocol.ReceiptCommand;
+import chat.dim.protocol.group.InviteCommand;
+
+public class InviteCommandProcessor extends GroupCommandProcessor {
+
+    public InviteCommandProcessor(Messenger messenger) {
+        super(messenger);
+    }
+
+    // check whether this is a Reset command
+    private boolean isReset(List<ID> inviteList, ID sender, ID group) {
+        Facebook facebook = getFacebook();
+        // NOTICE: owner invite owner?
+        //         it's a Reset command!
+        if (containsOwner(inviteList, group)) {
+            if (facebook.isOwner(sender, group)) {
+                return true;
+            }
+            if (facebook.existsAssistant(sender, group)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private Content callReset(Content content, ID sender, InstantMessage iMsg) {
+        CommandProcessor cpu = getCPU(GroupCommand.RESET);
+        assert cpu != null;
+        return cpu.process(content, sender, iMsg);
+    }
+
+    private List<ID> doInvite(List<ID> inviteList, ID group) {
+        Facebook facebook = getFacebook();
+        // existed members
+        List<ID> members = facebook.getMembers(group);
+        if (members == null) {
+            members = new ArrayList<>();
+        }
+        // added list
+        List<ID> addedList = new ArrayList<>();
+        for (ID item: inviteList) {
+            if (members.contains(item)) {
+                continue;
+            }
+            // adding member found
+            addedList.add(item);
+            members.add(item);
+        }
+        if (addedList.size() > 0) {
+            if (facebook.saveMembers(members, group)) {
+                return addedList;
+            }
+        }
+        return null;
+    }
+
+    //-------- Main --------
+
+    public Content process(Content content, ID sender, InstantMessage iMsg) {
+        assert content instanceof InviteCommand;
+        Facebook facebook = getFacebook();
+        ID group = facebook.getID(content.getGroup());
+        // 0. check whether group info empty
+        if (isEmpty(group)) {
+            // NOTICE:
+            //     group membership lost?
+            //     reset group members
+            return callReset(content, sender, iMsg);
+        }
+        // 1. check permission
+        if (!facebook.existsMember(sender, group)) {
+            if (!facebook.existsAssistant(sender, group)) {
+                if (!facebook.isOwner(sender, group)) {
+                    String text = sender + " is not a member/assistant of group " + group + ", cannot invite member.";
+                    throw new UnsupportedOperationException(text);
+                }
+            }
+        }
+        // 2. get inviting members
+        List<ID> inviteList = getMembers((GroupCommand) content);
+        if (inviteList == null || inviteList.size() == 0) {
+            throw new NullPointerException("invite command error: " + content);
+        }
+        // 2.1. check for reset
+        if (isReset(inviteList, sender, group)) {
+            // NOTICE: owner invites owner?
+            //         it means this should be a 'reset' command
+            return callReset(content, sender, iMsg);
+        }
+        // 2.2. get invited-list
+        List<ID> added = doInvite(inviteList, group);
+        if (added != null) {
+            content.put("added", added);
+        }
+        // 3. response
+        int count = added == null ? 0 : added.size();
+        String text = String.format(Locale.CHINA, "Group command received: invited %d member(s)", count);
+        return new ReceiptCommand(text);
+    }
+}

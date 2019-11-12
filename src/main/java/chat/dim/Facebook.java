@@ -63,7 +63,7 @@ public abstract class Facebook extends Barrack {
     //
     //  Meta
     //
-    protected boolean verify(Meta meta, ID identifier) {
+    public boolean verify(Meta meta, ID identifier) {
         if (meta == null) {
             return false;
         }
@@ -84,7 +84,7 @@ public abstract class Facebook extends Barrack {
      * @param identifier - entity ID
      * @return true on success
      */
-    protected abstract boolean saveMeta(Meta meta, ID identifier);
+    public abstract boolean saveMeta(Meta meta, ID identifier);
 
     /**
      *  Load meta for entity ID
@@ -97,7 +97,7 @@ public abstract class Facebook extends Barrack {
     //
     //  Profile
     //
-    protected boolean verify(Profile profile, ID identifier) {
+    public boolean verify(Profile profile, ID identifier) {
         if (identifier != null) {
             if (profile == null || profile.getIdentifier() != identifier) {
                 // profile ID not match
@@ -106,7 +106,7 @@ public abstract class Facebook extends Barrack {
         }
         return verify(profile);
     }
-    protected boolean verify(Profile profile) {
+    public boolean verify(Profile profile) {
         if (profile == null) {
             return false;
         }
@@ -164,7 +164,7 @@ public abstract class Facebook extends Barrack {
      * @param profile - entity profile
      * @return true on success
      */
-    protected abstract boolean saveProfile(Profile profile);
+    public abstract boolean saveProfile(Profile profile);
 
     /**
      *  Load profile for entity ID
@@ -177,9 +177,9 @@ public abstract class Facebook extends Barrack {
     //
     //  Private Key
     //
-    protected boolean cache(PrivateKey key, ID identifier) {
+    protected boolean cache(PrivateKey key, ID user) {
         assert key != null;
-        privateKeyMap.put(identifier, key);
+        privateKeyMap.put(user, key);
         return true;
     }
 
@@ -187,18 +187,18 @@ public abstract class Facebook extends Barrack {
      *  Save private key for user ID
      *
      * @param key - private key
-     * @param identifier - user ID
+     * @param user - user ID
      * @return true on success
      */
-    protected abstract boolean savePrivateKey(PrivateKey key, ID identifier);
+    public abstract boolean savePrivateKey(PrivateKey key, ID user);
 
     /**
      *  Load private key for user ID
      *
-     * @param identifier - user ID
+     * @param user - user ID
      * @return PrivateKey object on success
      */
-    protected abstract PrivateKey loadPrivateKey(ID identifier);
+    protected abstract PrivateKey loadPrivateKey(ID user);
 
     //
     //  Relationship
@@ -219,34 +219,34 @@ public abstract class Facebook extends Barrack {
      *  Save contacts for user
      *
      * @param contacts - contact list
-     * @param identifier - user ID
+     * @param user - user ID
      * @return true on success
      */
-    protected abstract boolean saveContacts(List<ID> contacts, ID identifier);
+    public abstract boolean saveContacts(List<ID> contacts, ID user);
 
     /**
      *  Load contacts for user
-     * @param identifier - user ID
+     * @param user - user ID
      * @return contact list on success
      */
-    protected abstract List<ID> loadContacts(ID identifier);
+    protected abstract List<ID> loadContacts(ID user);
 
     /**
      *  Save members of group
      *
      * @param members - member list
-     * @param identifier - group ID
+     * @param group - group ID
      * @return true on success
      */
-    protected abstract boolean saveMembers(List<ID> members, ID identifier);
+    public abstract boolean saveMembers(List<ID> members, ID group);
 
     /**
      *  Load members of group
      *
-     * @param identifier - group ID
+     * @param group - group ID
      * @return member list on success
      */
-    protected abstract List<ID> loadMembers(ID identifier);
+    protected abstract List<ID> loadMembers(ID group);
 
     //----
 
@@ -386,23 +386,23 @@ public abstract class Facebook extends Barrack {
     //-------- UserDataSource
 
     @Override
-    public PrivateKey getPrivateKeyForSignature(ID identifier) {
-        PrivateKey key = privateKeyMap.get(identifier);
+    public PrivateKey getPrivateKeyForSignature(ID user) {
+        PrivateKey key = privateKeyMap.get(user);
         if (key == null) {
-            key = loadPrivateKey(identifier);
+            key = loadPrivateKey(user);
             if (key != null) {
-                cache(key, identifier);
+                cache(key, user);
             }
         }
         return key;
     }
 
     @Override
-    public List<PrivateKey> getPrivateKeysForDecryption(ID identifier) {
+    public List<PrivateKey> getPrivateKeysForDecryption(ID user) {
         List<PrivateKey> keys = new ArrayList<>();
         // DIMP v1.0:
         //     decrypt key and the sign key are the same key
-        PrivateKey key = getPrivateKeyForSignature(identifier);
+        PrivateKey key = getPrivateKeyForSignature(user);
         if (key != null) {
             keys.add(key);
         }
@@ -410,14 +410,14 @@ public abstract class Facebook extends Barrack {
     }
 
     @Override
-    public List<ID> getContacts(ID identifier) {
+    public List<ID> getContacts(ID user) {
         List<ID> contacts;// = super.getContacts(identifier);
-        assert identifier.getType().isUser();
-        contacts = contactsMap.get(identifier);
+        assert user.getType().isUser();
+        contacts = contactsMap.get(user);
         if (contacts == null) {
-            contacts = loadContacts(identifier);
+            contacts = loadContacts(user);
             if (contacts != null) {
-                cache(contacts, identifier);
+                cache(contacts, user);
             }
         }
         return contacts;
@@ -426,15 +426,15 @@ public abstract class Facebook extends Barrack {
     //-------- GroupDataSource
 
     @Override
-    public ID getFounder(ID identifier) {
-        ID founder = super.getFounder(identifier);
+    public ID getFounder(ID group) {
+        ID founder = super.getFounder(group);
         if (founder != null) {
             return founder;
         }
         // check each member's public key with group meta
-        List<ID> members = getMembers(identifier);
+        List<ID> members = getMembers(group);
         if (members != null) {
-            Meta meta = getMeta(identifier);
+            Meta meta = getMeta(group);
             if (meta != null) {
                 // if the member's public key matches with the group's meta,
                 // it means this meta was generate by the member's private key
@@ -459,31 +459,31 @@ public abstract class Facebook extends Barrack {
     }
 
     @Override
-    public ID getOwner(ID identifier) {
-        ID owner = super.getOwner(identifier);
+    public ID getOwner(ID group) {
+        ID owner = super.getOwner(group);
         if (owner != null) {
             return owner;
         }
-        if (identifier.getType() == NetworkType.Polylogue) {
+        if (group.getType() == NetworkType.Polylogue) {
             // Polylogue's owner is its founder
-            return getFounder(identifier);
+            return getFounder(group);
         }
         // TODO: load owner from database
         return null;
     }
 
     @Override
-    public List<ID> getMembers(ID identifier) {
-        List<ID> members = super.getMembers(identifier);
+    public List<ID> getMembers(ID group) {
+        List<ID> members = super.getMembers(group);
         if (members != null) {
             return members;
         }
-        assert identifier.getType().isGroup();
-        members = membersMap.get(identifier);
+        assert group.getType().isGroup();
+        members = membersMap.get(group);
         if (members == null) {
-            members = loadMembers(identifier);
+            members = loadMembers(group);
             if (members != null) {
-                cache(members, identifier);
+                cache(members, group);
             }
         }
         return members;
@@ -502,6 +502,13 @@ public abstract class Facebook extends Barrack {
         return gMeta.matches(meta.key);
     }
 
+    public boolean isOwner(ID member, ID group) {
+        if (group.getType() == NetworkType.Polylogue) {
+            return isFounder(member, group);
+        }
+        throw new UnsupportedOperationException("only Polylogue so far");
+    }
+
     public boolean existsMember(ID member, ID group) {
         List<ID> members = getMembers(group);
         for (ID item : members) {
@@ -511,6 +518,31 @@ public abstract class Facebook extends Barrack {
         }
         ID owner = getOwner(group);
         return owner == null || owner.equals(member);
+    }
+
+    //
+    //  Group Assistants
+    //
+    public List<ID> getAssistants(ID group) {
+        assert group.getType().isGroup();
+        List<ID> assistants = new ArrayList<>();
+        if (ans != null) {
+            ID identifier = ans.identifier("assistant");
+            if (identifier != null) {
+                assistants.add(identifier);
+            }
+        }
+        return assistants;
+    }
+
+    public boolean existsAssistant(ID user, ID group) {
+        List<ID> assistants = getAssistants(group);
+        for (ID item : assistants) {
+            if (item.equals(user)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     static {
