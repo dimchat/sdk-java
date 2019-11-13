@@ -60,7 +60,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
                     getMessenger().sendContent(cmd, owner);
                 }
             }
-            // 3. response (no need to response this group command)
+            // response (no need to response this group command)
             return null;
         } else {
             // NOTICE: this is a partial member-list

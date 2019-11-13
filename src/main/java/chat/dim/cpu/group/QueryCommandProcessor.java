@@ -38,6 +38,7 @@ import chat.dim.cpu.GroupCommandProcessor;
 import chat.dim.dkd.Content;
 import chat.dim.dkd.InstantMessage;
 import chat.dim.mkm.ID;
+import chat.dim.protocol.TextContent;
 import chat.dim.protocol.group.QueryCommand;
 import chat.dim.protocol.group.ResetCommand;
 
@@ -64,7 +65,7 @@ public class QueryCommandProcessor extends GroupCommandProcessor {
         List<ID> members = facebook.getMembers(group);
         if (members == null || members.size() == 0) {
             String text = "Group members not found: " + group;
-            throw new NullPointerException(text);
+            return new TextContent(text);
         }
         // 3. response
         return new ResetCommand(group, members);

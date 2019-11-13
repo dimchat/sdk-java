@@ -34,7 +34,6 @@ import java.util.*;
 
 import chat.dim.core.Barrack;
 import chat.dim.crypto.PrivateKey;
-import chat.dim.group.Chatroom;
 import chat.dim.group.Polylogue;
 import chat.dim.mkm.Address;
 import chat.dim.mkm.ID;
@@ -44,9 +43,10 @@ import chat.dim.mkm.Profile;
 import chat.dim.mkm.User;
 import chat.dim.mkm.Group;
 import chat.dim.mkm.LocalUser;
-import chat.dim.network.Station;
 
 public abstract class Facebook extends Barrack {
+
+    public static long EXPIRES = 3600;  // profile expires (1 hour)
 
     public AddressNameService ans = null;
 
@@ -178,7 +178,10 @@ public abstract class Facebook extends Barrack {
     //  Private Key
     //
     protected boolean cache(PrivateKey key, ID user) {
-        assert key != null;
+        if (key == null) {
+            privateKeyMap.remove(user);
+            return false;
+        }
         privateKeyMap.put(user, key);
         return true;
     }
@@ -201,26 +204,16 @@ public abstract class Facebook extends Barrack {
     protected abstract PrivateKey loadPrivateKey(ID user);
 
     //
-    //  Relationship
-    //
-    private boolean cacheUsersList(List<ID> list, ID identifier) {
-        NetworkType type = identifier.getType();
-        if (type.isGroup()) {
-            membersMap.put(identifier, list);
-        } else if (type.isUser()) {
-            contactsMap.put(identifier, list);
-        } else {
-            throw new IllegalArgumentException("entity ID not support: " + identifier);
-        }
-        return true;
-    }
-
-    //
     //  User contacts
     //
     protected boolean cacheContacts(List<ID> contacts, ID user) {
         assert user.getType().isUser();
-        return cacheUsersList(contacts, user);
+        if (contacts == null) {
+            contactsMap.remove(user);
+            return false;
+        }
+        contactsMap.put(user, contacts);
+        return true;
     }
 
     /**
@@ -244,7 +237,12 @@ public abstract class Facebook extends Barrack {
     //
     protected boolean cacheMembers(List<ID> members, ID group) {
         assert group.getType().isGroup();
-        return cacheUsersList(members, group);
+        if (members == null) {
+            membersMap.remove(group);
+            return false;
+        }
+        membersMap.put(group, members);
+        return true;
     }
 
     /**
@@ -265,19 +263,6 @@ public abstract class Facebook extends Barrack {
     protected abstract List<ID> loadMembers(ID group);
 
     //----
-
-    public String getNickname(ID identifier) {
-        assert identifier.getType().isUser();
-        User user = getUser(identifier);
-        return user == null ? null : user.getName();
-    }
-
-    public String getNumberString(ID identifier) {
-        long number = identifier.getNumber();
-        String string = String.format(Locale.CHINA, "%010d", number);
-        string = string.substring(0, 3) + "-" + string.substring(3, 6) + "-" + string.substring(6);
-        return string;
-    }
 
     public ID getID(Address address) {
         ID identifier = new ID(null, address);
@@ -336,9 +321,6 @@ public abstract class Facebook extends Barrack {
             } else {
                 user = new LocalUser(identifier);
             }
-        } else if (type.isStation()) {
-            // FIXME: prevent station to be erased from memory cache
-            user = new Station(identifier);
         } else {
             throw new UnsupportedOperationException("unsupported user type: " + type);
         }
@@ -363,10 +345,9 @@ public abstract class Facebook extends Barrack {
         NetworkType type = identifier.getType();
         if (type == NetworkType.Polylogue) {
             group = new Polylogue(identifier);
-        } else if (type == NetworkType.Chatroom) {
-            group = new Chatroom(identifier);
+        } else {
+            throw new UnsupportedOperationException("unsupported group type: " + type);
         }
-        assert group != null;
         // cache it in barrack
         cache(group);
         return group;
@@ -377,25 +358,41 @@ public abstract class Facebook extends Barrack {
     @Override
     public Meta getMeta(ID identifier) {
         Meta meta = super.getMeta(identifier);
-        if (meta == null) {
-            meta = loadMeta(identifier);
-            if (meta != null) {
-                cache(meta, identifier);
-            }
+        if (meta != null) {
+            return meta;
         }
+        // load from local storage
+        meta = loadMeta(identifier);
+        if (meta == null) {
+            return null;
+        }
+        cache(meta, identifier);
         return meta;
     }
 
     @Override
     public Profile getProfile(ID identifier) {
         Profile profile = profileMap.get(identifier);
-        if (profile == null) {
-            profile = loadProfile(identifier);
-            if (profile != null) {
-                cache(profile, identifier);
+        if (profile != null) {
+            // check expired time
+            Date now = new Date();
+            long timestamp = now.getTime() / 1000 + EXPIRES;
+            Number expires = (Number) profile.get("expires");
+            if (expires == null) {
+                // set expired time
+                profile.put("expires", timestamp);
+                return profile;
+            } else if (expires.longValue() < timestamp){
+                // not expired yet
+                return profile;
             }
         }
-        // TODO: check expired time
+        // load from local storage
+        profile = loadProfile(identifier);
+        if (profile == null) {
+            return null;
+        }
+        cache(profile, identifier);
         return profile;
     }
 
@@ -404,12 +401,15 @@ public abstract class Facebook extends Barrack {
     @Override
     public PrivateKey getPrivateKeyForSignature(ID user) {
         PrivateKey key = privateKeyMap.get(user);
-        if (key == null) {
-            key = loadPrivateKey(user);
-            if (key != null) {
-                cache(key, user);
-            }
+        if (key != null) {
+            return key;
         }
+        // load from local storage
+        key = loadPrivateKey(user);
+        if (key == null) {
+            return null;
+        }
+        cache(key, user);
         return key;
     }
 
@@ -430,12 +430,15 @@ public abstract class Facebook extends Barrack {
         List<ID> contacts;// = super.getContacts(identifier);
         assert user.getType().isUser();
         contacts = contactsMap.get(user);
-        if (contacts == null) {
-            contacts = loadContacts(user);
-            if (contacts != null) {
-                cacheContacts(contacts, user);
-            }
+        if (contacts != null) {
+            return contacts;
         }
+        // load from local storage
+        contacts = loadContacts(user);
+        if (contacts == null) {
+            return null;
+        }
+        cacheContacts(contacts, user);
         return contacts;
     }
 
@@ -496,12 +499,15 @@ public abstract class Facebook extends Barrack {
         }
         assert group.getType().isGroup();
         members = membersMap.get(group);
-        if (members == null) {
-            members = loadMembers(group);
-            if (members != null) {
-                cacheMembers(members, group);
-            }
+        if (members != null) {
+            return members;
         }
+        // load from local storage
+        members = loadMembers(group);
+        if (members == null) {
+            return null;
+        }
+        cacheMembers(members, group);
         return members;
     }
 
@@ -553,11 +559,9 @@ public abstract class Facebook extends Barrack {
 
     public boolean existsAssistant(ID user, ID group) {
         List<ID> assistants = getAssistants(group);
-        for (ID item : assistants) {
-            if (item.equals(user)) {
-                return true;
-            }
+        if (assistants == null) {
+            return false;
         }
-        return false;
+        return assistants.contains(user);
     }
 }

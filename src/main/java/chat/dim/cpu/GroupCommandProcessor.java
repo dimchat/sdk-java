@@ -55,13 +55,11 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
         List members = cmd.getMembers();
         if (members == null) {
             Object member = cmd.getMember();
-            if (member != null) {
-                members = new ArrayList();
-                members.add(member);
+            if (member == null) {
+                return null;
             }
-        }
-        if (members == null) {
-            return null;
+            members = new ArrayList();
+            members.add(member);
         }
         return convertMembers(members);
     }
