@@ -32,6 +32,7 @@ package chat.dim.cpu;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
@@ -113,7 +114,7 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
         String command = ((Command) content).command;
         CommandProcessor cpu = getCPU(command);
         if (cpu == null) {
-            String text = "group command not support yet: " + command;
+            String text = String.format(Locale.CHINA, "Group command (name: %s) not support yet!", command);
             return new TextContent(text);
         }
         assert cpu != this; // Dead cycle!

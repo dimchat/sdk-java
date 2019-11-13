@@ -62,28 +62,4 @@ public interface MessengerDelegate {
      * @return true on success
      */
     boolean sendPackage(byte[] data, CompletionHandler handler);
-
-    /**
-     *  Deliver message to everyone@everywhere, including all neighbours
-     *
-     * @param msg - broadcast message
-     * @return receipt on success
-     */
-    Content broadcastMessage(ReliableMessage msg);
-
-    /**
-     *  Deliver message to the receiver, or broadcast to neighbours
-     *
-     * @param msg - reliable message
-     * @return receipt on success
-     */
-    Content deliverMessage(ReliableMessage msg);
-
-    /**
-     *  Re-pack and deliver (Top-Secret) message to the real receiver
-     *
-     * @param msg - top-secret message
-     * @return receipt on success
-     */
-    Content forwardMessage(ReliableMessage msg);
 }

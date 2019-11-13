@@ -34,46 +34,19 @@ import chat.dim.Messenger;
 import chat.dim.dkd.Content;
 import chat.dim.dkd.InstantMessage;
 import chat.dim.mkm.ID;
-import chat.dim.protocol.Command;
 import chat.dim.protocol.TextContent;
 
 import java.util.Locale;
 
-public class HistoryCommandProcessor extends CommandProcessor {
+public class DefaultContentProcessor extends ContentProcessor {
 
-    private GroupCommandProcessor gpu = null;
-
-    public HistoryCommandProcessor(Messenger messenger) {
+    public DefaultContentProcessor(Messenger messenger) {
         super(messenger);
     }
 
-    private GroupCommandProcessor getGPU() {
-        if (gpu == null) {
-            gpu = (GroupCommandProcessor) createProcessor(GroupCommandProcessor.class);
-        }
-        return gpu;
-    }
-
-    //-------- Main --------
-
     public Content process(Content content, ID sender, InstantMessage iMsg) {
-        assert content instanceof Command;
-        assert getClass() == HistoryCommandProcessor.class; // override me!
-
-        CommandProcessor cpu;
-        if (content.getGroup() == null) {
-            // process command content by name
-            String command = ((Command) content).command;
-            cpu = getCPU(command);
-            if (cpu == null) {
-                String text = String.format(Locale.CHINA, "History command (name: %s) not support yet!", command);;
-                return new TextContent(text);
-            }
-        } else {
-            // call group command processor
-            cpu = getGPU();
-        }
-        assert cpu != this; // Dead cycle!
-        return cpu.process(content, sender, iMsg);
+        int type = content.type;
+        String text = String.format(Locale.CHINA, "Content (type: %d) not support yet!", type);
+        return new TextContent(text);
     }
 }

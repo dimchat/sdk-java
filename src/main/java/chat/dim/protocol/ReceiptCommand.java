@@ -30,7 +30,6 @@
  */
 package chat.dim.protocol;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.format.Base64;
@@ -52,80 +51,92 @@ import chat.dim.dkd.Envelope;
  */
 public class ReceiptCommand extends Command {
 
-    public final String message;
-
     // original message info
-    private Envelope envelope;
-    private byte[] signature;
+    private Envelope envelope = null;
+    private byte[] signature = null;
 
     public ReceiptCommand(Map<String, Object> dictionary) {
         super(dictionary);
-        message = (String) dictionary.get("message");
-
-        // -- extra info
-        // envelope: { sender: "...", receiver: "...", time: 0 }
-        Object env = dictionary.get("envelope");
-        if (env == null) {
-            Object sender = dictionary.get("sender");
-            Object receiver = dictionary.get("receiver");
-            Object time = dictionary.get("time");
-            if (sender != null && receiver != null) {
-                Map<String, Object> map = new HashMap<>();
-                map.put("sender", sender);
-                map.put("receiver", receiver);
-                map.put("time", time);
-                env = map;
-            }
-        }
-        envelope = Envelope.getInstance(env);
-
-        // signature
-        String base64 = (String) dictionary.get("signature");
-        if (base64 == null) {
-            signature = null;
-        } else {
-            signature = Base64.decode(base64);
-        }
     }
 
-    public ReceiptCommand(String text) {
+    public ReceiptCommand(String message, Envelope envelope, byte[] signature) {
         super(RECEIPT);
-        message   = text;
-        envelope  = null;
-        signature = null;
-        dictionary.put("message", text);
+        setMessage(message);
+        setEnvelope(envelope);
+        setSignature(signature);
+    }
+
+    public ReceiptCommand(String message, Envelope envelope) {
+        this(message, envelope, null);
+    }
+
+    public ReceiptCommand(String message) {
+        this(message, null, null);
     }
 
     //-------- setters/getters --------
 
-    public void setEnvelope(Envelope env) {
-        envelope = env;
-        if (env == null) {
-            dictionary.remove("envelope");
-            dictionary.remove("sender");
-            dictionary.remove("receiver");
-            dictionary.remove("time");
-        } else {
-            dictionary.put("sender", env.sender);
-            dictionary.put("receiver", env.receiver);
-            dictionary.put("time", env.time);
+    public String getMessage() {
+        return (String) dictionary.get("message");
+    }
+
+    public void setMessage(String message) {
+        if (message != null) {
+            dictionary.put("message", message);
         }
     }
 
     public Envelope getEnvelope() {
+        if (envelope == null) {
+            // envelope: { sender: "...", receiver: "...", time: 0 }
+            Object env = dictionary.get("envelope");
+            if (env == null) {
+                Object sender = dictionary.get("sender");
+                Object receiver = dictionary.get("receiver");
+                if (sender != null && receiver != null) {
+                    env = dictionary;
+                }
+            }
+            envelope = Envelope.getInstance(env);
+        }
         return envelope;
     }
 
-    public void setSignature(byte[] sig) {
-        signature = sig;
-        if (sig == null) {
-            dictionary.remove("signature");
-        } else {
-            dictionary.put("signature", Base64.encode(sig));
+    public void setEnvelope(Envelope env) {
+        if (env != null) {
+            dictionary.put("sender", env.sender);
+            dictionary.put("receiver", env.receiver);
+            dictionary.put("time", env.time);
+            // message type
+            int type = env.getType();
+            if (type > 0) {
+                dictionary.put("type", type);
+            }
+            // group ID
+            Object group = env.getGroup();
+            if (group != null) {
+                dictionary.put("group", group);
+            }
         }
+        envelope = env;
     }
 
     public byte[] getSignature() {
+        if (signature == null) {
+            String base64 = (String) dictionary.get("signature");
+            if (base64 == null) {
+                signature = null;
+            } else {
+                signature = Base64.decode(base64);
+            }
+        }
         return signature;
+    }
+
+    public void setSignature(byte[] sig) {
+        if (sig != null) {
+            dictionary.put("signature", Base64.encode(sig));
+        }
+        signature = sig;
     }
 }

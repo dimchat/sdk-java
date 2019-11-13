@@ -61,8 +61,7 @@ public class BlockCommand extends HistoryCommand {
      */
     public BlockCommand(List list) {
         super(BLOCK);
-        dictionary.put("list", list);
-        blockList = list;
+        setBlockCList(list);
     }
 
     /**
@@ -74,7 +73,7 @@ public class BlockCommand extends HistoryCommand {
 
     //-------- setters/getters --------
 
-    public List getList() {
+    public List getBlockCList() {
         if (blockList == null) {
             Object list = dictionary.get("list");
             if (list != null) {
@@ -85,7 +84,7 @@ public class BlockCommand extends HistoryCommand {
         return blockList;
     }
 
-    public void setList(List list) {
+    public void setBlockCList(List list) {
         if (list == null) {
             dictionary.remove("list");
         } else {

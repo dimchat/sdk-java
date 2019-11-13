@@ -31,6 +31,7 @@
 package chat.dim.cpu;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import chat.dim.Messenger;
@@ -74,8 +75,10 @@ public class CommandProcessor extends ContentProcessor {
         if (proc == null) {
             // try to create new processor with content type
             Class clazz = cpuClass(command);
-            proc = (CommandProcessor) createProcessor(clazz, getMessenger());
-            commandProcessors.put(command, proc);
+            if (clazz != null) {
+                proc = (CommandProcessor) createProcessor(clazz);
+                commandProcessors.put(command, proc);
+            }
         }
         return proc;
     }
@@ -89,7 +92,7 @@ public class CommandProcessor extends ContentProcessor {
         String command = ((Command) content).command;
         CommandProcessor cpu = getCPU(command);
         if (cpu == null) {
-            String text = "command not support yet: " + command;
+            String text = String.format(Locale.CHINA, "Command (name: %s) not support yet!", command);
             return new TextContent(text);
         }
         assert cpu != this; // Dead cycle!

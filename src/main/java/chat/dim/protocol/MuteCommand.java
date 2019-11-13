@@ -61,8 +61,7 @@ public class MuteCommand extends HistoryCommand {
      */
     public MuteCommand(List list) {
         super(MUTE);
-        dictionary.put("list", list);
-        muteList = list;
+        setMuteList(list);
     }
 
     /**

@@ -43,8 +43,11 @@ import chat.dim.dkd.*;
 import chat.dim.mkm.ID;
 import chat.dim.mkm.LocalUser;
 import chat.dim.mkm.Meta;
+import chat.dim.protocol.Command;
 import chat.dim.protocol.FileContent;
 import chat.dim.protocol.ForwardContent;
+import chat.dim.protocol.group.InviteCommand;
+import chat.dim.protocol.group.QueryCommand;
 
 public class Messenger extends Transceiver implements ConnectionDelegate {
 
@@ -99,8 +102,7 @@ public class Messenger extends Transceiver implements ConnectionDelegate {
     public List<LocalUser> getLocalUsers() {
         Object users = getContext("local_users");
         if (users == null) {
-            users = new ArrayList<>();
-            setContext("local_users", users);
+            return null;
         }
         return (List<LocalUser>) users;
     }
@@ -113,7 +115,7 @@ public class Messenger extends Transceiver implements ConnectionDelegate {
 
     public LocalUser getCurrentUser() {
         List<LocalUser> users = getLocalUsers();
-        if (users.size() == 0) {
+        if (users == null || users.size() == 0) {
             return null;
         }
         return users.get(0);
@@ -121,6 +123,17 @@ public class Messenger extends Transceiver implements ConnectionDelegate {
 
     public void setCurrentUser(LocalUser currentUser) {
         List<LocalUser> users = getLocalUsers();
+        if (users == null) {
+            // local_users not set
+            users = new ArrayList<>();
+            users.add(currentUser);
+            setLocalUsers(users);
+            return;
+        } else if (users.size() == 0) {
+            // local_users empty
+            users.add(currentUser);
+            return;
+        }
         int index = users.indexOf(currentUser);
         if (index != 0) {
             // set the current user in the front of local users list
@@ -277,16 +290,10 @@ public class Messenger extends Transceiver implements ConnectionDelegate {
     }
 
     public boolean sendContent(Content content, ID receiver, Callback callback, boolean split) {
-        InstantMessage iMsg = packContent(content, receiver);
-        return sendMessage(iMsg, callback, split);
-    }
-
-    private InstantMessage packContent(Content content, ID receiver) {
         LocalUser user = getCurrentUser();
-        if (user == null) {
-            throw new NullPointerException("failed to get current user");
-        }
-        return new InstantMessage(content, user.identifier, receiver);
+        assert user != null;
+        InstantMessage iMsg = new InstantMessage(content, user.identifier, receiver);
+        return sendMessage(iMsg, callback, split);
     }
 
     /**
@@ -329,7 +336,7 @@ public class Messenger extends Transceiver implements ConnectionDelegate {
         return OK;
     }
 
-    private boolean sendMessage(ReliableMessage rMsg, Callback callback) {
+    protected boolean sendMessage(ReliableMessage rMsg, Callback callback) {
         CompletionHandler handler = new CompletionHandler() {
             @Override
             public void onSuccess() {
@@ -355,11 +362,56 @@ public class Messenger extends Transceiver implements ConnectionDelegate {
             // nothing to response
             return null;
         }
+        LocalUser user = getCurrentUser();
+        assert user != null;
         Facebook facebook = getFacebook();
-        ID sender = facebook.getID(rMsg.envelope.sender);
-        InstantMessage iMsg = packContent(response, sender);
+        ID receiver = facebook.getID(rMsg.envelope.sender);
+        InstantMessage iMsg = new InstantMessage(response, user.identifier, receiver);
         ReliableMessage nMsg = signMessage(encryptMessage(iMsg));
         return serializeMessage(nMsg);
+    }
+
+    private boolean isEmpty(ID group) {
+        Facebook facebook = getFacebook();
+        List members = facebook.getMembers(group);
+        if (members == null || members.size() == 0) {
+            return true;
+        }
+        ID owner = facebook.getOwner(group);
+        return owner == null;
+    }
+
+    private boolean checkGroup(Content content, ID sender) {
+        // Check if it is a group message, and whether the group members info needs update
+        Facebook facebook = getFacebook();
+        ID group = facebook.getID(content.getGroup());
+        if (group == null || group.isBroadcast()) {
+            // 1. personal message
+            // 2. broadcast message
+            return false;
+        }
+        // check meta for new group ID
+        Meta meta = facebook.getMeta(group);
+        if (meta == null) {
+            // NOTICE: if meta for group not found,
+            //         facebook should query it from DIM network automatically
+            // TODO: insert the message to a temporary queue to wait meta
+            throw new NullPointerException("group meta not found: " + group);
+        }
+        boolean needsUpdate = isEmpty(group);
+        if (content instanceof InviteCommand) {
+            // FIXME: can we trust this stranger?
+            //        may be we should keep this members list temporary,
+            //        and send 'query' to the owner immediately.
+            // TODO: check whether the members list is a full list,
+            //       it should contain the group owner(owner)
+            needsUpdate = false;
+        }
+        if (needsUpdate) {
+            Command cmd = new QueryCommand(group);
+            return sendContent(cmd, sender);
+        }
+        return false;
     }
 
     private Content processMessage(ReliableMessage rMsg) {
@@ -368,7 +420,6 @@ public class Messenger extends Transceiver implements ConnectionDelegate {
         if (sMsg == null) {
             throw new RuntimeException("failed to verify message: " + rMsg);
         }
-        MessengerDelegate delegate = getDelegate();
         Facebook facebook = getFacebook();
         ID receiver = facebook.getID(rMsg.envelope.receiver);
         //
@@ -377,7 +428,7 @@ public class Messenger extends Transceiver implements ConnectionDelegate {
         if (receiver.getType().isGroup() && receiver.isBroadcast()) {
             // if it's a grouped broadcast ID, then
             //    split and deliver to everyone
-            return delegate.broadcastMessage(rMsg);
+            return broadcastMessage(rMsg);
         }
         //
         //  2. try to decrypt
@@ -386,7 +437,7 @@ public class Messenger extends Transceiver implements ConnectionDelegate {
         if (iMsg == null) {
             // cannot decrypt this message, not for you?
             // deliver to the receiver
-            return delegate.deliverMessage(rMsg);
+            return deliverMessage(rMsg);
         }
         //
         //  3. check top-secret message
@@ -394,12 +445,66 @@ public class Messenger extends Transceiver implements ConnectionDelegate {
         Content content = iMsg.content;
         if (content instanceof ForwardContent) {
             // it's asking you to forward it
-            return delegate.forwardMessage(((ForwardContent) content).forwardMessage);
+            return forwardMessage(((ForwardContent) content).forwardMessage);
         }
         //
-        //  4. process
+        //  4. check group
         //
         ID sender = facebook.getID(rMsg.envelope.sender);
-        return getCPU().process(content, sender, iMsg);
+        if (checkGroup(content, sender)) {
+            // sending query group command
+        }
+        //
+        //  5. process
+        //
+        Content response = getCPU().process(content, sender, iMsg);
+        if (saveMessage(iMsg)) {
+            return response;
+        }
+        // error
+        return null;
+    }
+
+    /**
+     * Save the message into local storage
+     *
+     * @param msg - instant message
+     * @return true on success
+     */
+    protected boolean saveMessage(InstantMessage msg) {
+        return false;
+    }
+
+    /**
+     * Deliver message to everyone@everywhere, including all neighbours
+     *
+     * @param msg - broadcast message
+     * @return receipt on success
+     */
+    protected Content broadcastMessage(ReliableMessage msg) {
+        // TODO: implements it as a station
+        return null;
+    }
+
+    /**
+     * Deliver message to the receiver, or broadcast to neighbours
+     *
+     * @param msg - reliable message
+     * @return receipt on success
+     */
+    protected Content deliverMessage(ReliableMessage msg) {
+        // TODO: implements it as a station
+        return null;
+    }
+
+    /**
+     * Re-pack and deliver (Top-Secret) message to the real receiver
+     *
+     * @param msg - top-secret message
+     * @return receipt on success
+     */
+    protected Content forwardMessage(ReliableMessage msg) {
+        // TODO: implements it as a station
+        return null;
     }
 }
