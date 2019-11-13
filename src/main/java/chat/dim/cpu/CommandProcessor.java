@@ -57,10 +57,10 @@ public class CommandProcessor extends ContentProcessor {
     public static void register(String command, Class clazz) {
         if (clazz == null) {
             commandProcessorClasses.remove(command);
-        } else if (clazz.equals(ContentProcessor.class)) {
+        } else if (clazz.equals(CommandProcessor.class)) {
             throw new IllegalArgumentException("should not add CommandProcessor itself!");
         } else {
-            assert Content.class.isAssignableFrom(clazz); // asSubclass
+            assert CommandProcessor.class.isAssignableFrom(clazz); // asSubclass
             commandProcessorClasses.put(command, clazz);
         }
     }
@@ -71,16 +71,16 @@ public class CommandProcessor extends ContentProcessor {
     }
 
     protected CommandProcessor getCPU(String command) {
-        CommandProcessor proc = commandProcessors.get(command);
-        if (proc == null) {
+        CommandProcessor cpu = commandProcessors.get(command);
+        if (cpu == null) {
             // try to create new processor with content type
             Class clazz = cpuClass(command);
             if (clazz != null) {
-                proc = (CommandProcessor) createProcessor(clazz);
-                commandProcessors.put(command, proc);
+                cpu = (CommandProcessor) createProcessor(clazz);
+                commandProcessors.put(command, cpu);
             }
         }
-        return proc;
+        return cpu;
     }
 
     //-------- Main --------

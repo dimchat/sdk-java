@@ -66,7 +66,7 @@ public class HistoryCommandProcessor extends CommandProcessor {
             String command = ((Command) content).command;
             cpu = getCPU(command);
             if (cpu == null) {
-                String text = String.format(Locale.CHINA, "History command (name: %s) not support yet!", command);;
+                String text = String.format(Locale.CHINA, "History command (name: %s) not support yet!", command);
                 return new TextContent(text);
             }
         } else {

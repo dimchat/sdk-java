@@ -203,7 +203,7 @@ public abstract class Facebook extends Barrack {
     //
     //  Relationship
     //
-    protected boolean cache(List<ID> list, ID identifier) {
+    private boolean cacheUsersList(List<ID> list, ID identifier) {
         NetworkType type = identifier.getType();
         if (type.isGroup()) {
             membersMap.put(identifier, list);
@@ -213,6 +213,14 @@ public abstract class Facebook extends Barrack {
             throw new IllegalArgumentException("entity ID not support: " + identifier);
         }
         return true;
+    }
+
+    //
+    //  User contacts
+    //
+    protected boolean cacheContacts(List<ID> contacts, ID user) {
+        assert user.getType().isUser();
+        return cacheUsersList(contacts, user);
     }
 
     /**
@@ -230,6 +238,14 @@ public abstract class Facebook extends Barrack {
      * @return contact list on success
      */
     protected abstract List<ID> loadContacts(ID user);
+
+    //
+    //  Group members
+    //
+    protected boolean cacheMembers(List<ID> members, ID group) {
+        assert group.getType().isGroup();
+        return cacheUsersList(members, group);
+    }
 
     /**
      *  Save members of group
@@ -417,7 +433,7 @@ public abstract class Facebook extends Barrack {
         if (contacts == null) {
             contacts = loadContacts(user);
             if (contacts != null) {
-                cache(contacts, user);
+                cacheContacts(contacts, user);
             }
         }
         return contacts;
@@ -483,7 +499,7 @@ public abstract class Facebook extends Barrack {
         if (members == null) {
             members = loadMembers(group);
             if (members != null) {
-                cache(members, group);
+                cacheMembers(members, group);
             }
         }
         return members;
@@ -543,21 +559,5 @@ public abstract class Facebook extends Barrack {
             }
         }
         return false;
-    }
-
-    static {
-        // register new asymmetric cryptography key classes
-//        PrivateKeyImpl.register(PrivateKey.ECC, ECCPrivateKey.class);
-//        PublicKeyImpl.register(PublicKey.ECC, ECCPublicKey.class);
-
-        // register new address classes
-//        Address.register(BTCAddress.class);
-//        Address.register(ETHAddress.class);
-
-        // register new meta classes
-//        Meta.register(Meta.VersionBTC, BTCMeta.class);
-//        Meta.register(Meta.VersionExBTC, BTCMeta.class);
-//        Meta.register(Meta.VersionETH, ETHMeta.class);
-//        Meta.register(Meta.VersionExETH, ETHMeta.class);
     }
 }

@@ -1,7 +1,36 @@
+/* license: https://mit-license.org
+ *
+ *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
+ *
+ *                                Written in 2019 by Moky <albert.moky@gmail.com>
+ *
+ * ==============================================================================
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2019 Albert Moky
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * ==============================================================================
+ */
 package chat.dim.cpu.group;
 
 import java.util.List;
-import java.util.Locale;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
@@ -9,8 +38,6 @@ import chat.dim.cpu.GroupCommandProcessor;
 import chat.dim.dkd.Content;
 import chat.dim.dkd.InstantMessage;
 import chat.dim.mkm.ID;
-import chat.dim.protocol.ReceiptCommand;
-import chat.dim.protocol.TextContent;
 import chat.dim.protocol.group.QuitCommand;
 
 public class QuitCommandProcessor extends GroupCommandProcessor {
@@ -19,7 +46,7 @@ public class QuitCommandProcessor extends GroupCommandProcessor {
         super(messenger);
     }
 
-    private boolean doQuit(ID sender, ID group) {
+    private void doQuit(ID sender, ID group) {
         Facebook facebook = getFacebook();
         // existed members
         List<ID> members = facebook.getMembers(group);
@@ -27,13 +54,10 @@ public class QuitCommandProcessor extends GroupCommandProcessor {
             throw new NullPointerException("Group members not found: " + group);
         }
         if (!members.contains(sender)) {
-            return false;
+            return;
         }
         members.remove(sender);
-        if (facebook.saveMembers(members, group)) {
-            return true;
-        }
-        return false;
+        facebook.saveMembers(members, group);
     }
 
     //-------- Main --------
@@ -51,15 +75,9 @@ public class QuitCommandProcessor extends GroupCommandProcessor {
             String text = "assistant cannot quit: " + sender + " -> " + group;
             throw new UnsupportedOperationException(text);
         }
-        if (facebook.existsMember(sender, group)) {
-            String text = "You are not a member of group: " + group;
-            return new TextContent(text);
-        }
         // 2. remove the sender from group members
-        if (doQuit(sender, group)) {
-            // failed to update group members
-        }
-        String text = String.format(Locale.CHINA, "Group command received: %s quit", sender);
-        return new ReceiptCommand(text);
+        doQuit(sender, group);
+        // 3. response (no need to response this group command)
+        return null;
     }
 }

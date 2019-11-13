@@ -30,9 +30,7 @@
  */
 package chat.dim;
 
-import chat.dim.dkd.Content;
 import chat.dim.dkd.InstantMessage;
-import chat.dim.dkd.ReliableMessage;
 
 public interface MessengerDelegate {
 

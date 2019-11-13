@@ -30,11 +30,11 @@
  */
 package chat.dim;
 
-import chat.dim.mkm.Address;
-import chat.dim.mkm.ID;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import chat.dim.mkm.Address;
+import chat.dim.mkm.ID;
 
 public abstract class AddressNameService {
 

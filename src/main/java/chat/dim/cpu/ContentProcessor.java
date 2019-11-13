@@ -41,9 +41,11 @@ import chat.dim.Messenger;
 import chat.dim.dkd.Content;
 import chat.dim.dkd.InstantMessage;
 import chat.dim.mkm.ID;
-import chat.dim.protocol.Command;
 import chat.dim.protocol.ContentType;
 
+/**
+ *  Content/Command Processing Units
+ */
 public class ContentProcessor {
 
     private final Map<Integer, ContentProcessor> contentProcessors = new HashMap<>();
@@ -58,14 +60,6 @@ public class ContentProcessor {
         return messengerRef.get();
     }
 
-    protected Map<String, Object> getContext() {
-        return getMessenger().getContext();
-    }
-
-    protected Object getContext(String key) {
-        return getMessenger().getContext(key);
-    }
-
     protected Facebook getFacebook() {
         return getMessenger().getFacebook();
     }
@@ -73,7 +67,7 @@ public class ContentProcessor {
     //-------- Runtime --------
 
     @SuppressWarnings("unchecked")
-    protected ContentProcessor createProcessor(Class clazz) {
+    ContentProcessor createProcessor(Class clazz) {
         // try 'new Clazz(dict)'
         try {
             Constructor constructor = clazz.getConstructor(Messenger.class);
@@ -93,7 +87,7 @@ public class ContentProcessor {
         } else if (clazz.equals(ContentProcessor.class)) {
             throw new IllegalArgumentException("should not add ContentProcessor itself!");
         } else {
-            assert Content.class.isAssignableFrom(clazz); // asSubclass
+            assert ContentProcessor.class.isAssignableFrom(clazz); // asSubclass
             contentProcessorClasses.put(type, clazz);
         }
     }
@@ -108,14 +102,14 @@ public class ContentProcessor {
     }
 
     private ContentProcessor getCPU(Integer type) {
-        ContentProcessor proc = contentProcessors.get(type);
-        if (proc == null) {
+        ContentProcessor cpu = contentProcessors.get(type);
+        if (cpu == null) {
             // try to create new processor with content type
             Class clazz = cpuClass(type);
-            proc = createProcessor(clazz);
-            contentProcessors.put(type, proc);
+            cpu = createProcessor(clazz);
+            contentProcessors.put(type, cpu);
         }
-        return proc;
+        return cpu;
     }
 
     //-------- Main --------

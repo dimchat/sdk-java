@@ -32,7 +32,6 @@ package chat.dim.cpu.group;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
@@ -42,7 +41,6 @@ import chat.dim.dkd.Content;
 import chat.dim.dkd.InstantMessage;
 import chat.dim.mkm.ID;
 import chat.dim.protocol.GroupCommand;
-import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.group.InviteCommand;
 
 public class InviteCommandProcessor extends GroupCommandProcessor {
@@ -57,12 +55,7 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
         // NOTICE: owner invite owner?
         //         it's a Reset command!
         if (containsOwner(inviteList, group)) {
-            if (facebook.isOwner(sender, group)) {
-                return true;
-            }
-            if (facebook.existsAssistant(sender, group)) {
-                return true;
-            }
+            return facebook.isOwner(sender, group);
         }
         return false;
     }
@@ -136,9 +129,7 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
         if (added != null) {
             content.put("added", added);
         }
-        // 3. response
-        int count = added == null ? 0 : added.size();
-        String text = String.format(Locale.CHINA, "Group command received: invited %d member(s)", count);
-        return new ReceiptCommand(text);
+        // 3. response (no need to response this group command)
+        return null;
     }
 }

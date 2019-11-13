@@ -67,7 +67,7 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
     }
 
     // convert String list to ID list
-    protected List<ID> convertMembers(List members) {
+    private List<ID> convertMembers(List members) {
         Facebook facebook = getFacebook();
         List<ID> array = new ArrayList<>();
         ID identifier;
