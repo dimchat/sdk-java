@@ -64,6 +64,14 @@ public class ContentProcessor {
         return getMessenger().getFacebook();
     }
 
+    protected Object getContext(String key) {
+        return getMessenger().getContext(key);
+    }
+
+    protected void setContext(String key, Object value) {
+        getMessenger().setContext(key, value);
+    }
+
     //-------- Runtime --------
 
     @SuppressWarnings("unchecked")
