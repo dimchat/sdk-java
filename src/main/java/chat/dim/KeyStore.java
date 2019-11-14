@@ -38,6 +38,10 @@ import chat.dim.mkm.ID;
 
 public class KeyStore extends KeyCache {
 
+    public KeyStore() {
+        super();
+    }
+
     @Override
     public boolean saveKeys(Map keyMap) {
         return false;

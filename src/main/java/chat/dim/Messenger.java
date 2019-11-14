@@ -49,7 +49,7 @@ import chat.dim.protocol.ForwardContent;
 import chat.dim.protocol.group.InviteCommand;
 import chat.dim.protocol.group.QueryCommand;
 
-public class Messenger extends Transceiver implements ConnectionDelegate {
+public abstract class Messenger extends Transceiver implements ConnectionDelegate {
 
     public Messenger() {
         super();
@@ -471,9 +471,7 @@ public class Messenger extends Transceiver implements ConnectionDelegate {
      * @param msg - instant message
      * @return true on success
      */
-    protected boolean saveMessage(InstantMessage msg) {
-        return false;
-    }
+    protected abstract boolean saveMessage(InstantMessage msg);
 
     /**
      * Deliver message to everyone@everywhere, including all neighbours

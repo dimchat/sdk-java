@@ -30,6 +30,7 @@
  */
 package chat.dim;
 
+import java.lang.ref.WeakReference;
 import java.util.*;
 
 import chat.dim.core.Barrack;
@@ -48,7 +49,7 @@ public abstract class Facebook extends Barrack {
 
     public static long EXPIRES = 3600;  // profile expires (1 hour)
 
-    public AddressNameService ans = null;
+    private WeakReference<AddressNameService> ansRef = null;
 
     // memory caches
     private Map<ID, Profile>    profileMap    = new HashMap<>();
@@ -58,6 +59,25 @@ public abstract class Facebook extends Barrack {
 
     protected Facebook() {
         super();
+    }
+
+    public AddressNameService getANS() {
+        if (ansRef == null) {
+            return null;
+        }
+        return ansRef.get();
+    }
+
+    public void setANS(AddressNameService ans) {
+        ansRef = new WeakReference<>(ans);
+    }
+
+    private ID ansGet(String name) {
+        AddressNameService ans = getANS();
+        if (ans == null) {
+            return null;
+        }
+        return ans.identifier(name);
     }
 
     //
@@ -284,15 +304,9 @@ public abstract class Facebook extends Barrack {
 
     @Override
     public ID getID(Object string) {
-        if (string == null) {
-            return null;
-        } else if (string instanceof ID) {
-            return (ID) string;
-        }
-        assert string instanceof String;
-        if (ans != null) {
+        if (string instanceof String) {
             // try ANS record
-            ID identifier = ans.identifier((String) string);
+            ID identifier = ansGet((String) string);
             if (identifier != null) {
                 return identifier;
             }
@@ -547,13 +561,13 @@ public abstract class Facebook extends Barrack {
     //
     public List<ID> getAssistants(ID group) {
         assert group.getType().isGroup();
-        List<ID> assistants = new ArrayList<>();
-        if (ans != null) {
-            ID identifier = ans.identifier("assistant");
-            if (identifier != null) {
-                assistants.add(identifier);
-            }
+        // try ANS record
+        ID identifier = ansGet("assistant");
+        if (identifier == null) {
+            return null;
         }
+        List<ID> assistants = new ArrayList<>();
+        assistants.add(identifier);
         return assistants;
     }
 
