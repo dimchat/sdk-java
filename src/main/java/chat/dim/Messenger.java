@@ -41,7 +41,7 @@ import chat.dim.cpu.ContentProcessor;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.dkd.*;
 import chat.dim.mkm.ID;
-import chat.dim.mkm.LocalUser;
+import chat.dim.mkm.User;
 import chat.dim.mkm.Meta;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.FileContent;
@@ -99,30 +99,30 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
     // All local users (for decrypting received message)
 
     @SuppressWarnings("unchecked")
-    public List<LocalUser> getLocalUsers() {
+    public List<User> getLocalUsers() {
         Object users = getContext("local_users");
         if (users == null) {
             return null;
         }
-        return (List<LocalUser>) users;
+        return (List<User>) users;
     }
 
-    public void setLocalUsers(List<LocalUser> users) {
+    public void setLocalUsers(List<User> users) {
         setContext("local_users", users);
     }
 
     // Current user (for signing and sending message)
 
-    public LocalUser getCurrentUser() {
-        List<LocalUser> users = getLocalUsers();
+    public User getCurrentUser() {
+        List<User> users = getLocalUsers();
         if (users == null || users.size() == 0) {
             return null;
         }
         return users.get(0);
     }
 
-    public void setCurrentUser(LocalUser currentUser) {
-        List<LocalUser> users = getLocalUsers();
+    public void setCurrentUser(User currentUser) {
+        List<User> users = getLocalUsers();
         if (users == null) {
             // local_users not set
             users = new ArrayList<>();
@@ -290,7 +290,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
     }
 
     public boolean sendContent(Content content, ID receiver, Callback callback, boolean split) {
-        LocalUser user = getCurrentUser();
+        User user = getCurrentUser();
         assert user != null;
         InstantMessage iMsg = new InstantMessage(content, user.identifier, receiver);
         return sendMessage(iMsg, callback, split);
@@ -362,7 +362,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
             // nothing to response
             return null;
         }
-        LocalUser user = getCurrentUser();
+        User user = getCurrentUser();
         assert user != null;
         Facebook facebook = getFacebook();
         ID receiver = facebook.getID(rMsg.envelope.sender);
@@ -479,10 +479,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
      * @param msg - broadcast message
      * @return receipt on success
      */
-    protected Content broadcastMessage(ReliableMessage msg) {
-        // TODO: implements it as a station
-        return null;
-    }
+    protected abstract Content broadcastMessage(ReliableMessage msg);
 
     /**
      * Deliver message to the receiver, or broadcast to neighbours
@@ -490,10 +487,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
      * @param msg - reliable message
      * @return receipt on success
      */
-    protected Content deliverMessage(ReliableMessage msg) {
-        // TODO: implements it as a station
-        return null;
-    }
+    protected abstract Content deliverMessage(ReliableMessage msg);
 
     /**
      * Re-pack and deliver (Top-Secret) message to the real receiver
@@ -502,7 +496,17 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
      * @return receipt on success
      */
     protected Content forwardMessage(ReliableMessage msg) {
-        // TODO: implements it as a station
-        return null;
+        User user = getCurrentUser();
+        assert user != null;
+        ID receiver = getFacebook().getID(msg.envelope.receiver);
+        // repack the top-secret message
+        Content content = new ForwardContent(msg);
+        InstantMessage iMsg = new InstantMessage(content, user.identifier, receiver);
+        // encrypt, sign & deliver it
+        SecureMessage sMsg = encryptMessage(iMsg);
+        assert sMsg != null;
+        ReliableMessage rMsg = signMessage(sMsg);
+        assert rMsg != null;
+        return deliverMessage(rMsg);
     }
 }

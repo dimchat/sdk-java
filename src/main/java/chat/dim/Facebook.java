@@ -35,6 +35,7 @@ import java.util.*;
 
 import chat.dim.core.Barrack;
 import chat.dim.crypto.PrivateKey;
+import chat.dim.crypto.PublicKey;
 import chat.dim.group.Polylogue;
 import chat.dim.mkm.Address;
 import chat.dim.mkm.ID;
@@ -43,7 +44,6 @@ import chat.dim.mkm.NetworkType;
 import chat.dim.mkm.Profile;
 import chat.dim.mkm.User;
 import chat.dim.mkm.Group;
-import chat.dim.mkm.LocalUser;
 
 public abstract class Facebook extends Barrack {
 
@@ -90,6 +90,7 @@ public abstract class Facebook extends Barrack {
         return meta.matches(identifier);
     }
 
+    @Override
     protected boolean cache(Meta meta, ID identifier) {
         if (!verify(meta, identifier)) {
             return false;
@@ -329,12 +330,7 @@ public abstract class Facebook extends Barrack {
         }
         NetworkType type = identifier.getType();
         if (type.isPerson()) {
-            PrivateKey key = getPrivateKeyForSignature(identifier);
-            if (key == null) {
-                user = new User(identifier);
-            } else {
-                user = new LocalUser(identifier);
-            }
+            user = new User(identifier);
         } else {
             throw new UnsupportedOperationException("unsupported user type: " + type);
         }
@@ -413,6 +409,23 @@ public abstract class Facebook extends Barrack {
     //-------- UserDataSource
 
     @Override
+    public List<ID> getContacts(ID user) {
+        List<ID> contacts;// = super.getContacts(identifier);
+        assert user.getType().isUser();
+        contacts = contactsMap.get(user);
+        if (contacts != null) {
+            return contacts;
+        }
+        // load from local storage
+        contacts = loadContacts(user);
+        if (contacts == null) {
+            return null;
+        }
+        cacheContacts(contacts, user);
+        return contacts;
+    }
+
+    @Override
     public PrivateKey getPrivateKeyForSignature(ID user) {
         PrivateKey key = privateKeyMap.get(user);
         if (key != null) {
@@ -437,23 +450,6 @@ public abstract class Facebook extends Barrack {
             keys.add(key);
         }
         return keys;
-    }
-
-    @Override
-    public List<ID> getContacts(ID user) {
-        List<ID> contacts;// = super.getContacts(identifier);
-        assert user.getType().isUser();
-        contacts = contactsMap.get(user);
-        if (contacts != null) {
-            return contacts;
-        }
-        // load from local storage
-        contacts = loadContacts(user);
-        if (contacts == null) {
-            return null;
-        }
-        cacheContacts(contacts, user);
-        return contacts;
     }
 
     //-------- GroupDataSource
