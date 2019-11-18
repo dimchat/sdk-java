@@ -50,14 +50,16 @@ public class ProfileCommandProcessor extends CommandProcessor {
     }
 
     private Content getProfile(ID identifier) {
+        Facebook facebook = getFacebook();
         // query profile for ID
-        Profile profile = getFacebook().getProfile(identifier);
+        Profile profile = facebook.getProfile(identifier);
         if (profile == null) {
+            // profile not found
             String text = String.format(Locale.CHINA, "Sorry, profile for %s not found", identifier);
             return new TextContent(text);
-        } else {
-            return new ProfileCommand(identifier, profile);
         }
+        // response
+        return new ProfileCommand(identifier, profile);
     }
 
     private Content putProfile(ID identifier, Meta meta, Profile profile) {
@@ -65,18 +67,25 @@ public class ProfileCommandProcessor extends CommandProcessor {
         if (meta != null) {
             // received a meta for ID
             if (!facebook.saveMeta(meta, identifier)) {
+                // meta not match
                 String text = String.format(Locale.CHINA, "Sorry, meta for %s error", identifier);
                 return new TextContent(text);
             }
         }
         // receive a profile for ID
-        if (facebook.saveProfile(profile))  {
-            String text = String.format(Locale.CHINA, "Profile saved for %s", identifier);
-            return new ReceiptCommand(text);
-        } else {
+        if (!facebook.verify(profile)) {
+            // profile signature not match
+            String text = String.format(Locale.CHINA, "Profile not match ID: %s", identifier);
+            return new TextContent(text);
+        }
+        if (!facebook.saveProfile(profile))  {
+            // save profile failed
             String text = String.format(Locale.CHINA, "Sorry, profile for %s error", identifier);
             return new TextContent(text);
         }
+        // response
+        String text = String.format(Locale.CHINA, "Profile saved for %s", identifier);
+        return new ReceiptCommand(text);
     }
 
     //-------- Main --------

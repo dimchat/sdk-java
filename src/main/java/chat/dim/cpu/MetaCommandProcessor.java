@@ -32,6 +32,7 @@ package chat.dim.cpu;
 
 import java.util.Locale;
 
+import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.dkd.Content;
 import chat.dim.dkd.InstantMessage;
@@ -48,25 +49,34 @@ public class MetaCommandProcessor extends CommandProcessor {
     }
 
     private Content getMeta(ID identifier) {
+        Facebook facebook = getFacebook();
         // query meta for ID
-        Meta meta = getFacebook().getMeta(identifier);
+        Meta meta = facebook.getMeta(identifier);
         if (meta == null) {
+            // meta not found
             String text = String.format(Locale.CHINA, "Sorry, meta for %s not found", identifier);
             return new TextContent(text);
-        } else {
-            return new MetaCommand(identifier, meta);
         }
+        // response
+        return new MetaCommand(identifier, meta);
     }
 
     private Content putMeta(ID identifier, Meta meta) {
+        Facebook facebook = getFacebook();
         // received a meta for ID
-        if (getFacebook().saveMeta(meta, identifier)) {
-            String text = String.format(Locale.CHINA, "Meta saved for %s", identifier);
-            return new ReceiptCommand(text);
-        } else {
+        if (!facebook.verify(meta, identifier)) {
+            // meta not match
+            String text = String.format(Locale.CHINA, "Meta not match ID: %s", identifier);
+            return new TextContent(text);
+        }
+        if (!facebook.saveMeta(meta, identifier)) {
+            // save meta failed
             String text = String.format(Locale.CHINA, "Sorry, meta for %s error", identifier);
             return new TextContent(text);
         }
+        // response
+        String text = String.format(Locale.CHINA, "Meta saved for %s", identifier);
+        return new ReceiptCommand(text);
     }
 
     //-------- Main --------

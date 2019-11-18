@@ -34,8 +34,8 @@ import java.lang.ref.WeakReference;
 import java.util.*;
 
 import chat.dim.core.Barrack;
+import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.PrivateKey;
-import chat.dim.crypto.PublicKey;
 import chat.dim.group.Polylogue;
 import chat.dim.mkm.Address;
 import chat.dim.mkm.ID;
@@ -99,7 +99,7 @@ public abstract class Facebook extends Barrack {
     }
 
     /**
-     *  Save meta for entity ID
+     *  Save meta for entity ID (must verify first)
      *
      * @param meta - entity meta
      * @param identifier - entity ID
@@ -149,7 +149,7 @@ public abstract class Facebook extends Barrack {
             if (meta == null) {
                 return false;
             }
-            return profile.verify(meta.key);
+            return profile.verify(meta.getKey());
         } else {
             throw new UnsupportedOperationException("unsupported profile ID: " + profile);
         }
@@ -180,7 +180,7 @@ public abstract class Facebook extends Barrack {
     }
 
     /**
-     *  Save profile with entity ID
+     *  Save profile with entity ID (must verify first)
      *
      * @param profile - entity profile
      * @return true on success
@@ -292,7 +292,7 @@ public abstract class Facebook extends Barrack {
             // failed to get meta for this ID
             return null;
         }
-        String seed = meta.seed;
+        String seed = meta.getSeed();
         if (seed == null) {
             return identifier;
         }
@@ -441,13 +441,15 @@ public abstract class Facebook extends Barrack {
     }
 
     @Override
-    public List<PrivateKey> getPrivateKeysForDecryption(ID user) {
-        List<PrivateKey> keys = new ArrayList<>();
+    public List<DecryptKey> getPrivateKeysForDecryption(ID user) {
+        List<DecryptKey> keys = new ArrayList<>();
         // DIMP v1.0:
         //     decrypt key and the sign key are the same key
         PrivateKey key = getPrivateKeyForSignature(user);
         if (key != null) {
-            keys.add(key);
+            // TODO: support profile.key
+            assert key instanceof DecryptKey;
+            keys.add((DecryptKey) key);
         }
         return keys;
     }
@@ -476,7 +478,7 @@ public abstract class Facebook extends Barrack {
                     if (m == null) {
                         continue;
                     }
-                    if (meta.matches(m.key)) {
+                    if (meta.matches(m.getKey())) {
                         // got it
                         return id;
                     }
@@ -531,7 +533,7 @@ public abstract class Facebook extends Barrack {
         if (meta == null) {
             throw new NullPointerException("failed to get meta for member: " + member);
         }
-        return gMeta.matches(meta.key);
+        return gMeta.matches(meta.getKey());
     }
 
     public boolean isOwner(ID member, ID group) {
