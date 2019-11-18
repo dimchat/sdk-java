@@ -36,14 +36,11 @@ import java.util.*;
 import chat.dim.core.Barrack;
 import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.PrivateKey;
-import chat.dim.group.Polylogue;
 import chat.dim.mkm.Address;
 import chat.dim.mkm.ID;
 import chat.dim.mkm.Meta;
 import chat.dim.mkm.NetworkType;
 import chat.dim.mkm.Profile;
-import chat.dim.mkm.User;
-import chat.dim.mkm.Group;
 
 public abstract class Facebook extends Barrack {
 
@@ -314,53 +311,6 @@ public abstract class Facebook extends Barrack {
         }
         // get from barrack
         return super.getID(string);
-    }
-
-    @Override
-    public User getUser(ID identifier) {
-        // get from barrack cache
-        User user = super.getUser(identifier);
-        if (user != null) {
-            return user;
-        }
-        // check meta and private key
-        Meta meta = getMeta(identifier);
-        if (meta == null) {
-            throw new NullPointerException("meta not found: " + identifier);
-        }
-        NetworkType type = identifier.getType();
-        if (type.isPerson()) {
-            user = new User(identifier);
-        } else {
-            throw new UnsupportedOperationException("unsupported user type: " + type);
-        }
-        // cache it in barrack
-        cache(user);
-        return user;
-    }
-
-    @Override
-    public Group getGroup(ID identifier) {
-        // get from barrack cache
-        Group group = super.getGroup(identifier);
-        if (group != null) {
-            return group;
-        }
-        // check meta
-        Meta meta = getMeta(identifier);
-        if (meta == null) {
-            throw new NullPointerException("meta not found: " + identifier);
-        }
-        // create it with type
-        NetworkType type = identifier.getType();
-        if (type == NetworkType.Polylogue) {
-            group = new Polylogue(identifier);
-        } else {
-            throw new UnsupportedOperationException("unsupported group type: " + type);
-        }
-        // cache it in barrack
-        cache(group);
-        return group;
     }
 
     //-------- EntityDataSource
