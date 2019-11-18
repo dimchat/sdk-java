@@ -128,28 +128,40 @@ public abstract class Facebook extends Barrack {
         if (profile == null) {
             return false;
         }
-        if (profile.isValid()) {
-            // already verified
-            return true;
-        }
         ID identifier = getID(profile.getIdentifier());
         if (identifier == null) {
             throw new NullPointerException("profile ID error: " + profile);
         }
-        NetworkType type = identifier.getType();
-        if (type.isUser() || type == NetworkType.Polylogue) {
-            // if this is a user profile,
-            //     verify it with the user's meta.key
-            // else if this is a polylogue profile,
-            //     verify it with the founder's meta.key (which equals to the group's meta.key)
-            Meta meta = getMeta(identifier);
-            if (meta == null) {
+        Meta meta;
+        if (identifier.getType().isGroup()) {
+            // check by each member
+            List<ID> members = getMembers(identifier);
+            if (members == null || members.size() == 0) {
+                throw new NullPointerException("members not found: " + identifier);
+            }
+            for (ID item : members) {
+                meta = getMeta(item);
+                if (meta != null && profile.verify(meta.getKey())) {
+                    return true;
+                }
+            }
+            // TODO: what to do about assistants?
+
+            // check by owner
+            ID owner = getOwner(identifier);
+            if (owner == null) {
+                throw new NullPointerException("owner not found: " + identifier);
+            }
+            if (members.contains(owner)) {
+                // already checked
                 return false;
             }
-            return profile.verify(meta.getKey());
+            meta = getMeta(owner);
         } else {
-            throw new UnsupportedOperationException("unsupported profile ID: " + profile);
+            assert identifier.getType().isUser();
+            meta = getMeta(identifier);
         }
+        return meta != null && profile.verify(meta.getKey());
     }
 
     protected boolean cache(Profile profile, ID identifier) {
