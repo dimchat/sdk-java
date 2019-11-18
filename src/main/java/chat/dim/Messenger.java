@@ -60,6 +60,13 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
     private Map<String, Object> context = new HashMap<>();
     private ContentProcessor cpu = null;
 
+    private ContentProcessor getCPU() {
+        if (cpu == null) {
+            cpu = new ContentProcessor(this);
+        }
+        return cpu;
+    }
+
     public MessengerDelegate getDelegate() {
         if (delegateRef == null) {
             return null;
@@ -144,14 +151,63 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         }
     }
 
-    //-------- Content Processing Unit
-
-    private ContentProcessor getCPU() {
-        if (cpu == null) {
-            cpu = new ContentProcessor(this);
+    protected User select(ID receiver) {
+        List<User> users = getLocalUsers();
+        if (users == null || users.size() == 0) {
+            throw new NullPointerException("current user should not be empty");
+        } else if (receiver.isBroadcast()) {
+            // broadcast message can decrypt by anyone, so just return current user
+            return users.get(0);
         }
-        return cpu;
+        if (receiver.getType().isGroup()) {
+            // group message (recipient not designated)
+            Facebook facebook = getFacebook();
+            List<ID> members = facebook.getMembers(receiver);
+            if (members == null || members.size() == 0) {
+                // TODO: query group members
+                return null;
+            }
+            for (User item : users) {
+                if (members.contains(item.identifier)) {
+                    //setCurrentUser(item);
+                    return item;
+                }
+            }
+        } else {
+            // 1. personal message
+            // 2. split group message
+            assert receiver.getType().isUser();
+            for (User item : users) {
+                if (item.identifier == receiver) {
+                    //setCurrentUser(item);
+                    return item;
+                }
+            }
+        }
+        return null;
     }
+
+    protected SecureMessage trim(SecureMessage sMsg) {
+        Facebook facebook = getFacebook();
+        ID receiver = facebook.getID(sMsg.envelope.receiver);
+        User user = select(receiver);
+        if (user == null) {
+            // current users not match
+            return null;
+        } else if (receiver.getType().isGroup()) {
+            // trim group message
+            sMsg = sMsg.trim(user.identifier);
+        }
+        return sMsg;
+    }
+
+    /**
+     *  Interface for client to query meta on station, or the station query on other station
+     *
+     * @param identifier - entity ID
+     * @return true on success
+     */
+    public abstract boolean queryMeta(ID identifier);
 
     //-------- Transform
 
@@ -170,8 +226,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         if (meta == null) {
             meta = facebook.getMeta(sender);
             if (meta == null) {
-                // TODO: query meta for sender from DIM network
-                //       (do it by application)
+                queryMeta(sender);
                 throw new NullPointerException("failed to get meta for sender: " + sender);
             }
         } else {
@@ -203,10 +258,15 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
 
     @Override
     public InstantMessage decryptMessage(SecureMessage sMsg) {
-        // NOTICE: trim for group message before calling me
-        //         if there are more than 1 local user, check which is the group member
+        // 0. trim message
+        sMsg = trim(sMsg);
+        if (sMsg == null) {
+            // not for you?
+            return null;
+        }
+        // 1. decrypt message
         InstantMessage iMsg = super.decryptMessage(sMsg);
-        // check top-secret message
+        // 2. check top-secret message
         Content content = iMsg.content;
         if (content instanceof ForwardContent) {
             // [Forward Protocol]
