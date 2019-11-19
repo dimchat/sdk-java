@@ -36,11 +36,13 @@ import java.util.*;
 import chat.dim.core.Barrack;
 import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.PrivateKey;
-import chat.dim.mkm.Address;
-import chat.dim.mkm.ID;
-import chat.dim.mkm.Meta;
-import chat.dim.mkm.NetworkType;
-import chat.dim.mkm.Profile;
+import chat.dim.crypto.SignKey;
+import chat.dim.group.Chatroom;
+import chat.dim.group.Polylogue;
+import chat.dim.mkm.*;
+import chat.dim.network.Robot;
+import chat.dim.network.ServiceProvider;
+import chat.dim.network.Station;
 
 public abstract class Facebook extends Barrack {
 
@@ -81,9 +83,7 @@ public abstract class Facebook extends Barrack {
     //  Meta
     //
     public boolean verify(Meta meta, ID identifier) {
-        if (meta == null) {
-            return false;
-        }
+        assert meta != null;
         return meta.matches(identifier);
     }
 
@@ -117,7 +117,7 @@ public abstract class Facebook extends Barrack {
     //
     public boolean verify(Profile profile, ID identifier) {
         if (identifier != null) {
-            if (profile == null || profile.getIdentifier() != identifier) {
+            if (profile == null || !profile.getIdentifier().equals(identifier)) {
                 // profile ID not match
                 return false;
             }
@@ -132,8 +132,20 @@ public abstract class Facebook extends Barrack {
         if (identifier == null) {
             throw new NullPointerException("profile ID error: " + profile);
         }
+        // NOTICE: if this is a user profile,
+        //             verify it with the user's meta.key
+        //         else if this is a polylogue profile,
+        //             verify it with the founder's meta.key
+        //             (which equals to the group's meta.key)
         Meta meta;
         if (identifier.getType().isGroup()) {
+            // polylogue
+            if (identifier.getType() == NetworkType.Polylogue) {
+                meta = getMeta(identifier);
+                if (meta != null && profile.verify(meta.getKey())) {
+                    return true;
+                }
+            }
             // check by each member
             List<ID> members = getMembers(identifier);
             if (members == null || members.size() == 0) {
@@ -141,7 +153,11 @@ public abstract class Facebook extends Barrack {
             }
             for (ID item : members) {
                 meta = getMeta(item);
-                if (meta != null && profile.verify(meta.getKey())) {
+                if (meta == null) {
+                    // FIXME: meta not found for this member
+                    continue;
+                }
+                if (profile.verify(meta.getKey())) {
                     return true;
                 }
             }
@@ -173,18 +189,13 @@ public abstract class Facebook extends Barrack {
         if (!verify(profile, identifier)) {
             return false;
         }
-        // TODO: set expired time
         profileMap.put(identifier, profile);
         return true;
     }
     protected boolean cache(Profile profile) {
-        if (profile == null) {
-            return false;
-        }
+        assert profile != null;
         ID identifier = getID(profile.getIdentifier());
-        if (identifier == null) {
-            throw new NullPointerException("profile ID error: " + profile);
-        }
+        assert identifier != null;
         return cache(profile, identifier);
     }
 
@@ -310,19 +321,59 @@ public abstract class Facebook extends Barrack {
         return identifier;
     }
 
-    //-------- SocialNetworkDataSource
+    @Override
+    protected ID createID(String string) {
+        // try ANS record
+        ID identifier = ansGet(string);
+        if (identifier != null) {
+            return identifier;
+        }
+        // create by barrack
+        return super.createID(string);
+    }
 
     @Override
-    public ID getID(Object string) {
-        if (string instanceof String) {
-            // try ANS record
-            ID identifier = ansGet((String) string);
-            if (identifier != null) {
-                return identifier;
-            }
+    protected User createUser(ID identifier) {
+        assert identifier.getType().isUser();
+        if (identifier.isBroadcast()) {
+            // create user 'anyone@anywhere'
+            return new User(identifier);
         }
-        // get from barrack
-        return super.getID(string);
+        assert getMeta(identifier) != null;
+        // TODO: check user type
+        NetworkType type = identifier.getType();
+        if (type.isPerson()) {
+            return new User(identifier);
+        }
+        if (type.isRobot()) {
+            return new Robot(identifier);
+        }
+        if (type.isStation()) {
+            return new Station(identifier);
+        }
+        throw new TypeNotPresentException("Unsupported user type: " + type, null);
+    }
+
+    @Override
+    protected Group createGroup(ID identifier) {
+        assert identifier.getType().isGroup();
+        if (identifier.isBroadcast()) {
+            // create group 'everyone@everywhere'
+            return new Group(identifier);
+        }
+        assert getMeta(identifier) != null;
+        // TODO: check group type
+        NetworkType type = identifier.getType();
+        if (type == NetworkType.Polylogue) {
+            return new Polylogue(identifier);
+        }
+        if (type == NetworkType.Chatroom) {
+            return new Chatroom(identifier);
+        }
+        if (type.isProvider()) {
+            return new ServiceProvider(identifier);
+        }
+        throw new TypeNotPresentException("Unsupported group type: " + type, null);
     }
 
     //-------- EntityDataSource
@@ -388,7 +439,7 @@ public abstract class Facebook extends Barrack {
     }
 
     @Override
-    public PrivateKey getPrivateKeyForSignature(ID user) {
+    public SignKey getPrivateKeyForSignature(ID user) {
         PrivateKey key = privateKeyMap.get(user);
         if (key != null) {
             return key;
@@ -407,7 +458,7 @@ public abstract class Facebook extends Barrack {
         List<DecryptKey> keys = new ArrayList<>();
         // DIMP v1.0:
         //     decrypt key and the sign key are the same key
-        PrivateKey key = getPrivateKeyForSignature(user);
+        SignKey key = getPrivateKeyForSignature(user);
         if (key != null) {
             // TODO: support profile.key
             assert key instanceof DecryptKey;
@@ -457,6 +508,7 @@ public abstract class Facebook extends Barrack {
         if (owner != null) {
             return owner;
         }
+        // check group type
         if (group.getType() == NetworkType.Polylogue) {
             // Polylogue's owner is its founder
             return getFounder(group);
@@ -468,11 +520,10 @@ public abstract class Facebook extends Barrack {
     @Override
     public List<ID> getMembers(ID group) {
         List<ID> members = super.getMembers(group);
-        if (members != null) {
-            return members;
+        if (members == null) {
+            // get from cache
+            members = membersMap.get(group);
         }
-        assert group.getType().isGroup();
-        members = membersMap.get(group);
         if (members != null) {
             return members;
         }
@@ -507,10 +558,8 @@ public abstract class Facebook extends Barrack {
 
     public boolean existsMember(ID member, ID group) {
         List<ID> members = getMembers(group);
-        for (ID item : members) {
-            if (item.equals(member)) {
-                return true;
-            }
+        if (members != null && members.contains(member)) {
+            return true;
         }
         ID owner = getOwner(group);
         return owner == null || owner.equals(member);
