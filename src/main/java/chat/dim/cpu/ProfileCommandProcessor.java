@@ -66,6 +66,11 @@ public class ProfileCommandProcessor extends CommandProcessor {
         Facebook facebook = getFacebook();
         if (meta != null) {
             // received a meta for ID
+            if (!facebook.verify(meta, identifier)) {
+                // meta not match
+                String text = String.format(Locale.CHINA, "Meta not match ID: %s", identifier);
+                return new TextContent(text);
+            }
             if (!facebook.saveMeta(meta, identifier)) {
                 // meta not match
                 String text = String.format(Locale.CHINA, "Sorry, meta for %s error", identifier);
