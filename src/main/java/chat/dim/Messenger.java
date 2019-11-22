@@ -215,6 +215,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
             meta = facebook.getMeta(sender);
             if (meta == null) {
                 queryMeta(sender);
+                // TODO: save this message in a queue to wait meta response
                 throw new NullPointerException("failed to get meta for sender: " + sender);
             }
         } else {
@@ -411,6 +412,8 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         byte[] data = serializeMessage(rMsg);
         return getDelegate().sendPackage(data, handler);
     }
+
+    //-------- Message
 
     /**
      * Re-pack and deliver (Top-Secret) message to the real receiver

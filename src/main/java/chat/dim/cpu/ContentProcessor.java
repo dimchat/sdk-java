@@ -48,7 +48,7 @@ import chat.dim.protocol.ContentType;
  */
 public class ContentProcessor {
 
-    private final Map<Integer, ContentProcessor> contentProcessors = new HashMap<>();
+    private final Map<ContentType, ContentProcessor> contentProcessors = new HashMap<>();
     private final WeakReference<Messenger> messengerRef;
 
     public ContentProcessor(Messenger messenger) {
@@ -86,10 +86,10 @@ public class ContentProcessor {
         }
     }
 
-    private static Map<Integer, Class> contentProcessorClasses = new HashMap<>();
+    private static Map<ContentType, Class> contentProcessorClasses = new HashMap<>();
 
     @SuppressWarnings("unchecked")
-    public static void register(Integer type, Class clazz) {
+    public static void register(ContentType type, Class clazz) {
         if (clazz == null) {
             contentProcessorClasses.remove(type);
         } else if (clazz.equals(ContentProcessor.class)) {
@@ -100,16 +100,16 @@ public class ContentProcessor {
         }
     }
 
-    private static Class cpuClass(Integer type) {
+    private static Class cpuClass(ContentType type) {
         // get subclass by content type
         Class clazz = contentProcessorClasses.get(type);
         if (clazz == null) {
-            clazz = contentProcessorClasses.get(ContentType.UNKNOWN.value);
+            clazz = contentProcessorClasses.get(ContentType.UNKNOWN);
         }
         return clazz;
     }
 
-    private ContentProcessor getCPU(Integer type) {
+    private ContentProcessor getCPU(ContentType type) {
         ContentProcessor cpu = contentProcessors.get(type);
         if (cpu == null) {
             // try to create new processor with content type
@@ -136,10 +136,10 @@ public class ContentProcessor {
         //  Register all processors with content types
         //
 
-        register(ContentType.COMMAND.value, CommandProcessor.class);
-        register(ContentType.HISTORY.value, HistoryCommandProcessor.class);
+        register(ContentType.COMMAND, CommandProcessor.class);
+        register(ContentType.HISTORY, HistoryCommandProcessor.class);
 
-        register(ContentType.UNKNOWN.value, DefaultContentProcessor.class);
+        register(ContentType.UNKNOWN, DefaultContentProcessor.class);
     }
 }
 

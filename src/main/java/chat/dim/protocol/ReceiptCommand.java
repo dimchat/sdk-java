@@ -108,9 +108,9 @@ public class ReceiptCommand extends Command {
             dictionary.put("receiver", env.receiver);
             dictionary.put("time", env.time);
             // message type
-            int type = env.getType();
-            if (type > 0) {
-                dictionary.put("type", type);
+            ContentType type = env.getType();
+            if (type != null) {
+                dictionary.put("type", type.value);
             }
             // group ID
             Object group = env.getGroup();

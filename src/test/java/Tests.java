@@ -18,7 +18,7 @@ public class Tests extends TestCase {
     }
 
     static {
-        ContentProcessor.register(ContentType.TEXT.value, TextContentProcessor.class);
+        ContentProcessor.register(ContentType.TEXT, TextContentProcessor.class);
         CommandProcessor.register(Command.HANDSHAKE, HandshakeCommandProcessor.class);
     }
 }

@@ -34,6 +34,7 @@ import chat.dim.Messenger;
 import chat.dim.dkd.Content;
 import chat.dim.dkd.InstantMessage;
 import chat.dim.mkm.ID;
+import chat.dim.protocol.ContentType;
 import chat.dim.protocol.TextContent;
 
 import java.util.Locale;
@@ -45,8 +46,14 @@ public class DefaultContentProcessor extends ContentProcessor {
     }
 
     public Content process(Content content, ID sender, InstantMessage iMsg) {
-        int type = content.type;
-        String text = String.format(Locale.CHINA, "Content (type: %d) not support yet!", type);
-        return new TextContent(text);
+        ContentType type = content.type;
+        String text = String.format(Locale.CHINA, "Content (type: %s) not support yet!", type);
+        Content res = new TextContent(text);
+        // check group message
+        Object group = content.getGroup();
+        if (group != null) {
+            res.setGroup(group);
+        }
+        return res;
     }
 }
