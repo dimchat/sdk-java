@@ -41,8 +41,7 @@ import chat.dim.dkd.SecureMessage;
 import chat.dim.mkm.ID;
 import chat.dim.mkm.Meta;
 import chat.dim.mkm.User;
-import chat.dim.protocol.Command;
-import chat.dim.protocol.ForwardContent;
+import chat.dim.protocol.*;
 import chat.dim.protocol.group.InviteCommand;
 import chat.dim.protocol.group.QueryCommand;
 
@@ -189,5 +188,12 @@ public class MessageProcessor implements ConnectionDelegate {
         InstantMessage iMsg = new InstantMessage(response, user.identifier, receiver);
         ReliableMessage nMsg = messenger.signMessage(messenger.encryptMessage(iMsg));
         return messenger.serializeMessage(nMsg);
+    }
+
+    static {
+        // register Commands
+        Command.register(Command.RECEIPT, ReceiptCommand.class);
+        Command.register(BlockCommand.BLOCK, BlockCommand.class);
+        Command.register(MuteCommand.MUTE, MuteCommand.class);
     }
 }
