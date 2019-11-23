@@ -39,7 +39,9 @@ import chat.dim.dkd.Content;
 import chat.dim.dkd.InstantMessage;
 import chat.dim.mkm.ID;
 import chat.dim.protocol.GroupCommand;
+import chat.dim.protocol.group.InviteCommand;
 import chat.dim.protocol.group.QueryCommand;
+import chat.dim.protocol.group.ResetCommand;
 
 public class ResetCommandProcessor extends GroupCommandProcessor {
 
@@ -113,7 +115,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
     //-------- Main --------
 
     public Content process(Content content, ID sender, InstantMessage iMsg) {
-        assert content instanceof GroupCommand;
+        assert content instanceof ResetCommand || content instanceof InviteCommand;
         Facebook facebook = getFacebook();
         ID group = facebook.getID(content.getGroup());
         // new members

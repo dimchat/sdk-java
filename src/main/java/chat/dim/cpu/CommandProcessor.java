@@ -31,7 +31,6 @@
 package chat.dim.cpu;
 
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 import chat.dim.Messenger;
@@ -92,7 +91,7 @@ public class CommandProcessor extends ContentProcessor {
         String command = ((Command) content).command;
         CommandProcessor cpu = getCPU(command);
         if (cpu == null) {
-            String text = String.format(Locale.CHINA, "Command (name: %s) not support yet!", command);
+            String text = String.format("Command (%s) not support yet!", command);
             return new TextContent(text);
         }
         assert cpu != this; // Dead cycle!

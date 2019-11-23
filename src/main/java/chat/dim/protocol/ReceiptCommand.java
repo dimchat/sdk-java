@@ -53,25 +53,20 @@ public class ReceiptCommand extends Command {
 
     // original message info
     private Envelope envelope = null;
-    private byte[] signature = null;
 
     public ReceiptCommand(Map<String, Object> dictionary) {
         super(dictionary);
     }
 
-    public ReceiptCommand(String message, Envelope envelope, byte[] signature) {
+    public ReceiptCommand(String message, Envelope envelope, long sn) {
         super(RECEIPT);
         setMessage(message);
         setEnvelope(envelope);
-        setSignature(signature);
-    }
-
-    public ReceiptCommand(String message, Envelope envelope) {
-        this(message, envelope, null);
+        setSerialNumber(sn);
     }
 
     public ReceiptCommand(String message) {
-        this(message, null, null);
+        this(message, null, 0);
     }
 
     //-------- setters/getters --------
@@ -107,36 +102,13 @@ public class ReceiptCommand extends Command {
             dictionary.put("sender", env.sender);
             dictionary.put("receiver", env.receiver);
             dictionary.put("time", env.time);
-            // message type
-            ContentType type = env.getType();
-            if (type != null) {
-                dictionary.put("type", type.value);
-            }
-            // group ID
-            Object group = env.getGroup();
-            if (group != null) {
-                dictionary.put("group", group);
-            }
         }
         envelope = env;
     }
 
-    public byte[] getSignature() {
-        if (signature == null) {
-            String base64 = (String) dictionary.get("signature");
-            if (base64 == null) {
-                signature = null;
-            } else {
-                signature = Base64.decode(base64);
-            }
+    private void setSerialNumber(long sn) {
+        if (sn > 0) {
+            dictionary.put("sn", sn);
         }
-        return signature;
-    }
-
-    public void setSignature(byte[] sig) {
-        if (sig != null) {
-            dictionary.put("signature", Base64.encode(sig));
-        }
-        signature = sig;
     }
 }

@@ -37,8 +37,6 @@ import chat.dim.mkm.ID;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.TextContent;
 
-import java.util.Locale;
-
 public class HistoryCommandProcessor extends CommandProcessor {
 
     private GroupCommandProcessor gpu = null;
@@ -66,7 +64,7 @@ public class HistoryCommandProcessor extends CommandProcessor {
             String command = ((Command) content).command;
             cpu = getCPU(command);
             if (cpu == null) {
-                String text = String.format(Locale.CHINA, "History command (name: %s) not support yet!", command);
+                String text = String.format("History command (%s) not support yet!", command);
                 return new TextContent(text);
             }
         } else {

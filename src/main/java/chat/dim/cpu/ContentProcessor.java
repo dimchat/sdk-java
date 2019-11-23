@@ -135,6 +135,11 @@ public class ContentProcessor {
         //
         //  Register all processors with content types
         //
+        register(ContentType.TEXT, TextContentProcessor.class);
+        register(ContentType.FILE, FileContentProcessor.class);
+        register(ContentType.IMAGE, ImageContentProcessor.class);
+        register(ContentType.AUDIO, AudioContentProcessor.class);
+        register(ContentType.VIDEO, VideoContentProcessor.class);
 
         register(ContentType.COMMAND, CommandProcessor.class);
         register(ContentType.HISTORY, HistoryCommandProcessor.class);

@@ -30,8 +30,6 @@
  */
 package chat.dim.cpu;
 
-import java.util.Locale;
-
 import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.dkd.Content;
@@ -55,7 +53,7 @@ public class ProfileCommandProcessor extends CommandProcessor {
         Profile profile = facebook.getProfile(identifier);
         if (profile == null) {
             // profile not found
-            String text = String.format(Locale.CHINA, "Sorry, profile for %s not found", identifier);
+            String text = String.format("Sorry, profile not found for ID: %s", identifier);
             return new TextContent(text);
         }
         // response
@@ -68,28 +66,28 @@ public class ProfileCommandProcessor extends CommandProcessor {
             // received a meta for ID
             if (!facebook.verify(meta, identifier)) {
                 // meta not match
-                String text = String.format(Locale.CHINA, "Meta not match ID: %s", identifier);
+                String text = String.format("Meta not match ID: %s", identifier);
                 return new TextContent(text);
             }
             if (!facebook.saveMeta(meta, identifier)) {
                 // meta not match
-                String text = String.format(Locale.CHINA, "Sorry, meta for %s error", identifier);
+                String text = String.format("Sorry, meta error for ID: %s", identifier);
                 return new TextContent(text);
             }
         }
         // receive a profile for ID
         if (!facebook.verify(profile)) {
             // profile signature not match
-            String text = String.format(Locale.CHINA, "Profile not match ID: %s", identifier);
+            String text = String.format("Profile not match ID: %s", identifier);
             return new TextContent(text);
         }
         if (!facebook.saveProfile(profile))  {
             // save profile failed
-            String text = String.format(Locale.CHINA, "Sorry, profile for %s error", identifier);
+            String text = String.format("Sorry, profile error for ID: %s", identifier);
             return new TextContent(text);
         }
         // response
-        String text = String.format(Locale.CHINA, "Profile saved for %s", identifier);
+        String text = String.format("Profile saved for ID: %s", identifier);
         return new ReceiptCommand(text);
     }
 
