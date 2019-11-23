@@ -35,15 +35,14 @@ import java.util.Map;
 
 /**
  *  Command message: {
- *      type : 0x89,
- *      sn   : 123,  // the same serial number with the original message
+ *      type : 0x88,
+ *      sn   : 123,
  *
  *      command : "mute",
- *      time    : 0,
  *      list    : []      // mute-list
  *  }
  */
-public class MuteCommand extends HistoryCommand {
+public class MuteCommand extends Command {
 
     public static final String MUTE   = "mute";
 
@@ -77,7 +76,6 @@ public class MuteCommand extends HistoryCommand {
         if (muteList == null) {
             Object list = dictionary.get("list");
             if (list != null) {
-                assert list instanceof List;
                 muteList = (List) list;
             }
         }

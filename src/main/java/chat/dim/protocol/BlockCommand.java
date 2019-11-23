@@ -35,15 +35,14 @@ import java.util.Map;
 
 /**
  *  Command message: {
- *      type : 0x89,
- *      sn   : 123,  // the same serial number with the original message
+ *      type : 0x88,
+ *      sn   : 123,
  *
  *      command : "block",
- *      time    : 0,
  *      list    : []      // block-list
  *  }
  */
-public class BlockCommand extends HistoryCommand {
+public class BlockCommand extends Command {
 
     public static final String BLOCK   = "block";
 
@@ -77,7 +76,6 @@ public class BlockCommand extends HistoryCommand {
         if (blockList == null) {
             Object list = dictionary.get("list");
             if (list != null) {
-                assert list instanceof List;
                 blockList = (List) list;
             }
         }

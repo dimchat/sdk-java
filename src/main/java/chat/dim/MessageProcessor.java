@@ -191,9 +191,14 @@ public class MessageProcessor implements ConnectionDelegate {
     }
 
     static {
-        // register Commands
+        // register new Commands
         Command.register(Command.RECEIPT, ReceiptCommand.class);
-        Command.register(BlockCommand.BLOCK, BlockCommand.class);
+
         Command.register(MuteCommand.MUTE, MuteCommand.class);
+        Command.register(BlockCommand.BLOCK, BlockCommand.class);
+
+        Command.register(StorageCommand.STORAGE, StorageCommand.class);
+        Command.register(StorageCommand.CONTACTS, StorageCommand.class);
+        Command.register(StorageCommand.PRIVATE_KEY, StorageCommand.class);
     }
 }
