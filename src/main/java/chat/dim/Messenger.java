@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 
 import chat.dim.core.Transceiver;
+import chat.dim.crypto.DecryptKey;
+import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.FileContent;
 import chat.dim.protocol.ForwardContent;
@@ -286,6 +288,8 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         return super.deserializeMessage(data);
     }
 
+    //-------- InstantMessageDelegate
+
     @Override
     public byte[] encryptContent(Content content, Map<String, Object> password, InstantMessage iMsg) {
         SymmetricKey key = getSymmetricKey(password);
@@ -304,6 +308,38 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
             }
         }
         return super.encryptContent(content, key, iMsg);
+    }
+
+    @Override
+    public byte[] encryptKey(Map<String, Object> password, Object receiver, InstantMessage iMsg) {
+        ID to = getID(receiver);
+        Facebook facebook = getFacebook();
+        EncryptKey key = facebook.getPublicKeyForEncryption(to);
+        if (key == null) {
+            Meta meta = facebook.getMeta(to);
+            if (meta == null) {
+                // TODO: save this message in a queue waiting meta response
+                //throw new NullPointerException("failed to get encrypt key for receiver: " + receiver);
+                return null;
+            }
+        }
+        return super.encryptKey(password, receiver, iMsg);
+    }
+
+    //-------- SecureMessageDelegate
+
+    @Override
+    public Map<String, Object> decryptKey(byte[] keyData, Object sender, Object receiver, SecureMessage sMsg) {
+        if (keyData != null) {
+            ID to = getID(sMsg.envelope.receiver);
+            Facebook facebook = getFacebook();
+            List<DecryptKey> keys = facebook.getPrivateKeysForDecryption(to);
+            if (keys == null || keys.size() == 0) {
+                // FIXME: private key lost?
+                throw new NullPointerException("failed to get decrypt keys for receiver: " + to);
+            }
+        }
+        return super.decryptKey(keyData, sender, receiver, sMsg);
     }
 
     @Override
