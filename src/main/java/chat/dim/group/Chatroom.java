@@ -34,7 +34,7 @@ import java.util.List;
 
 import chat.dim.Group;
 import chat.dim.ID;
-import chat.dim.NetworkType;
+import chat.dim.protocol.NetworkType;
 
 public class Chatroom extends Group {
 

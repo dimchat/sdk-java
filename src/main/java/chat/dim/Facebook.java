@@ -42,6 +42,7 @@ import chat.dim.group.Polylogue;
 import chat.dim.network.Robot;
 import chat.dim.network.ServiceProvider;
 import chat.dim.network.Station;
+import chat.dim.protocol.NetworkType;
 
 public abstract class Facebook extends Barrack {
 

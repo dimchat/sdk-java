@@ -32,7 +32,7 @@ package chat.dim.group;
 
 import chat.dim.Group;
 import chat.dim.ID;
-import chat.dim.NetworkType;
+import chat.dim.protocol.NetworkType;
 
 public class Polylogue extends Group {
 
