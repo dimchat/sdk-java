@@ -32,8 +32,7 @@ package chat.dim.protocol;
 
 import java.util.Map;
 
-import chat.dim.format.Base64;
-import chat.dim.dkd.Envelope;
+import chat.dim.Envelope;
 
 /**
  *  Command message: {

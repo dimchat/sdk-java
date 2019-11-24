@@ -30,8 +30,8 @@
  */
 package chat.dim.network;
 
-import chat.dim.mkm.User;
-import chat.dim.mkm.ID;
+import chat.dim.User;
+import chat.dim.ID;
 
 public class Robot extends User {
 

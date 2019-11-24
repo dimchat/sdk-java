@@ -32,9 +32,9 @@ package chat.dim.group;
 
 import java.util.List;
 
-import chat.dim.mkm.Group;
-import chat.dim.mkm.ID;
-import chat.dim.mkm.NetworkType;
+import chat.dim.Group;
+import chat.dim.ID;
+import chat.dim.NetworkType;
 
 public class Chatroom extends Group {
 

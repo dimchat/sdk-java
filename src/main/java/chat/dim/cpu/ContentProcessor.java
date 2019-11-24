@@ -36,11 +36,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.Facebook;
-import chat.dim.Messenger;
-import chat.dim.dkd.Content;
-import chat.dim.dkd.InstantMessage;
-import chat.dim.mkm.ID;
+import chat.dim.*;
 import chat.dim.protocol.ContentType;
 
 /**

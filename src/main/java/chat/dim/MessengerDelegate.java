@@ -30,8 +30,6 @@
  */
 package chat.dim;
 
-import chat.dim.dkd.InstantMessage;
-
 public interface MessengerDelegate {
 
     /**

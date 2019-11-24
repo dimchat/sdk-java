@@ -33,9 +33,6 @@ package chat.dim;
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.mkm.Address;
-import chat.dim.mkm.ID;
-
 public abstract class AddressNameService {
 
     public static final ID FOUNDER = new ID("moky", Address.ANYWHERE);

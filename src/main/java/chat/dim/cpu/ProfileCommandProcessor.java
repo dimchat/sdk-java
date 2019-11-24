@@ -30,13 +30,7 @@
  */
 package chat.dim.cpu;
 
-import chat.dim.Facebook;
-import chat.dim.Messenger;
-import chat.dim.dkd.Content;
-import chat.dim.dkd.InstantMessage;
-import chat.dim.mkm.ID;
-import chat.dim.mkm.Meta;
-import chat.dim.mkm.Profile;
+import chat.dim.*;
 import chat.dim.protocol.ProfileCommand;
 import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.TextContent;

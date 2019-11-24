@@ -34,7 +34,6 @@ import java.util.Map;
 
 import chat.dim.core.KeyCache;
 import chat.dim.crypto.SymmetricKey;
-import chat.dim.mkm.ID;
 
 public class KeyStore extends KeyCache {
 

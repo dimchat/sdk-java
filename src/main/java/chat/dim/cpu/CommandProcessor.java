@@ -33,10 +33,10 @@ package chat.dim.cpu;
 import java.util.HashMap;
 import java.util.Map;
 
+import chat.dim.Content;
+import chat.dim.ID;
+import chat.dim.InstantMessage;
 import chat.dim.Messenger;
-import chat.dim.dkd.Content;
-import chat.dim.dkd.InstantMessage;
-import chat.dim.mkm.ID;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.TextContent;
 

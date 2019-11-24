@@ -33,12 +33,8 @@ package chat.dim.cpu;
 import java.util.ArrayList;
 import java.util.List;
 
-import chat.dim.Facebook;
-import chat.dim.Messenger;
+import chat.dim.*;
 import chat.dim.cpu.group.*;
-import chat.dim.dkd.Content;
-import chat.dim.dkd.InstantMessage;
-import chat.dim.mkm.ID;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.TextContent;

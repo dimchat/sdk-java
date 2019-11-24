@@ -38,10 +38,6 @@ import java.util.Map;
 
 import chat.dim.core.Transceiver;
 import chat.dim.crypto.SymmetricKey;
-import chat.dim.dkd.*;
-import chat.dim.mkm.ID;
-import chat.dim.mkm.User;
-import chat.dim.mkm.Meta;
 import chat.dim.protocol.FileContent;
 import chat.dim.protocol.ForwardContent;
 
