@@ -34,31 +34,17 @@ import chat.dim.Content;
 import chat.dim.ID;
 import chat.dim.InstantMessage;
 import chat.dim.Messenger;
-import chat.dim.protocol.ImageContent;
 import chat.dim.protocol.ReceiptCommand;
 
-public class ImageContentProcessor extends ContentProcessor {
+public class ReceiptCommandProcessor extends CommandProcessor {
 
-    public ImageContentProcessor(Messenger messenger) {
+    public ReceiptCommandProcessor(Messenger messenger) {
         super(messenger);
     }
 
     public Content process(Content content, ID sender, InstantMessage iMsg) {
-        assert content instanceof ImageContent;
-        ImageContent image = (ImageContent) content;
-
-        // build text
-        if (content.get("text") == null) {
-            String text = String.format("[Image:%s]", image.getFilename());
-            content.put("text", text);
-        }
-
-        // response
-        Object group = content.getGroup();
-        if (group == null) {
-            return new ReceiptCommand("Image received", iMsg.envelope, content.serialNumber);
-        }
-        // no need to response group message
+        assert content instanceof ReceiptCommand;
+        // no need to response receipt command
         return null;
     }
 }

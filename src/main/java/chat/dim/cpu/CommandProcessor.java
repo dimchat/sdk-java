@@ -103,6 +103,7 @@ public class CommandProcessor extends ContentProcessor {
         //
         //  Register all processors with command name
         //
+        register(Command.RECEIPT, ReceiptCommandProcessor.class);
 
         register(Command.META, MetaCommandProcessor.class);
         register(Command.PROFILE, ProfileCommandProcessor.class);
