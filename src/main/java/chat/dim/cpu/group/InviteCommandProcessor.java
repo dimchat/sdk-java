@@ -87,8 +87,7 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
         return null;
     }
 
-    //-------- Main --------
-
+    @Override
     public Content process(Content content, ID sender, InstantMessage iMsg) {
         assert content instanceof InviteCommand;
         Facebook facebook = getFacebook();

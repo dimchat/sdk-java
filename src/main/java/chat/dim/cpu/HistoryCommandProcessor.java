@@ -52,8 +52,7 @@ public class HistoryCommandProcessor extends CommandProcessor {
         return gpu;
     }
 
-    //-------- Main --------
-
+    @Override
     public Content process(Content content, ID sender, InstantMessage iMsg) {
         assert content instanceof Command;
         assert getClass() == HistoryCommandProcessor.class; // override me!

@@ -31,6 +31,7 @@
 package chat.dim;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public abstract class AddressNameService {
@@ -96,10 +97,10 @@ public abstract class AddressNameService {
         return caches.get(name);
     }
 
-//    public List<String> names(ID identifier) {
-//        // TODO: Get all short names with this ID
-//        return null;
-//    }
+    public List<String> names(ID identifier) {
+        // TODO: Get all short names with this ID
+        return null;
+    }
 
     public boolean cache(String name, ID identifier) {
         if (isReserved(name)) {

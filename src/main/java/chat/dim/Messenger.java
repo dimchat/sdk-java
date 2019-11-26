@@ -278,11 +278,13 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
 
     //-------- De/serialize message, content and symmetric key
 
+    @Override
     public byte[] serializeMessage(ReliableMessage rMsg) {
         // public
         return super.serializeMessage(rMsg);
     }
 
+    @Override
     public ReliableMessage deserializeMessage(byte[] data) {
         // public
         return super.deserializeMessage(data);

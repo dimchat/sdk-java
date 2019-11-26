@@ -43,6 +43,7 @@ public class DefaultContentProcessor extends ContentProcessor {
         super(messenger);
     }
 
+    @Override
     public Content process(Content content, ID sender, InstantMessage iMsg) {
         ContentType type = content.type;
         String text = String.format("Content (type: %s) not support yet!", type);

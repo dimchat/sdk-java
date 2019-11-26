@@ -108,8 +108,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
         return result;
     }
 
-    //-------- Main --------
-
+    @Override
     public Content process(Content content, ID sender, InstantMessage iMsg) {
         assert content instanceof ResetCommand || content instanceof InviteCommand;
         Facebook facebook = getFacebook();

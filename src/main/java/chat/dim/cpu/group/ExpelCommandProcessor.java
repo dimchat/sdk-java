@@ -69,8 +69,7 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
         return null;
     }
 
-    //-------- Main --------
-
+    @Override
     public Content process(Content content, ID sender, InstantMessage iMsg) {
         assert content instanceof ExpelCommand;
         Facebook facebook = getFacebook();

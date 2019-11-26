@@ -56,8 +56,7 @@ public class QuitCommandProcessor extends GroupCommandProcessor {
         facebook.saveMembers(members, group);
     }
 
-    //-------- Main --------
-
+    @Override
     public Content process(Content content, ID sender, InstantMessage iMsg) {
         assert content instanceof QuitCommand;
         Facebook facebook = getFacebook();

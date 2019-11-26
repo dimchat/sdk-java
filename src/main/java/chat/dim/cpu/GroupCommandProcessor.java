@@ -98,8 +98,7 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
         return owner == null;
     }
 
-    //-------- Main --------
-
+    @Override
     public Content process(Content content, ID sender, InstantMessage iMsg) {
         assert content instanceof Command;
         assert getClass() == GroupCommandProcessor.class; // override me!

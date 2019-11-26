@@ -72,8 +72,7 @@ public class MetaCommandProcessor extends CommandProcessor {
         return new ReceiptCommand(text);
     }
 
-    //-------- Main --------
-
+    @Override
     public Content process(Content content, ID sender, InstantMessage iMsg) {
         assert content instanceof MetaCommand;
         MetaCommand cmd = (MetaCommand) content;

@@ -44,8 +44,7 @@ public class QueryCommandProcessor extends GroupCommandProcessor {
         super(messenger);
     }
 
-    //-------- Main --------
-
+    @Override
     public Content process(Content content, ID sender, InstantMessage iMsg) {
         assert content instanceof QueryCommand;
         Facebook facebook = getFacebook();

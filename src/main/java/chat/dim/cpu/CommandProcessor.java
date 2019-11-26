@@ -82,8 +82,7 @@ public class CommandProcessor extends ContentProcessor {
         return cpu;
     }
 
-    //-------- Main --------
-
+    @Override
     public Content process(Content content, ID sender, InstantMessage iMsg) {
         assert content instanceof Command;
         assert getClass() == CommandProcessor.class; // override me!

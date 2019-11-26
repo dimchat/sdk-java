@@ -85,8 +85,7 @@ public class ProfileCommandProcessor extends CommandProcessor {
         return new ReceiptCommand(text);
     }
 
-    //-------- Main --------
-
+    @Override
     public Content process(Content content, ID sender, InstantMessage iMsg) {
         assert content instanceof ProfileCommand;
         ProfileCommand cmd = (ProfileCommand) content;

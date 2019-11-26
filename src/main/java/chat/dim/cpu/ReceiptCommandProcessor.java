@@ -42,6 +42,7 @@ public class ReceiptCommandProcessor extends CommandProcessor {
         super(messenger);
     }
 
+    @Override
     public Content process(Content content, ID sender, InstantMessage iMsg) {
         assert content instanceof ReceiptCommand;
         // no need to response receipt command
