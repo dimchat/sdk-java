@@ -49,20 +49,22 @@ and broadcast only ```meta``` & ```profile``` onto DIM station.
 
 ### Register User Account
 
-Step 1. generate private key (with asymmetric algorithm)
+_Step 1_. generate private key (with asymmetric algorithm)
 
 ```java
 PrivateKey privateKey = PrivateKeyImpl.generate(PrivateKey.RSA);
 ```
 
-Step 2. generate meta with private key (and meta seed)
+**NOTICE**: After registered, the client should save the private key in secret storage.
+
+_Step 2_. generate meta with private key (and meta seed)
 
 ```java
 String seed = "username";
 Meta = Meta.generate(MetaType.Default, privateKey, seed);
 ```
 
-Step 3. generate ID with meta (and network type)
+_Step 3_. generate ID with meta (and network type)
 
 ```java
 ID identifier = meta.generateID(NetworkType.Main);
@@ -70,7 +72,7 @@ ID identifier = meta.generateID(NetworkType.Main);
 
 ### Create and upload User Profile
 
-Step 4. create profile with ID and sign with private key
+_Step 4_. create profile with ID and sign with private key
 
 ```java
 UserProfile profile = new UserProfile(identifier);
@@ -81,7 +83,7 @@ profile.setAvatar("https://secure.gravatar.com/avatar/34aa0026f924d017dcc7a771f4
 profile.sign(privateKey);
 ```
 
-Step 5. upload meta & profile
+_Step 5_. send meta & profile to station
 
 ```java
 Messenger messenger = Messenger.getInstance();
@@ -95,9 +97,9 @@ and handshake accepted, details are provided in later chapters
 
 ## Connect and Handshake
 
-Step 1. connect to DIM station (TCP)
+_Step 1_. connect to DIM station (TCP)
 
-Step 2. prepare for receiving message data package
+_Step 2_. prepare for receiving message data package
 
 ```java
 public void onReceive(byte[] responseData) {
@@ -109,7 +111,7 @@ public void onReceive(byte[] responseData) {
 }
 ```
 
-Step 3. send first **handshake** command
+_Step 3_. send first **handshake** command
 
 (1) create handshake command
 
@@ -133,10 +135,6 @@ Attaching meta in the first message package is to make sure the station will not
 when it's first time the user connect to this station.
 
 ```java
-// [Meta protocol]
-//      
-//      to avoid the station cannot find it,
-//      if 
 rMsg.setMeta(user.getMeta());
 ```
 
@@ -147,7 +145,7 @@ byte[] data = messenger.serializeMessage(rMsg);
 send(data);
 ```
 
-Step 4. waiting handshake response
+_Step 4_. waiting handshake response
 
 The CPU (Command Processing Units) will catch the handshake command respond from station, and CPU will process them automatically, so just wait untill handshake success or network error.
 
