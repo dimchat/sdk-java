@@ -44,7 +44,7 @@ pom.xml
 
 ## Account
 
-User private key, ID, meta, and profile are generate in client,
+User private key, ID, meta, and profile are generated in client,
 and broadcast only ```meta``` & ```profile``` onto DIM station.
 
 ### Register User Account
@@ -131,8 +131,8 @@ ReliableMessage rMsg = messenger.signMessage(sMsg);
 
 (3) Meta protocol
 
-Attaching meta in the first message package is to make sure the station will not lost it,
-when it's first time the user connect to this station.
+Attaching meta in the first message package is to make sure the station can find it,
+particularly when it's first time the user connect to this station.
 
 ```java
 rMsg.setMeta(user.getMeta());
@@ -147,7 +147,7 @@ send(data);
 
 _Step 4_. waiting handshake response
 
-The CPU (Command Processing Units) will catch the handshake command respond from station, and CPU will process them automatically, so just wait untill handshake success or network error.
+The CPU (Command Processing Units) will catch the handshake command response from station, and CPU will process them automatically, so just wait untill handshake success or network error.
 
 ## Message
 
@@ -171,7 +171,7 @@ Content content = new ImageContent(imageData, "image.png");
 Content content = new AudioContent(voiceData, "voice.mp3");
 ```
 
-**NOTICE**: file message content (includes Image, Audio, Video)
+**NOTICE**: file message content (Image, Audio, Video)
 will be sent out only includes the filename and a URL
 where the file data (encrypted with the same symmetric key) be stored.
 
