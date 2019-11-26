@@ -291,4 +291,52 @@ CommandProcessor.register(Command.HANDSHAKE, HandshakeCommandProcessor.class);
 CommandProcessor.register(SearchCommand.SEARCH, SearchCommandProcessor.class);
 ```
 
+## Save instant message
+
+Override interface ```saveMessage()``` in Messenger to store instant message:
+
+```java
+public class MyMessenger extends chat.dim.Messenger {
+
+    @Override
+    public boolean saveMessage(InstantMessage msg) {
+        Content content = msg.content;
+        // TODO: check message type
+        //       only save normal message and group commands
+        //       ignore 'handshake', 'meta', 'profile', 'search', ...
+        //       return true to allow responding
+
+        if (content instanceof HandshakeCommand) {
+            // handshake command will be processed by CPUs
+            // no need to save handshake command here
+            return true;
+        }
+        if (content instanceof MetaCommand) {
+            // meta & profile command will be checked and saved by CPUs
+            // no need to save meta & profile command here
+            return true;
+        }
+        if (content instanceof MuteCommand || content instanceof BlockCommand) {
+            // TODO: create CPUs for mute & block command
+            // no need to save mute & block command here
+            return true;
+        }
+        if (content instanceof SearchCommand) {
+            // search result will be parsed by CPUs
+            // no need to save search command here
+            return true;
+        }
+
+        Amanuensis clerk = Amanuensis.getInstance();
+
+        if (content instanceof ReceiptCommand) {
+            return clerk.saveReceipt(msg);
+        } else {
+            return clerk.saveMessage(msg);
+        }
+    }
+
+}
+```
+
 Copyright &copy; 2019 Albert Moky
