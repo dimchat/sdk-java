@@ -30,18 +30,19 @@
  */
 package chat.dim.network;
 
+import chat.dim.Profile;
 import chat.dim.User;
 import chat.dim.ID;
 
 public class Station extends User {
 
-    private ServiceProvider serviceProvider;
+    public ServiceProvider serviceProvider = null;
 
-    public final String host;
-    public final int port;
+    private String host = null;
+    private int port = 0;
 
     public Station(ID identifier) {
-        this(identifier, "0.0.0.0", 9394);
+        super(identifier);
     }
 
     public Station(ID identifier, String host, int port) {
@@ -50,7 +51,45 @@ public class Station extends User {
         this.port = port;
     }
 
-    public ServiceProvider getServiceProvider() {
-        return serviceProvider;
+    /**
+     *  Station IP
+     *
+     * @return IP address
+     */
+    public String getHost() {
+        if (host == null) {
+            Profile profile = getProfile();
+            if (profile != null) {
+                Object value = profile.getProperty("host");
+                if (value != null) {
+                    host = (String) value;
+                }
+            }
+            if (host == null) {
+                host = "0.0.0.0";
+            }
+        }
+        return host;
+    }
+
+    /**
+     *  Station Port
+     *
+     * @return port number
+     */
+    public int getPort() {
+        if (port == 0) {
+            Profile profile = getProfile();
+            if (profile != null) {
+                Object value = profile.getProperty("port");
+                if (value != null) {
+                    port = (int) value;
+                }
+            }
+            if (port == 0) {
+                port = 9394;
+            }
+        }
+        return port;
     }
 }

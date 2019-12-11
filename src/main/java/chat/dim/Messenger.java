@@ -83,7 +83,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
     public Facebook getFacebook() {
         Object facebook = context.get("facebook");
         if (facebook == null) {
-            facebook = getSocialNetworkDataSource();
+            facebook = getEntityDelegate();
             assert facebook instanceof Facebook;
         }
         return (Facebook) facebook;
