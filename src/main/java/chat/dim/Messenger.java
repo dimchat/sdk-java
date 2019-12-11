@@ -42,6 +42,7 @@ import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.FileContent;
 import chat.dim.protocol.ForwardContent;
+import chat.dim.protocol.TextContent;
 
 public abstract class Messenger extends Transceiver implements ConnectionDelegate {
 
@@ -89,56 +90,9 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         return (Facebook) facebook;
     }
 
-    // All local users (for decrypting received message)
-
-    @SuppressWarnings("unchecked")
-    public List<User> getLocalUsers() {
-        Object users = getContext("local_users");
-        if (users == null) {
-            return null;
-        }
-        return (List<User>) users;
-    }
-
-    public void setLocalUsers(List<User> users) {
-        setContext("local_users", users);
-    }
-
-    // Current user (for signing and sending message)
-
-    public User getCurrentUser() {
-        List<User> users = getLocalUsers();
-        if (users == null || users.size() == 0) {
-            return null;
-        }
-        return users.get(0);
-    }
-
-    public void setCurrentUser(User currentUser) {
-        List<User> users = getLocalUsers();
-        if (users == null) {
-            // local_users not set
-            users = new ArrayList<>();
-            users.add(currentUser);
-            setLocalUsers(users);
-            return;
-        } else if (users.size() == 0) {
-            // local_users empty
-            users.add(currentUser);
-            return;
-        }
-        int index = users.indexOf(currentUser);
-        if (index != 0) {
-            // set the current user in the front of local users list
-            if (index > 0) {
-                users.remove(index);
-            }
-            users.add(0, currentUser);
-        }
-    }
-
     protected User select(ID receiver) {
-        List<User> users = getLocalUsers();
+        Facebook facebook = getFacebook();
+        List<User> users = facebook.getLocalUsers();
         if (users == null || users.size() == 0) {
             throw new NullPointerException("current user should not be empty");
         } else if (receiver.isBroadcast()) {
@@ -147,7 +101,6 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         }
         if (receiver.getType().isGroup()) {
             // group message (recipient not designated)
-            Facebook facebook = getFacebook();
             List<ID> members = facebook.getMembers(receiver);
             if (members == null || members.size() == 0) {
                 // TODO: query group members
@@ -174,8 +127,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
     }
 
     private SecureMessage trim(SecureMessage sMsg) {
-        Facebook facebook = getFacebook();
-        ID receiver = facebook.getID(sMsg.envelope.receiver);
+        ID receiver = getID(sMsg.envelope.receiver);
         User user = select(receiver);
         if (user == null) {
             // current users not match
@@ -186,14 +138,6 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         }
         return sMsg;
     }
-
-    /**
-     *  Interface for client to query meta on station, or the station query on other station
-     *
-     * @param identifier - entity ID
-     * @return true on success
-     */
-    public abstract boolean queryMeta(ID identifier);
 
     //-------- Transform
 
@@ -315,8 +259,8 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
 
     @Override
     public byte[] encryptKey(Map<String, Object> password, Object receiver, InstantMessage iMsg) {
-        ID to = getID(receiver);
         Facebook facebook = getFacebook();
+        ID to = facebook.getID(receiver);
         EncryptKey key = facebook.getPublicKeyForEncryption(to);
         if (key == null) {
             Meta meta = facebook.getMeta(to);
@@ -334,8 +278,8 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
     @Override
     public Map<String, Object> decryptKey(byte[] keyData, Object sender, Object receiver, SecureMessage sMsg) {
         if (keyData != null) {
-            ID to = getID(sMsg.envelope.receiver);
             Facebook facebook = getFacebook();
+            ID to = facebook.getID(sMsg.envelope.receiver);
             List<DecryptKey> keys = facebook.getPrivateKeysForDecryption(to);
             if (keys == null || keys.size() == 0) {
                 // FIXME: private key lost?
@@ -386,7 +330,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
     }
 
     public boolean sendContent(Content content, ID receiver, Callback callback, boolean split) {
-        User user = getCurrentUser();
+        User user = getFacebook().getCurrentUser();
         assert user != null;
         InstantMessage iMsg = new InstantMessage(content, user.identifier, receiver);
         return sendMessage(iMsg, callback, split);
@@ -457,18 +401,14 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
      * @return receipt on success
      */
     public Content forwardMessage(ReliableMessage msg) {
-        User user = getCurrentUser();
-        assert user != null;
-        ID receiver = getFacebook().getID(msg.envelope.receiver);
-        // repack the top-secret message
+        ID receiver = getID(msg.envelope.receiver);
         Content content = new ForwardContent(msg);
-        InstantMessage iMsg = new InstantMessage(content, user.identifier, receiver);
-        // encrypt, sign & deliver it
-        SecureMessage sMsg = encryptMessage(iMsg);
-        assert sMsg != null;
-        ReliableMessage rMsg = signMessage(sMsg);
-        assert rMsg != null;
-        return deliverMessage(rMsg);
+        if (sendContent(content, receiver)) {
+            //return new ReceiptCommand("message forwarded");
+            return null;
+        } else {
+            return new TextContent("failed to forward your message");
+        }
     }
 
     /**
@@ -477,7 +417,12 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
      * @param msg - broadcast message
      * @return receipt on success
      */
-    public abstract Content broadcastMessage(ReliableMessage msg);
+    public Content broadcastMessage(ReliableMessage msg) {
+        // NOTICE: this function is for Station
+        //         if the receiver is a grouped broadcast ID,
+        //         split and deliver to everyone
+        return null;
+    }
 
     /**
      * Deliver message to the receiver, or broadcast to neighbours
@@ -485,7 +430,12 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
      * @param msg - reliable message
      * @return receipt on success
      */
-    public abstract Content deliverMessage(ReliableMessage msg);
+    public Content deliverMessage(ReliableMessage msg) {
+        // NOTICE: this function is for Station
+        //         if the station cannot decrypt this message,
+        //         it means you should deliver it to the receiver
+        return null;
+    }
 
     /**
      * Save the message into local storage

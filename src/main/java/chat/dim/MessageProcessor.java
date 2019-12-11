@@ -176,9 +176,9 @@ public class MessageProcessor implements ConnectionDelegate {
             // nothing to response
             return null;
         }
-        User user = messenger.getCurrentUser();
-        assert user != null;
         Facebook facebook = getFacebook();
+        User user = facebook.getCurrentUser();
+        assert user != null;
         ID receiver = facebook.getID(rMsg.envelope.sender);
         InstantMessage iMsg = new InstantMessage(response, user.identifier, receiver);
         ReliableMessage nMsg = messenger.signMessage(messenger.encryptMessage(iMsg));

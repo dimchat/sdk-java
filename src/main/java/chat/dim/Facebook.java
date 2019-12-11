@@ -304,7 +304,27 @@ public abstract class Facebook extends Barrack {
      */
     protected abstract List<ID> loadMembers(ID group);
 
-    //----
+    //-------- Local Users
+
+    /**
+     *  Get all local users (for decrypting received message)
+     *
+     * @return user list
+     */
+    public abstract List<User> getLocalUsers();
+
+    /**
+     *  Get current user (for signing and sending message)
+     *
+     * @return user object
+     */
+    public User getCurrentUser() {
+        List<User> users = getLocalUsers();
+        assert users != null && users.size() > 0;
+        return users.get(0);
+    }
+
+    //--------
 
     public ID getID(Address address) {
         ID identifier = new ID(null, address);
