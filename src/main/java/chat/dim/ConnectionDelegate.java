@@ -38,5 +38,5 @@ public interface ConnectionDelegate {
      * @param data - package from network connection
      * @return response to sender
      */
-    byte[] receivedPackage(byte[] data);
+    byte[] onReceiveDataPackage(byte[] data);
 }

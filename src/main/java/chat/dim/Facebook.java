@@ -117,7 +117,7 @@ public abstract class Facebook extends Barrack {
     //
     public boolean verify(Profile profile, ID identifier) {
         if (identifier != null) {
-            if (profile == null || !profile.getIdentifier().equals(identifier)) {
+            if (profile == null || !identifier.equals(profile.getIdentifier())) {
                 // profile ID not match
                 return false;
             }
@@ -139,7 +139,7 @@ public abstract class Facebook extends Barrack {
         //             (which equals to the group's meta.key)
         Meta meta;
         if (identifier.getType().isGroup()) {
-            // polylogue
+            // polylogue?
             if (identifier.getType() == NetworkType.Polylogue) {
                 meta = getMeta(identifier);
                 if (meta != null && profile.verify(meta.getKey())) {
@@ -260,7 +260,7 @@ public abstract class Facebook extends Barrack {
     /**
      *  Save contacts for user
      *
-     * @param contacts - contact list
+     * @param contacts - contact ID list
      * @param user - user ID
      * @return true on success
      */
@@ -268,8 +268,9 @@ public abstract class Facebook extends Barrack {
 
     /**
      *  Load contacts for user
+     *
      * @param user - user ID
-     * @return contact list on success
+     * @return contact ID list on success
      */
     protected abstract List<ID> loadContacts(ID user);
 
@@ -289,7 +290,7 @@ public abstract class Facebook extends Barrack {
     /**
      *  Save members of group
      *
-     * @param members - member list
+     * @param members - member ID list
      * @param group - group ID
      * @return true on success
      */
@@ -299,7 +300,7 @@ public abstract class Facebook extends Barrack {
      *  Load members of group
      *
      * @param group - group ID
-     * @return member list on success
+     * @return member ID list on success
      */
     protected abstract List<ID> loadMembers(ID group);
 
@@ -389,9 +390,12 @@ public abstract class Facebook extends Barrack {
         if (meta == null) {
             return null;
         }
-        cache(meta, identifier);
+        // no need to verify meta from local storage
+        super.cache(meta, identifier);
         return meta;
     }
+
+    private static final String EXPIRES_KEY = "expires";
 
     @Override
     public Profile getProfile(ID identifier) {
@@ -400,10 +404,10 @@ public abstract class Facebook extends Barrack {
             // check expired time
             Date now = new Date();
             long timestamp = now.getTime() / 1000 + EXPIRES;
-            Number expires = (Number) profile.get("expires");
+            Number expires = (Number) profile.get(EXPIRES_KEY);
             if (expires == null) {
                 // set expired time
-                profile.put("expires", timestamp);
+                profile.put(EXPIRES_KEY, timestamp);
                 return profile;
             } else if (expires.longValue() < timestamp){
                 // not expired yet
@@ -413,9 +417,12 @@ public abstract class Facebook extends Barrack {
         // load from local storage
         profile = loadProfile(identifier);
         if (profile == null) {
-            return null;
+            profile = new Profile(identifier);
+        } else {
+            profile.remove(EXPIRES_KEY);
         }
-        cache(profile, identifier);
+        // no need to verify profile from local storage
+        profileMap.put(identifier, profile);
         return profile;
     }
 

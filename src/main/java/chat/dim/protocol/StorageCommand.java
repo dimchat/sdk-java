@@ -32,6 +32,7 @@ package chat.dim.protocol;
 
 import java.util.Map;
 
+import chat.dim.ID;
 import chat.dim.format.Base64;
 
 /**
@@ -67,11 +68,11 @@ public class StorageCommand extends Command {
         super(dictionary);
         Object value = dictionary.get("title");
         if (value == null) {
-            // (v1.0)
+            // (compatible with v1.0)
             //  contacts command: {
-            //      command: 'contacts',
-            //      data: '...',
-            //      key: '...'
+            //      command : 'contacts',
+            //      data    : '...',
+            //      key     : '...'
             //  }
             title = (String) dictionary.get("command");
             assert !title.equalsIgnoreCase(STORAGE);
@@ -83,6 +84,18 @@ public class StorageCommand extends Command {
     public StorageCommand(String name) {
         super(STORAGE);
         title = name;
+    }
+
+    public String getIdentifier() {
+        return (String) dictionary.get("ID");
+    }
+
+    public void setIdentifier(ID identifier) {
+        if (identifier == null) {
+            dictionary.remove("ID");
+        } else {
+            dictionary.put("ID", identifier);
+        }
     }
 
     //

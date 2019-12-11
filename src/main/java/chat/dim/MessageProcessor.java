@@ -90,7 +90,8 @@ public class MessageProcessor implements ConnectionDelegate {
             // NOTICE: if meta for group not found,
             //         facebook should query it from DIM network automatically
             // TODO: insert the message to a temporary queue to wait meta
-            throw new NullPointerException("group meta not found: " + group);
+            //throw new NullPointerException("group meta not found: " + group);
+            return true;
         }
         boolean needsUpdate = isEmpty(group);
         if (content instanceof InviteCommand) {
@@ -149,7 +150,8 @@ public class MessageProcessor implements ConnectionDelegate {
         //
         ID sender = facebook.getID(rMsg.envelope.sender);
         if (checkGroup(content, sender)) {
-            // sending query group command
+            // TODO: save this message in a queue to wait meta response
+            return null;
         }
         //
         //  5. process
@@ -165,7 +167,7 @@ public class MessageProcessor implements ConnectionDelegate {
     //-------- ConnectionDelegate
 
     @Override
-    public byte[] receivedPackage(byte[] data) {
+    public byte[] onReceiveDataPackage(byte[] data) {
         Messenger messenger = getMessenger();
 
         ReliableMessage rMsg = messenger.deserializeMessage(data);

@@ -70,7 +70,7 @@ public class ProfileCommandProcessor extends CommandProcessor {
             }
         }
         // receive a profile for ID
-        if (!facebook.verify(profile)) {
+        if (!facebook.verify(profile, identifier)) {
             // profile signature not match
             String text = String.format("Profile not match ID: %s", identifier);
             return new TextContent(text);

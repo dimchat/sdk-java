@@ -212,9 +212,10 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         if (meta == null) {
             meta = facebook.getMeta(sender);
             if (meta == null) {
-                queryMeta(sender);
+                // NOTICE: the application will query meta automatically
                 // TODO: save this message in a queue to wait meta response
-                throw new NullPointerException("failed to get meta for sender: " + sender);
+                //throw new NullPointerException("failed to get meta for sender: " + sender);
+                return null;
             }
         } else {
             // [Meta Protocol]
@@ -499,10 +500,10 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
     protected MessageProcessor processor = null;
 
     @Override
-    public byte[] receivedPackage(byte[] data) {
+    public byte[] onReceiveDataPackage(byte[] data) {
         if (processor == null) {
             processor = new MessageProcessor(this);
         }
-        return processor.receivedPackage(data);
+        return processor.onReceiveDataPackage(data);
     }
 }
