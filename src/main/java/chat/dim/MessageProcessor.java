@@ -38,7 +38,7 @@ import chat.dim.protocol.*;
 import chat.dim.protocol.group.InviteCommand;
 import chat.dim.protocol.group.QueryCommand;
 
-public class MessageProcessor implements ConnectionDelegate {
+public class MessageProcessor {
 
     private final WeakReference<Messenger> messengerRef;
     private ContentProcessor cpu = null;
@@ -110,7 +110,7 @@ public class MessageProcessor implements ConnectionDelegate {
         return false;
     }
 
-    private Content process(ReliableMessage rMsg) {
+    public Content process(ReliableMessage rMsg) {
         Messenger messenger = getMessenger();
 
         // verify
@@ -163,27 +163,6 @@ public class MessageProcessor implements ConnectionDelegate {
         }
         // error
         return null;
-    }
-
-    //-------- ConnectionDelegate
-
-    @Override
-    public byte[] onReceiveDataPackage(byte[] data) {
-        Messenger messenger = getMessenger();
-
-        ReliableMessage rMsg = messenger.deserializeMessage(data);
-        Content response = process(rMsg);
-        if (response == null) {
-            // nothing to response
-            return null;
-        }
-        Facebook facebook = getFacebook();
-        User user = facebook.getCurrentUser();
-        assert user != null;
-        ID receiver = facebook.getID(rMsg.envelope.sender);
-        InstantMessage iMsg = new InstantMessage(response, user.identifier, receiver);
-        ReliableMessage nMsg = messenger.signMessage(messenger.encryptMessage(iMsg));
-        return messenger.serializeMessage(nMsg);
     }
 
     static {

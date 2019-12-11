@@ -449,11 +449,31 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
 
     protected MessageProcessor processor = null;
 
-    @Override
-    public byte[] onReceiveDataPackage(byte[] data) {
+    protected Content process(ReliableMessage rMsg) {
         if (processor == null) {
             processor = new MessageProcessor(this);
         }
-        return processor.onReceiveDataPackage(data);
+        return processor.process(rMsg);
+    }
+
+    @Override
+    public byte[] onReceiveDataPackage(byte[] data) {
+        // 1. deserialize message
+        ReliableMessage rMsg = deserializeMessage(data);
+        // 2. process message
+        Content response = process(rMsg);
+        if (response == null) {
+            // nothing to response
+            return null;
+        }
+        // 3. pack response
+        Facebook facebook = getFacebook();
+        User user = facebook.getCurrentUser();
+        assert user != null;
+        ID receiver = facebook.getID(rMsg.envelope.sender);
+        InstantMessage iMsg = new InstantMessage(response, user.identifier, receiver);
+        ReliableMessage nMsg = signMessage(encryptMessage(iMsg));
+        // serialize message
+        return serializeMessage(nMsg);
     }
 }
