@@ -35,6 +35,7 @@ import java.util.List;
 import chat.dim.*;
 import chat.dim.cpu.GroupCommandProcessor;
 import chat.dim.protocol.TextContent;
+import chat.dim.protocol.group.InviteCommand;
 import chat.dim.protocol.group.QueryCommand;
 import chat.dim.protocol.group.ResetCommand;
 
@@ -64,7 +65,13 @@ public class QueryCommandProcessor extends GroupCommandProcessor {
             res.setGroup(group);
             return res;
         }
-        // 3. response
-        return new ResetCommand(group, members);
+        // 3. respond
+        User user = facebook.getCurrentUser();
+        assert user != null;
+        if (facebook.isOwner(user.identifier, group)) {
+            return new ResetCommand(group, members);
+        } else {
+            return new InviteCommand(group, members);
+        }
     }
 }

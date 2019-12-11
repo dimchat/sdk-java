@@ -143,7 +143,8 @@ public class MessageProcessor implements ConnectionDelegate {
         Content content = iMsg.content;
         if (content instanceof ForwardContent) {
             // it's asking you to forward it
-            return messenger.forwardMessage(((ForwardContent) content).forwardMessage);
+            ForwardContent secret = (ForwardContent) content;
+            return messenger.forwardMessage(secret.forwardMessage);
         }
         //
         //  4. check group

@@ -42,6 +42,7 @@ import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.FileContent;
 import chat.dim.protocol.ForwardContent;
+import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.TextContent;
 
 public abstract class Messenger extends Transceiver implements ConnectionDelegate {
@@ -402,10 +403,9 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
      */
     public Content forwardMessage(ReliableMessage msg) {
         ID receiver = getID(msg.envelope.receiver);
-        Content content = new ForwardContent(msg);
-        if (sendContent(content, receiver)) {
-            //return new ReceiptCommand("message forwarded");
-            return null;
+        Content secret = new ForwardContent(msg);
+        if (sendContent(secret, receiver)) {
+            return new ReceiptCommand("message forwarded");
         } else {
             return new TextContent("failed to forward your message");
         }
