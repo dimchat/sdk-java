@@ -132,47 +132,46 @@ public abstract class Facebook extends Barrack {
         if (identifier == null) {
             throw new NullPointerException("profile ID error: " + profile);
         }
-        // NOTICE: if this is a user profile,
+        // NOTICE: if this is a group profile,
+        //             verify it with each member's meta.key
+        //         else (this is a user profile)
         //             verify it with the user's meta.key
-        //         else if this is a polylogue profile,
-        //             verify it with the founder's meta.key
-        //             (which equals to the group's meta.key)
         Meta meta;
         if (identifier.getType().isGroup()) {
-            // polylogue?
-            if (identifier.getType() == NetworkType.Polylogue) {
-                meta = getMeta(identifier);
-                if (meta != null && profile.verify(meta.getKey())) {
-                    return true;
-                }
-            }
             // check by each member
             List<ID> members = getMembers(identifier);
-            if (members == null || members.size() == 0) {
-                throw new NullPointerException("members not found: " + identifier);
-            }
-            for (ID item : members) {
-                meta = getMeta(item);
-                if (meta == null) {
-                    // FIXME: meta not found for this member
-                    continue;
+            if (members != null) {
+                for (ID item : members) {
+                    meta = getMeta(item);
+                    if (meta == null) {
+                        // FIXME: meta not found for this member
+                        continue;
+                    }
+                    if (profile.verify(meta.getKey())) {
+                        return true;
+                    }
                 }
-                if (profile.verify(meta.getKey())) {
-                    return true;
-                }
             }
-            // TODO: what to do about assistants?
+            // DISCUSS: what to do about assistants?
 
             // check by owner
             ID owner = getOwner(identifier);
             if (owner == null) {
-                throw new NullPointerException("owner not found: " + identifier);
-            }
-            if (members.contains(owner)) {
+                if (identifier.getType() == NetworkType.Polylogue) {
+                    // NOTICE: if this is a polylogue profile
+                    //             verify it with the founder's meta.key
+                    //             (which equals to the group's meta.key)
+                    meta = getMeta(identifier);
+                } else {
+                    // FIXME: owner not found for this group
+                    return false;
+                }
+            } else if (members != null && members.contains(owner)) {
                 // already checked
                 return false;
+            } else {
+                meta = getMeta(owner);
             }
-            meta = getMeta(owner);
         } else {
             assert identifier.getType().isUser();
             meta = getMeta(identifier);
