@@ -116,7 +116,9 @@ public class MessageProcessor {
         // verify
         SecureMessage sMsg = messenger.verifyMessage(rMsg);
         if (sMsg == null) {
-            throw new RuntimeException("failed to verify message: " + rMsg);
+            // TODO: save this message in a queue to wait meta response
+            //throw new RuntimeException("failed to verify message: " + rMsg);
+            return null;
         }
         Facebook facebook = getFacebook();
         ID receiver = facebook.getID(rMsg.envelope.receiver);

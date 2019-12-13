@@ -336,7 +336,7 @@ public abstract class Facebook extends Barrack {
         if (seed == null) {
             return identifier;
         }
-        identifier = new ID(seed, address);
+        identifier = meta.generateID(address.getNetwork());
         cache(identifier);
         return identifier;
     }
