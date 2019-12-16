@@ -104,6 +104,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
             List<ID> members = facebook.getMembers(receiver);
             if (members == null || members.size() == 0) {
                 // TODO: query group members
+                //       (do it by application)
                 return null;
             }
             for (User item : users) {
@@ -127,7 +128,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
     }
 
     private SecureMessage trim(SecureMessage sMsg) {
-        ID receiver = getID(sMsg.envelope.receiver);
+        ID receiver = getFacebook().getID(sMsg.envelope.receiver);
         User user = select(receiver);
         if (user == null) {
             // current users not match
@@ -157,7 +158,8 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
             meta = facebook.getMeta(sender);
             if (meta == null) {
                 // NOTICE: the application will query meta automatically
-                // TODO: save this message in a queue to wait meta response
+                // save this message in a queue waiting sender's meta response
+                suspendMessage(rMsg);
                 //throw new NullPointerException("failed to get meta for sender: " + sender);
                 return null;
             }
@@ -265,7 +267,8 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         if (key == null) {
             Meta meta = facebook.getMeta(to);
             if (meta == null) {
-                // TODO: save this message in a queue waiting meta response
+                // save this message in a queue waiting receiver's meta response
+                suspendMessage(iMsg);
                 //throw new NullPointerException("failed to get encrypt key for receiver: " + receiver);
                 return null;
             }
@@ -401,7 +404,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
      * @return receipt on success
      */
     public Content forwardMessage(ReliableMessage msg) {
-        ID receiver = getID(msg.envelope.receiver);
+        ID receiver = getFacebook().getID(msg.envelope.receiver);
         Content secret = new ForwardContent(msg);
         if (sendContent(secret, receiver)) {
             return new ReceiptCommand("message forwarded");
@@ -420,11 +423,12 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         // NOTICE: this function is for Station
         //         if the receiver is a grouped broadcast ID,
         //         split and deliver to everyone
+        assert getFacebook().getID(msg.envelope.receiver).isBroadcast();
         return null;
     }
 
     /**
-     * Deliver message to the receiver, or broadcast to neighbours
+     * Deliver message to the receiver, or to neighbours
      *
      * @param msg - reliable message
      * @return receipt on success
@@ -443,6 +447,22 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
      * @return true on success
      */
     public abstract boolean saveMessage(InstantMessage msg);
+
+    /**
+     *  Suspend the received message for the sender's meta
+     *
+     * @param msg - message received from network
+     * @return false on error
+     */
+    public abstract boolean suspendMessage(ReliableMessage msg);
+
+    /**
+     *  Suspend the sending message for the receiver's meta
+     *
+     * @param msg - instant message to be sent
+     * @return false on error
+     */
+    public abstract boolean suspendMessage(InstantMessage msg);
 
     //-------- ConnectionDelegate
 
