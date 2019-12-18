@@ -36,6 +36,7 @@ import java.util.*;
 import chat.dim.core.Barrack;
 import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.PrivateKey;
+import chat.dim.crypto.PublicKey;
 import chat.dim.crypto.SignKey;
 import chat.dim.group.Chatroom;
 import chat.dim.group.Polylogue;
@@ -217,9 +218,21 @@ public abstract class Facebook extends Barrack {
     //
     //  Private Key
     //
+    protected boolean verify(PrivateKey privateKey, ID user) {
+        Meta meta = getMeta(user);
+        assert meta != null;
+        PublicKey publicKey = meta.getKey();
+        assert publicKey != null && privateKey != null;
+        return publicKey.matches(privateKey);
+    }
+
     protected boolean cache(PrivateKey key, ID user) {
         if (key == null) {
+            // remove from cache if exists
             privateKeyMap.remove(user);
+            return false;
+        }
+        if (!verify(key, user)) {
             return false;
         }
         privateKeyMap.put(user, key);
@@ -475,7 +488,8 @@ public abstract class Facebook extends Barrack {
         if (key == null) {
             return null;
         }
-        cache(key, user);
+        // no need to verify private key from local storage
+        privateKeyMap.put(user, key);
         return key;
     }
 
@@ -485,9 +499,8 @@ public abstract class Facebook extends Barrack {
         // DIMP v1.0:
         //     decrypt key and the sign key are the same key
         SignKey key = getPrivateKeyForSignature(user);
-        if (key != null) {
+        if (key instanceof DecryptKey) {
             // TODO: support profile.key
-            assert key instanceof DecryptKey;
             keys.add((DecryptKey) key);
         }
         return keys;
