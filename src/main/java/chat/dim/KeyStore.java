@@ -30,29 +30,88 @@
  */
 package chat.dim;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 
 import chat.dim.core.KeyCache;
-import chat.dim.crypto.SymmetricKey;
+import chat.dim.filesys.ExternalStorage;
 
 public class KeyStore extends KeyCache {
+
+    private User user = null;
+
+    private static String separator = File.separator;
 
     public KeyStore() {
         super();
     }
 
+    public User getUser() {
+        return user;
+    }
+    public void setUser(User currentUser) {
+        if (user != null) {
+            // save key map for old user
+            flush();
+            if (user.equals(currentUser)) {
+                // user not changed
+                return;
+            }
+        }
+        if (currentUser == null) {
+            user = null;
+            return;
+        }
+        // change current user
+        user = currentUser;
+        Map keys = loadKeys();
+        if (keys == null) {
+            // failed to load cached keys for new user
+            return;
+        }
+        try {
+            // update key map
+            updateKeys(keys);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // '/tmp/.dim/protected/{ADDRESS}/keystore.js'
+    private String getPath() {
+        if (user == null) {
+            return null;
+        }
+        return ExternalStorage.getPath() + separator + "protected" + separator
+                + user.identifier.toString() + separator + "keystore.js";
+    }
+
     @Override
     public boolean saveKeys(Map keyMap) {
-        return false;
+        String path = getPath();
+        if (path == null) {
+            return false;
+        }
+        try {
+            return ExternalStorage.saveJSON(keyMap, path);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     @Override
     public Map loadKeys() {
-        return null;
-    }
-
-    @Override
-    public SymmetricKey reuseCipherKey(ID sender, ID receiver, SymmetricKey key) {
-        return super.reuseCipherKey(sender, receiver, key);
+        String path = getPath();
+        if (path == null) {
+            return null;
+        }
+        try {
+            return (Map) ExternalStorage.loadJSON(path);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 }

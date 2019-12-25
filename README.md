@@ -103,7 +103,7 @@ _Step 2_. prepare for receiving message data package
 
 ```java
 public void onReceive(byte[] responseData) {
-    byte[] response = messenger.onReceiveDataPackage(responseData);
+    byte[] response = messenger.onReceivePackage(responseData);
     if (response != null && response.length > 0) {
         // send processing result back to the station
         send(response);

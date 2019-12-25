@@ -30,6 +30,7 @@
  */
 package chat.dim;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,7 +73,7 @@ public abstract class AddressNameService {
             "root", "supervisor",
     };
 
-    private final Map<String, Object> reserved = new HashMap<>();
+    private final Map<String, Boolean> reserved = new HashMap<>();
     protected final Map<String, ID> caches = new HashMap<>();
 
     protected AddressNameService() {
@@ -85,21 +86,12 @@ public abstract class AddressNameService {
         caches.put("founder", FOUNDER);
         // reserved names
         for (String item : KEYWORDS) {
-            reserved.put(item, "reserved");
+            reserved.put(item, true);
         }
     }
 
     public boolean isReserved(String name) {
-        return reserved.get(name) != null;
-    }
-
-    public ID identifier(String name) {
-        return caches.get(name);
-    }
-
-    public List<String> names(ID identifier) {
-        // TODO: Get all short names with this ID
-        return null;
+        return reserved.get(name);
     }
 
     public boolean cache(String name, ID identifier) {
@@ -113,6 +105,32 @@ public abstract class AddressNameService {
             caches.put(name, identifier);
         }
         return true;
+    }
+
+    /**
+     *  Get ID by short name
+     *
+     * @param name - sort name
+     * @return user ID
+     */
+    public ID identifier(String name) {
+        return caches.get(name);
+    }
+
+    /**
+     *  Get all short names with the same ID
+     *
+     * @param identifier - user ID
+     * @return short name list
+     */
+    public List<String> names(ID identifier) {
+        List<String> array = new ArrayList<>();
+        for (Map.Entry<String, ID> entry : caches.entrySet()) {
+            if (identifier.equals(entry.getValue())) {
+                array.add(entry.getKey());
+            }
+        }
+        return array;
     }
 
     /**

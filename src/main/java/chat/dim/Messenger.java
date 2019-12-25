@@ -249,7 +249,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
             byte[] data = file.getData();
             // encrypt and upload file data onto CDN and save the URL in message content
             data = key.encrypt(data);
-            String url = getDelegate().uploadFileData(data, iMsg);
+            String url = getDelegate().uploadData(data, iMsg);
             if (url != null) {
                 // replace 'data' with 'URL'
                 file.setUrl(url);
@@ -306,7 +306,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
             FileContent file = (FileContent) content;
             InstantMessage iMsg = new InstantMessage(content, sMsg.envelope);
             // download from CDN
-            byte[] fileData = getDelegate().downloadFileData(file.getUrl(), iMsg);
+            byte[] fileData = getDelegate().downloadData(file.getUrl(), iMsg);
             if (fileData == null) {
                 // save symmetric key for decrypted file data after download from CDN
                 file.setPassword(key);
@@ -476,7 +476,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
     }
 
     @Override
-    public byte[] onReceiveDataPackage(byte[] data) {
+    public byte[] onReceivePackage(byte[] data) {
         // 1. deserialize message
         ReliableMessage rMsg = deserializeMessage(data);
         // 2. process message

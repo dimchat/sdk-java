@@ -126,9 +126,7 @@ public abstract class Facebook extends Barrack {
         return verify(profile);
     }
     public boolean verify(Profile profile) {
-        if (profile == null) {
-            return false;
-        }
+        assert profile != null;
         ID identifier = getID(profile.getIdentifier());
         if (identifier == null) {
             throw new NullPointerException("profile ID error: " + profile);
@@ -219,10 +217,11 @@ public abstract class Facebook extends Barrack {
     //  Private Key
     //
     protected boolean verify(PrivateKey privateKey, ID user) {
+        assert privateKey != null;
         Meta meta = getMeta(user);
         assert meta != null;
         PublicKey publicKey = meta.getKey();
-        assert publicKey != null && privateKey != null;
+        assert publicKey != null;
         return publicKey.matches(privateKey);
     }
 
@@ -346,7 +345,7 @@ public abstract class Facebook extends Barrack {
             return null;
         }
         String seed = meta.getSeed();
-        if (seed == null) {
+        if (seed == null || seed.length() == 0) {
             return identifier;
         }
         identifier = meta.generateID(address.getNetwork());
@@ -431,7 +430,8 @@ public abstract class Facebook extends Barrack {
 
     @Override
     public Profile getProfile(ID identifier) {
-        Profile profile = profileMap.get(identifier);
+        Profile profile;// = super.getProfile(identifier);
+        profile = profileMap.get(identifier);
         if (profile != null) {
             // check expired time
             Date now = new Date();
@@ -479,23 +479,27 @@ public abstract class Facebook extends Barrack {
 
     @Override
     public SignKey getPrivateKeyForSignature(ID user) {
-        PrivateKey key = privateKeyMap.get(user);
+        SignKey key;// = super.getPrivateKeyForSignature(user);
+        assert user.getType().isUser();
+        key = privateKeyMap.get(user);
         if (key != null) {
             return key;
         }
         // load from local storage
-        key = loadPrivateKey(user);
-        if (key == null) {
+        PrivateKey sKey = loadPrivateKey(user);
+        if (sKey == null) {
             return null;
         }
         // no need to verify private key from local storage
-        privateKeyMap.put(user, key);
-        return key;
+        privateKeyMap.put(user, sKey);
+        return sKey;
     }
 
     @Override
     public List<DecryptKey> getPrivateKeysForDecryption(ID user) {
-        List<DecryptKey> keys = new ArrayList<>();
+        List<DecryptKey> keys;// = super.getPrivateKeysForDecryption(user);
+        assert user.getType().isUser();
+        keys = new ArrayList<>();
         // DIMP v1.0:
         //     decrypt key and the sign key are the same key
         SignKey key = getPrivateKeyForSignature(user);

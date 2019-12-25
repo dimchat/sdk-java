@@ -39,7 +39,7 @@ public interface MessengerDelegate {
      * @param iMsg - instant message
      * @return download URL
      */
-    String uploadFileData(byte[] data, InstantMessage iMsg);
+    String uploadData(byte[] data, InstantMessage iMsg);
 
     /**
      *  Download encrypted data from CDN
@@ -48,7 +48,7 @@ public interface MessengerDelegate {
      * @param iMsg - instant message
      * @return encrypted file data
      */
-    byte[] downloadFileData(String url, InstantMessage iMsg);
+    byte[] downloadData(String url, InstantMessage iMsg);
 
     /**
      *  Send out a data package onto network
