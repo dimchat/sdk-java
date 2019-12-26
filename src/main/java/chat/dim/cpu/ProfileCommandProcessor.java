@@ -87,7 +87,7 @@ public class ProfileCommandProcessor extends CommandProcessor {
 
     @Override
     public Content process(Content content, ID sender, InstantMessage iMsg) {
-        assert content instanceof ProfileCommand;
+        assert content instanceof ProfileCommand : "profile command error: " + content;
         ProfileCommand cmd = (ProfileCommand) content;
         Profile profile = cmd.getProfile();
         ID identifier = getFacebook().getID(cmd.getIdentifier());

@@ -54,7 +54,7 @@ public class MuteCommand extends Command {
     }
 
     /**
-     *  Update mute-list
+     *  Send mute-list
      *
      * @param list - mute list
      */

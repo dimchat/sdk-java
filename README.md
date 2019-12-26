@@ -192,7 +192,7 @@ Command cmd = new ProfileCommand(identifier);
 ### Send command
 
 ```java
-public class MyMessenger extends chat.dim.Messenger {
+public class Messenger extends chat.dim.Messenger {
 
     /**
      *  Pack and send command to station
@@ -296,7 +296,7 @@ CommandProcessor.register(SearchCommand.SEARCH, SearchCommandProcessor.class);
 Override interface ```saveMessage()``` in Messenger to store instant message:
 
 ```java
-public class MyMessenger extends chat.dim.Messenger {
+public class Messenger extends chat.dim.Messenger {
 
     @Override
     public boolean saveMessage(InstantMessage msg) {

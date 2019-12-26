@@ -35,13 +35,17 @@ import java.util.List;
 import chat.dim.GroupDataSource;
 import chat.dim.ID;
 
+/**
+ *  This interface is for getting information for chatroom
+ *  Chatroom admins should be set complying with the consensus algorithm
+ */
 public interface ChatroomDataSource extends GroupDataSource {
 
     /**
-     *  Get chatroom admins list
+     *  Get all admins in the chatroom
      *
      * @param chatroom - chatroom ID
-     * @return admins list (ID)
+     * @return admin ID list
      */
     List<ID> getAdmins(ID chatroom);
 }

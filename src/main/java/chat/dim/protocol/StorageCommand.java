@@ -30,10 +30,16 @@
  */
 package chat.dim.protocol;
 
+import java.nio.charset.Charset;
 import java.util.Map;
 
 import chat.dim.ID;
+import chat.dim.crypto.DecryptKey;
+import chat.dim.crypto.PrivateKey;
+import chat.dim.crypto.SymmetricKey;
 import chat.dim.format.Base64;
+import chat.dim.format.JSON;
+import chat.dim.impl.SymmetricKeyImpl;
 
 /**
  *  Command message: {
@@ -64,6 +70,9 @@ public class StorageCommand extends Command {
     private byte[] data = null;
     private byte[] key = null;
 
+    private byte[] plaintext = null;
+    private SymmetricKey password = null;
+
     public StorageCommand(Map<String, Object> dictionary) {
         super(dictionary);
         Object value = dictionary.get("title");
@@ -75,7 +84,7 @@ public class StorageCommand extends Command {
             //      key     : '...'
             //  }
             title = (String) dictionary.get("command");
-            assert !title.equalsIgnoreCase(STORAGE);
+            assert !title.equalsIgnoreCase(STORAGE) : "title error: " + title;
         } else {
             title = (String) value;
         }
@@ -119,6 +128,7 @@ public class StorageCommand extends Command {
             dictionary.put("data", Base64.encode(value));
         }
         data = value;
+        plaintext = null;
     }
 
     //
@@ -144,29 +154,31 @@ public class StorageCommand extends Command {
             dictionary.put("key", Base64.encode(value));
         }
         key = value;
+        password = null;
     }
 
-    //
-    //  Extra info
-    //      customized information
-    //
-    public Object getInfo(String key) {
-        assert !key.equalsIgnoreCase("key");
-        assert !key.equalsIgnoreCase("data");
-        assert !key.equalsIgnoreCase("title");
-        assert !key.equalsIgnoreCase("command");
-        assert !key.equalsIgnoreCase("sn");
-        assert !key.equalsIgnoreCase("type");
-        return dictionary.get(key);
+    //-------- Decryption
+
+    public byte[] decrypt(SymmetricKey key) {
+        if (plaintext == null) {
+            assert key != null : "password should not be empty";
+            byte[] data = getData();
+            assert data != null : "encrypted data not found: " + dictionary;
+            plaintext = key.decrypt(data);
+        }
+        return plaintext;
     }
 
-    public void setInfo(String key, Object value) {
-        assert !key.equalsIgnoreCase("key");
-        assert !key.equalsIgnoreCase("data");
-        assert !key.equalsIgnoreCase("title");
-        assert !key.equalsIgnoreCase("command");
-        assert !key.equalsIgnoreCase("sn");
-        assert !key.equalsIgnoreCase("type");
-        dictionary.put(key, value);
+    public byte[] decrypt(PrivateKey privateKey) throws ClassNotFoundException {
+        if (password == null) {
+            assert privateKey instanceof DecryptKey : "private key error: " + privateKey;
+            byte[] key = getKey();
+            assert key != null : "key data not found: " + dictionary;
+            key = ((DecryptKey) privateKey).decrypt(key);
+            assert key != null : "failed to decrypt key with: " + privateKey;
+            String json = new String(key, Charset.forName("UTF-8"));
+            password = SymmetricKeyImpl.getInstance(JSON.decode(json));
+        }
+        return decrypt(password);
     }
 }

@@ -34,21 +34,24 @@ import chat.dim.Group;
 import chat.dim.ID;
 import chat.dim.protocol.NetworkType;
 
+/**
+ *  Simple group chat
+ */
 public class Polylogue extends Group {
 
     public Polylogue(ID identifier) {
         super(identifier);
-        assert identifier.getType() == NetworkType.Polylogue;
+        assert identifier.getType() == NetworkType.Polylogue : "polylogue ID error: " + identifier;
     }
 
     @Override
     public ID getOwner() {
-        // polylogue's owner is founder
         ID owner = super.getOwner();
         if (owner != null && owner.isValid()) {
-            assert owner == getFounder();
+            assert owner == getFounder() : "polylogue owner error: " + owner + ", " + getFounder();
             return owner;
         }
+        // polylogue's owner is its founder
         return getFounder();
     }
 }

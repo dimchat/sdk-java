@@ -54,8 +54,8 @@ public class HistoryCommandProcessor extends CommandProcessor {
 
     @Override
     public Content process(Content content, ID sender, InstantMessage iMsg) {
-        assert content instanceof Command;
-        assert getClass() == HistoryCommandProcessor.class; // override me!
+        assert getClass() == HistoryCommandProcessor.class : "error!"; // override me!
+        assert content instanceof Command : "history command error: " + content;
 
         CommandProcessor cpu;
         if (content.getGroup() == null) {
@@ -70,7 +70,7 @@ public class HistoryCommandProcessor extends CommandProcessor {
             // call group command processor
             cpu = getGPU();
         }
-        assert cpu != this; // Dead cycle!
+        assert cpu != this : "Dead cycle!";
         return cpu.process(content, sender, iMsg);
     }
 }

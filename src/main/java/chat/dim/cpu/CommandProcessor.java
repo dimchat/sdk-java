@@ -59,7 +59,7 @@ public class CommandProcessor extends ContentProcessor {
         } else if (clazz.equals(CommandProcessor.class)) {
             throw new IllegalArgumentException("should not add CommandProcessor itself!");
         } else {
-            assert CommandProcessor.class.isAssignableFrom(clazz); // asSubclass
+            assert CommandProcessor.class.isAssignableFrom(clazz) : "error: " + clazz;
             commandProcessorClasses.put(command, clazz);
         }
     }
@@ -84,8 +84,8 @@ public class CommandProcessor extends ContentProcessor {
 
     @Override
     public Content process(Content content, ID sender, InstantMessage iMsg) {
-        assert content instanceof Command;
-        assert getClass() == CommandProcessor.class; // override me!
+        assert getClass() == CommandProcessor.class : "error!"; // override me!
+        assert content instanceof Command : "command error: " + content;
         // process command content by name
         String command = ((Command) content).command;
         CommandProcessor cpu = getCPU(command);
@@ -93,7 +93,7 @@ public class CommandProcessor extends ContentProcessor {
             String text = String.format("Command (%s) not support yet!", command);
             return new TextContent(text);
         }
-        assert cpu != this; // Dead cycle!
+        assert cpu != this : "Dead cycle!";
         return cpu.process(content, sender, iMsg);
     }
 

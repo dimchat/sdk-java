@@ -30,12 +30,20 @@
  */
 package chat.dim.network;
 
+import java.util.List;
+
 import chat.dim.Group;
 import chat.dim.ID;
+import chat.dim.protocol.NetworkType;
 
 public class ServiceProvider extends Group {
 
     public ServiceProvider(ID identifier) {
         super(identifier);
+        assert identifier.getType() == NetworkType.Provider : "SP ID error: " + identifier;
+    }
+
+    public List<ID> getStations() {
+        return getDataSource().getMembers(identifier);
     }
 }

@@ -36,11 +36,14 @@ import chat.dim.Group;
 import chat.dim.ID;
 import chat.dim.protocol.NetworkType;
 
+/**
+ *  Big group with admins
+ */
 public class Chatroom extends Group {
 
     public Chatroom(ID identifier) {
         super(identifier);
-        assert identifier.getType() == NetworkType.Chatroom;
+        assert identifier.getType() == NetworkType.Chatroom : "chatroom ID error: " + identifier;
     }
 
     @Override

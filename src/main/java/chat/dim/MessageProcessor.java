@@ -93,6 +93,8 @@ public class MessageProcessor {
             //throw new NullPointerException("group meta not found: " + group);
             return true;
         }
+        // NOTICE: if the group info not found, and this is not an 'invite' command
+        //         query group info from the sender
         boolean needsUpdate = isEmpty(group);
         if (content instanceof InviteCommand) {
             // FIXME: can we trust this stranger?
@@ -112,7 +114,6 @@ public class MessageProcessor {
 
     public Content process(ReliableMessage rMsg) {
         Messenger messenger = getMessenger();
-
         // verify
         SecureMessage sMsg = messenger.verifyMessage(rMsg);
         if (sMsg == null) {
@@ -153,7 +154,8 @@ public class MessageProcessor {
         //
         ID sender = facebook.getID(rMsg.envelope.sender);
         if (checkGroup(content, sender)) {
-            // TODO: save this message in a queue to wait meta response
+            // save this message in a queue to wait group meta response
+            messenger.suspendMessage(rMsg);
             return null;
         }
         //

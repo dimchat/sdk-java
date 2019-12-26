@@ -91,7 +91,7 @@ public class ContentProcessor {
         } else if (clazz.equals(ContentProcessor.class)) {
             throw new IllegalArgumentException("should not add ContentProcessor itself!");
         } else {
-            assert ContentProcessor.class.isAssignableFrom(clazz); // asSubclass
+            assert ContentProcessor.class.isAssignableFrom(clazz) : "error: " + clazz;
             contentProcessorClasses.put(type, clazz);
         }
     }
@@ -119,10 +119,10 @@ public class ContentProcessor {
     //-------- Main --------
 
     public Content process(Content content, ID sender, InstantMessage iMsg) {
-        assert getClass() == ContentProcessor.class; // override me!
+        assert getClass() == ContentProcessor.class : "error!"; // override me!
         // process content by type
         ContentProcessor cpu = getCPU(content.type);
-        assert cpu != this; // Dead cycle!
+        assert cpu != this : "Dead cycle!";
         return cpu.process(content, sender, iMsg);
     }
 

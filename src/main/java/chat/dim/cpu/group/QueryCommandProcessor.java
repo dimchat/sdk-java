@@ -47,7 +47,7 @@ public class QueryCommandProcessor extends GroupCommandProcessor {
 
     @Override
     public Content process(Content content, ID sender, InstantMessage iMsg) {
-        assert content instanceof QueryCommand;
+        assert content instanceof QueryCommand : "query command error: " + content;
         Facebook facebook = getFacebook();
         ID group = facebook.getID(content.getGroup());
         // 1. check permission
@@ -67,7 +67,7 @@ public class QueryCommandProcessor extends GroupCommandProcessor {
         }
         // 3. respond
         User user = facebook.getCurrentUser();
-        assert user != null;
+        assert user != null : "current user not set yet";
         if (facebook.isOwner(user.identifier, group)) {
             return new ResetCommand(group, members);
         } else {

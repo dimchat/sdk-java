@@ -33,20 +33,20 @@ package chat.dim.network;
 import chat.dim.Profile;
 import chat.dim.User;
 import chat.dim.ID;
+import chat.dim.protocol.NetworkType;
 
 public class Station extends User {
 
-    public ServiceProvider serviceProvider = null;
-
-    private String host = null;
-    private int port = 0;
+    private String host;
+    private int port;
 
     public Station(ID identifier) {
-        super(identifier);
+        this(identifier, null, 0);
     }
 
     public Station(ID identifier, String host, int port) {
         super(identifier);
+        assert identifier.getType() == NetworkType.Station : "station ID error: " + identifier;
         this.host = host;
         this.port = port;
     }

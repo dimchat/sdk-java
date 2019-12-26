@@ -32,10 +32,15 @@ package chat.dim.network;
 
 import chat.dim.User;
 import chat.dim.ID;
+import chat.dim.protocol.NetworkType;
 
+/**
+ *  Robot User
+ */
 public class Robot extends User {
 
     public Robot(ID identifier) {
         super(identifier);
+        assert identifier.getType() == NetworkType.Robot : "robot ID error: " + identifier;
     }
 }

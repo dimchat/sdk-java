@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 
 import chat.dim.core.Transceiver;
-import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.FileContent;
@@ -46,14 +45,22 @@ import chat.dim.protocol.TextContent;
 
 public abstract class Messenger extends Transceiver implements ConnectionDelegate {
 
+    private final Map<String, Object> context;
+
+    private WeakReference<MessengerDelegate> delegateRef;
+
+    private MessageProcessor processor;
+
     public Messenger() {
         super();
+        context = new HashMap<>();
+        processor = null;
+        delegateRef = null;
     }
 
-    private WeakReference<MessengerDelegate> delegateRef = null;
-
-    private Map<String, Object> context = new HashMap<>();
-
+    //
+    //  Delegate for sending data
+    //
     public MessengerDelegate getDelegate() {
         if (delegateRef == null) {
             return null;
@@ -62,9 +69,13 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
     }
 
     public  void setDelegate(MessengerDelegate delegate) {
+        assert delegate != null : "Messenger delegate should not be empty";
         delegateRef = new WeakReference<>(delegate);
     }
 
+    //
+    //  Environment variables as context
+    //
     public Map<String, Object> getContext() {
         return context;
     }
@@ -81,11 +92,14 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         }
     }
 
+    //
+    //  Data source for getting entity info
+    //
     public Facebook getFacebook() {
         Object facebook = context.get("facebook");
         if (facebook == null) {
             facebook = getEntityDelegate();
-            assert facebook instanceof Facebook;
+            assert facebook instanceof Facebook : "facebook error: " + facebook;
         }
         return (Facebook) facebook;
     }
@@ -94,7 +108,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         Facebook facebook = getFacebook();
         List<User> users = facebook.getLocalUsers();
         if (users == null || users.size() == 0) {
-            throw new NullPointerException("current user should not be empty");
+            throw new NullPointerException("local users should not be empty");
         } else if (receiver.isBroadcast()) {
             // broadcast message can decrypt by anyone, so just return current user
             return users.get(0);
@@ -109,17 +123,17 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
             }
             for (User item : users) {
                 if (members.contains(item.identifier)) {
-                    //setCurrentUser(item);
+                    // set this item to be current user?
                     return item;
                 }
             }
         } else {
             // 1. personal message
             // 2. split group message
-            assert receiver.getType().isUser();
+            assert receiver.getType().isUser() : "error: " + receiver;
             for (User item : users) {
                 if (receiver.equals(item.identifier)) {
-                    //setCurrentUser(item);
+                    // set this item to be current user?
                     return item;
                 }
             }
@@ -242,7 +256,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
     @Override
     public byte[] encryptContent(Content content, Map<String, Object> password, InstantMessage iMsg) {
         SymmetricKey key = getSymmetricKey(password);
-        assert key == password && key != null;
+        assert key == password && key != null : "irregular symmetric key: " + password;
         // check attachment for File/Image/Audio/Video message content
         if (content instanceof FileContent) {
             FileContent file = (FileContent) content;
@@ -279,24 +293,10 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
     //-------- SecureMessageDelegate
 
     @Override
-    public Map<String, Object> decryptKey(byte[] keyData, Object sender, Object receiver, SecureMessage sMsg) {
-        if (keyData != null) {
-            Facebook facebook = getFacebook();
-            ID to = facebook.getID(sMsg.envelope.receiver);
-            List<DecryptKey> keys = facebook.getPrivateKeysForDecryption(to);
-            if (keys == null || keys.size() == 0) {
-                // FIXME: private key lost?
-                throw new NullPointerException("failed to get decrypt keys for receiver: " + to);
-            }
-        }
-        return super.decryptKey(keyData, sender, receiver, sMsg);
-    }
-
-    @Override
     @SuppressWarnings("unchecked")
     public Content decryptContent(byte[] data, Map<String, Object> password, SecureMessage sMsg) {
         SymmetricKey key = getSymmetricKey(password);
-        assert key == password && key != null;
+        assert key == password && key != null : "irregular symmetric key: " + password;
         Content content = super.decryptContent(data, password, sMsg);
         if (content == null) {
             return null;
@@ -334,7 +334,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
 
     public boolean sendContent(Content content, ID receiver, Callback callback, boolean split) {
         User user = getFacebook().getCurrentUser();
-        assert user != null;
+        assert user != null : "current user not found";
         InstantMessage iMsg = new InstantMessage(content, user.identifier, receiver);
         return sendMessage(iMsg, callback, split);
     }
@@ -423,7 +423,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         // NOTICE: this function is for Station
         //         if the receiver is a grouped broadcast ID,
         //         split and deliver to everyone
-        assert getFacebook().getID(msg.envelope.receiver).isBroadcast();
+        assert getFacebook().getID(msg.envelope.receiver).isBroadcast() : "receiver error: " + msg;
         return null;
     }
 
@@ -466,15 +466,6 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
 
     //-------- ConnectionDelegate
 
-    protected MessageProcessor processor = null;
-
-    protected Content process(ReliableMessage rMsg) {
-        if (processor == null) {
-            processor = new MessageProcessor(this);
-        }
-        return processor.process(rMsg);
-    }
-
     @Override
     public byte[] onReceivePackage(byte[] data) {
         // 1. deserialize message
@@ -488,11 +479,19 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         // 3. pack response
         Facebook facebook = getFacebook();
         User user = facebook.getCurrentUser();
-        assert user != null;
-        ID receiver = facebook.getID(rMsg.envelope.sender);
-        InstantMessage iMsg = new InstantMessage(response, user.identifier, receiver);
+        assert user != null : "failed to get current user";
+        ID sender = facebook.getID(rMsg.envelope.sender);
+        InstantMessage iMsg = new InstantMessage(response, user.identifier, sender);
         ReliableMessage nMsg = signMessage(encryptMessage(iMsg));
         // serialize message
         return serializeMessage(nMsg);
+    }
+
+    // NOTICE: if you want to filter the response, override me
+    protected Content process(ReliableMessage rMsg) {
+        if (processor == null) {
+            processor = new MessageProcessor(this);
+        }
+        return processor.process(rMsg);
     }
 }

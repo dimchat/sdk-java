@@ -54,7 +54,7 @@ public class BlockCommand extends Command {
     }
 
     /**
-     *  Update block-list
+     *  Send block-list
      *
      * @param list - block list
      */

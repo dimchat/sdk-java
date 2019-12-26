@@ -30,6 +30,7 @@
  */
 package chat.dim.protocol;
 
+import java.util.Date;
 import java.util.Map;
 
 import chat.dim.Envelope;
@@ -39,45 +40,54 @@ import chat.dim.Envelope;
  *      type : 0x88,
  *      sn   : 123,  // the same serial number with the original message
  *
- *      command : "receipt",
- *      message : "...",
+ *      command  : "receipt",
+ *      message  : "...",
  *      // -- extra info
- *      sender    : "...",
- *      receiver  : "...",
- *      time      : 0,
- *      signature : "..." // the same signature with the original message
+ *      sender   : "...",
+ *      receiver : "...",
+ *      time     : 0
  *  }
  */
 public class ReceiptCommand extends Command {
 
     // original message info
-    private Envelope envelope = null;
+    private Envelope envelope;
 
     public ReceiptCommand(Map<String, Object> dictionary) {
         super(dictionary);
+        envelope = null;
     }
 
-    public ReceiptCommand(String message, Envelope envelope, long sn) {
+    public ReceiptCommand(String message, long sn, Envelope env) {
         super(RECEIPT);
-        setMessage(message);
-        setEnvelope(envelope);
-        setSerialNumber(sn);
+        // text
+        if (message != null) {
+            dictionary.put("message", message);
+        }
+        // sn of the message responding to
+        if (sn > 0) {
+            dictionary.put("sn", sn);
+        }
+        // envelope of the message responding to
+        if (env != null) {
+            dictionary.put("sender", env.sender);
+            dictionary.put("receiver", env.receiver);
+            Date time = env.time;
+            if (time != null) {
+                dictionary.put("time", time.getTime() / 1000);
+            }
+        }
+        envelope = env;
     }
 
     public ReceiptCommand(String message) {
-        this(message, null, 0);
+        this(message, 0, null);
     }
 
     //-------- setters/getters --------
 
     public String getMessage() {
         return (String) dictionary.get("message");
-    }
-
-    public void setMessage(String message) {
-        if (message != null) {
-            dictionary.put("message", message);
-        }
     }
 
     public Envelope getEnvelope() {
@@ -94,20 +104,5 @@ public class ReceiptCommand extends Command {
             envelope = Envelope.getInstance(env);
         }
         return envelope;
-    }
-
-    public void setEnvelope(Envelope env) {
-        if (env != null) {
-            dictionary.put("sender", env.sender);
-            dictionary.put("receiver", env.receiver);
-            dictionary.put("time", env.time);
-        }
-        envelope = env;
-    }
-
-    private void setSerialNumber(long sn) {
-        if (sn > 0) {
-            dictionary.put("sn", sn);
-        }
     }
 }

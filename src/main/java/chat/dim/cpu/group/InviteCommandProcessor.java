@@ -58,7 +58,7 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
 
     private Content callReset(Content content, ID sender, InstantMessage iMsg) {
         CommandProcessor cpu = getCPU(GroupCommand.RESET);
-        assert cpu != null;
+        assert cpu != null : "reset CPU not register yet";
         return cpu.process(content, sender, iMsg);
     }
 
@@ -89,7 +89,7 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
 
     @Override
     public Content process(Content content, ID sender, InstantMessage iMsg) {
-        assert content instanceof InviteCommand;
+        assert content instanceof InviteCommand : "invite command error: " + content;
         Facebook facebook = getFacebook();
         ID group = facebook.getID(content.getGroup());
         // 0. check whether group info empty

@@ -71,7 +71,7 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
 
     @Override
     public Content process(Content content, ID sender, InstantMessage iMsg) {
-        assert content instanceof ExpelCommand;
+        assert content instanceof ExpelCommand : "expel command error: " + content;
         Facebook facebook = getFacebook();
         ID group = facebook.getID(content.getGroup());
         // 1. check permission
