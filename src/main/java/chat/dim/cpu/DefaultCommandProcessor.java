@@ -34,18 +34,26 @@ import chat.dim.Content;
 import chat.dim.ID;
 import chat.dim.InstantMessage;
 import chat.dim.Messenger;
-import chat.dim.protocol.ReceiptCommand;
+import chat.dim.protocol.Command;
+import chat.dim.protocol.TextContent;
 
-public class ReceiptCommandProcessor extends CommandProcessor {
+class DefaultCommandProcessor extends ContentProcessor {
 
-    public ReceiptCommandProcessor(Messenger messenger) {
+    public DefaultCommandProcessor(Messenger messenger) {
         super(messenger);
     }
 
     @Override
     public Content process(Content content, ID sender, InstantMessage iMsg) {
-        assert content instanceof ReceiptCommand : "receipt command error: " + content;
-        // no need to response receipt command
-        return null;
+        assert content instanceof Command : "command error: " + content;
+        Command cmd = (Command) content;
+        String text = String.format("Command (name: %s) not support yet!", cmd.command);
+        Content res = new TextContent(text);
+        // check group message
+        Object group = content.getGroup();
+        if (group != null) {
+            res.setGroup(group);
+        }
+        return res;
     }
 }

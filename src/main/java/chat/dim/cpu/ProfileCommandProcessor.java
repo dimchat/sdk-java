@@ -45,7 +45,7 @@ public class ProfileCommandProcessor extends CommandProcessor {
         Facebook facebook = getFacebook();
         // query profile for ID
         Profile profile = facebook.getProfile(identifier);
-        if (profile == null) {
+        if (profile == null || !profile.containsKey("data")) {
             // profile not found
             String text = String.format("Sorry, profile not found for ID: %s", identifier);
             return new TextContent(text);
@@ -65,7 +65,7 @@ public class ProfileCommandProcessor extends CommandProcessor {
             }
             if (!facebook.saveMeta(meta, identifier)) {
                 // meta not match
-                String text = String.format("Sorry, meta error for ID: %s", identifier);
+                String text = String.format("Meta not accept: %s", identifier);
                 return new TextContent(text);
             }
         }
@@ -77,11 +77,11 @@ public class ProfileCommandProcessor extends CommandProcessor {
         }
         if (!facebook.saveProfile(profile))  {
             // save profile failed
-            String text = String.format("Sorry, profile error for ID: %s", identifier);
+            String text = String.format("Profile not accept: %s", identifier);
             return new TextContent(text);
         }
         // response
-        String text = String.format("Profile saved for ID: %s", identifier);
+        String text = String.format("Profile received: %s", identifier);
         return new ReceiptCommand(text);
     }
 

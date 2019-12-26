@@ -71,7 +71,7 @@ public class ContentProcessor {
     //-------- Runtime --------
 
     @SuppressWarnings("unchecked")
-    ContentProcessor createProcessor(Class clazz) {
+    protected ContentProcessor createProcessor(Class clazz) {
         // try 'new Clazz(dict)'
         try {
             Constructor constructor = clazz.getConstructor(Messenger.class);
@@ -101,6 +101,7 @@ public class ContentProcessor {
         Class clazz = contentProcessorClasses.get(type);
         if (clazz == null) {
             clazz = contentProcessorClasses.get(ContentType.UNKNOWN);
+            assert clazz != null : "default CPU not register, content type: " + type;
         }
         return clazz;
     }
@@ -111,6 +112,7 @@ public class ContentProcessor {
             // try to create new processor with content type
             Class clazz = cpuClass(type);
             cpu = createProcessor(clazz);
+            assert cpu != null : "failed to create CPU for content type: " + type;
             contentProcessors.put(type, cpu);
         }
         return cpu;
@@ -134,6 +136,7 @@ public class ContentProcessor {
         register(ContentType.COMMAND, CommandProcessor.class);
         register(ContentType.HISTORY, HistoryCommandProcessor.class);
 
+        // default
         register(ContentType.UNKNOWN, DefaultContentProcessor.class);
     }
 }

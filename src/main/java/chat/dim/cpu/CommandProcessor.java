@@ -38,9 +38,10 @@ import chat.dim.ID;
 import chat.dim.InstantMessage;
 import chat.dim.Messenger;
 import chat.dim.protocol.Command;
-import chat.dim.protocol.TextContent;
 
 public class CommandProcessor extends ContentProcessor {
+
+    public static final String UNKNOWN = "unknown";
 
     private final Map<String, CommandProcessor> commandProcessors = new HashMap<>();
 
@@ -65,19 +66,23 @@ public class CommandProcessor extends ContentProcessor {
     }
 
     private static Class cpuClass(String command) {
-        // get subclass by content type
-        return commandProcessorClasses.get(command);
+        // get subclass by command name
+        Class clazz = commandProcessorClasses.get(command);
+        if (clazz == null) {
+            clazz = commandProcessorClasses.get(UNKNOWN);
+            assert clazz != null : "default CPU not register, command: " + command;
+        }
+        return clazz;
     }
 
     protected CommandProcessor getCPU(String command) {
         CommandProcessor cpu = commandProcessors.get(command);
         if (cpu == null) {
-            // try to create new processor with content type
+            // try to create new processor with command name
             Class clazz = cpuClass(command);
-            if (clazz != null) {
-                cpu = (CommandProcessor) createProcessor(clazz);
-                commandProcessors.put(command, cpu);
-            }
+            cpu = (CommandProcessor) createProcessor(clazz);
+            assert cpu != null : "failed to create CPU for command: " + command;
+            commandProcessors.put(command, cpu);
         }
         return cpu;
     }
@@ -86,13 +91,9 @@ public class CommandProcessor extends ContentProcessor {
     public Content process(Content content, ID sender, InstantMessage iMsg) {
         assert getClass() == CommandProcessor.class : "error!"; // override me!
         assert content instanceof Command : "command error: " + content;
+        Command cmd = (Command) content;
         // process command content by name
-        String command = ((Command) content).command;
-        CommandProcessor cpu = getCPU(command);
-        if (cpu == null) {
-            String text = String.format("Command (%s) not support yet!", command);
-            return new TextContent(text);
-        }
+        CommandProcessor cpu = getCPU(cmd.command);
         assert cpu != this : "Dead cycle!";
         return cpu.process(content, sender, iMsg);
     }
@@ -102,9 +103,10 @@ public class CommandProcessor extends ContentProcessor {
         //
         //  Register all processors with command name
         //
-        register(Command.RECEIPT, ReceiptCommandProcessor.class);
-
         register(Command.META, MetaCommandProcessor.class);
         register(Command.PROFILE, ProfileCommandProcessor.class);
+
+        // default
+        register(UNKNOWN, DefaultCommandProcessor.class);
     }
 }

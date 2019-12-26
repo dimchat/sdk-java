@@ -64,11 +64,11 @@ public class MetaCommandProcessor extends CommandProcessor {
         }
         if (!facebook.saveMeta(meta, identifier)) {
             // save meta failed
-            String text = String.format("Sorry, meta error for ID: %s", identifier);
+            String text = String.format("Meta not accept: %s", identifier);
             return new TextContent(text);
         }
         // response
-        String text = String.format("Meta saved for ID: %s", identifier);
+        String text = String.format("Meta received: %s", identifier);
         return new ReceiptCommand(text);
     }
 

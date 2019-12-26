@@ -37,7 +37,7 @@ import chat.dim.Messenger;
 import chat.dim.protocol.ContentType;
 import chat.dim.protocol.TextContent;
 
-public class DefaultContentProcessor extends ContentProcessor {
+class DefaultContentProcessor extends ContentProcessor {
 
     public DefaultContentProcessor(Messenger messenger) {
         super(messenger);

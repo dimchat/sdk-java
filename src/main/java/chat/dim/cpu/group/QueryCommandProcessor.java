@@ -53,8 +53,10 @@ public class QueryCommandProcessor extends GroupCommandProcessor {
         // 1. check permission
         if (!facebook.existsMember(sender, group)) {
             if (!facebook.existsAssistant(sender, group)) {
-                String text = sender + " is not a member/assistant of group " + group + ", cannot query.";
-                throw new UnsupportedOperationException(text);
+                if (!facebook.isOwner(sender, group)) {
+                    String text = sender + " is not a member/assistant of group " + group + ", cannot query.";
+                    throw new UnsupportedOperationException(text);
+                }
             }
         }
         // 2. get members
