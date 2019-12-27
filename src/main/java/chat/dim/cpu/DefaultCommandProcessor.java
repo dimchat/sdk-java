@@ -37,7 +37,7 @@ import chat.dim.Messenger;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.TextContent;
 
-class DefaultCommandProcessor extends ContentProcessor {
+class DefaultCommandProcessor extends CommandProcessor {
 
     public DefaultCommandProcessor(Messenger messenger) {
         super(messenger);
