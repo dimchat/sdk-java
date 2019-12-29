@@ -481,7 +481,11 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         ID sender = facebook.getID(rMsg.envelope.sender);
         ID receiver = facebook.getID(rMsg.envelope.receiver);
         User user = select(receiver);
-        assert user != null : "failed to get user: " + receiver;
+        if (user == null) {
+            // not for you?
+            // delivering message to other receiver?
+            user = facebook.getCurrentUser();
+        }
         InstantMessage iMsg = new InstantMessage(response, user.identifier, sender);
         ReliableMessage nMsg = signMessage(encryptMessage(iMsg));
         // serialize message
