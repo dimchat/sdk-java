@@ -61,7 +61,7 @@ _Step 2_. generate meta with private key (and meta seed)
 
 ```java
 String seed = "username";
-Meta = Meta.generate(MetaType.Default, privateKey, seed);
+Meta meta = Meta.generate(MetaType.Default, privateKey, seed);
 ```
 
 _Step 3_. generate ID with meta (and network type)

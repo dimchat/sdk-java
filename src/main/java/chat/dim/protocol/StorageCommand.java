@@ -39,7 +39,6 @@ import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.format.Base64;
 import chat.dim.format.JSON;
-import chat.dim.impl.SymmetricKeyImpl;
 
 /**
  *  Command message: {
@@ -177,7 +176,7 @@ public class StorageCommand extends Command {
             key = ((DecryptKey) privateKey).decrypt(key);
             assert key != null : "failed to decrypt key with: " + privateKey;
             String json = new String(key, Charset.forName("UTF-8"));
-            password = SymmetricKeyImpl.getInstance(JSON.decode(json));
+            password = SymmetricKey.getInstance(JSON.decode(json));
         }
         return decrypt(password);
     }
