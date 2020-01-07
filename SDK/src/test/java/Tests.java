@@ -1,4 +1,7 @@
 
+import chat.dim.ID;
+import chat.dim.Immortals;
+import chat.dim.User;
 import junit.framework.TestCase;
 import org.junit.Test;
 
@@ -13,8 +16,12 @@ import cpu.TextContentProcessor;
 public class Tests extends TestCase {
 
     @Test
-    public void testContent() {
+    public void testUser() {
 
+        Facebook facebook = Facebook.getInstance();
+        ID identifier = facebook.getID(Immortals.MOKI);
+        User user = facebook.getUser(identifier);
+        Log.info("user: " + user);
     }
 
     static {
