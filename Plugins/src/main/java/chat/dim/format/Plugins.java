@@ -41,6 +41,19 @@ public abstract class Plugins {
     static {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 
+        // Base58 coding
+        Base58.coder = new BaseCoder() {
+            @Override
+            public String encode(byte[] data) {
+                return chat.dim.bitcoinj.Base58.encode(data);
+            }
+
+            @Override
+            public byte[] decode(String string) {
+                return chat.dim.bitcoinj.Base58.decode(string);
+            }
+        };
+
         // HEX coding
         Hex.coder = new BaseCoder() {
             @Override
@@ -54,7 +67,7 @@ public abstract class Plugins {
             }
         };
 
-        // JsON
+        // JsON format
         JSON.parser = new DataParser() {
             @Override
             public String encode(Object container) {
@@ -67,7 +80,7 @@ public abstract class Plugins {
             }
         };
 
-        // PEM
+        // PEM format
         PEM.parser = new KeyParser() {
             @Override
             public String encodePublicKey(java.security.PublicKey publicKey) {
