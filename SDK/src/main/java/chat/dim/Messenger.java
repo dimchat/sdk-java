@@ -104,7 +104,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         return (Facebook) facebook;
     }
 
-    protected User select(ID receiver) {
+    private User select(ID receiver) {
         Facebook facebook = getFacebook();
         List<User> users = facebook.getLocalUsers();
         if (users == null || users.size() == 0) {

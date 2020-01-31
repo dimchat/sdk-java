@@ -444,7 +444,7 @@ public abstract class Facebook extends Barrack {
                 // set expired time
                 profile.put(EXPIRES_KEY, timestamp);
                 return profile;
-            } else if (expires.longValue() < timestamp){
+            } else if (expires.longValue() < timestamp) {
                 // not expired yet
                 return profile;
             }
@@ -504,7 +504,7 @@ public abstract class Facebook extends Barrack {
         List<DecryptKey> keys;// = super.getPrivateKeysForDecryption(user);
         keys = new ArrayList<>();
         // DIMP v1.0:
-        //     decrypt key and the sign key are the same key
+        //     decrypt key and the sign key are the same keys
         SignKey key = getPrivateKeyForSignature(user);
         if (key instanceof DecryptKey) {
             // TODO: support profile.key
