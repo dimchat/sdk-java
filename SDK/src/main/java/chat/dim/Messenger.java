@@ -484,19 +484,13 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
             // no message received
             return null;
         }
-        // 2. verify
-        SecureMessage sMsg = verifyMessage(rMsg);
-        if (sMsg == null) {
-            // waiting for sender's meta if not exists
-            return null;
-        }
-        // 3. process message
-        Content response = process(sMsg);
+        // 2. process message
+        Content response = process(rMsg);
         if (response == null) {
             // nothing to response
             return null;
         }
-        // 4. pack response
+        // 3. pack response
         Facebook facebook = getFacebook();
         ID sender = facebook.getID(rMsg.envelope.sender);
         ID receiver = facebook.getID(rMsg.envelope.receiver);
@@ -508,13 +502,22 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         }
         InstantMessage iMsg = new InstantMessage(response, user.identifier, sender);
         ReliableMessage nMsg = signMessage(encryptMessage(iMsg));
-        // 5. serialize message
+        // serialize message
         return serializeMessage(nMsg);
     }
 
-    // TODO: override to check broadcast message before calling it
-    // TODO: override to deliver to the receiver when catch exception "receiver error ..."
     public Content process(SecureMessage sMsg) {
+        if (sMsg instanceof ReliableMessage) {
+            ReliableMessage rMsg = (ReliableMessage)sMsg;
+            sMsg = verifyMessage(rMsg);
+            if (sMsg == null) {
+                // waiting for sender's meta if not exists
+                return null;
+            }
+            // TODO: override to check broadcast message before calling it
+            // TODO: override to deliver to the receiver when catch exception "receiver error ..."
+            return process(sMsg);
+        }
         // try to decrypt
         InstantMessage iMsg = decryptMessage(sMsg);
         // cannot decrypt this message, not for you?
@@ -523,7 +526,6 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         return process(iMsg);
     }
 
-    // TODO: override to filter the response
     public Content process(InstantMessage iMsg) {
         Content content = iMsg.content;
         ID sender = getFacebook().getID(iMsg.envelope.sender);
@@ -539,6 +541,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
             // error
             return null;
         }
+        // TODO: override to filter the response
         return response;
     }
 
