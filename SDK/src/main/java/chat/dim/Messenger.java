@@ -42,6 +42,7 @@ import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.*;
 import chat.dim.protocol.group.InviteCommand;
 import chat.dim.protocol.group.QueryCommand;
+import chat.dim.protocol.group.ResetCommand;
 
 public abstract class Messenger extends Transceiver implements ConnectionDelegate {
 
@@ -49,10 +50,11 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
 
     private WeakReference<MessengerDelegate> delegateRef = null;
 
-    private ContentProcessor cpu = null;
+    private ContentProcessor cpu;
 
     public Messenger() {
         super();
+        cpu = new ContentProcessor(this);
     }
 
     //
@@ -181,22 +183,42 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
             //throw new NullPointerException("group meta not found: " + group);
             return true;
         }
-        // NOTICE: if the group info not found, and this is not an 'invite' command
-        //         query group info from the sender
-        boolean needsUpdate = isEmpty(group);
-        if (content instanceof InviteCommand) {
-            // FIXME: can we trust this stranger?
-            //        may be we should keep this members list temporary,
-            //        and send 'query' to the owner immediately.
-            // TODO: check whether the members list is a full list,
-            //       it should contain the group owner(owner)
-            needsUpdate = false;
-        }
-        if (needsUpdate) {
+        // query group info
+        if (isEmpty(group)) {
+            // NOTICE: if the group info not found, and this is not an 'invite' command
+            //         query group info from the sender
+            if (content instanceof InviteCommand || content instanceof ResetCommand) {
+                // FIXME: can we trust this stranger?
+                //        may be we should keep this members list temporary,
+                //        and send 'query' to the owner immediately.
+                // TODO: check whether the members list is a full list,
+                //       it should contain the group owner(owner)
+                return false;
+            } else {
+                return sendContent(new QueryCommand(group), sender);
+            }
+        } else if (facebook.existsMember(sender, group)
+                || facebook.existsAssistant(sender, group)
+                || facebook.isOwner(sender, group)) {
+            // normal membership
+            return false;
+        } else {
             Command cmd = new QueryCommand(group);
-            return sendContent(cmd, sender);
+            boolean checking = false;
+            // if assistants exists, query them
+            List<ID> assistants = facebook.getAssistants(group);
+            for (ID item : assistants) {
+                if (sendContent(cmd, item)) {
+                    checking = true;
+                }
+            }
+            // if owner found, query it too
+            ID owner = facebook.getOwner(group);
+            if (owner != null && sendContent(cmd, owner)) {
+                checking = true;
+            }
+            return checking;
         }
-        return false;
     }
 
     //-------- Transform
@@ -272,6 +294,9 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
 
     @Override
     public ReliableMessage deserializeMessage(byte[] data) {
+        if (data == null || data.length == 0) {
+            return null;
+        }
         // public
         return super.deserializeMessage(data);
     }
@@ -401,6 +426,11 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
             OK = sendMessage(rMsg, callback);
         }
         // TODO: if OK, set iMsg.state = sending; else set iMsg.state = waiting
+
+        if (!saveMessage(iMsg)) {
+            return false;
+        }
+
         return OK;
     }
 
@@ -450,6 +480,10 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
     public byte[] onReceivePackage(byte[] data) {
         // 1. deserialize message
         ReliableMessage rMsg = deserializeMessage(data);
+        if (rMsg == null) {
+            // no message received
+            return null;
+        }
         // 2. verify
         SecureMessage sMsg = verifyMessage(rMsg);
         if (sMsg == null) {
@@ -500,9 +534,6 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
             return null;
         }
 
-        if (cpu == null) {
-            cpu = new ContentProcessor(this);
-        }
         Content response = cpu.process(content, sender, iMsg);
         if (!saveMessage(iMsg)) {
             // error
