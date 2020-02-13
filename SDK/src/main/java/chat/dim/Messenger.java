@@ -458,21 +458,21 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
      * @param msg - instant message
      * @return true on success
      */
-    protected abstract boolean saveMessage(InstantMessage msg);
+    public abstract boolean saveMessage(InstantMessage msg);
 
     /**
      *  Suspend the received message for the sender's meta
      *
      * @param msg - message received from network
      */
-    protected abstract void suspendMessage(ReliableMessage msg);
+    public abstract void suspendMessage(ReliableMessage msg);
 
     /**
      *  Suspend the sending message for the receiver's meta
      *
      * @param msg - instant message to be sent
      */
-    protected abstract void suspendMessage(InstantMessage msg);
+    public abstract void suspendMessage(InstantMessage msg);
 
     //-------- ConnectionDelegate
 

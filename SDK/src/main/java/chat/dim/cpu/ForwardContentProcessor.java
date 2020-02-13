@@ -52,6 +52,7 @@ public class ForwardContentProcessor extends ContentProcessor {
         SecureMessage sMsg = messenger.verifyMessage(rMsg);
         if (sMsg == null) {
             // TODO: save this message in a queue to wait meta response
+            //messenger.suspendMessage(rMsg);
             //throw new RuntimeException("failed to verify message: " + rMsg);
             return null;
         }
