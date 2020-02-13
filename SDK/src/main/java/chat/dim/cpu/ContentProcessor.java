@@ -131,6 +131,11 @@ public class ContentProcessor {
     static {
 
         //
+        //  Register content processor(s) with content type
+        //
+        register(ContentType.FORWARD, ForwardContentProcessor.class);
+
+        //
         //  Register all processors with content types
         //
         register(ContentType.COMMAND, CommandProcessor.class);

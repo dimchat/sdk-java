@@ -52,7 +52,7 @@ and broadcast only ```meta``` & ```profile``` onto DIM station.
 _Step 1_. generate private key (with asymmetric algorithm)
 
 ```java
-PrivateKey privateKey = PrivateKeyImpl.generate(PrivateKey.RSA);
+PrivateKey privateKey = PrivateKey.generate(PrivateKey.RSA);
 ```
 
 **NOTICE**: After registered, the client should save the private key in secret storage.
