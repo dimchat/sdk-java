@@ -426,15 +426,15 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
             OK = sendMessage(rMsg, callback);
         }
         // TODO: if OK, set iMsg.state = sending; else set iMsg.state = waiting
-
+        /*
         if (!saveMessage(iMsg)) {
             return false;
         }
-
+         */
         return OK;
     }
 
-    protected boolean sendMessage(ReliableMessage rMsg, Callback callback) {
+    private boolean sendMessage(ReliableMessage rMsg, Callback callback) {
         CompletionHandler handler = new CompletionHandler() {
             @Override
             public void onSuccess() {
@@ -468,7 +468,8 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
     public abstract void suspendMessage(ReliableMessage msg);
 
     /**
-     *  Suspend the sending message for the receiver's meta
+     *  Suspend the sending message for the receiver's meta,
+     *  or group meta when received new message
      *
      * @param msg - instant message to be sent
      */
