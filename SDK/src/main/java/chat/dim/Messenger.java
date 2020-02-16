@@ -40,9 +40,6 @@ import chat.dim.cpu.ContentProcessor;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.*;
-import chat.dim.protocol.group.InviteCommand;
-import chat.dim.protocol.group.QueryCommand;
-import chat.dim.protocol.group.ResetCommand;
 
 public abstract class Messenger extends Transceiver implements ConnectionDelegate {
 
@@ -151,74 +148,6 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
             sMsg = sMsg.trim(user.identifier);
         }
         return sMsg;
-    }
-
-    // check whether group info empty
-    private boolean isEmpty(ID group) {
-        Facebook facebook = getFacebook();
-        List members = facebook.getMembers(group);
-        if (members == null || members.size() == 0) {
-            return true;
-        }
-        ID owner = facebook.getOwner(group);
-        return owner == null;
-    }
-
-    // check whether need to update group
-    private boolean checkGroup(Content content, ID sender) {
-        // Check if it is a group message, and whether the group members info needs update
-        Facebook facebook = getFacebook();
-        ID group = facebook.getID(content.getGroup());
-        if (group == null || group.isBroadcast()) {
-            // 1. personal message
-            // 2. broadcast message
-            return false;
-        }
-        // check meta for new group ID
-        Meta meta = facebook.getMeta(group);
-        if (meta == null) {
-            // NOTICE: if meta for group not found,
-            //         facebook should query it from DIM network automatically
-            // TODO: insert the message to a temporary queue to wait meta
-            //throw new NullPointerException("group meta not found: " + group);
-            return true;
-        }
-        // query group info
-        if (isEmpty(group)) {
-            // NOTICE: if the group info not found, and this is not an 'invite' command
-            //         query group info from the sender
-            if (content instanceof InviteCommand || content instanceof ResetCommand) {
-                // FIXME: can we trust this stranger?
-                //        may be we should keep this members list temporary,
-                //        and send 'query' to the owner immediately.
-                // TODO: check whether the members list is a full list,
-                //       it should contain the group owner(owner)
-                return false;
-            } else {
-                return sendContent(new QueryCommand(group), sender);
-            }
-        } else if (facebook.existsMember(sender, group)
-                || facebook.existsAssistant(sender, group)
-                || facebook.isOwner(sender, group)) {
-            // normal membership
-            return false;
-        } else {
-            Command cmd = new QueryCommand(group);
-            boolean checking = false;
-            // if assistants exists, query them
-            List<ID> assistants = facebook.getAssistants(group);
-            for (ID item : assistants) {
-                if (sendContent(cmd, item)) {
-                    checking = true;
-                }
-            }
-            // if owner found, query it too
-            ID owner = facebook.getOwner(group);
-            if (owner != null && sendContent(cmd, owner)) {
-                checking = true;
-            }
-            return checking;
-        }
     }
 
     //-------- Transform
@@ -426,11 +355,10 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
             OK = sendMessage(rMsg, callback);
         }
         // TODO: if OK, set iMsg.state = sending; else set iMsg.state = waiting
-        /*
+
         if (!saveMessage(iMsg)) {
             return false;
         }
-         */
         return OK;
     }
 
@@ -507,18 +435,18 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         return serializeMessage(nMsg);
     }
 
-    public Content process(SecureMessage sMsg) {
-        if (sMsg instanceof ReliableMessage) {
-            ReliableMessage rMsg = (ReliableMessage)sMsg;
-            sMsg = verifyMessage(rMsg);
-            if (sMsg == null) {
-                // waiting for sender's meta if not exists
-                return null;
-            }
-            // TODO: override to check broadcast message before calling it
-            // TODO: override to deliver to the receiver when catch exception "receiver error ..."
-            return process(sMsg);
+    public Content process(ReliableMessage rMsg) {
+        SecureMessage sMsg = verifyMessage(rMsg);
+        if (sMsg == null) {
+            // waiting for sender's meta if not exists
+            return null;
         }
+        // TODO: override to check broadcast message before calling it
+        // TODO: override to deliver to the receiver when catch exception "receiver error ..."
+        return process(sMsg);
+    }
+
+    public Content process(SecureMessage sMsg) {
         // try to decrypt
         InstantMessage iMsg = decryptMessage(sMsg);
         // cannot decrypt this message, not for you?
@@ -531,17 +459,12 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         Content content = iMsg.content;
         ID sender = getFacebook().getID(iMsg.envelope.sender);
 
-        if (checkGroup(content, sender)) {
-            // save this message in a queue to wait group meta response
-            suspendMessage(iMsg);
-            return null;
-        }
-
         Content response = cpu.process(content, sender, iMsg);
         if (!saveMessage(iMsg)) {
             // error
             return null;
         }
+
         // TODO: override to filter the response
         return response;
     }

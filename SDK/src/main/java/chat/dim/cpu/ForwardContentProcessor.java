@@ -43,20 +43,7 @@ public class ForwardContentProcessor extends ContentProcessor {
     public Content process(Content content, ID sender, InstantMessage iMsg) {
         assert content instanceof ForwardContent : "forward content error: " + content;
         ForwardContent forward = (ForwardContent) content;
-        ReliableMessage rMsg = forward.forwardMessage;
-        Messenger messenger = getMessenger();
-
-        // [Forward Protocol]
-        // do it again to drop the wrapper,
-        // the secret inside the content is the real message
-        SecureMessage sMsg = messenger.verifyMessage(rMsg);
-        if (sMsg == null) {
-            // TODO: save this message in a queue to wait meta response
-            //messenger.suspendMessage(rMsg);
-            //throw new RuntimeException("failed to verify message: " + rMsg);
-            return null;
-        }
-        return messenger.process(sMsg);
+        return getMessenger().process(forward.forwardMessage);
 
         // NOTICE: decrypt failed, not for you?
         //         check content type in subclass, if it's a 'forward' message,
