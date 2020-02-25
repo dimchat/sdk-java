@@ -107,14 +107,24 @@ public class ContentProcessor {
     }
 
     private ContentProcessor getCPU(ContentType type) {
+        // 1. get from pool
         ContentProcessor cpu = contentProcessors.get(type);
-        if (cpu == null) {
-            // try to create new processor with content type
-            Class clazz = cpuClass(type);
-            cpu = createProcessor(clazz);
-            assert cpu != null : "failed to create CPU for content type: " + type;
-            contentProcessors.put(type, cpu);
+        if (cpu != null) {
+            return cpu;
         }
+        // 2. get CPU class by content type
+        Class clazz = cpuClass(type);
+        if (clazz == null) {
+            if (type == ContentType.UNKNOWN) {
+                throw new NullPointerException("default CPU not register yet");
+            }
+            // call default CPU
+            return getCPU(ContentType.UNKNOWN);
+        }
+        // 3. create CPU with messenger
+        cpu = createProcessor(clazz);
+        assert cpu != null : "failed to create CPU for content type: " + type;
+        contentProcessors.put(type, cpu);
         return cpu;
     }
 

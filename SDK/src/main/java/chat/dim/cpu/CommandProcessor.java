@@ -76,14 +76,23 @@ public class CommandProcessor extends ContentProcessor {
     }
 
     protected CommandProcessor getCPU(String command) {
+        // 1. get from pool
         CommandProcessor cpu = commandProcessors.get(command);
-        if (cpu == null) {
-            // try to create new processor with command name
-            Class clazz = cpuClass(command);
-            cpu = (CommandProcessor) createProcessor(clazz);
-            assert cpu != null : "failed to create CPU for command: " + command;
-            commandProcessors.put(command, cpu);
+        if (cpu != null) {
+            return cpu;
         }
+        // 2. get CPU class by command name
+        Class clazz = cpuClass(command);
+        if (clazz == null) {
+            if (command.equals(UNKNOWN)) {
+                throw new NullPointerException("default CPU not register yet");
+            }
+            return getCPU(UNKNOWN);
+        }
+        // 3. create CPU with messenger
+        cpu = (CommandProcessor) createProcessor(clazz);
+        assert cpu != null : "failed to create CPU for command: " + command;
+        commandProcessors.put(command, cpu);
         return cpu;
     }
 
