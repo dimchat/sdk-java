@@ -105,12 +105,14 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
         // process command content by name
         String command = ((Command) content).command;
         CommandProcessor cpu = getCPU(command);
+        /*
         if (cpu == null) {
             String text = String.format("Group command (%s) not support yet!", command);
             Content res = new TextContent(text);
             res.setGroup(content.getGroup());
             return res;
         }
+         */
         assert cpu != this : "Dead cycle!";
         return cpu.process(content, sender, iMsg);
     }

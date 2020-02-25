@@ -65,16 +65,6 @@ public class CommandProcessor extends ContentProcessor {
         }
     }
 
-    private static Class cpuClass(String command) {
-        // get subclass by command name
-        Class clazz = commandProcessorClasses.get(command);
-        if (clazz == null) {
-            clazz = commandProcessorClasses.get(UNKNOWN);
-            assert clazz != null : "default CPU not register, command: " + command;
-        }
-        return clazz;
-    }
-
     protected CommandProcessor getCPU(String command) {
         // 1. get from pool
         CommandProcessor cpu = commandProcessors.get(command);
@@ -82,7 +72,7 @@ public class CommandProcessor extends ContentProcessor {
             return cpu;
         }
         // 2. get CPU class by command name
-        Class clazz = cpuClass(command);
+        Class clazz = commandProcessorClasses.get(command);
         if (clazz == null) {
             if (command.equals(UNKNOWN)) {
                 throw new NullPointerException("default CPU not register yet");

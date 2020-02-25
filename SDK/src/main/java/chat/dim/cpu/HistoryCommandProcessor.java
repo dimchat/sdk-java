@@ -62,10 +62,12 @@ public class HistoryCommandProcessor extends CommandProcessor {
             // process command content by name
             String command = ((Command) content).command;
             cpu = getCPU(command);
+            /*
             if (cpu == null) {
                 String text = String.format("History command (%s) not support yet!", command);
                 return new TextContent(text);
             }
+             */
         } else {
             // call group command processor
             cpu = getGPU();

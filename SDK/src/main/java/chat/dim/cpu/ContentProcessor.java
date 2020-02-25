@@ -96,16 +96,6 @@ public class ContentProcessor {
         }
     }
 
-    private static Class cpuClass(ContentType type) {
-        // get subclass by content type
-        Class clazz = contentProcessorClasses.get(type);
-        if (clazz == null) {
-            clazz = contentProcessorClasses.get(ContentType.UNKNOWN);
-            assert clazz != null : "default CPU not register, content type: " + type;
-        }
-        return clazz;
-    }
-
     private ContentProcessor getCPU(ContentType type) {
         // 1. get from pool
         ContentProcessor cpu = contentProcessors.get(type);
@@ -113,7 +103,7 @@ public class ContentProcessor {
             return cpu;
         }
         // 2. get CPU class by content type
-        Class clazz = cpuClass(type);
+        Class clazz = contentProcessorClasses.get(type);
         if (clazz == null) {
             if (type == ContentType.UNKNOWN) {
                 throw new NullPointerException("default CPU not register yet");
