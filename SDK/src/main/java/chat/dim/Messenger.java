@@ -245,7 +245,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
             String url = getDelegate().uploadData(data, iMsg);
             if (url != null) {
                 // replace 'data' with 'URL'
-                file.setUrl(url);
+                file.setURL(url);
                 file.setData(null);
             }
         }
@@ -285,14 +285,14 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
             FileContent file = (FileContent) content;
             InstantMessage iMsg = new InstantMessage(content, sMsg.envelope);
             // download from CDN
-            byte[] fileData = getDelegate().downloadData(file.getUrl(), iMsg);
+            byte[] fileData = getDelegate().downloadData(file.getURL(), iMsg);
             if (fileData == null) {
                 // save symmetric key for decrypted file data after download from CDN
                 file.setPassword(key);
             } else {
                 // decrypt file data
                 file.setData(key.decrypt(fileData));
-                file.setUrl(null);
+                file.setURL(null);
             }
         }
         return content;
