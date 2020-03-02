@@ -34,7 +34,6 @@ import chat.dim.Content;
 import chat.dim.ID;
 import chat.dim.InstantMessage;
 import chat.dim.Messenger;
-import chat.dim.protocol.ContentType;
 import chat.dim.protocol.TextContent;
 
 class DefaultContentProcessor extends ContentProcessor {
@@ -45,8 +44,8 @@ class DefaultContentProcessor extends ContentProcessor {
 
     @Override
     public Content process(Content content, ID sender, InstantMessage iMsg) {
-        ContentType type = content.type;
-        String text = String.format("Content (type: %s) not support yet!", type);
+        int type = content.type;
+        String text = String.format("Content (type: %d) not support yet!", type);
         Content res = new TextContent(text);
         // check group message
         Object group = content.getGroup();

@@ -44,7 +44,7 @@ import chat.dim.protocol.ContentType;
  */
 public class ContentProcessor {
 
-    private final Map<ContentType, ContentProcessor> contentProcessors = new HashMap<>();
+    private final Map<Integer, ContentProcessor> contentProcessors = new HashMap<>();
     private final WeakReference<Messenger> messengerRef;
 
     public ContentProcessor(Messenger messenger) {
@@ -82,10 +82,13 @@ public class ContentProcessor {
         }
     }
 
-    private static Map<ContentType, Class> contentProcessorClasses = new HashMap<>();
+    private static Map<Integer, Class> contentProcessorClasses = new HashMap<>();
 
-    @SuppressWarnings("unchecked")
     public static void register(ContentType type, Class clazz) {
+        register(type.value, clazz);
+    }
+    @SuppressWarnings("unchecked")
+    public static void register(int type, Class clazz) {
         if (clazz == null) {
             contentProcessorClasses.remove(type);
         } else if (clazz.equals(ContentProcessor.class)) {
@@ -96,7 +99,7 @@ public class ContentProcessor {
         }
     }
 
-    private ContentProcessor getCPU(ContentType type) {
+    private ContentProcessor getCPU(int type) {
         // 1. get from pool
         ContentProcessor cpu = contentProcessors.get(type);
         if (cpu != null) {
@@ -105,11 +108,11 @@ public class ContentProcessor {
         // 2. get CPU class by content type
         Class clazz = contentProcessorClasses.get(type);
         if (clazz == null) {
-            if (type == ContentType.UNKNOWN) {
+            if (type == ContentType.UNKNOWN.value) {
                 throw new NullPointerException("default CPU not register yet");
             }
             // call default CPU
-            return getCPU(ContentType.UNKNOWN);
+            return getCPU(ContentType.UNKNOWN.value);
         }
         // 3. create CPU with messenger
         cpu = createProcessor(clazz);
