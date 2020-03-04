@@ -108,7 +108,7 @@ public class ContentProcessor {
         // 2. get CPU class by content type
         Class clazz = contentProcessorClasses.get(type);
         if (clazz == null) {
-            if (type == ContentType.UNKNOWN.value) {
+            if (ContentType.UNKNOWN.equals(type)) {
                 throw new NullPointerException("default CPU not register yet");
             }
             // call default CPU

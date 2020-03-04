@@ -193,7 +193,7 @@ public class Immortals extends chat.dim.mkm.Plugins implements UserDataSource {
     }
 
     public User getUser(ID identifier) {
-        assert identifier.getType().isUser() : "user ID error: " + identifier;
+        assert identifier.isUser() : "user ID error: " + identifier;
         User user = userMap.get(identifier);
         if (user == null) {
             // only create exists account
@@ -222,7 +222,7 @@ public class Immortals extends chat.dim.mkm.Plugins implements UserDataSource {
 
     @Override
     public List<ID> getContacts(ID user) {
-        assert user.getType().isUser() : "user ID error: " + user;
+        assert user.isUser() : "user ID error: " + user;
         if (!idMap.containsValue(user)) {
             return null;
         }
@@ -238,14 +238,14 @@ public class Immortals extends chat.dim.mkm.Plugins implements UserDataSource {
 
     @Override
     public EncryptKey getPublicKeyForEncryption(ID user) {
-        assert user.getType().isUser() : "user ID error: " + user;
+        assert user.isUser() : "user ID error: " + user;
         // NOTICE: return nothing to use profile.key or meta.key
         return null;
     }
 
     @Override
     public List<DecryptKey> getPrivateKeysForDecryption(ID user) {
-        assert user.getType().isUser() : "user ID error: " + user;
+        assert user.isUser() : "user ID error: " + user;
         PrivateKey key = privateKeyMap.get(user);
         if (key instanceof DecryptKey) {
             List<DecryptKey> array = new ArrayList<>();
@@ -257,13 +257,13 @@ public class Immortals extends chat.dim.mkm.Plugins implements UserDataSource {
 
     @Override
     public SignKey getPrivateKeyForSignature(ID user) {
-        assert user.getType().isUser() : "user ID error: " + user;
+        assert user.isUser() : "user ID error: " + user;
         return privateKeyMap.get(user);
     }
 
     @Override
     public List<VerifyKey> getPublicKeysForVerification(ID user) {
-        assert user.getType().isUser() : "user ID error: " + user;
+        assert user.isUser() : "user ID error: " + user;
         // NOTICE: return nothing to use meta.key
         return null;
     }

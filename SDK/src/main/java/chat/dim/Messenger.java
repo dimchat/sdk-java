@@ -109,7 +109,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
             // broadcast message can decrypt by anyone, so just return current user
             return users.get(0);
         }
-        if (receiver.getType().isGroup()) {
+        if (receiver.isGroup()) {
             // group message (recipient not designated)
             List<ID> members = facebook.getMembers(receiver);
             if (members == null || members.size() == 0) {
@@ -126,7 +126,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         } else {
             // 1. personal message
             // 2. split group message
-            assert receiver.getType().isUser() : "error: " + receiver;
+            assert receiver.isUser() : "error: " + receiver;
             for (User item : users) {
                 if (receiver.equals(item.identifier)) {
                     // set this item to be current user?
@@ -143,7 +143,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         if (user == null) {
             // current users not match
             return null;
-        } else if (receiver.getType().isGroup()) {
+        } else if (receiver.isGroup()) {
             // trim group message
             sMsg = sMsg.trim(user.identifier);
         }
@@ -332,7 +332,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         Facebook facebook = getFacebook();
         ID receiver = facebook.getID(iMsg.envelope.receiver);
         boolean OK = true;
-        if (split && receiver.getType().isGroup()) {
+        if (split && receiver.isGroup()) {
             // split for each members
             List<ID> members = facebook.getMembers(receiver);
             List<SecureMessage> messages;

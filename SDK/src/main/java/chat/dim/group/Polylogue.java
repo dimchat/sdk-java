@@ -41,7 +41,7 @@ public class Polylogue extends Group {
 
     public Polylogue(ID identifier) {
         super(identifier);
-        assert identifier.getType() == NetworkType.Polylogue : "polylogue ID error: " + identifier;
+        assert NetworkType.Polylogue.equals(identifier.getType()) : "polylogue ID error: " + identifier;
     }
 
     @Override

@@ -1,6 +1,5 @@
 
 import chat.dim.Address;
-import chat.dim.protocol.NetworkType;
 
 public final class ETHAddress extends Address {
 
@@ -17,8 +16,8 @@ public final class ETHAddress extends Address {
     }
 
     @Override
-    public NetworkType getNetwork() {
-        return null;
+    public byte getNetwork() {
+        return 0;
     }
 
     @Override
@@ -27,7 +26,7 @@ public final class ETHAddress extends Address {
     }
 
 
-    static ETHAddress generate(byte[] fingerprint, NetworkType network) {
+    static ETHAddress generate(byte[] fingerprint, byte network) {
         // TODO: generate ETH address
         return null;
     }

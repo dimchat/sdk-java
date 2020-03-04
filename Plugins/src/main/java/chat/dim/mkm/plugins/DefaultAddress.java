@@ -36,7 +36,6 @@ import chat.dim.Address;
 import chat.dim.digest.RIPEMD160;
 import chat.dim.digest.SHA256;
 import chat.dim.format.Base58;
-import chat.dim.protocol.NetworkType;
 
 /**
  *  Address like BitCoin
@@ -54,7 +53,7 @@ import chat.dim.protocol.NetworkType;
  */
 public final class DefaultAddress extends Address {
 
-    private final NetworkType network;
+    private final byte network;
     private final long code;
 
     public DefaultAddress(String string) {
@@ -73,12 +72,12 @@ public final class DefaultAddress extends Address {
         if (!Arrays.equals(cc, suffix)) {
             throw new ArithmeticException("address check code error: " + string);
         }
-        this.network = NetworkType.fromByte(data[0]);
+        this.network = data[0];
         this.code    = userNumber(cc);
     }
 
     @Override
-    public NetworkType getNetwork() {
+    public byte getNetwork() {
         return network;
     }
 
@@ -94,12 +93,12 @@ public final class DefaultAddress extends Address {
      * @param network - address type
      * @return Address object
      */
-    static DefaultAddress generate(byte[] fingerprint, NetworkType network) {
+    static DefaultAddress generate(byte[] fingerprint, byte network) {
         // 1. digest = ripemd160(sha256(fingerprint))
         byte[] digest = RIPEMD160.digest(SHA256.digest(fingerprint));
         // 2. head = network + digest
         byte[] head = new byte[21];
-        head[0] = network.toByte();
+        head[0] = network;
         System.arraycopy(digest, 0, head, 1, 20);
         // 3. cc = sha256(sha256(head)).prefix(4)
         byte[] cc = checkCode(head);
@@ -119,6 +118,10 @@ public final class DefaultAddress extends Address {
     }
 
     private static long userNumber(byte[] cc) {
-        return (long)(cc[3] & 0xFF) << 24 | (cc[2] & 0xFF) << 16 | (cc[1] & 0xFF) << 8 | (cc[0] & 0xFF);
+        return (long)
+                (cc[3] & 0xFF) << 24 |
+                (cc[2] & 0xFF) << 16 |
+                (cc[1] & 0xFF) << 8 |
+                (cc[0] & 0xFF);
     }
 }

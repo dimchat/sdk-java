@@ -24,6 +24,9 @@ public class EntityTest {
         Map<String, Object> info = new HashMap<>();
         info.put("type", address.getCode());
         info.put("number", address.getNetwork());
+        byte network = NetworkType.Robot.value;
+        int result = network & NetworkType.Thing.value;
+        Assert.assertEquals(result, NetworkType.Thing.value);
         return info.toString();
     }
 
@@ -69,9 +72,9 @@ public class EntityTest {
         Log.info("address: " + address + ", detail: " + getAddressInfo(address));
 
         NetworkType robot = NetworkType.Robot;
-        Log.info("robot type: " + robot.toByte());
         Log.info("robot type: " + robot.value);
-        Assert.assertEquals((byte) 0xC8, robot.toByte());
+        Log.info("robot type: " + robot.value);
+        Assert.assertEquals((byte) 0xC8, robot.value);
 
         address = Address.getInstance(satoshi);
         Log.info("satoshi: " + address);
@@ -116,8 +119,8 @@ public class EntityTest {
         Assert.assertTrue(meta.matches(identifier));
         Assert.assertTrue(meta.matches(identifier.address));
 
-        Assert.assertTrue(identifier.getType().isUser());
-        Assert.assertTrue(identifier.getType().isPerson());
+        Assert.assertTrue(identifier.isUser());
+        //Assert.assertTrue(identifier.isPerson());
 
         Facebook facebook = Facebook.getInstance();
         facebook.cache(sk, identifier);

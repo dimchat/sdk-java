@@ -43,7 +43,7 @@ public class Chatroom extends Group {
 
     public Chatroom(ID identifier) {
         super(identifier);
-        assert identifier.getType() == NetworkType.Chatroom : "chatroom ID error: " + identifier;
+        assert NetworkType.Chatroom.equals(identifier.getType()) : "chatroom ID error: " + identifier;
     }
 
     @Override

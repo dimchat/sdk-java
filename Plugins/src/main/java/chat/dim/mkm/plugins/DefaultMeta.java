@@ -37,7 +37,6 @@ import chat.dim.Address;
 import chat.dim.ID;
 import chat.dim.Meta;
 import chat.dim.protocol.MetaType;
-import chat.dim.protocol.NetworkType;
 
 /**
  *  Default Meta to build ID with 'name@address'
@@ -59,10 +58,10 @@ public final class DefaultMeta extends Meta {
     }
 
     // memory cache
-    private Map<NetworkType, ID> idMap = new HashMap<>();
+    private Map<Byte, ID> idMap = new HashMap<>();
 
     @Override
-    public ID generateID(NetworkType network) {
+    public ID generateID(byte network) {
         // check cache
         ID identifier = idMap.get(network);
         if (identifier == null) {
@@ -75,8 +74,8 @@ public final class DefaultMeta extends Meta {
     }
 
     @Override
-    protected Address generateAddress(NetworkType network) {
-        assert getVersion() == MetaType.MKM : "meta version error";
+    protected Address generateAddress(byte network) {
+        assert MetaType.MKM.equals(getVersion()) : "meta version error";
         if (!isValid()) {
             throw new IllegalArgumentException("meta invalid: " + dictionary);
         }

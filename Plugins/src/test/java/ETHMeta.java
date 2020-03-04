@@ -4,7 +4,6 @@ import java.util.Map;
 import chat.dim.Address;
 import chat.dim.Meta;
 import chat.dim.protocol.MetaType;
-import chat.dim.protocol.NetworkType;
 
 public class ETHMeta extends Meta {
 
@@ -12,8 +11,8 @@ public class ETHMeta extends Meta {
         super(dictionary);
     }
 
-    protected Address generateAddress(NetworkType network) {
-        if ((getVersion().value & MetaType.BTC.value) != MetaType.BTC.value) {
+    protected Address generateAddress(byte network) {
+        if ((getVersion() & MetaType.ETH.value) != MetaType.ETH.value) {
             throw new ArithmeticException("meta version error");
         }
         // BTC, ExBTC

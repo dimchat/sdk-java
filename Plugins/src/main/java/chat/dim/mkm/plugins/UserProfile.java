@@ -44,7 +44,7 @@ public class UserProfile extends Profile {
         super(dictionary);
         Object identifier = dictionary.get("ID");
         if (identifier instanceof ID) {
-            if (!((ID) identifier).getType().isUser()) {
+            if (!((ID) identifier).isUser()) {
                 throw new ClassCastException("not a user profile: " + dictionary);
             }
         } else if (!dictionary.containsKey("avatar") &&
@@ -55,7 +55,7 @@ public class UserProfile extends Profile {
 
     public UserProfile(ID identifier) {
         super(identifier);
-        assert identifier.getType().isUser() : "user ID error: " + identifier;
+        assert identifier.isUser() : "user ID error: " + identifier;
     }
 
     /**
