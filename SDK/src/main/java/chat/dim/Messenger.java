@@ -111,14 +111,8 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         }
         if (receiver.isGroup()) {
             // group message (recipient not designated)
-            List<ID> members = facebook.getMembers(receiver);
-            if (members == null || members.size() == 0) {
-                // TODO: query group members
-                //       (do it by application)
-                return null;
-            }
             for (User item : users) {
-                if (members.contains(item.identifier)) {
+                if (facebook.existsMember(item.identifier, receiver)) {
                     // set this item to be current user?
                     return item;
                 }
@@ -142,7 +136,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         User user = select(receiver);
         if (user == null) {
             // current users not match
-            return null;
+            sMsg = null;
         } else if (receiver.isGroup()) {
             // trim group message
             sMsg = sMsg.trim(user.identifier);
@@ -362,16 +356,20 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         return OK;
     }
 
-    private boolean sendMessage(ReliableMessage rMsg, Callback callback) {
+    public boolean sendMessage(ReliableMessage rMsg, Callback callback) {
         CompletionHandler handler = new CompletionHandler() {
             @Override
             public void onSuccess() {
-                callback.onFinished(rMsg, null);
+                if (callback != null) {
+                    callback.onFinished(rMsg, null);
+                }
             }
 
             @Override
             public void onFailed(Error error) {
-                callback.onFinished(rMsg, error);
+                if (callback != null) {
+                    callback.onFinished(rMsg, error);
+                }
             }
         };
         byte[] data = serializeMessage(rMsg);
@@ -414,59 +412,78 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
             return null;
         }
         // 2. process message
-        Content response = process(rMsg);
-        if (response == null) {
-            // nothing to response
+        rMsg = process(rMsg);
+        if (rMsg == null) {
+            // nothing to respond
             return null;
         }
-        // 3. pack response
-        Facebook facebook = getFacebook();
-        ID sender = facebook.getID(rMsg.envelope.sender);
-        ID receiver = facebook.getID(rMsg.envelope.receiver);
-        User user = select(receiver);
-        if (user == null) {
-            // not for you?
-            // delivering message to other receiver?
-            user = facebook.getCurrentUser();
-        }
-        InstantMessage iMsg = new InstantMessage(response, user.identifier, sender);
-        ReliableMessage nMsg = signMessage(encryptMessage(iMsg));
-        // serialize message
-        return serializeMessage(nMsg);
+        // 3. serialize message
+        return serializeMessage(rMsg);
     }
 
-    public Content process(ReliableMessage rMsg) {
+    // TODO: override to check broadcast message before calling it
+    // TODO: override to deliver to the receiver when catch exception "receiver error ..."
+    public ReliableMessage process(ReliableMessage rMsg) {
+        // 1. verify message
         SecureMessage sMsg = verifyMessage(rMsg);
         if (sMsg == null) {
             // waiting for sender's meta if not exists
             return null;
         }
-        // TODO: override to check broadcast message before calling it
-        // TODO: override to deliver to the receiver when catch exception "receiver error ..."
-        return process(sMsg);
+        // 2. process message
+        sMsg = process(sMsg);
+        if (sMsg == null) {
+            // nothing to respond
+            return null;
+        }
+        // 3. sign message
+        return signMessage(sMsg);
     }
 
-    public Content process(SecureMessage sMsg) {
-        // try to decrypt
+    public SecureMessage process(SecureMessage sMsg) {
+        // 1. decrypt message
         InstantMessage iMsg = decryptMessage(sMsg);
-        // cannot decrypt this message, not for you?
-        assert iMsg != null : "failed to decrypt message: " + sMsg;
-        // process it
-        return process(iMsg);
+        if (iMsg == null) {
+            // cannot decrypt this message, not for you?
+            // delivering message to other receiver?
+            return null;
+        }
+        // 2. process message
+        iMsg = process(iMsg);
+        if (iMsg == null) {
+            // nothing to respond
+            return null;
+        }
+        // 3. encrypt message
+        return encryptMessage(iMsg);
     }
 
-    public Content process(InstantMessage iMsg) {
+    // TODO: override to check group
+    // TODO: override to filter the response
+    public InstantMessage process(InstantMessage iMsg) {
+        Facebook facebook = getFacebook();
         Content content = iMsg.content;
-        ID sender = getFacebook().getID(iMsg.envelope.sender);
+        Envelope env = iMsg.envelope;
+        ID sender = facebook.getID(env.sender);
 
+        // process content from sender
         Content response = cpu.process(content, sender, iMsg);
         if (!saveMessage(iMsg)) {
             // error
             return null;
         }
+        if (response == null) {
+            // nothing to respond
+            return null;
+        }
 
-        // TODO: override to filter the response
-        return response;
+        // check receiver
+        ID receiver = facebook.getID(env.receiver);
+        User user = select(receiver);
+        assert user != null : "receiver error: " + receiver;
+
+        // pack message
+        return new InstantMessage(response, user.identifier, sender);
     }
 
     static {

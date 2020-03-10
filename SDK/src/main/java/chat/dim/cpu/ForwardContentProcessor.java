@@ -43,11 +43,21 @@ public class ForwardContentProcessor extends ContentProcessor {
     public Content process(Content content, ID sender, InstantMessage iMsg) {
         assert content instanceof ForwardContent : "forward content error: " + content;
         ForwardContent forward = (ForwardContent) content;
-        return getMessenger().process(forward.forwardMessage);
+        Messenger messenger = getMessenger();
+        // process
+        ReliableMessage rMsg = messenger.process(forward.forwardMessage);
+        // response
+        if (rMsg != null) {
+            messenger.sendMessage(rMsg, null);
+//        } else {
+//            Object receiver = forward.forwardMessage.envelope.receiver;
+//            String text = String.format("Message forwarded: %s", receiver);
+//            return new ReceiptCommand(text);
+        }
 
         // NOTICE: decrypt failed, not for you?
-        //         check content type in subclass, if it's a 'forward' message,
         //         it means you are asked to re-pack and forward this message
         // TODO: override to catch the exception 'receiver error ...'
+        return null;
     }
 }
