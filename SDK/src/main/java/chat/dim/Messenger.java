@@ -299,12 +299,10 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
      *
      * @param content - message content
      * @param receiver - receiver ID
+     * @param callback - if needs callback, set it here
+     * @param split - whether split group message
      * @return true on success
      */
-    public boolean sendContent(Content content, ID receiver) {
-        return sendContent(content, receiver, null, true);
-    }
-
     public boolean sendContent(Content content, ID receiver, Callback callback, boolean split) {
         User user = getFacebook().getCurrentUser();
         assert user != null : "current user not found";
