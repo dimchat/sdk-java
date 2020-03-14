@@ -44,20 +44,20 @@ public class ForwardContentProcessor extends ContentProcessor {
         assert content instanceof ForwardContent : "forward content error: " + content;
         ForwardContent forward = (ForwardContent) content;
         Messenger messenger = getMessenger();
-        // process
+        // call messenger to process it
         ReliableMessage rMsg = messenger.process(forward.forwardMessage);
-        // response
+        // check response
         if (rMsg != null) {
-            messenger.sendMessage(rMsg, null);
-//        } else {
-//            Object receiver = forward.forwardMessage.envelope.receiver;
-//            String text = String.format("Message forwarded: %s", receiver);
-//            return new ReceiptCommand(text);
-        }
+            // Over The Top
+            return new ForwardContent(rMsg);
+        }/* else {
+            Object receiver = forward.forwardMessage.envelope.receiver;
+            String text = String.format("Message forwarded: %s", receiver);
+            return new ReceiptCommand(text);
+        }*/
 
         // NOTICE: decrypt failed, not for you?
         //         it means you are asked to re-pack and forward this message
-        // TODO: override to catch the exception 'receiver error ...'
         return null;
     }
 }
