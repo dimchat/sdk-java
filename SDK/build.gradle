@@ -29,7 +29,7 @@ repositories {
 }
 
 dependencies {
-    compile group: 'chat.dim', name: 'DIMP', version: '0.7.2'
+    compile group: 'chat.dim', name: 'DIMP', version: '0.7.3'
     compile group: 'chat.dim', name: 'Plugins', version: '0.1.1'
     compile group: 'chat.dim', name: 'StarGate', version: '0.1.1'
 
