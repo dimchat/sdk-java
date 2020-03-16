@@ -179,23 +179,6 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
     }
 
     @Override
-    public SecureMessage encryptMessage(InstantMessage iMsg) {
-        SecureMessage sMsg = super.encryptMessage(iMsg);
-        Object group = iMsg.content.getGroup();
-        if (group != null) {
-            // NOTICE: this help the receiver knows the group ID
-            //         when the group message separated to multi-messages,
-            //         if don't want the others know you are the group members,
-            //         remove it.
-            sMsg.envelope.setGroup(group);
-        }
-        // NOTICE: copy content type to envelope
-        //         this help the intermediate nodes to recognize message type
-        sMsg.envelope.setType(iMsg.content.type);
-        return sMsg;
-    }
-
-    @Override
     public InstantMessage decryptMessage(SecureMessage sMsg) {
         // trim message
         SecureMessage msg = trim(sMsg);
