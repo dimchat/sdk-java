@@ -34,10 +34,6 @@ import java.lang.ref.WeakReference;
 import java.util.*;
 
 import chat.dim.core.Barrack;
-import chat.dim.crypto.DecryptKey;
-import chat.dim.crypto.PrivateKey;
-import chat.dim.crypto.PublicKey;
-import chat.dim.crypto.SignKey;
 import chat.dim.group.Chatroom;
 import chat.dim.group.Polylogue;
 import chat.dim.network.Robot;
@@ -53,7 +49,6 @@ public abstract class Facebook extends Barrack {
 
     // memory caches
     private Map<ID, Profile>    profileMap    = new HashMap<>();
-    private Map<ID, PrivateKey> privateKeyMap = new HashMap<>();
     private Map<ID, List<ID>>   contactsMap   = new HashMap<>();
     private Map<ID, List<ID>>   membersMap    = new HashMap<>();
 
@@ -214,49 +209,6 @@ public abstract class Facebook extends Barrack {
     protected abstract Profile loadProfile(ID identifier);
 
     //
-    //  Private Key
-    //
-    protected boolean verify(PrivateKey privateKey, ID user) {
-        assert privateKey != null : "private key should not be empty";
-        assert user.isUser() : "user ID error: " + user;
-        Meta meta = getMeta(user);
-        assert meta != null : "failed to get meta for user: " + user;
-        PublicKey publicKey = meta.getKey();
-        assert publicKey != null : "meta key error: " + meta;
-        return publicKey.matches(privateKey);
-    }
-
-    protected boolean cache(PrivateKey key, ID user) {
-        if (key == null) {
-            // remove from cache if exists
-            privateKeyMap.remove(user);
-            return false;
-        }
-        if (!verify(key, user)) {
-            return false;
-        }
-        privateKeyMap.put(user, key);
-        return true;
-    }
-
-    /**
-     *  Save private key for user ID
-     *
-     * @param key - private key
-     * @param user - user ID
-     * @return true on success
-     */
-    public abstract boolean savePrivateKey(PrivateKey key, ID user);
-
-    /**
-     *  Load private key for user ID
-     *
-     * @param user - user ID
-     * @return PrivateKey object on success
-     */
-    protected abstract PrivateKey loadPrivateKey(ID user);
-
-    //
     //  User contacts
     //
     protected boolean cacheContacts(List<ID> contacts, ID user) {
@@ -363,8 +315,8 @@ public abstract class Facebook extends Barrack {
         if (identifier != null) {
             return identifier;
         }
-        // create by barrack
-        return super.createID(string);
+        assert string != null : "ID string should not be empty";
+        return ID.getInstance(string);
     }
 
     @Override
@@ -374,8 +326,9 @@ public abstract class Facebook extends Barrack {
             // create user 'anyone@anywhere'
             return new User(identifier);
         }
+        // make sure meta exists
         assert getMeta(identifier) != null : "meta not found for user: " + identifier;
-        // TODO: check user type
+        // check user type
         byte type = identifier.getType();
         if (NetworkType.Main.equals(type) || NetworkType.BTCMain.equals(type)) {
             return new User(identifier);
@@ -396,8 +349,9 @@ public abstract class Facebook extends Barrack {
             // create group 'everyone@everywhere'
             return new Group(identifier);
         }
+        // make sure meta exists
         assert getMeta(identifier) != null : "meta not found for group: " + identifier;
-        // TODO: check group type
+        // check group type
         byte type = identifier.getType();
         if (NetworkType.Polylogue.equals(type)) {
             return new Polylogue(identifier);
@@ -478,39 +432,6 @@ public abstract class Facebook extends Barrack {
         }
         cacheContacts(contacts, user);
         return contacts;
-    }
-
-    @Override
-    public SignKey getPrivateKeyForSignature(ID user) {
-        assert user.isUser() : "user ID error: " + user;
-        SignKey key;// = super.getPrivateKeyForSignature(user);
-        key = privateKeyMap.get(user);
-        if (key != null) {
-            return key;
-        }
-        // load from local storage
-        PrivateKey sKey = loadPrivateKey(user);
-        if (sKey == null) {
-            return null;
-        }
-        // no need to verify private key from local storage
-        privateKeyMap.put(user, sKey);
-        return sKey;
-    }
-
-    @Override
-    public List<DecryptKey> getPrivateKeysForDecryption(ID user) {
-        assert user.isUser() : "user ID error: " + user;
-        List<DecryptKey> keys;// = super.getPrivateKeysForDecryption(user);
-        keys = new ArrayList<>();
-        // DIMP v1.0:
-        //     decrypt key and the sign key are the same keys
-        SignKey key = getPrivateKeyForSignature(user);
-        if (key instanceof DecryptKey) {
-            // TODO: support profile.key
-            keys.add((DecryptKey) key);
-        }
-        return keys;
     }
 
     //-------- GroupDataSource

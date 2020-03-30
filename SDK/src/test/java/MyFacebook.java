@@ -55,16 +55,6 @@ public class MyFacebook extends Facebook {
     }
 
     @Override
-    public boolean savePrivateKey(PrivateKey key, ID user) {
-        return false;
-    }
-
-    @Override
-    protected PrivateKey loadPrivateKey(ID user) {
-        return null;
-    }
-
-    @Override
     public boolean saveContacts(List<ID> contacts, ID user) {
         return false;
     }
