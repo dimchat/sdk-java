@@ -55,16 +55,6 @@ public class MyFacebook extends Facebook {
     }
 
     @Override
-    public boolean saveContacts(List<ID> contacts, ID user) {
-        return false;
-    }
-
-    @Override
-    protected List<ID> loadContacts(ID user) {
-        return null;
-    }
-
-    @Override
     public boolean saveMembers(List<ID> members, ID group) {
         return false;
     }

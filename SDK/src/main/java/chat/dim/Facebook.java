@@ -49,7 +49,6 @@ public abstract class Facebook extends Barrack {
 
     // memory caches
     private Map<ID, Profile>    profileMap    = new HashMap<>();
-    private Map<ID, List<ID>>   contactsMap   = new HashMap<>();
 
     protected Facebook() {
         super();
@@ -207,36 +206,6 @@ public abstract class Facebook extends Barrack {
      */
     protected abstract Profile loadProfile(ID identifier);
 
-    //
-    //  User contacts
-    //
-    protected boolean cacheContacts(List<ID> contacts, ID user) {
-        assert user.isUser() : "user ID error: " + user;
-        if (contacts == null) {
-            contactsMap.remove(user);
-            return false;
-        }
-        contactsMap.put(user, contacts);
-        return true;
-    }
-
-    /**
-     *  Save contacts for user
-     *
-     * @param contacts - contact ID list
-     * @param user - user ID
-     * @return true on success
-     */
-    public abstract boolean saveContacts(List<ID> contacts, ID user);
-
-    /**
-     *  Load contacts for user
-     *
-     * @param user - user ID
-     * @return contact ID list on success
-     */
-    protected abstract List<ID> loadContacts(ID user);
-
     /**
      *  Save members of group
      *
@@ -391,25 +360,6 @@ public abstract class Facebook extends Barrack {
         // no need to verify profile from local storage
         profileMap.put(identifier, profile);
         return profile;
-    }
-
-    //-------- UserDataSource
-
-    @Override
-    public List<ID> getContacts(ID user) {
-        assert user.isUser() : "user ID error: " + user;
-        List<ID> contacts;// = super.getContacts(identifier);
-        contacts = contactsMap.get(user);
-        if (contacts != null) {
-            return contacts;
-        }
-        // load from local storage
-        contacts = loadContacts(user);
-        if (contacts == null) {
-            return null;
-        }
-        cacheContacts(contacts, user);
-        return contacts;
     }
 
     //-------- GroupDataSource
