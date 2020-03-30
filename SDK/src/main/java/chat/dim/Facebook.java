@@ -43,12 +43,7 @@ import chat.dim.protocol.NetworkType;
 
 public abstract class Facebook extends Barrack {
 
-    public static long EXPIRES = 3600;  // profile expires (1 hour)
-
     private WeakReference<AddressNameService> ansRef = null;
-
-    // memory caches
-    private Map<ID, Profile>    profileMap    = new HashMap<>();
 
     protected Facebook() {
         super();
@@ -171,25 +166,6 @@ public abstract class Facebook extends Barrack {
         return meta != null && profile.verify(meta.getKey());
     }
 
-    protected boolean cache(Profile profile, ID identifier) {
-        assert identifier != null : "ID error: " + identifier;
-        if (profile == null) {
-            // remove from cache if exists
-            profileMap.remove(identifier);
-            return false;
-        }
-        if (!verify(profile, identifier)) {
-            return false;
-        }
-        profileMap.put(identifier, profile);
-        return true;
-    }
-    protected boolean cache(Profile profile) {
-        assert profile != null : "profile should not be empty";
-        ID identifier = getID(profile.getIdentifier());
-        return cache(profile, identifier);
-    }
-
     /**
      *  Save profile with entity ID (must verify first)
      *
@@ -197,14 +173,6 @@ public abstract class Facebook extends Barrack {
      * @return true on success
      */
     public abstract boolean saveProfile(Profile profile);
-
-    /**
-     *  Load profile for entity ID
-     *
-     * @param identifier - entity ID
-     * @return Profile object on success
-     */
-    protected abstract Profile loadProfile(ID identifier);
 
     /**
      *  Save members of group
@@ -328,38 +296,6 @@ public abstract class Facebook extends Barrack {
         // no need to verify meta from local storage
         super.cache(meta, identifier);
         return meta;
-    }
-
-    private static final String EXPIRES_KEY = "expires";
-
-    @Override
-    public Profile getProfile(ID identifier) {
-        Profile profile;// = super.getProfile(identifier);
-        profile = profileMap.get(identifier);
-        if (profile != null) {
-            // check expired time
-            Date now = new Date();
-            long timestamp = now.getTime() / 1000 + EXPIRES;
-            Number expires = (Number) profile.get(EXPIRES_KEY);
-            if (expires == null) {
-                // set expired time
-                profile.put(EXPIRES_KEY, timestamp);
-                return profile;
-            } else if (expires.longValue() < timestamp) {
-                // not expired yet
-                return profile;
-            }
-        }
-        // load from local storage
-        profile = loadProfile(identifier);
-        if (profile == null) {
-            profile = new Profile(identifier);
-        } else {
-            profile.remove(EXPIRES_KEY);
-        }
-        // no need to verify profile from local storage
-        profileMap.put(identifier, profile);
-        return profile;
     }
 
     //-------- GroupDataSource

@@ -50,11 +50,6 @@ public class MyFacebook extends Facebook {
     }
 
     @Override
-    protected Profile loadProfile(ID identifier) {
-        return null;
-    }
-
-    @Override
     public boolean saveMembers(List<ID> members, ID group) {
         return false;
     }
