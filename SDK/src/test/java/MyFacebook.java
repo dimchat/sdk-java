@@ -70,11 +70,6 @@ public class MyFacebook extends Facebook {
     }
 
     @Override
-    protected List<ID> loadMembers(ID group) {
-        return null;
-    }
-
-    @Override
     public List<User> getLocalUsers() {
         return null;
     }

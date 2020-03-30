@@ -50,7 +50,6 @@ public abstract class Facebook extends Barrack {
     // memory caches
     private Map<ID, Profile>    profileMap    = new HashMap<>();
     private Map<ID, List<ID>>   contactsMap   = new HashMap<>();
-    private Map<ID, List<ID>>   membersMap    = new HashMap<>();
 
     protected Facebook() {
         super();
@@ -238,19 +237,6 @@ public abstract class Facebook extends Barrack {
      */
     protected abstract List<ID> loadContacts(ID user);
 
-    //
-    //  Group members
-    //
-    protected boolean cacheMembers(List<ID> members, ID group) {
-        assert group.isGroup() : "group ID error: " + group;
-        if (members == null) {
-            membersMap.remove(group);
-            return false;
-        }
-        membersMap.put(group, members);
-        return true;
-    }
-
     /**
      *  Save members of group
      *
@@ -259,14 +245,6 @@ public abstract class Facebook extends Barrack {
      * @return true on success
      */
     public abstract boolean saveMembers(List<ID> members, ID group);
-
-    /**
-     *  Load members of group
-     *
-     * @param group - group ID
-     * @return member ID list on success
-     */
-    protected abstract List<ID> loadMembers(ID group);
 
     //-------- Local Users
 
@@ -482,25 +460,6 @@ public abstract class Facebook extends Barrack {
         }
         // TODO: load owner from database
         return null;
-    }
-
-    @Override
-    public List<ID> getMembers(ID group) {
-        List<ID> members = super.getMembers(group);
-        if (members == null) {
-            // get from cache
-            members = membersMap.get(group);
-        }
-        if (members != null) {
-            return members;
-        }
-        // load from local storage
-        members = loadMembers(group);
-        if (members == null) {
-            return null;
-        }
-        cacheMembers(members, group);
-        return members;
     }
 
     public boolean isFounder(ID member, ID group) {
