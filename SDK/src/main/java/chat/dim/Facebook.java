@@ -76,14 +76,6 @@ public abstract class Facebook extends Barrack {
         return meta.matches(identifier);
     }
 
-    @Override
-    protected boolean cache(Meta meta, ID identifier) {
-        if (!verify(meta, identifier)) {
-            return false;
-        }
-        return super.cache(meta, identifier);
-    }
-
     /**
      *  Save meta for entity ID (must verify first)
      *
@@ -92,14 +84,6 @@ public abstract class Facebook extends Barrack {
      * @return true on success
      */
     public abstract boolean saveMeta(Meta meta, ID identifier);
-
-    /**
-     *  Load meta for entity ID
-     *
-     * @param identifier - entity ID
-     * @return Meta object on success
-     */
-    protected abstract Meta loadMeta(ID identifier);
 
     //
     //  Profile
@@ -278,24 +262,6 @@ public abstract class Facebook extends Barrack {
             return new ServiceProvider(identifier);
         }
         throw new TypeNotPresentException("Unsupported group type: " + type, null);
-    }
-
-    //-------- EntityDataSource
-
-    @Override
-    public Meta getMeta(ID identifier) {
-        Meta meta = super.getMeta(identifier);
-        if (meta != null) {
-            return meta;
-        }
-        // load from local storage
-        meta = loadMeta(identifier);
-        if (meta == null) {
-            return null;
-        }
-        // no need to verify meta from local storage
-        super.cache(meta, identifier);
-        return meta;
     }
 
     //-------- GroupDataSource

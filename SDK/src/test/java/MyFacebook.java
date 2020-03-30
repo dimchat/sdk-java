@@ -16,32 +16,20 @@ public class MyFacebook extends Facebook {
         super();
     }
 
-    @Override
-    public boolean saveMeta(Meta meta, ID identifier) {
-        return false;
-    }
-
     // immortals
     private Immortals immortals = new Immortals();
 
     // memory caches
     private Map<ID, PrivateKey> privateKeyMap = new HashMap<>();
+    private Map<ID, Meta>       metaMap       = new HashMap<>();
     private Map<ID, Profile>    profileMap    = new HashMap<>();
 
     // "/sdcard/chat.dim.sechat/.mkm/"
     public String directory = "/tmp/.mkm/";
 
-    // "/sdcard/chat.dim.sechat/.mkm/{address}.meta"
     @Override
-    protected Meta loadMeta(ID identifier) {
-        // load from JsON file
-        try {
-            Map dict = readJSONFile(identifier.address + ".meta");
-            return Meta.getInstance(dict);
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-            return null;
-        }
+    public boolean saveMeta(Meta meta, ID identifier) {
+        return false;
     }
 
     @Override
@@ -131,16 +119,9 @@ public class MyFacebook extends Facebook {
 
     @Override
     public Meta getMeta(ID identifier) {
-        Meta meta = super.getMeta(identifier);
+        Meta meta = metaMap.get(identifier);
         if (meta == null) {
             meta = immortals.getMeta(identifier);
-            if (meta != null) {
-                return meta;
-            }
-            meta = loadMeta(identifier);
-            if (meta != null) {
-                cache(meta, identifier);
-            }
         }
         return meta;
     }
