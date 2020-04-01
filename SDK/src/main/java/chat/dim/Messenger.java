@@ -190,7 +190,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         return super.decryptMessage(msg);
     }
 
-    //-------- De/serialize message, content and symmetric key
+    //-------- Serialization
 
     @Override
     public byte[] serializeMessage(ReliableMessage rMsg) {
