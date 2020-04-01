@@ -31,6 +31,7 @@
 package chat.dim;
 
 import java.lang.ref.WeakReference;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +40,7 @@ import chat.dim.core.Transceiver;
 import chat.dim.cpu.ContentProcessor;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.SymmetricKey;
+import chat.dim.format.JSON;
 import chat.dim.protocol.*;
 
 public abstract class Messenger extends Transceiver implements ConnectionDelegate {
@@ -192,19 +194,28 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
 
     //-------- Serialization
 
-    @Override
-    public byte[] serializeMessage(ReliableMessage rMsg) {
-        // public
-        return super.serializeMessage(rMsg);
+    protected byte[] serializeMessage(ReliableMessage rMsg) {
+        String json = JSON.encode(rMsg);
+        return json.getBytes(Charset.forName("UTF-8"));
     }
 
-    @Override
-    public ReliableMessage deserializeMessage(byte[] data) {
-        if (data == null || data.length == 0) {
-            return null;
-        }
-        // public
-        return super.deserializeMessage(data);
+    @SuppressWarnings("unchecked")
+    protected ReliableMessage deserializeMessage(byte[] data) {
+        String json = new String(data, Charset.forName("UTF-8"));
+        Map<String, Object> dict = (Map<String, Object>) JSON.decode(json);
+        // TODO: translate short keys
+        //       'S' -> 'sender'
+        //       'R' -> 'receiver'
+        //       'W' -> 'time'
+        //       'T' -> 'type'
+        //       'G' -> 'group'
+        //       ------------------
+        //       'D' -> 'data'
+        //       'V' -> 'signature'
+        //       'K' -> 'key'
+        //       ------------------
+        //       'M' -> 'meta'
+        return ReliableMessage.getInstance(dict);
     }
 
     //-------- InstantMessageDelegate
