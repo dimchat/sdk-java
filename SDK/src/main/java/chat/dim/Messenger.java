@@ -210,7 +210,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
     //-------- InstantMessageDelegate
 
     @Override
-    public byte[] encryptContent(Content content, Map<String, Object> password, InstantMessage iMsg) {
+    public byte[] serializeContent(Content content, Map<String, Object> password, InstantMessage iMsg) {
         SymmetricKey key = getSymmetricKey(password);
         assert key == password && key != null : "irregular symmetric key: " + password;
         // check attachment for File/Image/Audio/Video message content
@@ -226,11 +226,11 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
                 file.setData(null);
             }
         }
-        return super.encryptContent(content, key, iMsg);
+        return super.serializeContent(content, key, iMsg);
     }
 
     @Override
-    public byte[] encryptKey(Map<String, Object> password, Object receiver, InstantMessage iMsg) {
+    public byte[] encryptKey(byte[] data, Object receiver, InstantMessage iMsg) {
         if (!isBroadcast(iMsg)) {
             Facebook facebook = getFacebook();
             ID to = facebook.getID(receiver);
@@ -245,17 +245,17 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
                 }
             }
         }
-        return super.encryptKey(password, receiver, iMsg);
+        return super.encryptKey(data, receiver, iMsg);
     }
 
     //-------- SecureMessageDelegate
 
     @Override
     @SuppressWarnings("unchecked")
-    public Content decryptContent(byte[] data, Map<String, Object> password, SecureMessage sMsg) {
+    public Content deserializeContent(byte[] data, Map<String, Object> password, SecureMessage sMsg) {
         SymmetricKey key = getSymmetricKey(password);
         assert key == password && key != null : "irregular symmetric key: " + password;
-        Content content = super.decryptContent(data, password, sMsg);
+        Content content = super.deserializeContent(data, password, sMsg);
         if (content == null) {
             return null;
         }
