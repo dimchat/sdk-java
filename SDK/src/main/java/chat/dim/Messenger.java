@@ -242,18 +242,16 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
 
     @Override
     public byte[] encryptKey(byte[] data, Object receiver, InstantMessage iMsg) {
-        if (!isBroadcast(iMsg)) {
-            Facebook facebook = getFacebook();
-            ID to = facebook.getID(receiver);
-            EncryptKey key = facebook.getPublicKeyForEncryption(to);
-            if (key == null) {
-                Meta meta = facebook.getMeta(to);
-                if (meta == null || !(meta.getKey() instanceof EncryptKey)) {
-                    // save this message in a queue waiting receiver's meta/profile response
-                    suspendMessage(iMsg);
-                    //throw new NullPointerException("failed to get encrypt key for receiver: " + receiver);
-                    return null;
-                }
+        Facebook facebook = getFacebook();
+        ID to = facebook.getID(receiver);
+        EncryptKey key = facebook.getPublicKeyForEncryption(to);
+        if (key == null) {
+            Meta meta = facebook.getMeta(to);
+            if (meta == null || !(meta.getKey() instanceof EncryptKey)) {
+                // save this message in a queue waiting receiver's meta/profile response
+                suspendMessage(iMsg);
+                //throw new NullPointerException("failed to get encrypt key for receiver: " + receiver);
+                return null;
             }
         }
         return super.encryptKey(data, receiver, iMsg);
