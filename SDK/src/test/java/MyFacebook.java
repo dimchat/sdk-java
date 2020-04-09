@@ -1,5 +1,4 @@
 
-import java.io.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -7,7 +6,6 @@ import java.util.Map;
 
 import chat.dim.*;
 import chat.dim.crypto.*;
-import chat.dim.format.JSON;
 
 public class MyFacebook extends Facebook {
     private static MyFacebook ourInstance = new MyFacebook();
@@ -45,36 +43,6 @@ public class MyFacebook extends Facebook {
     @Override
     public List<User> getLocalUsers() {
         return null;
-    }
-
-    private Map readJSONFile(String filename) throws IOException {
-        String json = readTextFile(filename);
-        if (json == null) {
-            return null;
-        }
-        return (Map) JSON.decode(json);
-    }
-
-    private String readTextFile(String filename) throws IOException {
-        byte[] data = readBinaryFile(filename);
-        if (data == null) {
-            return null;
-        }
-        return new String(data, "UTF-8");
-    }
-
-    private byte[] readBinaryFile(String filename) throws IOException {
-        File file = new File(directory, filename);
-        if (!file.exists()) {
-            return null;
-        }
-        FileInputStream fis = new FileInputStream(file);
-        int size = fis.available();
-        byte[] data = new byte[size];
-        int len = fis.read(data, 0, size);
-        fis.close();
-        assert len == size;
-        return data;
     }
 
     //---- Private Key

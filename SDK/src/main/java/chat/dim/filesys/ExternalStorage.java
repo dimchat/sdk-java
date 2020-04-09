@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 
 import chat.dim.format.JSON;
+import chat.dim.format.UTF8;
 
 public class ExternalStorage {
 
@@ -82,7 +83,7 @@ public class ExternalStorage {
         if (data == null) {
             return null;
         }
-        return new String(data, Charset.forName("UTF-8"));
+        return UTF8.decode(data);
     }
 
     /**
@@ -92,11 +93,11 @@ public class ExternalStorage {
      * @return Map/List object
      */
     public static Object loadJSON(String pathname) throws IOException {
-        String string = loadText(pathname);
-        if (string == null) {
+        byte[] data = loadData(pathname);
+        if (data == null) {
             return null;
         }
-        return JSON.decode(string);
+        return JSON.decode(data);
     }
 
     //-------- write
@@ -123,7 +124,7 @@ public class ExternalStorage {
      * @return true on success
      */
     public static boolean saveText(String text, String pathname) throws IOException {
-        byte[] data = text.getBytes(Charset.forName("UTF-8"));
+        byte[] data = UTF8.encode(text);
         return saveData(data, pathname);
     }
 
@@ -135,8 +136,8 @@ public class ExternalStorage {
      * @return true on success
      */
     public static boolean saveJSON(Object object, String pathname) throws IOException {
-        String json = JSON.encode(object);
-        return saveText(json, pathname);
+        byte[] json = JSON.encode(object);
+        return saveData(json, pathname);
     }
 
     /**

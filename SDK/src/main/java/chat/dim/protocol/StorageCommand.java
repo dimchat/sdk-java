@@ -175,8 +175,7 @@ public class StorageCommand extends Command {
             assert key != null : "key data not found: " + dictionary;
             key = ((DecryptKey) privateKey).decrypt(key);
             assert key != null : "failed to decrypt key with: " + privateKey;
-            String json = new String(key, Charset.forName("UTF-8"));
-            password = SymmetricKey.getInstance(JSON.decode(json));
+            password = SymmetricKey.getInstance(JSON.decode(key));
         }
         return decrypt(password);
     }
