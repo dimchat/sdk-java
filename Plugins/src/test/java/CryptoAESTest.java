@@ -1,4 +1,5 @@
 
+import chat.dim.format.UTF8;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -21,7 +22,7 @@ public class CryptoAESTest {
 
         SymmetricKey key = SymmetricKey.getInstance(dictionary);
         Log.info("key: " + key);
-        String json = JSON.encode(key);
+        String json = UTF8.decode(JSON.encode(key));
         Log.info("JSON(" + json.length() + " bytes): " + json);
         String algor = (String) key.get("A");
         if (algor == null) {
@@ -36,13 +37,13 @@ public class CryptoAESTest {
         String decrypt;
 
         text = "moky";
-        plaintext = text.getBytes("UTF-8");
+        plaintext = UTF8.encode(text);
         ciphertext = key.encrypt(plaintext);
         Log.info("encrypt(\"" + text + "\") = " + Utils.hexEncode(ciphertext));
         Log.info("encrypt(\"" + text + "\") = " + Base64.encode(ciphertext));
 
         data = key.decrypt(ciphertext);
-        decrypt = new String(data, "UTF-8");
+        decrypt = UTF8.decode(data);
         Log.info("decrypt to " + decrypt);
         Log.info(text + " -> " + Base64.encode(ciphertext) + " -> " + decrypt);
 
@@ -66,13 +67,13 @@ public class CryptoAESTest {
         Log.info("key: " + key);
 
         text = "moky";
-        plaintext = text.getBytes("UTF-8");
+        plaintext = UTF8.encode(text);
         ciphertext = key.encrypt(plaintext);
         Log.info("encrypt(\"" + text + "\") = " + Utils.hexEncode(ciphertext));
         Log.info("encrypt(\"" + text + "\") = " + Base64.encode(ciphertext));
 
         data = key.decrypt(ciphertext);
-        decrypt = new String(data, "UTF-8");
+        decrypt = UTF8.decode(data);
         Log.info("decrypt to " + decrypt);
 
         Assert.assertEquals(text, decrypt);

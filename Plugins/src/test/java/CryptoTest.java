@@ -23,7 +23,7 @@ public class CryptoTest {
         Log.info("Crypto test");
 
         String string = "moky";
-        byte[] data = string.getBytes("UTF-8");
+        byte[] data = UTF8.encode(string);
 
         byte[] hash;
         String res;
@@ -47,7 +47,7 @@ public class CryptoTest {
     @Test
     public void testEncode() throws UnsupportedEncodingException {
         String string = "moky";
-        byte[] data = string.getBytes("UTF-8");
+        byte[] data = UTF8.encode(string);
 
         String res;
         String exp;
@@ -70,28 +70,28 @@ public class CryptoTest {
         String username = "moky";
         PrivateKey sk = PrivateKey.generate("RSA");
         Meta meta = Meta.generate(MetaType.Default, sk, username);
-        Log.info("meta: " + JSON.encode(meta));
-        Log.info("SK: " + JSON.encode(sk));
+        Log.info("meta: " + UTF8.decode(JSON.encode(meta)));
+        Log.info("SK: " + UTF8.decode(JSON.encode(sk)));
     }
 
     private void checkX(String metaJson, String skJson) throws ClassNotFoundException {
-        Object metaDict = JSON.decode(metaJson);
+        Object metaDict = JSON.decode(UTF8.encode(metaJson));
         Meta meta = Meta.getInstance(metaDict);
         ID identifier = meta.generateID(NetworkType.Main);
         Log.info("meta: " + meta);
         Log.info("ID: " + identifier);
 
-        Object skDict = JSON.decode(skJson);
+        Object skDict = JSON.decode(UTF8.encode(skJson));
         PrivateKey sk = PrivateKey.getInstance(skDict);
         Log.info("private key: " + sk);
         Assert.assertTrue(meta.getKey().matches(sk));
 
         String name = "moky";
-        byte[] data = name.getBytes(Charset.forName("UTF-8"));
+        byte[] data = UTF8.encode(name);
         byte[] CT = ((EncryptKey) meta.getKey()).encrypt(data);
         byte[] PT = ((DecryptKey) sk).decrypt(CT);
         String hex = Utils.hexEncode(CT);
-        String res = new String(PT, Charset.forName("UTF-8"));
+        String res = UTF8.decode(PT);
         Log.info("encryption: " + name + ", -> " + hex + " -> " + res);
     }
 

@@ -25,16 +25,7 @@
  */
 package chat.dim.format;
 
-import java.io.IOException;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.Security;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
-
-import chat.dim.format.plugins.PEMContent;
 
 public abstract class Plugins {
 
@@ -70,87 +61,17 @@ public abstract class Plugins {
         // JsON format
         JSON.parser = new DataParser() {
             @Override
-            public String encode(Object container) {
-                return com.alibaba.fastjson.JSON.toJSONString(container);
+            public byte[] encode(Object container) {
+                /*
+                String s = com.alibaba.fastjson.JSON.toJSONString(container);
+                return s.getBytes(Charset.forName("UTF-8"));
+                */
+                return com.alibaba.fastjson.JSON.toJSONBytes(container);
             }
 
             @Override
-            public Object decode(String json) {
+            public Object decode(byte[] json) {
                 return com.alibaba.fastjson.JSON.parse(json);
-            }
-        };
-
-        // PEM format
-        PEM.parser = new KeyParser() {
-            @Override
-            public String encodePublicKey(java.security.PublicKey publicKey) {
-                try {
-                    return (new PEMContent(publicKey)).toString();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return null;
-                }
-            }
-
-            @Override
-            public String encodePrivateKey(java.security.PrivateKey privateKey) {
-                try {
-                    return (new PEMContent(privateKey)).toString();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return null;
-                }
-            }
-
-            @Override
-            public java.security.PublicKey decodePublicKey(String pem) {
-                PEMContent file = null;
-                try {
-                    file = new PEMContent(pem);
-                } catch (InvalidKeySpecException | NoSuchAlgorithmException | NoSuchProviderException e) {
-                    e.printStackTrace();
-                }
-                byte[] keyData = file == null ? null : file.publicKeyData;
-                if (keyData != null) {
-                    // X.509
-                    X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyData);
-                    try {
-                        return getFactory().generatePublic(keySpec);
-                    } catch (InvalidKeySpecException | NoSuchProviderException | NoSuchAlgorithmException e) {
-                        e.printStackTrace();
-                    }
-                }
-                return null;
-            }
-
-            @Override
-            public java.security.PrivateKey decodePrivateKey(String pem) {
-                PEMContent file = null;
-                try {
-                    file = new PEMContent(pem);
-                } catch (InvalidKeySpecException | NoSuchAlgorithmException | NoSuchProviderException e) {
-                    e.printStackTrace();
-                }
-                byte[] keyData = file == null ? null : file.privateKeyData;
-                if (keyData != null) {
-                    // PKCS#8
-                    PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyData);
-                    try {
-                        return getFactory().generatePrivate(keySpec);
-                    } catch (InvalidKeySpecException | NoSuchProviderException | NoSuchAlgorithmException e) {
-                        e.printStackTrace();
-                    }
-                }
-                return null;
-            }
-
-            private KeyFactory getFactory() throws NoSuchProviderException, NoSuchAlgorithmException {
-                try {
-                    return KeyFactory.getInstance("RSA", "BC");
-                } catch (NoSuchAlgorithmException e) {
-                    //e.printStackTrace();
-                    return KeyFactory.getInstance("RSA");
-                }
             }
         };
     }

@@ -43,6 +43,7 @@ import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
 import chat.dim.crypto.VerifyKey;
 import chat.dim.format.JSON;
+import chat.dim.format.UTF8;
 
 /**
  *  Built-in accounts (for test)
@@ -274,13 +275,13 @@ public class Immortals extends chat.dim.mkm.Plugins implements UserDataSource {
     private static class ResourceLoader {
 
         static Map loadJSON(String filename) throws IOException {
-            String json = loadText(filename);
-            return (Map) JSON.decode(json);
+            byte[] data = loadData(filename);
+            return (Map) JSON.decode(data);
         }
 
         private static String loadText(String filename) throws IOException {
             byte[] data = loadData(filename);
-            return new String(data, "UTF-8");
+            return UTF8.decode(data);
         }
 
         private static byte[] loadData(String filename) throws IOException {

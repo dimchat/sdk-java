@@ -1,6 +1,7 @@
 
 import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.EncryptKey;
+import chat.dim.format.UTF8;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -22,7 +23,7 @@ public class CryptoRSATest {
         Log.info("RSA public key: " + pk);
 
         String text = "moky";
-        byte[] plaintext = text.getBytes("UTF-8");
+        byte[] plaintext = UTF8.encode(text);
         byte[] ciphertext = ((EncryptKey) pk).encrypt(plaintext);
         Log.info("RSA encrypt(\"" + text + "\") = " + Utils.hexEncode(ciphertext));
 

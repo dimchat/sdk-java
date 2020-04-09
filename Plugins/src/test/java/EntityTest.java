@@ -1,4 +1,5 @@
 
+import chat.dim.format.UTF8;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -109,7 +110,7 @@ public class EntityTest {
         PrivateKey sk = PrivateKey.generate(PrivateKey.RSA);
         PublicKey pk = sk.getPublicKey();
         String seed = "moky";
-        byte[] data = seed.getBytes(Charset.forName("UTF-8"));
+        byte[] data = UTF8.encode(seed);
         Meta meta = Meta.generate(MetaType.Default, sk, seed);
         Log.info("meta: " + meta + ", detail: " + getMetaInfo(meta));
         Assert.assertTrue(meta.matches(pk));
