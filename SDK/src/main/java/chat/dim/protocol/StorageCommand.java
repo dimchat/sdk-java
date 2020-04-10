@@ -30,7 +30,6 @@
  */
 package chat.dim.protocol;
 
-import java.nio.charset.Charset;
 import java.util.Map;
 
 import chat.dim.ID;

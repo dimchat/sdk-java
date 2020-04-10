@@ -31,7 +31,6 @@
 package chat.dim.filesys;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 
 import chat.dim.format.JSON;
 import chat.dim.format.UTF8;

@@ -1,11 +1,8 @@
 
-import chat.dim.digest.RIPEMD160;
-import chat.dim.digest.SHA256;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
 
 import chat.dim.ID;
 import chat.dim.Meta;
@@ -13,6 +10,8 @@ import chat.dim.format.*;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.EncryptKey;
+import chat.dim.digest.RIPEMD160;
+import chat.dim.digest.SHA256;
 import chat.dim.protocol.MetaType;
 import chat.dim.protocol.NetworkType;
 

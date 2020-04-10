@@ -31,7 +31,6 @@
 package chat.dim;
 
 import java.lang.ref.WeakReference;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +39,6 @@ import chat.dim.core.Transceiver;
 import chat.dim.cpu.ContentProcessor;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.SymmetricKey;
-import chat.dim.format.JSON;
 import chat.dim.protocol.*;
 
 public abstract class Messenger extends Transceiver implements ConnectionDelegate {
@@ -240,7 +238,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         assert key == password && key != null : "irregular symmetric key: " + password;
         Content content = super.deserializeContent(data, password, sMsg);
         if (content == null) {
-            return null;
+            throw new NullPointerException("failed to deserialize message content: " + sMsg);
         }
         // check attachment for File/Image/Audio/Video message content
         if (content instanceof FileContent) {

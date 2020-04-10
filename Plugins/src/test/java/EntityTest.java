@@ -3,7 +3,6 @@ import chat.dim.format.UTF8;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
