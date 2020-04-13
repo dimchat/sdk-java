@@ -78,7 +78,7 @@ public final class AESKey extends SymmetricKey {
     private int getKeySize() {
         // TODO: get from key data
 
-        Object size = dictionary.get("keySize");
+        Object size = get("keySize");
         if (size == null) {
             return 32;
         } else {
@@ -89,7 +89,7 @@ public final class AESKey extends SymmetricKey {
     private int getBlockSize() {
         // TODO: get from iv data
 
-        Object size = dictionary.get("blockSize");
+        Object size = get("blockSize");
         if (size == null) {
             return cipher.getBlockSize();
         } else {
@@ -109,9 +109,9 @@ public final class AESKey extends SymmetricKey {
     }
 
     private byte[] getInitVector() {
-        Object iv = dictionary.get("iv");
+        Object iv = get("iv");
         if (iv == null) {
-            iv = dictionary.get("I");
+            iv = get("I");
         }
         if (iv != null) {
             return Base64.decode((String) iv);
@@ -119,15 +119,15 @@ public final class AESKey extends SymmetricKey {
         // zero iv
         int blockSize = getBlockSize();
         byte[] zeros = zeroData(blockSize);
-        dictionary.put("iv", Base64.encode(zeros));
+        put("iv", Base64.encode(zeros));
         return zeros;
     }
 
     @Override
     public byte[] getData() {
-        Object data = dictionary.get("data");
+        Object data = get("data");
         if (data == null) {
-            data = dictionary.get("D");
+            data = get("D");
         }
         if (data != null) {
             return Base64.decode((String) data);
@@ -140,16 +140,16 @@ public final class AESKey extends SymmetricKey {
         // random key data
         int keySize = getKeySize();
         byte[] pw = randomData(keySize);
-        dictionary.put("data", Base64.encode(pw));
+        put("data", Base64.encode(pw));
 
         // random initialization vector
         int blockSize = getBlockSize();
         byte[] iv = randomData(blockSize);
-        dictionary.put("iv", Base64.encode(iv));
+        put("iv", Base64.encode(iv));
 
         // other parameters
-        //dictionary.put("mode", "CBC");
-        //dictionary.put("padding", "PKCS7");
+        //put("mode", "CBC");
+        //put("padding", "PKCS7");
 
         return pw;
     }

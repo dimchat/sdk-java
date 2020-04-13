@@ -74,7 +74,7 @@ public final class RSAPrivateKey extends PrivateKey implements DecryptKey {
     private int keySize() {
         // TODO: get from key
 
-        Object size = dictionary.get("keySize");
+        Object size = get("keySize");
         if (size == null) {
             return 1024 / 8; // 128
         } else  {
@@ -83,7 +83,7 @@ public final class RSAPrivateKey extends PrivateKey implements DecryptKey {
     }
 
     private KeyPair getKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException {
-        String data = (String) dictionary.get("data");
+        String data = (String) get("data");
         if (data == null) {
             // generate key
             int bits = keySize() * 8;
@@ -113,12 +113,12 @@ public final class RSAPrivateKey extends PrivateKey implements DecryptKey {
         String skString = PEM.encodePrivateKey(keyPair.getPrivate());
         // -----END RSA PRIVATE KEY-----
 
-        dictionary.put("data", pkString + "\n" + skString);
+        put("data", pkString + "\n" + skString);
 
         // other parameters
-        dictionary.put("mode", "ECB");
-        dictionary.put("padding", "PKCS1");
-        dictionary.put("digest", "SHA256");
+        put("mode", "ECB");
+        put("padding", "PKCS1");
+        put("digest", "SHA256");
 
         return keyPair;
     }
@@ -135,7 +135,7 @@ public final class RSAPrivateKey extends PrivateKey implements DecryptKey {
         }
         String pem = PEM.encodePublicKey(publicKey);
         Map<String, Object> keyInfo = new HashMap<>();
-        keyInfo.put("algorithm", dictionary.get("algorithm"));
+        keyInfo.put("algorithm", get("algorithm"));
         keyInfo.put("data", pem);
         keyInfo.put("mode", "ECB");
         keyInfo.put("padding", "PKCS1");

@@ -94,14 +94,14 @@ public class StorageCommand extends Command {
     }
 
     public String getIdentifier() {
-        return (String) dictionary.get("ID");
+        return (String) get("ID");
     }
 
     public void setIdentifier(ID identifier) {
         if (identifier == null) {
-            dictionary.remove("ID");
+            remove("ID");
         } else {
-            dictionary.put("ID", identifier);
+            put("ID", identifier);
         }
     }
 
@@ -111,7 +111,7 @@ public class StorageCommand extends Command {
     //
     public byte[] getData() {
         if (data == null) {
-            String base64 = (String) dictionary.get("data");
+            String base64 = (String) get("data");
             if (base64 != null) {
                 data = Base64.decode(base64);
             }
@@ -121,9 +121,9 @@ public class StorageCommand extends Command {
 
     public void setData(byte[] value) {
         if (value == null) {
-            dictionary.remove("data");
+            remove("data");
         } else {
-            dictionary.put("data", Base64.encode(value));
+            put("data", Base64.encode(value));
         }
         data = value;
         plaintext = null;
@@ -137,7 +137,7 @@ public class StorageCommand extends Command {
     //
     public byte[] getKey() {
         if (key == null) {
-            String base64 = (String) dictionary.get("key");
+            String base64 = (String) get("key");
             if (base64 != null) {
                 key = Base64.decode(base64);
             }
@@ -147,9 +147,9 @@ public class StorageCommand extends Command {
 
     public void setKey(byte[] value) {
         if (value == null) {
-            dictionary.remove("key");
+            remove("key");
         } else {
-            dictionary.put("key", Base64.encode(value));
+            put("key", Base64.encode(value));
         }
         key = value;
         password = null;

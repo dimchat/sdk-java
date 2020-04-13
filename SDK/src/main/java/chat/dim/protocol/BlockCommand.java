@@ -74,7 +74,7 @@ public class BlockCommand extends Command {
 
     public List getBlockCList() {
         if (blockList == null) {
-            Object list = dictionary.get("list");
+            Object list = get("list");
             if (list != null) {
                 blockList = (List) list;
             }
@@ -84,9 +84,9 @@ public class BlockCommand extends Command {
 
     public void setBlockCList(List list) {
         if (list == null) {
-            dictionary.remove("list");
+            remove("list");
         } else {
-            dictionary.put("list", list);
+            put("list", list);
         }
         blockList = list;
     }

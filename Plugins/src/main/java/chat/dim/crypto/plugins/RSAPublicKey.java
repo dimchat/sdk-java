@@ -61,7 +61,7 @@ public final class RSAPublicKey extends PublicKey implements EncryptKey {
     private int keySize() {
         // TODO: get from key
 
-        Object size = dictionary.get("keySize");
+        Object size = get("keySize");
         if (size == null) {
             return 1024 / 8; // 128
         } else  {
@@ -70,7 +70,7 @@ public final class RSAPublicKey extends PublicKey implements EncryptKey {
     }
 
     private java.security.interfaces.RSAPublicKey getKey() throws NoSuchFieldException {
-        String data = (String) dictionary.get("data");
+        String data = (String) get("data");
         if (data == null) {
             throw new NoSuchFieldException("RSA public key data not found");
         }

@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
+ *  DIMP : Decentralized Instant Messaging Protocol
  *
  *                                Written in 2019 by Moky <albert.moky@gmail.com>
  *
@@ -62,19 +62,19 @@ public class ReceiptCommand extends Command {
         super(RECEIPT);
         // text
         if (message != null) {
-            dictionary.put("message", message);
+            put("message", message);
         }
         // sn of the message responding to
         if (sn > 0) {
-            dictionary.put("sn", sn);
+            put("sn", sn);
         }
         // envelope of the message responding to
         if (env != null) {
-            dictionary.put("sender", env.sender);
-            dictionary.put("receiver", env.receiver);
+            put("sender", env.sender);
+            put("receiver", env.receiver);
             Date time = env.time;
             if (time != null) {
-                dictionary.put("time", time.getTime() / 1000);
+                put("time", time.getTime() / 1000);
             }
         }
         envelope = env;
@@ -87,16 +87,16 @@ public class ReceiptCommand extends Command {
     //-------- setters/getters --------
 
     public String getMessage() {
-        return (String) dictionary.get("message");
+        return (String) get("message");
     }
 
     public Envelope getEnvelope() {
         if (envelope == null) {
             // envelope: { sender: "...", receiver: "...", time: 0 }
-            Object env = dictionary.get("envelope");
+            Object env = get("envelope");
             if (env == null) {
-                Object sender = dictionary.get("sender");
-                Object receiver = dictionary.get("receiver");
+                Object sender = get("sender");
+                Object receiver = get("receiver");
                 if (sender != null && receiver != null) {
                     env = dictionary;
                 }

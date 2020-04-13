@@ -462,6 +462,8 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         //
 
         Command.register(Command.RECEIPT, ReceiptCommand.class);
+        Command.register(Command.HANDSHAKE, HandshakeCommand.class);
+        Command.register(Command.LOGIN, LoginCommand.class);
 
         Command.register(MuteCommand.MUTE, MuteCommand.class);
         Command.register(BlockCommand.BLOCK, BlockCommand.class);
