@@ -56,10 +56,10 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
         return false;
     }
 
-    private Content callReset(Content content, ID sender, InstantMessage iMsg) {
+    private Content callReset(Content content, ID sender, ReliableMessage rMsg) {
         CommandProcessor cpu = getCPU(GroupCommand.RESET);
         assert cpu != null : "reset CPU not register yet";
-        return cpu.process(content, sender, iMsg);
+        return cpu.process(content, sender, rMsg);
     }
 
     private List<ID> doInvite(List<ID> inviteList, ID group) {
@@ -88,7 +88,7 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, InstantMessage iMsg) {
+    public Content process(Content content, ID sender, ReliableMessage rMsg) {
         assert content instanceof InviteCommand : "invite command error: " + content;
         Facebook facebook = getFacebook();
         ID group = facebook.getID(content.getGroup());
@@ -97,7 +97,7 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
             // NOTICE:
             //     group membership lost?
             //     reset group members
-            return callReset(content, sender, iMsg);
+            return callReset(content, sender, rMsg);
         }
         // 1. check permission
         if (!facebook.existsMember(sender, group)) {
@@ -117,7 +117,7 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
         if (isReset(inviteList, sender, group)) {
             // NOTICE: owner invites owner?
             //         it means this should be a 'reset' command
-            return callReset(content, sender, iMsg);
+            return callReset(content, sender, rMsg);
         }
         // 2.2. get invited-list
         List<ID> added = doInvite(inviteList, group);

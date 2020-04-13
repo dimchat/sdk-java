@@ -32,10 +32,9 @@ package chat.dim.cpu;
 
 import chat.dim.Content;
 import chat.dim.ID;
-import chat.dim.InstantMessage;
+import chat.dim.ReliableMessage;
 import chat.dim.Messenger;
 import chat.dim.protocol.Command;
-import chat.dim.protocol.TextContent;
 
 public class HistoryCommandProcessor extends CommandProcessor {
 
@@ -53,7 +52,7 @@ public class HistoryCommandProcessor extends CommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, InstantMessage iMsg) {
+    public Content process(Content content, ID sender, ReliableMessage rMsg) {
         assert getClass() == HistoryCommandProcessor.class : "error!"; // override me!
         assert content instanceof Command : "history command error: " + content;
 
@@ -73,6 +72,6 @@ public class HistoryCommandProcessor extends CommandProcessor {
             cpu = getGPU();
         }
         assert cpu != this : "Dead cycle!";
-        return cpu.process(content, sender, iMsg);
+        return cpu.process(content, sender, rMsg);
     }
 }

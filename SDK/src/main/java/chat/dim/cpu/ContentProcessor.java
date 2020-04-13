@@ -123,12 +123,12 @@ public class ContentProcessor {
 
     //-------- Main --------
 
-    public Content process(Content content, ID sender, InstantMessage iMsg) {
+    public Content process(Content content, ID sender, ReliableMessage rMsg) {
         assert getClass() == ContentProcessor.class : "error!"; // override me!
         // process content by type
         ContentProcessor cpu = getCPU(content.type);
         assert cpu != this : "Dead cycle!";
-        return cpu.process(content, sender, iMsg);
+        return cpu.process(content, sender, rMsg);
     }
 
     static {

@@ -100,7 +100,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         return (Facebook) facebook;
     }
 
-    private User select(ID receiver) {
+    protected User select(ID receiver) {
         Facebook facebook = getFacebook();
         List<User> users = facebook.getLocalUsers();
         if (users == null || users.size() == 0) {
@@ -395,7 +395,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
             return null;
         }
         // 2. process message
-        sMsg = process(sMsg);
+        sMsg = process(sMsg, rMsg);
         if (sMsg == null) {
             // nothing to respond
             return null;
@@ -404,7 +404,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         return signMessage(sMsg);
     }
 
-    public SecureMessage process(SecureMessage sMsg) {
+    private SecureMessage process(SecureMessage sMsg, ReliableMessage rMsg) {
         // 1. decrypt message
         InstantMessage iMsg = decryptMessage(sMsg);
         if (iMsg == null) {
@@ -413,7 +413,7 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
             return null;
         }
         // 2. process message
-        iMsg = process(iMsg);
+        iMsg = process(iMsg, rMsg);
         if (iMsg == null) {
             // nothing to respond
             return null;
@@ -422,16 +422,14 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         return encryptMessage(iMsg);
     }
 
-    // TODO: override to check group
-    // TODO: override to filter the response
-    public InstantMessage process(InstantMessage iMsg) {
+    private InstantMessage process(InstantMessage iMsg, ReliableMessage rMsg) {
         Facebook facebook = getFacebook();
         Content content = iMsg.content;
         Envelope env = iMsg.envelope;
         ID sender = facebook.getID(env.sender);
 
         // process content from sender
-        Content response = cpu.process(content, sender, iMsg);
+        Content response = process(content, sender, rMsg);
         if (!saveMessage(iMsg)) {
             // error
             return null;
@@ -448,6 +446,13 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
 
         // pack message
         return new InstantMessage(response, user.identifier, sender);
+    }
+
+    // TODO: override to check group
+    // TODO: override to filter the response
+    protected Content process(Content content, ID sender, ReliableMessage rMsg) {
+        // call CPU to process it
+        return cpu.process(content, sender, rMsg);
     }
 
     static {

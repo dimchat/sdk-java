@@ -73,7 +73,7 @@ public class MetaCommandProcessor extends CommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, InstantMessage iMsg) {
+    public Content process(Content content, ID sender, ReliableMessage rMsg) {
         assert content instanceof MetaCommand : "meta command error: " + content;
         MetaCommand cmd = (MetaCommand) content;
         Meta meta;

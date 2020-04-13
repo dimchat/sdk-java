@@ -40,16 +40,16 @@ public class ForwardContentProcessor extends ContentProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, InstantMessage iMsg) {
+    public Content process(Content content, ID sender, ReliableMessage rMsg) {
         assert content instanceof ForwardContent : "forward content error: " + content;
         ForwardContent forward = (ForwardContent) content;
-        Messenger messenger = getMessenger();
+        ReliableMessage secret = forward.forwardMessage;
         // call messenger to process it
-        ReliableMessage rMsg = messenger.process(forward.forwardMessage);
+        secret = getMessenger().process(secret);
         // check response
-        if (rMsg != null) {
+        if (secret != null) {
             // Over The Top
-            return new ForwardContent(rMsg);
+            return new ForwardContent(secret);
         }/* else {
             Object receiver = forward.forwardMessage.envelope.receiver;
             String text = String.format("Message forwarded: %s", receiver);

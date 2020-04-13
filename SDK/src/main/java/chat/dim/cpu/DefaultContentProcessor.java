@@ -32,7 +32,7 @@ package chat.dim.cpu;
 
 import chat.dim.Content;
 import chat.dim.ID;
-import chat.dim.InstantMessage;
+import chat.dim.ReliableMessage;
 import chat.dim.Messenger;
 import chat.dim.protocol.TextContent;
 
@@ -43,7 +43,7 @@ class DefaultContentProcessor extends ContentProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, InstantMessage iMsg) {
+    public Content process(Content content, ID sender, ReliableMessage rMsg) {
         int type = content.type;
         String text = String.format("Content (type: %d) not support yet!", type);
         Content res = new TextContent(text);

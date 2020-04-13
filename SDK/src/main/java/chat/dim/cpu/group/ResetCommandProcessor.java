@@ -109,7 +109,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, InstantMessage iMsg) {
+    public Content process(Content content, ID sender, ReliableMessage rMsg) {
         assert content instanceof ResetCommand || content instanceof InviteCommand : "reset command error: " + content;
         Facebook facebook = getFacebook();
         ID group = facebook.getID(content.getGroup());

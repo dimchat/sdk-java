@@ -32,8 +32,8 @@ package chat.dim.cpu;
 
 import chat.dim.Content;
 import chat.dim.ID;
-import chat.dim.InstantMessage;
 import chat.dim.Messenger;
+import chat.dim.ReliableMessage;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.TextContent;
 
@@ -44,7 +44,7 @@ class DefaultCommandProcessor extends CommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, InstantMessage iMsg) {
+    public Content process(Content content, ID sender, ReliableMessage rMsg) {
         assert content instanceof Command : "command error: " + content;
         Command cmd = (Command) content;
         String text = String.format("Command (name: %s) not support yet!", cmd.command);

@@ -70,7 +70,7 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, InstantMessage iMsg) {
+    public Content process(Content content, ID sender, ReliableMessage rMsg) {
         assert content instanceof ExpelCommand : "expel command error: " + content;
         Facebook facebook = getFacebook();
         ID group = facebook.getID(content.getGroup());

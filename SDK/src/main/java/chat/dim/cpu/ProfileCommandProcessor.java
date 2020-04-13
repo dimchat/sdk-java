@@ -86,7 +86,7 @@ public class ProfileCommandProcessor extends CommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, InstantMessage iMsg) {
+    public Content process(Content content, ID sender, ReliableMessage rMsg) {
         assert content instanceof ProfileCommand : "profile command error: " + content;
         ProfileCommand cmd = (ProfileCommand) content;
         Profile profile = cmd.getProfile();

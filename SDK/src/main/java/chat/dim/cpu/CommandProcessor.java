@@ -35,7 +35,7 @@ import java.util.Map;
 
 import chat.dim.Content;
 import chat.dim.ID;
-import chat.dim.InstantMessage;
+import chat.dim.ReliableMessage;
 import chat.dim.Messenger;
 import chat.dim.protocol.Command;
 
@@ -87,14 +87,14 @@ public class CommandProcessor extends ContentProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, InstantMessage iMsg) {
+    public Content process(Content content, ID sender, ReliableMessage rMsg) {
         assert getClass() == CommandProcessor.class : "error!"; // override me!
         assert content instanceof Command : "command error: " + content;
         Command cmd = (Command) content;
         // process command content by name
         CommandProcessor cpu = getCPU(cmd.command);
         assert cpu != this : "Dead cycle!";
-        return cpu.process(content, sender, iMsg);
+        return cpu.process(content, sender, rMsg);
     }
 
     static {

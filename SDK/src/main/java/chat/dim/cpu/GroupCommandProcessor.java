@@ -37,7 +37,6 @@ import chat.dim.*;
 import chat.dim.cpu.group.*;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.GroupCommand;
-import chat.dim.protocol.TextContent;
 
 public class GroupCommandProcessor extends HistoryCommandProcessor {
 
@@ -99,7 +98,7 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, InstantMessage iMsg) {
+    public Content process(Content content, ID sender, ReliableMessage rMsg) {
         assert getClass() == GroupCommandProcessor.class : "error!"; // override me!
         assert content instanceof Command : "group command error: " + content;
         // process command content by name
@@ -114,7 +113,7 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
         }
          */
         assert cpu != this : "Dead cycle!";
-        return cpu.process(content, sender, iMsg);
+        return cpu.process(content, sender, rMsg);
     }
 
     static {
