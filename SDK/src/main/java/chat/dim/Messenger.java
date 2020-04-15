@@ -41,7 +41,7 @@ import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.*;
 
-public abstract class Messenger extends Transceiver implements ConnectionDelegate {
+public abstract class Messenger extends Transceiver {
 
     private final Map<String, Object> context = new HashMap<>();
 
@@ -340,35 +340,15 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         return getDelegate().sendPackage(data, handler);
     }
 
-    //-------- Saving Message
+    //-------- Processing Message
 
     /**
-     * Save the message into local storage
+     *  Proess received data package
      *
-     * @param msg - instant message
-     * @return true on success
+     * @param data - package from network connection
+     * @return response to sender
      */
-    public abstract boolean saveMessage(InstantMessage msg);
-
-    /**
-     *  Suspend the received message for the sender's meta
-     *
-     * @param msg - message received from network
-     */
-    public abstract void suspendMessage(ReliableMessage msg);
-
-    /**
-     *  Suspend the sending message for the receiver's meta,
-     *  or group meta when received new message
-     *
-     * @param msg - instant message to be sent
-     */
-    public abstract void suspendMessage(InstantMessage msg);
-
-    //-------- ConnectionDelegate
-
-    @Override
-    public byte[] onReceivePackage(byte[] data) {
+    public byte[] processPackage(byte[] data) {
         // 1. deserialize message
         ReliableMessage rMsg = deserializeMessage(data);
         if (rMsg == null) {
@@ -454,6 +434,31 @@ public abstract class Messenger extends Transceiver implements ConnectionDelegat
         // call CPU to process it
         return cpu.process(content, sender, rMsg);
     }
+
+    //-------- Saving Message
+
+    /**
+     * Save the message into local storage
+     *
+     * @param msg - instant message
+     * @return true on success
+     */
+    public abstract boolean saveMessage(InstantMessage msg);
+
+    /**
+     *  Suspend the received message for the sender's meta
+     *
+     * @param msg - message received from network
+     */
+    public abstract void suspendMessage(ReliableMessage msg);
+
+    /**
+     *  Suspend the sending message for the receiver's meta,
+     *  or group meta when received new message
+     *
+     * @param msg - instant message to be sent
+     */
+    public abstract void suspendMessage(InstantMessage msg);
 
     static {
 

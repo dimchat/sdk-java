@@ -30,7 +30,6 @@
  */
 package chat.dim;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
@@ -39,61 +38,21 @@ import chat.dim.filesys.ExternalStorage;
 
 public class KeyStore extends KeyCache {
 
-    private User user = null;
-
-    private static String separator = File.separator;
-
     public KeyStore() {
         super();
     }
 
-    public User getUser() {
-        return user;
-    }
-    public void setUser(User currentUser) {
-        if (user != null) {
-            // save key map for old user
-            flush();
-            if (user.equals(currentUser)) {
-                // user not changed
-                return;
-            }
-        }
-        if (currentUser == null) {
-            user = null;
-            return;
-        }
-        // change current user
-        user = currentUser;
-        Map keys = loadKeys();
-        if (keys == null) {
-            // failed to load cached keys for new user
-            return;
-        }
-        try {
-            // update key map
-            updateKeys(keys);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-
-    // '/tmp/.dim/protected/{ADDRESS}/keystore.js'
+    // '/tmp/.dim/protected/keystore.js'
     private String getPath() {
-        if (user == null) {
-            return null;
-        }
-        return ExternalStorage.getPath() + separator + "protected" + separator
-                + user.identifier.toString() + separator + "keystore.js";
+        return ExternalStorage.root + ExternalStorage.separator
+                + "protected" + ExternalStorage.separator
+                + "keystore.js";
     }
 
     @Override
     public boolean saveKeys(Map keyMap) {
-        String path = getPath();
-        if (path == null) {
-            return false;
-        }
         try {
+            String path = getPath();
             return ExternalStorage.saveJSON(keyMap, path);
         } catch (IOException e) {
             e.printStackTrace();
@@ -103,11 +62,8 @@ public class KeyStore extends KeyCache {
 
     @Override
     public Map loadKeys() {
-        String path = getPath();
-        if (path == null) {
-            return null;
-        }
         try {
+            String path = getPath();
             return (Map) ExternalStorage.loadJSON(path);
         } catch (IOException e) {
             e.printStackTrace();

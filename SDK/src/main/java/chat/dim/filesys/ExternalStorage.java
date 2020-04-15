@@ -30,6 +30,7 @@
  */
 package chat.dim.filesys;
 
+import java.io.File;
 import java.io.IOException;
 
 import chat.dim.format.JSON;
@@ -38,13 +39,9 @@ import chat.dim.format.UTF8;
 public class ExternalStorage {
 
     // "/sdcard/chat.dim.sechat"
-    private static String root = "/tmp/.dim";
-    public static String getPath() {
-        return root;
-    }
-    public static void setPath(String path) {
-        root = path;
-    }
+    public static String root = "/tmp/.dim";
+
+    public static String separator = File.separator;
 
     //-------- read
 
