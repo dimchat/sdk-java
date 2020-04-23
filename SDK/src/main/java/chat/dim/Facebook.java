@@ -30,7 +30,6 @@
  */
 package chat.dim;
 
-import java.lang.ref.WeakReference;
 import java.util.*;
 
 import chat.dim.core.Barrack;
@@ -43,29 +42,8 @@ import chat.dim.protocol.NetworkType;
 
 public abstract class Facebook extends Barrack {
 
-    private WeakReference<AddressNameService> ansRef = null;
-
     protected Facebook() {
         super();
-    }
-
-    public AddressNameService getANS() {
-        if (ansRef == null) {
-            return null;
-        }
-        return ansRef.get();
-    }
-
-    public void setANS(AddressNameService ans) {
-        ansRef = new WeakReference<>(ans);
-    }
-
-    private ID ansGet(String name) {
-        AddressNameService ans = getANS();
-        if (ans == null) {
-            return null;
-        }
-        return ans.identifier(name);
     }
 
     //
@@ -209,11 +187,6 @@ public abstract class Facebook extends Barrack {
 
     @Override
     protected ID createID(String string) {
-        // try ANS record
-        ID identifier = ansGet(string);
-        if (identifier != null) {
-            return identifier;
-        }
         assert string != null : "ID string should not be empty";
         return ID.getInstance(string);
     }
@@ -352,17 +325,14 @@ public abstract class Facebook extends Barrack {
     //
     //  Group Assistants
     //
-    public List<ID> getAssistants(ID group) {
-        assert group.isGroup() : "group ID error: " + group;
-        // try ANS record
-        ID identifier = ansGet("assistant");
-        if (identifier == null) {
-            return null;
-        }
-        List<ID> assistants = new ArrayList<>();
-        assistants.add(identifier);
-        return assistants;
-    }
+
+    /**
+     *  Get assistants for this group
+     *
+     * @param group - group ID
+     * @return robot ID list
+     */
+    public abstract List<ID> getAssistants(ID group);
 
     public boolean existsAssistant(ID user, ID group) {
         List<ID> assistants = getAssistants(group);

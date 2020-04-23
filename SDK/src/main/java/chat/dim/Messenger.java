@@ -270,8 +270,19 @@ public abstract class Messenger extends Transceiver {
      * @return true on success
      */
     public boolean sendContent(Content content, ID receiver, Callback callback, boolean split) {
+        // Application Layer should make sure user is already login before it send message to server.
+        // Application layer should put message into queue so that it will send automatically after user login
         User user = getFacebook().getCurrentUser();
         assert user != null : "current user not found";
+        /*
+        if (receiver.isGroup()) {
+            if (content.getGroup() == null) {
+                content.setGroup(receiver);
+            } else {
+                assert receiver.equals(content.getGroup()) : "group ID not match: " + receiver + ", " + content;
+            }
+        }
+         */
         InstantMessage iMsg = new InstantMessage(content, user.identifier, receiver);
         return sendMessage(iMsg, callback, split);
     }
@@ -343,7 +354,7 @@ public abstract class Messenger extends Transceiver {
     //-------- Processing Message
 
     /**
-     *  Proess received data package
+     *  Process received data package
      *
      * @param data - package from network connection
      * @return response to sender
