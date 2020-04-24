@@ -266,10 +266,9 @@ public abstract class Messenger extends Transceiver {
      * @param content - message content
      * @param receiver - receiver ID
      * @param callback - if needs callback, set it here
-     * @param split - whether split group message
      * @return true on success
      */
-    public boolean sendContent(Content content, ID receiver, Callback callback, boolean split) {
+    public boolean sendContent(Content content, ID receiver, Callback callback) {
         // Application Layer should make sure user is already login before it send message to server.
         // Application layer should put message into queue so that it will send automatically after user login
         User user = getFacebook().getCurrentUser();
@@ -284,7 +283,7 @@ public abstract class Messenger extends Transceiver {
         }
          */
         InstantMessage iMsg = new InstantMessage(content, user.identifier, receiver);
-        return sendMessage(iMsg, callback, split);
+        return sendMessage(iMsg, callback);
     }
 
     /**
@@ -292,37 +291,23 @@ public abstract class Messenger extends Transceiver {
      *
      * @param iMsg - instant message
      * @param callback - if needs callback, set it here
-     * @param split - whether split group message
      * @return true on success
      */
-    public boolean sendMessage(InstantMessage iMsg, Callback callback, boolean split) {
+    public boolean sendMessage(InstantMessage iMsg, Callback callback) {
         // Send message (secured + certified) to target station
-        ReliableMessage rMsg = signMessage(encryptMessage(iMsg));
-        Facebook facebook = getFacebook();
-        ID receiver = facebook.getID(iMsg.envelope.receiver);
-        boolean OK = true;
-        if (split && receiver.isGroup()) {
-            // split for each members
-            List<ID> members = facebook.getMembers(receiver);
-            List<SecureMessage> messages;
-            if (members == null || members.size() == 0) {
-                messages = null;
-            } else {
-                messages = rMsg.split(members);
-            }
-            if (messages == null) {
-                // failed to split message, send it to group
-                OK = sendMessage(rMsg, callback);
-            } else {
-                for (Message msg : messages) {
-                    if (!sendMessage((ReliableMessage) msg, callback)) {
-                        OK = false;
-                    }
-                }
-            }
-        } else {
-            OK = sendMessage(rMsg, callback);
+        SecureMessage sMsg = encryptMessage(iMsg);
+        if (sMsg == null) {
+            // public key not found?
+            return false;
+            //throw new NullPointerException("failed to encrypt message: " + iMsg);
         }
+        ReliableMessage rMsg = signMessage(sMsg);
+        if (rMsg == null) {
+            // TODO: set iMsg.state = error
+            throw new NullPointerException("failed to sign message: " + sMsg);
+        }
+
+        boolean OK = sendMessage(rMsg, callback);
         // TODO: if OK, set iMsg.state = sending; else set iMsg.state = waiting
 
         if (!saveMessage(iMsg)) {

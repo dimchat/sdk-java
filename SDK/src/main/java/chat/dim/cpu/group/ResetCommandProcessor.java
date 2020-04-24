@@ -55,7 +55,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
                     // NOTICE: to prevent counterfeit,
                     //         query the owner for newest member-list
                     QueryCommand cmd = new QueryCommand(group);
-                    getMessenger().sendContent(cmd, owner, null, false);
+                    getMessenger().sendContent(cmd, owner, null);
                 }
             }
             // response (no need to response this group command)
