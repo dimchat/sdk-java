@@ -156,4 +156,9 @@ public class MyFacebook extends Facebook {
     public List<ID> getMembers(ID group) {
         return null;
     }
+
+    @Override
+    public List<ID> getAssistants(ID group) {
+        return null;
+    }
 }
