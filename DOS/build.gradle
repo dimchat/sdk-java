@@ -53,8 +53,8 @@ install {
         pom {
             project {
                 packaging 'jar'
-                name 'FSM'
-                description 'Finite State Machine'
+                name 'DOS'
+                description 'File System'
                 url siteUrl
                 licenses {
                     license {
@@ -146,8 +146,8 @@ bintray {
     pkg {
         userOrg = 'dimchat'
         repo = 'common'
-        name = 'fsm'
-        desc = 'Finite State Machine'
+        name = 'dos'
+        desc = 'File System'
         websiteUrl = siteUrl
         vcsUrl = gitUrl
         licenses = ['MIT']
