@@ -31,34 +31,25 @@
 package chat.dim.stargate.wormhole;
 
 import java.lang.ref.WeakReference;
-import java.net.Socket;
-import java.net.SocketAddress;
 import java.util.*;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import chat.dim.mtp.protocol.DataType;
 import chat.dim.mtp.protocol.Header;
 import chat.dim.mtp.protocol.Package;
+import chat.dim.stargate.Star;
 import chat.dim.stargate.StarDelegate;
+import chat.dim.stargate.StarStatus;
 import chat.dim.tcp.*;
 import chat.dim.tlv.Data;
 
-public class Hole extends Thread implements ConnectionHandler {
+public class Hole extends Thread implements Star, ConnectionHandler {
 
     private boolean running = false;
 
-    // connections
-    private final Set<Connection> connections = new LinkedHashSet<>();
-    private final ReadWriteLock connectionLock = new ReentrantReadWriteLock();
-    private final Map<SocketAddress, WeakReference<Connection>> connectionMap = new HashMap<>();
+    // connection
+    private Connection connection;
 
-    // declaration forms
-    private final List<SocketAddress> declarations = new ArrayList<>();
-    private final ReadWriteLock declarationLock = new ReentrantReadWriteLock();
-
-    private WeakReference<StarDelegate> delegateRef = null;
+    private WeakReference<StarDelegate> delegateRef;
 
     public Hole(StarDelegate delegate) {
         super();
@@ -73,61 +64,13 @@ public class Hole extends Thread implements ConnectionHandler {
     }
 
     //
-    //  Connections
+    //  Connection
     //
 
-    public Connection getConnection(SocketAddress address) {
-        WeakReference<Connection> ref = connectionMap.get(address);
-        if (ref == null) {
-            return null;
-        }
-        return ref.get();
-    }
-
-    protected Connection createConnection(Socket socket, String host, int port) {
-        Connection connection;
-        if (socket == null) {
-            connection = new ClientConnection(host, port);
-        } else {
-            connection = new ServerConnection(socket);
-        }
+    protected Connection createConnection(String host, int port) {
+        Connection connection = new ClientConnection(host, port);
         connection.start();
         return connection;
-    }
-
-    private Connection connect(Socket socket, String host, int port) {
-        Connection connection = null;
-        Lock writeLock = connectionLock.writeLock();
-        writeLock.lock();
-        try {
-            for (Connection item : connections) {
-                if (item.port == port && item.host.equals(host)) {
-                    connection = item;
-                    break;
-                }
-            }
-            if (connection == null) {
-                connection = createConnection(socket, host, port);
-                connections.add(connection);
-                // mapping for "address -> connection"
-                connectionMap.put(connection.address, new WeakReference<>(connection));
-            }
-        } finally {
-            writeLock.unlock();
-        }
-        return connection;
-    }
-
-    /**
-     *  Create a connection for server
-     *
-     * @param socket - socket accepted for client
-     * @return connection
-     */
-    public Connection connect(Socket socket) {
-        String host = socket.getInetAddress().getHostAddress();
-        int port = socket.getPort();
-        return connect(socket, host, port);
     }
 
     /**
@@ -138,56 +81,23 @@ public class Hole extends Thread implements ConnectionHandler {
      * @return connection
      */
     public Connection connect(String host, int port) {
-        return connect(null, host, port);
-    }
-
-    //
-    //  Declaration forms
-    //
-
-    private void addDeclaration(SocketAddress address) {
-        Lock writeLock = declarationLock.writeLock();
-        writeLock.lock();
-        try {
-            declarations.add(address);
-        } finally {
-            writeLock.unlock();
-        }
-    }
-
-    private SocketAddress getDeclaration() {
-        SocketAddress address = null;
-        Lock writeLock = declarationLock.writeLock();
-        writeLock.lock();
-        try {
-            if (declarations.size() > 0) {
-                address = declarations.remove(0);
+        if (connection != null) {
+            if (connection.port == port && connection.host.equals(host)) {
+                return connection;
             }
-        } finally {
-            writeLock.unlock();
         }
-        return address;
+        connection = createConnection(host, port);
+        return connection;
     }
 
-    /**
-     *  Send data to remote address
-     *
-     * @param payload - data to be sent
-     * @param remoteAddress - remote IP and port
-     * @return -1 on error
-     */
-    public int send(byte[] payload, SocketAddress remoteAddress) {
-        Connection connection = getConnection(remoteAddress);
+    public void disconnect() {
         if (connection == null) {
-            return -1;
+            return;
         }
-        // packing for D-MTP
-        Data body = new Data(payload);
-        Package pack = Package.create(DataType.Message, body.getLength(), body);
-        return connection.send(pack.getBytes());
+        connection.close();
     }
 
-    private Cargo receive(Connection connection) {
+    private byte[] receive() {
         // 1. check received data
         byte[] buffer = connection.received();
         if (buffer == null || buffer.length < 8) {
@@ -226,46 +136,7 @@ public class Hole extends Thread implements ConnectionHandler {
         assert buffer.length == packLen : "failed to receive package: " + packLen + ", " + buffer.length;
         data = new Data(buffer);
         // 3. return body with remote address
-        return new Cargo(data.getBytes(headLen), connection.address, null);
-    }
-
-    private Cargo receive() {
-        Cargo cargo = null;
-        Connection conn;
-        SocketAddress address;
-        // 1. try by declaration forms
-        while (true) {
-            address = getDeclaration();
-            if (address == null) {
-                // no more declaration form
-                break;
-            }
-            conn = getConnection(address);
-            if (conn == null) {
-                // connection lost?
-                continue;
-            }
-            cargo = receive(conn);
-            if (cargo != null) {
-                // got one
-                return cargo;
-            }
-        }
-        // 2. try every connection
-        Lock readLock = connectionLock.readLock();
-        readLock.lock();
-        try {
-            for (Connection item : connections) {
-                cargo = receive(item);
-                if (cargo != null) {
-                    // got one
-                    break;
-                }
-            }
-        } finally {
-            readLock.unlock();
-        }
-        return cargo;
+        return data.getBytes(headLen);
     }
 
     private static void _sleep(long millis) {
@@ -288,7 +159,7 @@ public class Hole extends Thread implements ConnectionHandler {
 
     @Override
     public void run() {
-        Cargo cargo;
+        byte[] cargo;
         List<byte[]> responses;
         while (running) {
             cargo = receive();
@@ -297,16 +168,16 @@ public class Hole extends Thread implements ConnectionHandler {
                 _sleep(200);
             } else {
                 // dispatch
-                responses = dispatch(cargo.payload, cargo.source);
+                responses = dispatch(cargo);
                 for (byte[] res : responses) {
-                    send(res, cargo.source);
+                    send(res);
                 }
             }
 
         }
     }
 
-    private List<byte[]> dispatch(byte[] payload, SocketAddress source) {
+    private List<byte[]> dispatch(byte[] payload) {
         List<byte[]> responses = new ArrayList<>();
         // TODO: call the listeners
         return responses;
@@ -314,21 +185,86 @@ public class Hole extends Thread implements ConnectionHandler {
 
     private void ping() {
         long now = (new Date()).getTime();
-        Lock readLock = connectionLock.readLock();
-        readLock.lock();
-        try {
-            for (Connection item : connections) {
-                if (item.isExpired(now)) {
-                    item.send(HEARTBEAT);
-                }
-            }
-        } finally {
-            readLock.unlock();
+        if (connection.isExpired(now)) {
+            connection.send(HEARTBEAT);
         }
     }
 
     private static final byte[] PING = {'P', 'I', 'N', 'G'};
     private static final byte[] HEARTBEAT = Package.create(DataType.Message, 4, new Data(PING)).getBytes();
+
+    //
+    //  Star
+    //
+
+    @Override
+    public StarStatus getStatus() {
+        long now = (new Date()).getTime();
+        ConnectionStatus connectionStatus = connection.getStatus(now);
+        StarStatus starStatus = StarStatus.Init;
+        switch (connectionStatus) {
+            case Default: {
+                starStatus = StarStatus.Connecting;
+                break;
+            }
+            case Connecting: {
+                starStatus = StarStatus.Connecting;
+                break;
+            }
+            case Connected: {
+                starStatus = StarStatus.Connected;
+                break;
+            }
+            case Expired: {
+                starStatus = StarStatus.Connected;
+                break;
+            }
+            case Maintaining: {
+                starStatus = StarStatus.Connected;
+                break;
+            }
+            case Error: {
+                starStatus = StarStatus.Error;
+                break;
+            }
+        }
+        return starStatus;
+    }
+
+    @Override
+    public void launch(Map<String, Object> options) {
+
+    }
+
+    @Override
+    public void terminate() {
+
+    }
+
+    @Override
+    public void enterBackground() {
+
+    }
+
+    @Override
+    public void enterForeground() {
+
+    }
+
+    @Override
+    public void send(byte[] payload) {
+        // packing for D-MTP
+        Data body = new Data(payload);
+        Package pack = Package.create(DataType.Message, body.getLength(), body);
+        assert connection != null : "not connect yet";
+        connection.send(pack.getBytes());
+    }
+
+    @Override
+    public void send(byte[] payload, StarDelegate completionHandler) {
+        // TODO: task list
+        send(payload);
+    }
 
     //
     //  ConnectionHandler
@@ -340,7 +276,6 @@ public class Hole extends Thread implements ConnectionHandler {
 
     @Override
     public void onConnectionReceivedData(Connection connection) {
-        addDeclaration(connection.address);
     }
 
     @Override

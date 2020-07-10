@@ -391,7 +391,7 @@ public class Connection extends Thread {
         super.start();
     }
 
-    void close() {
+    public void close() {
         running = false;
     }
 
