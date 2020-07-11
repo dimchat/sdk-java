@@ -32,10 +32,13 @@ package chat.dim.stargate.wormhole;
 
 import java.lang.ref.WeakReference;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import chat.dim.mtp.protocol.DataType;
 import chat.dim.mtp.protocol.Header;
 import chat.dim.mtp.protocol.Package;
+import chat.dim.mtp.protocol.TransactionID;
 import chat.dim.stargate.Star;
 import chat.dim.stargate.StarDelegate;
 import chat.dim.stargate.StarStatus;
@@ -49,7 +52,14 @@ public class Hole extends Thread implements Star, ConnectionHandler {
     // connection
     private Connection connection;
 
-    private WeakReference<StarDelegate> delegateRef;
+    private final WeakReference<StarDelegate> delegateRef;
+
+    // tasks for sending out
+    private final List<Task> waitingList = new ArrayList<>();
+    private final ReentrantReadWriteLock waitingLock = new ReentrantReadWriteLock();
+
+    // handlers for callback
+    private final Map<TransactionID, WeakReference<StarDelegate>> handlers = new HashMap<>();
 
     public Hole(StarDelegate delegate) {
         super();
@@ -61,6 +71,46 @@ public class Hole extends Thread implements Star, ConnectionHandler {
             return null;
         }
         return delegateRef.get();
+    }
+
+    private StarDelegate getHandler(TransactionID sn) {
+        WeakReference<StarDelegate> ref = handlers.get(sn);
+        if (ref == null) {
+            return null;
+        }
+        return ref.get();
+    }
+
+    private void setHandler(TransactionID sn, StarDelegate delegate) {
+        handlers.put(sn, new WeakReference<>(delegate));
+    }
+
+    private void removeHandler(TransactionID sn) {
+        handlers.remove(sn);
+    }
+
+    private Task getTask() {
+        Task task = null;
+        Lock writeLock = waitingLock.writeLock();
+        writeLock.lock();
+        try {
+            if (waitingList.size() > 0) {
+                task = waitingList.remove(0);
+            }
+        } finally {
+            writeLock.unlock();
+        }
+        return task;
+    }
+
+    private void addTask(Task task) {
+        Lock writeLock = waitingLock.writeLock();
+        writeLock.lock();
+        try {
+            waitingList.add(task);
+        } finally {
+            writeLock.unlock();
+        }
     }
 
     //
@@ -97,7 +147,7 @@ public class Hole extends Thread implements Star, ConnectionHandler {
         connection.close();
     }
 
-    private byte[] receive() {
+    private Package receive() {
         // 1. check received data
         byte[] buffer = connection.received();
         if (buffer == null || buffer.length < 8) {
@@ -136,7 +186,7 @@ public class Hole extends Thread implements Star, ConnectionHandler {
         assert buffer.length == packLen : "failed to receive package: " + packLen + ", " + buffer.length;
         data = new Data(buffer);
         // 3. return body with remote address
-        return data.getBytes(headLen);
+        return new Package(data, head, data.slice(headLen));
     }
 
     private static void _sleep(long millis) {
@@ -150,7 +200,7 @@ public class Hole extends Thread implements Star, ConnectionHandler {
     @Override
     public void start() {
         running = true;
-        super.start();;
+        super.start();
     }
 
     public void close() {
@@ -159,34 +209,58 @@ public class Hole extends Thread implements Star, ConnectionHandler {
 
     @Override
     public void run() {
-        byte[] cargo;
-        List<byte[]> responses;
-        while (running) {
-            cargo = receive();
-            if (cargo == null) {
-                // received nothing, have a rest ^_^
-                _sleep(200);
-            } else {
-                // dispatch
-                responses = dispatch(cargo);
-                for (byte[] res : responses) {
-                    send(res);
-                }
-            }
-
-        }
-    }
-
-    private List<byte[]> dispatch(byte[] payload) {
-        List<byte[]> responses = new ArrayList<>();
-        // TODO: call the listeners
-        return responses;
-    }
-
-    private void ping() {
+        StarDelegate delegate;
+        Package income;
+        Task outgo;
         long now = (new Date()).getTime();
-        if (connection.isExpired(now)) {
-            connection.send(HEARTBEAT);
+        long expired = now + Connection.EXPIRES;
+
+        while (running) {
+            try {
+                // 1. send on task
+                outgo = getTask();
+                if (outgo != null) {
+                    connection.send(outgo.getRequestData());
+                    delegate = outgo.getHandler();
+                    if (delegate != null) {
+                        // set handler for callback when received response
+                        setHandler(outgo.getTransactionID(), delegate);
+                        _sleep(100);
+                        // callback for sent
+                        delegate.onFinishSend(outgo.getPayload(), null, this);
+                    }
+                }
+                // 2. receive one package
+                income = receive();
+                if (income != null) {
+                    // dispatch received package
+                    delegate = getHandler(income.head.sn);
+                    if (delegate == null) {
+                        delegate = getDelegate();
+                    }
+                    if (delegate != null) {
+                        // callback for received data
+                        delegate.onReceive(income.body.getBytes(), this);
+                        // remove handler
+                        removeHandler(income.head.sn);
+                    }
+                }
+                // 3. check time for next heartbeat
+                now = (new Date()).getTime();
+                if (now > expired) {
+                    if (connection.isExpired(now)) {
+                        connection.send(HEARTBEAT);
+                    }
+                    // try heartbeat next 2 seconds
+                    expired = now + 2000;
+                }
+                if (outgo == null && income == null) {
+                    // idling
+                    _sleep(500);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -234,11 +308,16 @@ public class Hole extends Thread implements Star, ConnectionHandler {
     @Override
     public void launch(Map<String, Object> options) {
 
+        String host = (String) options.get("host");
+        int port = (int) options.get("port");
+
+        connect(host, port);
+        start();
     }
 
     @Override
     public void terminate() {
-
+        close();
     }
 
     @Override
@@ -253,17 +332,16 @@ public class Hole extends Thread implements Star, ConnectionHandler {
 
     @Override
     public void send(byte[] payload) {
-        // packing for D-MTP
-        Data body = new Data(payload);
-        Package pack = Package.create(DataType.Message, body.getLength(), body);
-        assert connection != null : "not connect yet";
-        connection.send(pack.getBytes());
+        send(payload, getDelegate());
     }
 
     @Override
     public void send(byte[] payload, StarDelegate completionHandler) {
-        // TODO: task list
-        send(payload);
+        // packing for D-MTP
+        Data body = new Data(payload);
+        Package pack = Package.create(DataType.Message, body.getLength(), body);
+        Task task = new Task(pack, completionHandler);
+        addTask(task);
     }
 
     //
@@ -272,6 +350,10 @@ public class Hole extends Thread implements Star, ConnectionHandler {
 
     @Override
     public void onConnectionStatusChanged(Connection connection, ConnectionStatus oldStatus, ConnectionStatus newStatus) {
+        StarDelegate delegate = getDelegate();
+        if (delegate != null) {
+            delegate.onStatusChanged(getStatus(), this);
+        }
     }
 
     @Override

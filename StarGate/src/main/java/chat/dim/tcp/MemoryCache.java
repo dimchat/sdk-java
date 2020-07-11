@@ -44,17 +44,17 @@ public class MemoryCache implements CachePool {
     public static int MAX_CACHE_LENGTH = 1024 * 1024 * 128;  // 128 MB
 
     // received packages
-    private final List<byte[]> cargoes = new ArrayList<>();
-    private final ReadWriteLock cargoLock = new ReentrantReadWriteLock();
+    private final List<byte[]> packages = new ArrayList<>();
+    private final ReadWriteLock packageLock = new ReentrantReadWriteLock();
 
     @Override
     public boolean isCacheFull() {
         int length = 0;
-        Lock readLock = cargoLock.readLock();
+        Lock readLock = packageLock.readLock();
         readLock.lock();
         try {
-            for (byte[] item : cargoes) {
-                length += item.length;
+            for (byte[] pack : packages) {
+                length += pack.length;
             }
         } finally {
             readLock.unlock();
@@ -63,18 +63,18 @@ public class MemoryCache implements CachePool {
     }
 
     @Override
-    public byte[] cache(byte[] data) {
+    public byte[] cache(byte[] pack) {
         byte[] ejected = null;
-        Lock writeLock = cargoLock.writeLock();
+        Lock writeLock = packageLock.writeLock();
         writeLock.lock();
         try {
             // 1. check memory cache status
             if (isCacheFull()) {
                 // drop the first package
-                ejected = cargoes.remove(0);
+                ejected = packages.remove(0);
             }
             // 2. append the new package to the end
-            cargoes.add(data);
+            packages.add(pack);
         } finally {
             writeLock.unlock();
         }
@@ -84,18 +84,18 @@ public class MemoryCache implements CachePool {
     @Override
     public byte[] received() {
         byte[] data;
-        Lock writeLock = cargoLock.writeLock();
+        Lock writeLock = packageLock.writeLock();
         writeLock.lock();
         try {
-            int count = cargoes.size();
+            int count = packages.size();
             if (count == 0) {
                 data = null;
             } else if (count == 1) {
-                data = cargoes.get(0);
+                data = packages.get(0);
             } else {
-                data = CachePool.concat(cargoes);
-                cargoes.clear();
-                cargoes.add(data);
+                data = CachePool.concat(packages);
+                packages.clear();
+                packages.add(data);
             }
         } finally {
             writeLock.unlock();
@@ -106,15 +106,15 @@ public class MemoryCache implements CachePool {
     @Override
     public byte[] receive(int length) {
         byte[] data;
-        Lock writeLock = cargoLock.writeLock();
+        Lock writeLock = packageLock.writeLock();
         writeLock.lock();
         try {
-            assert cargoes.size() > 0 : "data empty, call 'received()' to check data first";
-            assert cargoes.get(0).length >= length : "data length error, call 'received()' first";
-            data = cargoes.remove(0);
+            assert packages.size() > 0 : "data empty, call 'received()' to check data first";
+            assert packages.get(0).length >= length : "data length error, call 'received()' first";
+            data = packages.remove(0);
             if (data.length > length) {
                 // push the remaining data back to the queue head
-                cargoes.add(0, CachePool.slice(data, length));
+                packages.add(0, CachePool.slice(data, length));
                 data = CachePool.slice(data, 0, length);
             }
         } finally {

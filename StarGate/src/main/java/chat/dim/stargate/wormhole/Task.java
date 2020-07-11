@@ -30,48 +30,36 @@
  */
 package chat.dim.stargate.wormhole;
 
-import chat.dim.stargate.Star;
-import chat.dim.stargate.StarDelegate;
-
 import java.lang.ref.WeakReference;
+
+import chat.dim.mtp.protocol.Package;
+import chat.dim.mtp.protocol.TransactionID;
+import chat.dim.stargate.StarDelegate;
 
 class Task {
 
-    private final byte[] requestData;
+    private final Package pack;
     private final WeakReference<StarDelegate> delegateRef;
-    Star star = null;
 
-    Task(byte[] data, StarDelegate handler) {
+    Task(Package pack, StarDelegate handler) {
         super();
-        requestData = data;
-        delegateRef = new WeakReference<>(handler);
+        this.pack = pack;
+        this.delegateRef = new WeakReference<>(handler);
     }
 
-    byte[] getRequestData() {
-        return requestData;
+    public byte[] getRequestData() {
+        return pack.getBytes();
     }
 
-    void onResponse(byte[] responseData) {
-        StarDelegate delegate = delegateRef.get();
-        if (delegate == null) {
-            return;
-        }
-        delegate.onReceive(responseData, star);
+    public byte[] getPayload() {
+        return pack.body.getBytes();
     }
 
-    void onSuccess() {
-        StarDelegate delegate = delegateRef.get();
-        if (delegate == null) {
-            return;
-        }
-        delegate.onFinishSend(requestData, null, star);
+    public TransactionID getTransactionID() {
+        return pack.head.sn;
     }
 
-    public void onError(Error error) {
-        StarDelegate delegate = delegateRef.get();
-        if (delegate == null) {
-            return;
-        }
-        delegate.onFinishSend(requestData, error, star);
+    public StarDelegate getHandler() {
+        return delegateRef.get();
     }
 }
