@@ -36,12 +36,7 @@ import java.io.OutputStream;
 import java.lang.ref.WeakReference;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Connection extends Thread {
 
@@ -63,14 +58,7 @@ public class Connection extends Thread {
 
     public static long EXPIRES = 28 * 1000;  // milliseconds
 
-    /*  Max count for caching packages
-     *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     */
-    public static int MAX_CACHE_SPACES = 1024 * 200;
-
-    // received packages
-    private final List<byte[]> cargoes = new ArrayList<>();
-    private final ReadWriteLock cargoLock = new ReentrantReadWriteLock();
+    private final CachePool cachePool;
 
     Connection(Socket connectedSocket,
                SocketAddress remoteAddress,
@@ -84,6 +72,8 @@ public class Connection extends Thread {
         long now = (new Date()).getTime();
         lastSentTime = now - EXPIRES - 1;
         lastReceivedTime = now - EXPIRES - 1;
+        // cache pool
+        cachePool = new MemoryCache();
     }
 
     public void setDelegate(ConnectionHandler delegate) {
@@ -263,6 +253,15 @@ public class Connection extends Thread {
     }
 
     /**
+     *  Get received data from buffer, but not remove from the cache
+     *
+     * @return received data
+     */
+    public byte[] received() {
+        return cachePool.received();
+    }
+
+    /**
      *  Get received data from buffer, and remove it from the cache
      *  (remember call received() to check data first)
      *
@@ -270,111 +269,7 @@ public class Connection extends Thread {
      * @return received data
      */
     public byte[] receive(int length) {
-        byte[] data;
-        Lock writeLock = cargoLock.writeLock();
-        writeLock.lock();
-        try {
-            assert cargoes.size() > 0 : "data empty, call 'received()' to check data first";
-            assert cargoes.get(0).length >= length : "data length error, call 'received()' first";
-            data = cargoes.remove(0);
-            if (data.length > length) {
-                // push the remaining data back to the queue head
-                cargoes.add(0, slice(data, length));
-                data = slice(data, 0, length);
-            }
-        } finally {
-            writeLock.unlock();
-        }
-        return data;
-    }
-
-    /**
-     *  Get received data from buffer, but not remove from the cache
-     *
-     * @return received data
-     */
-    public byte[] received() {
-        byte[] data;
-        Lock writeLock = cargoLock.writeLock();
-        writeLock.lock();
-        try {
-            int count = cargoes.size();
-            if (count == 0) {
-                data = null;
-            } else if (count == 1) {
-                data = cargoes.get(0);
-            } else {
-                data = concat(cargoes);
-                cargoes.clear();
-                cargoes.add(data);
-            }
-        } finally {
-            writeLock.unlock();
-        }
-        return data;
-    }
-
-    private static byte[] slice(byte[] source, int start) {
-        return slice(source, start, source.length);
-    }
-    private static byte[] slice(byte[] source, int start, int end) {
-        int length = end - start;
-        byte[] data = new byte[length];
-        System.arraycopy(source, start, data, 0, length);
-        return data;
-    }
-
-    private static byte[] concat(List<byte[]> array) {
-        int count = array.size();
-        int index;
-        byte[] item;
-        // 1. get buffer length
-        int length = 0;
-        for (index = 0; index < count; ++index) {
-            item = array.get(index);
-            length += item.length;
-        }
-        if (length == 0) {
-            return null;
-        }
-        // 2. create buffer to copy data
-        byte[] data = new byte[length];
-        int offset = 0;
-        // 3. get all data
-        for (index = 0; index < count; ++index) {
-            item = array.get(index);
-            System.arraycopy(item, 0, data, offset, item.length);
-            offset += item.length;
-        }
-        return data;
-    }
-
-    /**
-     *  Cache received data package into buffer
-     *
-     * @param cargo - received package with data and source address
-     * @return ejected package when memory cache is full
-     */
-    private byte[] cache(byte[] cargo) {
-        byte[] ejected = null;
-        Lock writeLock = cargoLock.writeLock();
-        writeLock.lock();
-        try {
-            // 1. check memory cache status
-            if (isCacheFull(cargoes.size())) {
-                // drop the first package
-                ejected = cargoes.remove(0);
-            }
-            // 2. append the new package to the end
-            cargoes.add(cargo);
-        } finally {
-            writeLock.unlock();
-        }
-        return ejected;
-    }
-
-    protected boolean isCacheFull(int count) {
-        return count > MAX_CACHE_SPACES;
+        return cachePool.receive(length);
     }
 
     void _sleep(long millis) {
@@ -412,7 +307,7 @@ public class Connection extends Thread {
                 _sleep(100);
                 continue;
             }
-            data = cache(data);
+            data = cachePool.cache(data);
             delegate = getDelegate();
             if (delegate != null) {
                 if (data == null) {
