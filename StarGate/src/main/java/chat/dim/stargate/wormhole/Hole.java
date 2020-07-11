@@ -212,6 +212,7 @@ public class Hole extends Thread implements Star, ConnectionHandler {
         StarDelegate delegate;
         Package income;
         Task outgo;
+        byte[] body;
         long now = (new Date()).getTime();
         long expired = now + Connection.EXPIRES;
 
@@ -233,11 +234,12 @@ public class Hole extends Thread implements Star, ConnectionHandler {
                 // 2. receive one package
                 income = receive();
                 if (income != null && income.body.getLength() > 0) {
-                    // ignore heartbeat packages
-                    if (income.body.getLength() != 4 ||
-                            income.body.getByte(0) != 'P' ||
-                            income.body.getByte(2) != 'N' ||
-                            income.body.getByte(3) != 'G') {
+                    body = income.body.getBytes();
+                    // TODO: process commands
+                    if (body.length > 5 || (!Arrays.equals(body, PING) &&
+                            !Arrays.equals(body, PONG) &&
+                            !Arrays.equals(body, AGAIN)&&
+                            !Arrays.equals(body, OK))) {
                         // dispatch received package
                         delegate = getHandler(income.head.sn);
                         if (delegate == null) {
@@ -245,7 +247,7 @@ public class Hole extends Thread implements Star, ConnectionHandler {
                         }
                         if (delegate != null) {
                             // callback for received data
-                            delegate.onReceive(income.body.getBytes(), this);
+                            delegate.onReceive(body, this);
                             // remove handler
                             removeHandler(income.head.sn);
                         }
@@ -271,6 +273,10 @@ public class Hole extends Thread implements Star, ConnectionHandler {
     }
 
     private static final byte[] PING = {'P', 'I', 'N', 'G'};
+    private static final byte[] PONG = {'P', 'O', 'N', 'G'};
+    private static final byte[] AGAIN = {'A', 'G', 'A', 'I', 'N'};
+    private static final byte[] OK = {'O', 'K'};
+
     private static final byte[] HEARTBEAT = Package.create(DataType.Message, 4, new Data(PING)).getBytes();
 
     //
