@@ -232,17 +232,23 @@ public class Hole extends Thread implements Star, ConnectionHandler {
                 }
                 // 2. receive one package
                 income = receive();
-                if (income != null) {
-                    // dispatch received package
-                    delegate = getHandler(income.head.sn);
-                    if (delegate == null) {
-                        delegate = getDelegate();
-                    }
-                    if (delegate != null) {
-                        // callback for received data
-                        delegate.onReceive(income.body.getBytes(), this);
-                        // remove handler
-                        removeHandler(income.head.sn);
+                if (income != null && income.body.getLength() > 0) {
+                    // ignore heartbeat packages
+                    if (income.body.getLength() != 4 ||
+                            income.body.getByte(0) != 'P' ||
+                            income.body.getByte(2) != 'N' ||
+                            income.body.getByte(3) != 'G') {
+                        // dispatch received package
+                        delegate = getHandler(income.head.sn);
+                        if (delegate == null) {
+                            delegate = getDelegate();
+                        }
+                        if (delegate != null) {
+                            // callback for received data
+                            delegate.onReceive(income.body.getBytes(), this);
+                            // remove handler
+                            removeHandler(income.head.sn);
+                        }
                     }
                 }
                 // 3. check time for next heartbeat
