@@ -181,6 +181,10 @@ public class Hole extends Thread implements Star, ConnectionHandler {
             bodyLen = dataLen - headLen;
         }
         int packLen = headLen + bodyLen;
+        if (packLen > dataLen) {
+            // wait for more data
+            return null;
+        }
         // receive package
         buffer = connection.receive(packLen);
         assert buffer.length == packLen : "failed to receive package: " + packLen + ", " + buffer.length;

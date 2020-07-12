@@ -46,8 +46,8 @@ tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
-def gitUrl = 'https://github.com/dimchat/stargate-java.git'
-def siteUrl = 'https://github.com/dimchat/stargate-java'
+def gitUrl = 'https://github.com/dimchat/sdk-java.git'
+def siteUrl = 'https://github.com/dimchat/sdk-java'
 
 install {
     repositories.mavenInstaller {

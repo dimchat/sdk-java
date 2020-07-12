@@ -223,10 +223,15 @@ public class Connection extends Thread {
         }
         byte[] buffer = new byte[length];
         int count = inputStream.read(buffer);
-        assert count == length : "read error: " + count + ", " + length;
         long now = (new Date()).getTime();
         updateReceivedTime(now);
-        return buffer;
+        if (count == length) {
+            return buffer;
+        }
+        assert count < length : "read error: " + count + ", " + length;
+        byte[] available = new byte[count];
+        System.arraycopy(buffer, 0, available, 0, count);
+        return available;
     }
 
     protected int write(byte[] data) throws IOException {
