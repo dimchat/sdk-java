@@ -95,11 +95,12 @@ public class Connection extends Thread {
         if (newStatus.equals(status)) {
             return;
         }
+        ConnectionStatus oldStatus = status;
         status = newStatus;
         // callback
         ConnectionHandler delegate = getDelegate();
         if (delegate != null) {
-            delegate.onConnectionStatusChanged(this, status, newStatus);
+            delegate.onConnectionStatusChanged(this, oldStatus, newStatus);
         }
     }
 
