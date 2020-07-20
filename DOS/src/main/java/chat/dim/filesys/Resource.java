@@ -39,13 +39,22 @@ public class Resource implements Readable {
 
     @Override
     public boolean exists(String filename) throws IOException {
-        InputStream is = Resource.class.getResourceAsStream(filename);
-        return is.available() > 0;
+        InputStream is = getClass().getResourceAsStream(filename);
+        if (is == null) {
+            is = getClass().getClassLoader().getResourceAsStream(filename);
+        }
+        return is != null && is.available() > 0;
     }
 
     @Override
     public int load(String filename) throws IOException {
-        InputStream is = Resource.class.getResourceAsStream(filename);
+        InputStream is = getClass().getResourceAsStream(filename);
+        if (is == null) {
+            is = getClass().getClassLoader().getResourceAsStream(filename);
+            if (is == null) {
+                throw new IOException("failed to open resource file: " + filename);
+            }
+        }
         int size = is.available();
         fileContent = new byte[size];
         int len = is.read(fileContent, 0, size);
