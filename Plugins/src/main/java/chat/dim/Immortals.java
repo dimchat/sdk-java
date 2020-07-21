@@ -30,8 +30,8 @@
  */
 package chat.dim;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,8 +42,9 @@ import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
 import chat.dim.crypto.VerifyKey;
+import chat.dim.filesys.Paths;
+import chat.dim.filesys.Resource;
 import chat.dim.format.JSON;
-import chat.dim.format.UTF8;
 
 /**
  *  Built-in accounts (for test)
@@ -76,35 +77,48 @@ public class Immortals extends chat.dim.mkm.Plugins implements UserDataSource {
         }
     }
 
+    /**
+     *  Resource Loader for built-in accounts
+     */
+    private static String root = File.separator + "mkm";
+
+    private static Map loadJSON(String filename) throws IOException {
+        String path = Paths.appendPathComponent(root, filename);
+        Resource resource = new Resource();
+        resource.load(path);
+        byte[] data = resource.getData();
+        return (Map) JSON.decode(data);
+    }
+
     private void loadBuiltInAccount(ID identifier) throws IOException, ClassNotFoundException {
         boolean OK = cache(identifier);
         assert OK : "ID error: " + identifier;
         // load meta for ID
-        Meta meta = loadMeta("mkm/" + identifier.name + "_meta.js");
+        Meta meta = loadMeta(identifier.name + "_meta.js");
         OK = cache(meta, identifier);
         assert OK : "meta error: " + meta;
         // load private key for ID
-        PrivateKey key = loadPrivateKey("mkm/" + identifier.name + "_secret.js");
+        PrivateKey key = loadPrivateKey(identifier.name + "_secret.js");
         OK = cache(key, identifier);
         assert OK : "private key error: " + key;
         // load profile for ID
-        Profile profile = loadProfile("mkm/" + identifier.name + "_profile.js");
+        Profile profile = loadProfile(identifier.name + "_profile.js");
         OK = cache(profile, identifier);
         assert OK : "profile error: " + profile;
     }
 
     private Meta loadMeta(String filename) throws IOException, ClassNotFoundException {
-        Map dict = ResourceLoader.loadJSON(filename);
+        Map dict = loadJSON(filename);
         return Meta.getInstance(dict);
     }
 
     private PrivateKey loadPrivateKey(String filename) throws IOException, ClassNotFoundException {
-        Map dict = ResourceLoader.loadJSON(filename);
+        Map dict = loadJSON(filename);
         return PrivateKey.getInstance(dict);
     }
 
     private Profile loadProfile(String filename) throws IOException {
-        Map dict = ResourceLoader.loadJSON(filename);
+        Map dict = loadJSON(filename);
         Profile profile = Profile.getInstance(dict);
         assert profile != null : "failed to load profile: " + filename + ", " + dict;
         // copy 'name'
@@ -267,31 +281,5 @@ public class Immortals extends chat.dim.mkm.Plugins implements UserDataSource {
         assert user.isUser() : "user ID error: " + user;
         // NOTICE: return nothing to use meta.key
         return null;
-    }
-
-    /**
-     *  Resource Loader for built-in accounts
-     */
-    private static class ResourceLoader {
-
-        static Map loadJSON(String filename) throws IOException {
-            byte[] data = loadData(filename);
-            return (Map) JSON.decode(data);
-        }
-
-        private static String loadText(String filename) throws IOException {
-            byte[] data = loadData(filename);
-            return UTF8.decode(data);
-        }
-
-        private static byte[] loadData(String filename) throws IOException {
-            InputStream is = ResourceLoader.class.getClassLoader().getResourceAsStream(filename);
-            assert is != null : "failed to get resource: " + filename;
-            int size = is.available();
-            byte[] data = new byte[size];
-            int len = is.read(data, 0, size);
-            assert len == size : "reading resource error: " + len + " != " + size;
-            return data;
-        }
     }
 }
