@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  File System
+ *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
  *                                Written in 2019 by Moky <albert.moky@gmail.com>
  *
@@ -28,49 +28,48 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.filesys;
+package chat.dim.common;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.util.Map;
 
-public class Resource implements Readable {
+import chat.dim.core.KeyCache;
+import chat.dim.filesys.ExternalStorage;
+import chat.dim.filesys.Paths;
 
-    byte[] fileContent = null;
+public class KeyStore extends KeyCache {
 
-    @Override
-    public byte[] getData() {
-        return fileContent;
+    private static final KeyStore ourInstance = new KeyStore();
+    public static KeyStore getInstance() { return ourInstance; }
+    private KeyStore() {
+        super();
+    }
+
+    // '/tmp/.dim/protected/keystore.js'
+    private String getPath() {
+        String root = ExternalStorage.root;
+        return Paths.appendPathComponent(root, "protected", "keystore.js");
     }
 
     @Override
-    public boolean exists(String path) throws IOException {
-        try (InputStream is = getClass().getResourceAsStream(path)) {
-            return is != null;
+    public boolean saveKeys(Map keyMap) {
+        try {
+            String path = getPath();
+            return ExternalStorage.saveJSON(keyMap, path);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
         }
     }
 
     @Override
-    public int load(String path) throws IOException {
-        try (InputStream is = getClass().getResourceAsStream(path)) {
-            if (is == null) {
-                return -1;
-            }
-            return load(is);
+    public Map loadKeys() {
+        try {
+            String path = getPath();
+            return (Map) ExternalStorage.loadJSON(path);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
         }
-    }
-
-    public int load(InputStream is) throws IOException {
-        int size = is.available();
-        fileContent = new byte[size];
-        int offset = 0;
-        int length;
-        while (offset < size) {
-            length = is.read(fileContent, offset, size - offset);
-            if (length <= 0) {
-                throw new IOException("failed to read data from input stream");
-            }
-            offset += length;
-        }
-        return offset;
     }
 }

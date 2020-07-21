@@ -1,24 +1,25 @@
 
+import java.util.HashMap;
+import java.util.Map;
+
+import junit.framework.TestCase;
+import org.junit.Test;
+
 import chat.dim.*;
 import chat.dim.core.Barrack;
 import chat.dim.core.KeyCache;
 import chat.dim.core.Transceiver;
+import chat.dim.cpu.CommandProcessor;
+import chat.dim.cpu.ContentProcessor;
+import chat.dim.protocol.ContentType;
+import chat.dim.protocol.Command;
 import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.TextContent;
 import chat.dim.protocol.group.JoinCommand;
-import junit.framework.TestCase;
-import org.junit.Test;
 
-import chat.dim.cpu.CommandProcessor;
-import chat.dim.cpu.ContentProcessor;
-import chat.dim.protocol.Command;
-import chat.dim.protocol.ContentType;
-
-import cpu.HandshakeCommandProcessor;
-import cpu.TextContentProcessor;
-
-import java.util.HashMap;
-import java.util.Map;
+import chat.dim.common.KeyStore;
+import chat.dim.cpu.HandshakeCommandProcessor;
+import chat.dim.cpu.TextContentProcessor;
 
 public class Tests extends TestCase {
 
@@ -34,18 +35,8 @@ public class Tests extends TestCase {
 
         // keystore
         try {
-            keyStore = new KeyCache() {
-                @Override
-                public boolean saveKeys(Map keyMap) {
-                    return false;
-                }
-
-                @Override
-                public Map loadKeys() {
-                    return null;
-                }
-            };
             Map keys = new HashMap();
+            keyStore = KeyStore.getInstance();
             boolean changed = keyStore.updateKeys(keys);
             keyStore.flush();
 

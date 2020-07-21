@@ -1,13 +1,13 @@
 /* license: https://mit-license.org
  *
- *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
+ *  File System
  *
- *                                Written in 2019 by Moky <albert.moky@gmail.com>
+ *                                Written in 2020 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Albert Moky
+ * Copyright (c) 2020 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,46 +28,20 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim;
+package chat.dim.filesys;
 
-import java.io.IOException;
-import java.util.Map;
+import java.io.File;
 
-import chat.dim.core.KeyCache;
-import chat.dim.filesys.ExternalStorage;
+public abstract class Paths {
 
-public class KeyStore extends KeyCache {
-
-    public KeyStore() {
-        super();
-    }
-
-    // '/tmp/.dim/protected/keystore.js'
-    private String getPath() {
-        return ExternalStorage.root + ExternalStorage.separator
-                + "protected" + ExternalStorage.separator
-                + "keystore.js";
-    }
-
-    @Override
-    public boolean saveKeys(Map keyMap) {
-        try {
-            String path = getPath();
-            return ExternalStorage.saveJSON(keyMap, path);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
+    public static String appendPathComponent(String path, String... components) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(path);
+        String separator = File.separator;
+        for (String item: components) {
+            sb.append(separator);
+            sb.append(item);
         }
-    }
-
-    @Override
-    public Map loadKeys() {
-        try {
-            String path = getPath();
-            return (Map) ExternalStorage.loadJSON(path);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+        return sb.toString();
     }
 }

@@ -37,19 +37,19 @@ public interface Readable {
     /**
      *  Check file exists
      *
-     * @param filename - file path
+     * @param path - file path
      * @return true on file exists
      */
-    boolean exists(String filename) throws IOException;
+    boolean exists(String path) throws IOException;
 
     /**
      *  Read file content data
      *
-     * @param filename - file path
+     * @param path - file path
      * @return file length
      * @throws IOException on reading error
      */
-    int load(String filename) throws IOException;
+    int load(String path) throws IOException;
 
     /**
      *  Get file content

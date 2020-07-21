@@ -30,45 +30,28 @@
  */
 package chat.dim.filesys;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
-public class Storage implements Writable {
-
-    private byte[] fileContent = null;
+public class Storage extends Resource implements Writable {
 
     //---- read
 
     @Override
-    public boolean exists(String filename) {
-        File file = new File(filename);
-        return file.exists() && file.length() > 0;
+    public boolean exists(String path) {
+        File file = new File(path);
+        return file.exists();
     }
 
     @Override
-    public int load(String filename) throws IOException {
-        File file = new File(filename);
+    public int load(String path) throws IOException {
+        File file = new File(path);
         if (!file.exists()) {
             // file not found
-            throw new IOException("file not found: " + filename);
+            throw new IOException("file not found: " + path);
         }
-        InputStream is = new FileInputStream(file);
-        int size = is.available();
-        fileContent = new byte[size];
-        int len = is.read(fileContent, 0, size);
-        is.close();
-        if (len != size) {
-            throw new IOException("reading error(" + len + " != " + size + "): " + filename);
+        try (InputStream is = new FileInputStream(file)) {
+            return load(is);
         }
-        return len;
-    }
-
-    @Override
-    public byte[] getData() {
-        return fileContent;
     }
 
     //---- write
@@ -79,11 +62,11 @@ public class Storage implements Writable {
     }
 
     @Override
-    public int save(String filename) throws IOException {
+    public int save(String path) throws IOException {
         if (fileContent == null) {
             return -1;
         }
-        File file = new File(filename);
+        File file = new File(path);
         if (!file.exists()) {
             // check parent directory exists
             File dir = file.getParentFile();
@@ -91,17 +74,21 @@ public class Storage implements Writable {
                 throw new IOException("failed to create directory: " + dir);
             }
         }
-        FileOutputStream fos = new FileOutputStream(file);
-        fos.write(fileContent);
-        fos.close();
+        try (FileOutputStream fos = new FileOutputStream(file)) {
+            return save(fos);
+        }
+    }
+
+    public int save(OutputStream os) throws IOException {
+        os.write(fileContent);
         return fileContent.length;
     }
 
     @Override
-    public boolean remove(String filename) throws IOException {
-        File file = new File(filename);
+    public boolean remove(String path) throws IOException {
+        File file = new File(path);
         if (!file.exists()) {
-            throw new IOException("file not found: " + filename);
+            throw new IOException("file not found: " + path);
         }
         return file.delete();
     }

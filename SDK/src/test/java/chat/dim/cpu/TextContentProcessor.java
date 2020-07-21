@@ -1,8 +1,7 @@
 
-package cpu;
+package chat.dim.cpu;
 
 import chat.dim.Messenger;
-import chat.dim.cpu.ContentProcessor;
 
 public class TextContentProcessor extends ContentProcessor {
 

@@ -44,18 +44,18 @@ public interface Writable extends Readable {
     /**
      *  Write file content data
      *
-     * @param filename - file path
+     * @param path - file path
      * @return file length
      * @throws IOException on writing error
      */
-    int save(String filename) throws IOException;
+    int save(String path) throws IOException;
 
     /**
      *  Delete file
      *
-     * @param filename - file path
+     * @param path - file path
      * @return true on success
      * @throws IOException on writing error
      */
-    boolean remove(String filename) throws IOException;
+    boolean remove(String path) throws IOException;
 }
