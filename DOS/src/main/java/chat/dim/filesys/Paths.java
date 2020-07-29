@@ -34,14 +34,63 @@ import java.io.File;
 
 public abstract class Paths {
 
+    public static String separator = File.separator;
+
+    /**
+     *  Append all components to the path with separator
+     *
+     * @param path       - root directory
+     * @param components - sub-dir or filename
+     * @return new path
+     */
     public static String appendPathComponent(String path, String... components) {
         StringBuilder sb = new StringBuilder();
         sb.append(path);
-        String separator = File.separator;
         for (String item: components) {
             sb.append(separator);
             sb.append(item);
         }
         return sb.toString();
+    }
+
+    /**
+     *  Get filename from a URL
+     *
+     * @param url - url string
+     * @return filename
+     */
+    public static String filenameFromURL(String url) {
+        int pos = url.indexOf("?");
+        if (pos >= 0) {
+            url = url.substring(0, pos);
+        }
+        pos = url.indexOf("#");
+        if (pos >= 0) {
+            url = url.substring(0, pos);
+        }
+        return filename(url);
+    }
+
+    public static String filename(String path) {
+        int pos = path.lastIndexOf(separator);
+        if (pos >= 0) {
+            return path.substring(pos + 1);
+        }
+        return path;
+    }
+
+    /**
+     *  Get extension from a filename
+     *
+     * @param filename - file name
+     * @return file extension
+     */
+    public static String extension(String filename) {
+        int pos = filename.lastIndexOf(".");
+        if (pos > 0) {
+            return filename.substring(pos + 1);
+        } else {
+            return null;
+        }
     }
 }
