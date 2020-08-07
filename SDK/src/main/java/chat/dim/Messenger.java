@@ -71,7 +71,7 @@ public abstract class Messenger extends Transceiver {
         return delegateRef.get();
     }
 
-    public  void setDelegate(MessengerDelegate delegate) {
+    public void setDelegate(MessengerDelegate delegate) {
         assert delegate != null : "Messenger delegate should not be empty";
         delegateRef = new WeakReference<>(delegate);
     }
@@ -139,6 +139,10 @@ public abstract class Messenger extends Transceiver {
     }
 
     private SecureMessage<ID, SymmetricKey> trim(SecureMessage<ID, SymmetricKey> sMsg) {
+        // check message delegate
+        if (sMsg.getDelegate() == null) {
+            sMsg.setDelegate(this);
+        }
         ID receiver = sMsg.envelope.getReceiver();
         User user = select(receiver);
         if (user == null) {
@@ -155,6 +159,10 @@ public abstract class Messenger extends Transceiver {
 
     @Override
     public SecureMessage<ID, SymmetricKey> verifyMessage(ReliableMessage<ID, SymmetricKey> rMsg) {
+        // check message delegate
+        if (rMsg.getDelegate() == null) {
+            rMsg.setDelegate(this);
+        }
         // Notice: check meta before calling me
         Meta meta = null;
         try {
@@ -398,7 +406,10 @@ public abstract class Messenger extends Transceiver {
     }
 
     private InstantMessage<ID, SymmetricKey> process(InstantMessage<ID, SymmetricKey> iMsg, ReliableMessage<ID, SymmetricKey> rMsg) {
-
+        // check message delegate
+        if (iMsg.getDelegate() == null) {
+            iMsg.setDelegate(this);
+        }
         chat.dim.protocol.Content content = chat.dim.protocol.Content.getInstance(iMsg.getContent());
 
         // process content from sender
@@ -423,6 +434,13 @@ public abstract class Messenger extends Transceiver {
     // TODO: override to check group
     // TODO: override to filter the response
     protected chat.dim.protocol.Content process(chat.dim.protocol.Content content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
+        // check message delegate
+        if (rMsg.getDelegate() == null) {
+            rMsg.setDelegate(this);
+        }
+        if (content.getDelegate() == null) {
+            content.setDelegate(this);
+        }
         // call CPU to process it
         return cpu.process(content, sender, rMsg);
     }
