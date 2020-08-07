@@ -34,6 +34,7 @@ import java.util.Date;
 import java.util.Map;
 
 import chat.dim.Envelope;
+import chat.dim.ID;
 
 /**
  *  Command message: {
@@ -51,14 +52,14 @@ import chat.dim.Envelope;
 public class ReceiptCommand extends Command {
 
     // original message info
-    private Envelope envelope;
+    private Envelope<ID> envelope;
 
     public ReceiptCommand(Map<String, Object> dictionary) {
         super(dictionary);
         envelope = null;
     }
 
-    public ReceiptCommand(String message, long sn, Envelope env) {
+    public ReceiptCommand(String message, long sn, Envelope<ID> env) {
         super(RECEIPT);
         // text
         if (message != null) {
@@ -90,7 +91,7 @@ public class ReceiptCommand extends Command {
         return (String) get("message");
     }
 
-    public Envelope getEnvelope() {
+    public Envelope<ID> getEnvelope() {
         if (envelope == null) {
             // envelope: { sender: "...", receiver: "...", time: 0 }
             Object env = get("envelope");
@@ -101,6 +102,7 @@ public class ReceiptCommand extends Command {
                     env = dictionary;
                 }
             }
+            //noinspection unchecked
             envelope = Envelope.getInstance(env);
         }
         return envelope;

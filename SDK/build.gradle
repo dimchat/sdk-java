@@ -18,7 +18,7 @@ plugins {
 
 group 'chat.dim'
 //version '1.0-SNAPSHOT'
-version '0.4.5'
+version '0.4.6'
 
 sourceCompatibility = 1.8
 
@@ -29,7 +29,7 @@ repositories {
 }
 
 dependencies {
-    compile group: 'chat.dim', name: 'DIMP', version: '0.7.11'
+    compile group: 'chat.dim', name: 'DIMP', version: '0.7.15'
 
     testCompile group: 'chat.dim', name: 'DOS', version: '0.1.1'
     testCompile group: 'chat.dim', name: 'Plugins', version: '0.1.2'

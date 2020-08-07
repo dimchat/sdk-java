@@ -33,8 +33,15 @@ package chat.dim.cpu.group;
 import java.util.ArrayList;
 import java.util.List;
 
-import chat.dim.*;
+import chat.dim.Content;
+import chat.dim.Facebook;
+import chat.dim.ID;
+import chat.dim.Messenger;
+import chat.dim.Meta;
+import chat.dim.Profile;
+import chat.dim.ReliableMessage;
 import chat.dim.cpu.GroupCommandProcessor;
+import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.group.ExpelCommand;
 
@@ -70,11 +77,11 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage rMsg) {
+    public Content<ID> process(Content<ID> content, ID sender, ReliableMessage<ID, SymmetricKey, Meta, Profile> rMsg) {
         assert content instanceof ExpelCommand : "expel command error: " + content;
-        Facebook facebook = getFacebook();
-        ID group = facebook.getID(content.getGroup());
+        ID group = content.getGroup();
         // 1. check permission
+        Facebook facebook = getFacebook();
         if (!facebook.isOwner(sender, group)) {
             if (!facebook.existsAssistant(sender, group)) {
                 String text = sender + " is not the owner/assistant of group " + group + ", cannot expel member.";

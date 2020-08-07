@@ -30,7 +30,14 @@
  */
 package chat.dim.cpu;
 
-import chat.dim.*;
+import chat.dim.Content;
+import chat.dim.Facebook;
+import chat.dim.ID;
+import chat.dim.Messenger;
+import chat.dim.Meta;
+import chat.dim.Profile;
+import chat.dim.ReliableMessage;
+import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.MetaCommand;
 import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.TextContent;
@@ -41,7 +48,7 @@ public class MetaCommandProcessor extends CommandProcessor {
         super(messenger);
     }
 
-    private Content getMeta(ID identifier) {
+    private Content<ID> getMeta(ID identifier) {
         Facebook facebook = getFacebook();
         // query meta for ID
         Meta meta = facebook.getMeta(identifier);
@@ -54,7 +61,7 @@ public class MetaCommandProcessor extends CommandProcessor {
         return new MetaCommand(identifier, meta);
     }
 
-    private Content putMeta(ID identifier, Meta meta) {
+    private Content<ID> putMeta(ID identifier, Meta meta) {
         Facebook facebook = getFacebook();
         // received a meta for ID
         if (!facebook.verify(meta, identifier)) {
@@ -73,17 +80,11 @@ public class MetaCommandProcessor extends CommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage rMsg) {
+    public Content<ID> process(Content<ID> content, ID sender, ReliableMessage<ID, SymmetricKey, Meta, Profile> rMsg) {
         assert content instanceof MetaCommand : "meta command error: " + content;
         MetaCommand cmd = (MetaCommand) content;
-        Meta meta;
-        try {
-            meta = cmd.getMeta();
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return null;
-        }
-        ID identifier = getFacebook().getID(cmd.getIdentifier());
+        Meta meta = cmd.getMeta();
+        ID identifier = cmd.getIdentifier();
         if (meta == null) {
             return getMeta(identifier);
         } else {

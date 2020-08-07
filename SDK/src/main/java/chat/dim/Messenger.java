@@ -39,7 +39,14 @@ import chat.dim.core.Transceiver;
 import chat.dim.cpu.ContentProcessor;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.SymmetricKey;
-import chat.dim.protocol.*;
+import chat.dim.protocol.BlockCommand;
+import chat.dim.protocol.Command;
+import chat.dim.protocol.FileContent;
+import chat.dim.protocol.HandshakeCommand;
+import chat.dim.protocol.LoginCommand;
+import chat.dim.protocol.MuteCommand;
+import chat.dim.protocol.ReceiptCommand;
+import chat.dim.protocol.StorageCommand;
 
 public abstract class Messenger extends Transceiver {
 
@@ -131,8 +138,8 @@ public abstract class Messenger extends Transceiver {
         return null;
     }
 
-    private SecureMessage trim(SecureMessage sMsg) {
-        ID receiver = getFacebook().getID(sMsg.envelope.receiver);
+    private SecureMessage<ID, SymmetricKey, Meta, Profile> trim(SecureMessage<ID, SymmetricKey, Meta, Profile> sMsg) {
+        ID receiver = sMsg.envelope.receiver;
         User user = select(receiver);
         if (user == null) {
             // current users not match
@@ -147,19 +154,12 @@ public abstract class Messenger extends Transceiver {
     //-------- Transform
 
     @Override
-    public SecureMessage verifyMessage(ReliableMessage rMsg) {
+    public SecureMessage<ID, SymmetricKey, Meta, Profile> verifyMessage(ReliableMessage<ID, SymmetricKey, Meta, Profile> rMsg) {
         // Notice: check meta before calling me
-        Meta meta;
-        try {
-            meta = Meta.getInstance(rMsg.getMeta());
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            meta = null;
-        }
-        Facebook facebook = getFacebook();
-        ID sender = facebook.getID(rMsg.envelope.sender);
+        Meta meta = rMsg.getMeta();
+        ID sender = rMsg.envelope.sender;
         if (meta == null) {
-            meta = facebook.getMeta(sender);
+            meta = getFacebook().getMeta(sender);
             if (meta == null) {
                 // NOTICE: the application will query meta automatically
                 // save this message in a queue waiting sender's meta response
@@ -170,7 +170,7 @@ public abstract class Messenger extends Transceiver {
         } else {
             // [Meta Protocol]
             // save meta for sender
-            if (!facebook.saveMeta(meta, sender)) {
+            if (!getFacebook().saveMeta(meta, sender)) {
                 throw new RuntimeException("save meta error: " + sender + ", " + meta);
             }
         }
@@ -179,9 +179,9 @@ public abstract class Messenger extends Transceiver {
     }
 
     @Override
-    public InstantMessage decryptMessage(SecureMessage sMsg) {
+    public InstantMessage<ID, SymmetricKey, Meta, Profile> decryptMessage(SecureMessage<ID, SymmetricKey, Meta, Profile> sMsg) {
         // trim message
-        SecureMessage msg = trim(sMsg);
+        SecureMessage<ID, SymmetricKey, Meta, Profile> msg = trim(sMsg);
         if (msg == null) {
             // not for you?
             throw new NullPointerException("receiver error: " + sMsg);
@@ -193,15 +193,13 @@ public abstract class Messenger extends Transceiver {
     //-------- InstantMessageDelegate
 
     @Override
-    public byte[] serializeContent(Content content, Map<String, Object> password, InstantMessage iMsg) {
-        SymmetricKey key = getSymmetricKey(password);
-        assert key == password && key != null : "irregular symmetric key: " + password;
+    public byte[] serializeContent(Content content, SymmetricKey password, InstantMessage iMsg) {
         // check attachment for File/Image/Audio/Video message content
         if (content instanceof FileContent) {
             FileContent file = (FileContent) content;
             byte[] data = file.getData();
             // encrypt and upload file data onto CDN and save the URL in message content
-            data = key.encrypt(data);
+            data = password.encrypt(data);
             String url = getDelegate().uploadData(data, iMsg);
             if (url != null) {
                 // replace 'data' with 'URL'
@@ -209,16 +207,15 @@ public abstract class Messenger extends Transceiver {
                 file.setData(null);
             }
         }
-        return super.serializeContent(content, key, iMsg);
+        return super.serializeContent(content, password, iMsg);
     }
 
     @Override
-    public byte[] encryptKey(byte[] data, Object receiver, InstantMessage iMsg) {
+    public byte[] encryptKey(byte[] data, ID receiver, InstantMessage<ID, SymmetricKey, Meta, Profile> iMsg) {
         Facebook facebook = getFacebook();
-        ID to = facebook.getID(receiver);
-        EncryptKey key = facebook.getPublicKeyForEncryption(to);
+        EncryptKey key = facebook.getPublicKeyForEncryption(receiver);
         if (key == null) {
-            Meta meta = facebook.getMeta(to);
+            Meta meta = facebook.getMeta(receiver);
             if (meta == null || !(meta.getKey() instanceof EncryptKey)) {
                 // save this message in a queue waiting receiver's meta/profile response
                 suspendMessage(iMsg);
@@ -232,26 +229,23 @@ public abstract class Messenger extends Transceiver {
     //-------- SecureMessageDelegate
 
     @Override
-    @SuppressWarnings("unchecked")
-    public Content deserializeContent(byte[] data, Map<String, Object> password, SecureMessage sMsg) {
-        SymmetricKey key = getSymmetricKey(password);
-        assert key == password && key != null : "irregular symmetric key: " + password;
-        Content content = super.deserializeContent(data, password, sMsg);
+    public Content<ID> deserializeContent(byte[] data, SymmetricKey password, SecureMessage<ID, SymmetricKey, Meta, Profile> sMsg) {
+        Content<ID> content = super.deserializeContent(data, password, sMsg);
         if (content == null) {
             throw new NullPointerException("failed to deserialize message content: " + sMsg);
         }
         // check attachment for File/Image/Audio/Video message content
         if (content instanceof FileContent) {
             FileContent file = (FileContent) content;
-            InstantMessage iMsg = new InstantMessage(content, sMsg.envelope);
+            InstantMessage iMsg = new InstantMessage<>(content, sMsg.envelope);
             // download from CDN
             byte[] fileData = getDelegate().downloadData(file.getURL(), iMsg);
             if (fileData == null) {
                 // save symmetric key for decrypted file data after download from CDN
-                file.setPassword(key);
+                file.setPassword(password);
             } else {
                 // decrypt file data
-                file.setData(key.decrypt(fileData));
+                file.setData(password.decrypt(fileData));
                 file.setURL(null);
             }
         }
@@ -268,7 +262,7 @@ public abstract class Messenger extends Transceiver {
      * @param callback - if needs callback, set it here
      * @return true on success
      */
-    public boolean sendContent(Content content, ID receiver, Callback callback) {
+    public boolean sendContent(Content<ID> content, ID receiver, Callback callback) {
         // Application Layer should make sure user is already login before it send message to server.
         // Application layer should put message into queue so that it will send automatically after user login
         User user = getFacebook().getCurrentUser();
@@ -282,7 +276,7 @@ public abstract class Messenger extends Transceiver {
             }
         }
          */
-        InstantMessage iMsg = new InstantMessage(content, user.identifier, receiver);
+        InstantMessage<ID, SymmetricKey, Meta, Profile> iMsg = new InstantMessage<>(content, user.identifier, receiver);
         return sendMessage(iMsg, callback);
     }
 
@@ -293,15 +287,15 @@ public abstract class Messenger extends Transceiver {
      * @param callback - if needs callback, set it here
      * @return true on success
      */
-    public boolean sendMessage(InstantMessage iMsg, Callback callback) {
+    public boolean sendMessage(InstantMessage<ID, SymmetricKey, Meta, Profile> iMsg, Callback callback) {
         // Send message (secured + certified) to target station
-        SecureMessage sMsg = encryptMessage(iMsg);
+        SecureMessage<ID, SymmetricKey, Meta, Profile> sMsg = encryptMessage(iMsg);
         if (sMsg == null) {
             // public key not found?
             return false;
             //throw new NullPointerException("failed to encrypt message: " + iMsg);
         }
-        ReliableMessage rMsg = signMessage(sMsg);
+        ReliableMessage<ID, SymmetricKey, Meta, Profile> rMsg = signMessage(sMsg);
         if (rMsg == null) {
             // TODO: set iMsg.state = error
             throw new NullPointerException("failed to sign message: " + sMsg);
@@ -316,7 +310,7 @@ public abstract class Messenger extends Transceiver {
         return OK;
     }
 
-    public boolean sendMessage(ReliableMessage rMsg, Callback callback) {
+    public boolean sendMessage(ReliableMessage<ID, SymmetricKey, Meta, Profile> rMsg, Callback callback) {
         CompletionHandler handler = new CompletionHandler() {
             @Override
             public void onSuccess() {
@@ -346,7 +340,7 @@ public abstract class Messenger extends Transceiver {
      */
     public byte[] processPackage(byte[] data) {
         // 1. deserialize message
-        ReliableMessage rMsg = deserializeMessage(data);
+        ReliableMessage<ID, SymmetricKey, Meta, Profile> rMsg = deserializeMessage(data);
         if (rMsg == null) {
             // no message received
             return null;
@@ -363,9 +357,9 @@ public abstract class Messenger extends Transceiver {
 
     // TODO: override to check broadcast message before calling it
     // TODO: override to deliver to the receiver when catch exception "receiver error ..."
-    public ReliableMessage process(ReliableMessage rMsg) {
+    public ReliableMessage<ID, SymmetricKey, Meta, Profile> process(ReliableMessage<ID, SymmetricKey, Meta, Profile> rMsg) {
         // 1. verify message
-        SecureMessage sMsg = verifyMessage(rMsg);
+        SecureMessage<ID, SymmetricKey, Meta, Profile> sMsg = verifyMessage(rMsg);
         if (sMsg == null) {
             // waiting for sender's meta if not exists
             return null;
@@ -380,9 +374,9 @@ public abstract class Messenger extends Transceiver {
         return signMessage(sMsg);
     }
 
-    private SecureMessage process(SecureMessage sMsg, ReliableMessage rMsg) {
+    private SecureMessage<ID, SymmetricKey, Meta, Profile> process(SecureMessage<ID, SymmetricKey, Meta, Profile> sMsg, ReliableMessage<ID, SymmetricKey, Meta, Profile> rMsg) {
         // 1. decrypt message
-        InstantMessage iMsg = decryptMessage(sMsg);
+        InstantMessage<ID, SymmetricKey, Meta, Profile> iMsg = decryptMessage(sMsg);
         if (iMsg == null) {
             // cannot decrypt this message, not for you?
             // delivering message to other receiver?
@@ -398,14 +392,10 @@ public abstract class Messenger extends Transceiver {
         return encryptMessage(iMsg);
     }
 
-    private InstantMessage process(InstantMessage iMsg, ReliableMessage rMsg) {
-        Facebook facebook = getFacebook();
-        Content content = iMsg.content;
-        Envelope env = iMsg.envelope;
-        ID sender = facebook.getID(env.sender);
+    private InstantMessage<ID, SymmetricKey, Meta, Profile> process(InstantMessage<ID, SymmetricKey, Meta, Profile> iMsg, ReliableMessage<ID, SymmetricKey, Meta, Profile> rMsg) {
 
         // process content from sender
-        Content response = process(content, sender, rMsg);
+        Content<ID> response = process(iMsg.content, iMsg.envelope.sender, rMsg);
         if (!saveMessage(iMsg)) {
             // error
             return null;
@@ -416,17 +406,16 @@ public abstract class Messenger extends Transceiver {
         }
 
         // check receiver
-        ID receiver = facebook.getID(env.receiver);
-        User user = select(receiver);
-        assert user != null : "receiver error: " + receiver;
+        User user = select(iMsg.envelope.receiver);
+        assert user != null : "receiver error: " + iMsg.envelope.receiver;
 
         // pack message
-        return new InstantMessage(response, user.identifier, sender);
+        return new InstantMessage<>(response, user.identifier, iMsg.envelope.sender);
     }
 
     // TODO: override to check group
     // TODO: override to filter the response
-    protected Content process(Content content, ID sender, ReliableMessage rMsg) {
+    protected Content<ID> process(Content<ID> content, ID sender, ReliableMessage<ID, SymmetricKey, Meta, Profile> rMsg) {
         // call CPU to process it
         return cpu.process(content, sender, rMsg);
     }

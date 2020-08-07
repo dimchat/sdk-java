@@ -32,8 +32,16 @@ package chat.dim.cpu.group;
 
 import java.util.List;
 
-import chat.dim.*;
+import chat.dim.Content;
+import chat.dim.Facebook;
+import chat.dim.ID;
+import chat.dim.Messenger;
+import chat.dim.Meta;
+import chat.dim.Profile;
+import chat.dim.ReliableMessage;
+import chat.dim.User;
 import chat.dim.cpu.GroupCommandProcessor;
+import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.TextContent;
 import chat.dim.protocol.group.InviteCommand;
 import chat.dim.protocol.group.QueryCommand;
@@ -46,11 +54,11 @@ public class QueryCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage rMsg) {
+    public Content<ID> process(Content<ID> content, ID sender, ReliableMessage<ID, SymmetricKey, Meta, Profile> rMsg) {
         assert content instanceof QueryCommand : "query command error: " + content;
-        Facebook facebook = getFacebook();
-        ID group = facebook.getID(content.getGroup());
+        ID group = content.getGroup();
         // 1. check permission
+        Facebook facebook = getFacebook();
         if (!facebook.existsMember(sender, group)) {
             if (!facebook.existsAssistant(sender, group)) {
                 if (!facebook.isOwner(sender, group)) {
@@ -63,7 +71,7 @@ public class QueryCommandProcessor extends GroupCommandProcessor {
         List<ID> members = facebook.getMembers(group);
         if (members == null || members.size() == 0) {
             String text = String.format("Sorry, members not found in group: %s", group);
-            Content res = new TextContent(text);
+            Content<ID> res = new TextContent(text);
             res.setGroup(group);
             return res;
         }

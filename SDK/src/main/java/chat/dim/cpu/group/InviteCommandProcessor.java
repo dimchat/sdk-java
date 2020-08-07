@@ -33,9 +33,16 @@ package chat.dim.cpu.group;
 import java.util.ArrayList;
 import java.util.List;
 
-import chat.dim.*;
+import chat.dim.Content;
+import chat.dim.Facebook;
+import chat.dim.ID;
+import chat.dim.Messenger;
+import chat.dim.Meta;
+import chat.dim.Profile;
+import chat.dim.ReliableMessage;
 import chat.dim.cpu.CommandProcessor;
 import chat.dim.cpu.GroupCommandProcessor;
+import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.group.InviteCommand;
 
@@ -56,7 +63,7 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
         return false;
     }
 
-    private Content callReset(Content content, ID sender, ReliableMessage rMsg) {
+    private Content<ID> callReset(Content<ID> content, ID sender, ReliableMessage<ID, SymmetricKey, Meta, Profile> rMsg) {
         CommandProcessor cpu = getCPU(GroupCommand.RESET);
         assert cpu != null : "reset CPU not register yet";
         return cpu.process(content, sender, rMsg);
@@ -88,10 +95,9 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage rMsg) {
+    public Content<ID> process(Content<ID> content, ID sender, ReliableMessage<ID, SymmetricKey, Meta, Profile> rMsg) {
         assert content instanceof InviteCommand : "invite command error: " + content;
-        Facebook facebook = getFacebook();
-        ID group = facebook.getID(content.getGroup());
+        ID group = content.getGroup();
         // 0. check whether group info empty
         if (isEmpty(group)) {
             // NOTICE:
@@ -100,6 +106,7 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
             return callReset(content, sender, rMsg);
         }
         // 1. check permission
+        Facebook facebook = getFacebook();
         if (!facebook.existsMember(sender, group)) {
             if (!facebook.existsAssistant(sender, group)) {
                 if (!facebook.isOwner(sender, group)) {

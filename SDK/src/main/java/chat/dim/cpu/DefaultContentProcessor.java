@@ -32,8 +32,11 @@ package chat.dim.cpu;
 
 import chat.dim.Content;
 import chat.dim.ID;
-import chat.dim.ReliableMessage;
 import chat.dim.Messenger;
+import chat.dim.Meta;
+import chat.dim.Profile;
+import chat.dim.ReliableMessage;
+import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.TextContent;
 
 class DefaultContentProcessor extends ContentProcessor {
@@ -43,12 +46,12 @@ class DefaultContentProcessor extends ContentProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage rMsg) {
+    public Content<ID> process(Content<ID> content, ID sender, ReliableMessage<ID, SymmetricKey, Meta, Profile> rMsg) {
         int type = content.type;
         String text = String.format("Content (type: %d) not support yet!", type);
-        Content res = new TextContent(text);
+        Content<ID> res = new TextContent(text);
         // check group message
-        Object group = content.getGroup();
+        ID group = content.getGroup();
         if (group != null) {
             res.setGroup(group);
         }

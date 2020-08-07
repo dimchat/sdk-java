@@ -36,7 +36,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.*;
+import chat.dim.Content;
+import chat.dim.Facebook;
+import chat.dim.ID;
+import chat.dim.Messenger;
+import chat.dim.Meta;
+import chat.dim.Profile;
+import chat.dim.ReliableMessage;
+import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.ContentType;
 
 /**
@@ -70,10 +77,10 @@ public class ContentProcessor {
 
     //-------- Runtime --------
 
-    @SuppressWarnings("unchecked")
     protected ContentProcessor createProcessor(Class clazz) {
         // try 'new Clazz(dict)'
         try {
+            //noinspection unchecked
             Constructor constructor = clazz.getConstructor(Messenger.class);
             return (ContentProcessor) constructor.newInstance(getMessenger());
         } catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
@@ -87,7 +94,6 @@ public class ContentProcessor {
     public static void register(ContentType type, Class clazz) {
         register(type.value, clazz);
     }
-    @SuppressWarnings("unchecked")
     public static void register(int type, Class clazz) {
         if (clazz == null) {
             contentProcessorClasses.remove(type);
@@ -123,7 +129,7 @@ public class ContentProcessor {
 
     //-------- Main --------
 
-    public Content process(Content content, ID sender, ReliableMessage rMsg) {
+    public Content<ID> process(Content<ID> content, ID sender, ReliableMessage<ID, SymmetricKey, Meta, Profile> rMsg) {
         assert getClass() == ContentProcessor.class : "error!"; // override me!
         // process content by type
         ContentProcessor cpu = getCPU(content.type);

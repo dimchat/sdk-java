@@ -30,10 +30,20 @@
  */
 package chat.dim.cpu.group;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import chat.dim.*;
+import chat.dim.Content;
+import chat.dim.Facebook;
+import chat.dim.ID;
+import chat.dim.Messenger;
+import chat.dim.Meta;
+import chat.dim.Profile;
+import chat.dim.ReliableMessage;
 import chat.dim.cpu.GroupCommandProcessor;
+import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.group.InviteCommand;
 import chat.dim.protocol.group.QueryCommand;
@@ -45,7 +55,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
         super(messenger);
     }
 
-    private Content temporarySave(List<ID> newMembers, ID sender, ID group) {
+    private Content<ID> temporarySave(List<ID> newMembers, ID sender, ID group) {
         if (containsOwner(newMembers, group)) {
             // it's a full list, save it now
             Facebook facebook = getFacebook();
@@ -109,10 +119,9 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage rMsg) {
+    public Content<ID> process(Content<ID> content, ID sender, ReliableMessage<ID, SymmetricKey, Meta, Profile> rMsg) {
         assert content instanceof ResetCommand || content instanceof InviteCommand : "reset command error: " + content;
-        Facebook facebook = getFacebook();
-        ID group = facebook.getID(content.getGroup());
+        ID group = content.getGroup();
         // new members
         List<ID> newMembers = getMembers((GroupCommand) content);
         if (newMembers == null || newMembers.size() == 0) {
@@ -125,6 +134,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
             return temporarySave(newMembers, sender, group);
         }
         // 1. check permission
+        Facebook facebook = getFacebook();
         if (!facebook.isOwner(sender, group)) {
             if (!facebook.existsAssistant(sender, group)) {
                 String text = sender + " is not the owner/assistant of group " + group + ", cannot reset members.";

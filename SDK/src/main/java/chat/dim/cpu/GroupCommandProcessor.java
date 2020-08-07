@@ -33,8 +33,19 @@ package chat.dim.cpu;
 import java.util.ArrayList;
 import java.util.List;
 
-import chat.dim.*;
-import chat.dim.cpu.group.*;
+import chat.dim.Content;
+import chat.dim.Facebook;
+import chat.dim.ID;
+import chat.dim.Messenger;
+import chat.dim.Meta;
+import chat.dim.Profile;
+import chat.dim.ReliableMessage;
+import chat.dim.cpu.group.ExpelCommandProcessor;
+import chat.dim.cpu.group.InviteCommandProcessor;
+import chat.dim.cpu.group.QueryCommandProcessor;
+import chat.dim.cpu.group.QuitCommandProcessor;
+import chat.dim.cpu.group.ResetCommandProcessor;
+import chat.dim.crypto.*;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.GroupCommand;
 
@@ -44,7 +55,6 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
         super(messenger);
     }
 
-    @SuppressWarnings("unchecked")
     protected List<ID> getMembers(GroupCommand cmd) {
         List members = cmd.getMembers();
         if (members == null) {
@@ -53,6 +63,7 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
                 return null;
             }
             members = new ArrayList();
+            //noinspection unchecked
             members.add(member);
         }
         return convertMembers(members);
@@ -98,7 +109,7 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage rMsg) {
+    public Content<ID> process(Content<ID> content, ID sender, ReliableMessage<ID, SymmetricKey, Meta, Profile> rMsg) {
         assert getClass() == GroupCommandProcessor.class : "error!"; // override me!
         assert content instanceof Command : "group command error: " + content;
         // process command content by name

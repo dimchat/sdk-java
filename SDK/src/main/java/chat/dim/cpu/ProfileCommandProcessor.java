@@ -30,7 +30,14 @@
  */
 package chat.dim.cpu;
 
-import chat.dim.*;
+import chat.dim.Content;
+import chat.dim.Facebook;
+import chat.dim.ID;
+import chat.dim.Messenger;
+import chat.dim.Meta;
+import chat.dim.Profile;
+import chat.dim.ReliableMessage;
+import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.ProfileCommand;
 import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.TextContent;
@@ -41,7 +48,7 @@ public class ProfileCommandProcessor extends CommandProcessor {
         super(messenger);
     }
 
-    private Content getProfile(ID identifier) {
+    private Content<ID> getProfile(ID identifier) {
         Facebook facebook = getFacebook();
         // query profile for ID
         Profile profile = facebook.getProfile(identifier);
@@ -54,7 +61,7 @@ public class ProfileCommandProcessor extends CommandProcessor {
         return new ProfileCommand(identifier, profile);
     }
 
-    private Content putProfile(ID identifier, Meta meta, Profile profile) {
+    private Content<ID> putProfile(ID identifier, Meta meta, Profile profile) {
         Facebook facebook = getFacebook();
         if (meta != null) {
             // received a meta for ID
@@ -86,22 +93,16 @@ public class ProfileCommandProcessor extends CommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage rMsg) {
+    public Content<ID> process(Content<ID> content, ID sender, ReliableMessage<ID, SymmetricKey, Meta, Profile> rMsg) {
         assert content instanceof ProfileCommand : "profile command error: " + content;
         ProfileCommand cmd = (ProfileCommand) content;
         Profile profile = cmd.getProfile();
-        ID identifier = getFacebook().getID(cmd.getIdentifier());
+        ID identifier = cmd.getIdentifier();
         if (profile == null) {
             return getProfile(identifier);
         } else {
             // check meta
-            Meta meta;
-            try {
-                meta = cmd.getMeta();
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-                return null;
-            }
+            Meta meta = cmd.getMeta();
             return putProfile(identifier, meta, profile);
         }
     }

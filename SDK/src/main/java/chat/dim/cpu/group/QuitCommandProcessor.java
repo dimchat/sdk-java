@@ -32,8 +32,15 @@ package chat.dim.cpu.group;
 
 import java.util.List;
 
-import chat.dim.*;
+import chat.dim.Content;
+import chat.dim.Facebook;
+import chat.dim.ID;
+import chat.dim.Messenger;
+import chat.dim.Meta;
+import chat.dim.Profile;
+import chat.dim.ReliableMessage;
 import chat.dim.cpu.GroupCommandProcessor;
+import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.group.QuitCommand;
 
 public class QuitCommandProcessor extends GroupCommandProcessor {
@@ -57,11 +64,11 @@ public class QuitCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage rMsg) {
+    public Content<ID> process(Content<ID> content, ID sender, ReliableMessage<ID, SymmetricKey, Meta, Profile> rMsg) {
         assert content instanceof QuitCommand : "quit command error: " + content;
-        Facebook facebook = getFacebook();
-        ID group = facebook.getID(content.getGroup());
+        ID group = content.getGroup();
         // 1. check permission
+        Facebook facebook = getFacebook();
         if (facebook.isOwner(sender, group)) {
             String text = "owner cannot quit: " + sender + " -> " + group;
             throw new UnsupportedOperationException(text);

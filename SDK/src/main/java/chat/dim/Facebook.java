@@ -30,7 +30,7 @@
  */
 package chat.dim;
 
-import java.util.*;
+import java.util.List;
 
 import chat.dim.core.Barrack;
 import chat.dim.group.Chatroom;
@@ -252,18 +252,16 @@ public abstract class Facebook extends Barrack {
             if (meta != null) {
                 // if the member's public key matches with the group's meta,
                 // it means this meta was generate by the member's private key
-                ID id;
                 Meta m;
-                for (Object item : members) {
-                    id = getID(item);
-                    assert id.isUser() : "member ID error: " + item;
-                    m = getMeta(id);
+                for (ID item : members) {
+                    assert item.isUser() : "member ID error: " + item;
+                    m = getMeta(item);
                     if (m == null) {
                         continue;
                     }
                     if (meta.matches(m.getKey())) {
                         // got it
-                        return id;
+                        return item;
                     }
                 }
             }
