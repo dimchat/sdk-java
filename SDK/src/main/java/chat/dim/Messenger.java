@@ -139,7 +139,7 @@ public abstract class Messenger extends Transceiver {
     }
 
     private SecureMessage<ID, SymmetricKey> trim(SecureMessage<ID, SymmetricKey> sMsg) {
-        ID receiver = sMsg.envelope.receiver;
+        ID receiver = sMsg.envelope.getReceiver();
         User user = select(receiver);
         if (user == null) {
             // current users not match
@@ -162,7 +162,7 @@ public abstract class Messenger extends Transceiver {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-        ID sender = rMsg.envelope.sender;
+        ID sender = rMsg.envelope.getSender();
         if (meta == null) {
             meta = getFacebook().getMeta(sender);
             if (meta == null) {
@@ -400,7 +400,7 @@ public abstract class Messenger extends Transceiver {
     private InstantMessage<ID, SymmetricKey> process(InstantMessage<ID, SymmetricKey> iMsg, ReliableMessage<ID, SymmetricKey> rMsg) {
 
         // process content from sender
-        Content<ID> response = process(iMsg.content, iMsg.envelope.sender, rMsg);
+        Content<ID> response = process(iMsg.getContent(), iMsg.envelope.getSender(), rMsg);
         if (!saveMessage(iMsg)) {
             // error
             return null;
@@ -411,11 +411,11 @@ public abstract class Messenger extends Transceiver {
         }
 
         // check receiver
-        User user = select(iMsg.envelope.receiver);
-        assert user != null : "receiver error: " + iMsg.envelope.receiver;
+        User user = select(iMsg.envelope.getReceiver());
+        assert user != null : "receiver error: " + iMsg.envelope.getReceiver();
 
         // pack message
-        return new InstantMessage<>(response, user.identifier, iMsg.envelope.sender);
+        return new InstantMessage<>(response, user.identifier, iMsg.envelope.getSender());
     }
 
     // TODO: override to check group

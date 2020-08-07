@@ -2,19 +2,24 @@
 import java.util.HashMap;
 import java.util.Map;
 
+import chat.dim.protocol.*;
 import junit.framework.TestCase;
 import org.junit.Test;
 
-import chat.dim.*;
+import chat.dim.ID;
+import chat.dim.Immortals;
+import chat.dim.InstantMessage;
+import chat.dim.Meta;
+import chat.dim.ReliableMessage;
+import chat.dim.SecureMessage;
+import chat.dim.User;
+import chat.dim.crypto.SymmetricKey;
+
 import chat.dim.core.Barrack;
 import chat.dim.core.KeyCache;
 import chat.dim.core.Transceiver;
 import chat.dim.cpu.CommandProcessor;
 import chat.dim.cpu.ContentProcessor;
-import chat.dim.protocol.ContentType;
-import chat.dim.protocol.Command;
-import chat.dim.protocol.GroupCommand;
-import chat.dim.protocol.TextContent;
 import chat.dim.protocol.group.JoinCommand;
 
 import chat.dim.common.KeyStore;
@@ -75,11 +80,12 @@ public class Tests extends TestCase {
 
         Content content = new TextContent("Hello");
 
-        InstantMessage iMsg = new InstantMessage(content, sender, receiver);
-        SecureMessage sMsg = transceiver.encryptMessage(iMsg);
-        ReliableMessage rMsg = transceiver.signMessage(sMsg);
+        InstantMessage<ID, SymmetricKey> iMsg = new InstantMessage<>(content, sender, receiver);
+        iMsg.setDelegate(transceiver);
+        SecureMessage<ID, SymmetricKey> sMsg = transceiver.encryptMessage(iMsg);
+        ReliableMessage<ID, SymmetricKey> rMsg = transceiver.signMessage(sMsg);
 
-        SecureMessage sMsg2 = transceiver.verifyMessage(rMsg);
+        SecureMessage<ID, SymmetricKey> sMsg2 = transceiver.verifyMessage(rMsg);
         InstantMessage iMsg2 = transceiver.decryptMessage(sMsg2);
 
         Log.info("send message: " + iMsg2);
