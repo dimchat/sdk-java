@@ -30,13 +30,13 @@
  */
 package chat.dim.protocol;
 
-import chat.dim.ID;
-import chat.dim.network.ServiceProvider;
-import chat.dim.network.Station;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import chat.dim.ID;
+import chat.dim.network.ServiceProvider;
+import chat.dim.network.Station;
 
 /**
  *  Command message: {

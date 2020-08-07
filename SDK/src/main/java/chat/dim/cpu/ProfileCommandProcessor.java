@@ -93,7 +93,7 @@ public class ProfileCommandProcessor extends CommandProcessor {
     }
 
     @Override
-    public Content<ID> process(Content<ID> content, ID sender, ReliableMessage<ID, SymmetricKey, Meta, Profile> rMsg) {
+    public Content<ID> process(Content<ID> content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
         assert content instanceof ProfileCommand : "profile command error: " + content;
         ProfileCommand cmd = (ProfileCommand) content;
         Profile profile = cmd.getProfile();

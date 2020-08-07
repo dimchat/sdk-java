@@ -36,8 +36,6 @@ import chat.dim.Content;
 import chat.dim.Facebook;
 import chat.dim.ID;
 import chat.dim.Messenger;
-import chat.dim.Meta;
-import chat.dim.Profile;
 import chat.dim.ReliableMessage;
 import chat.dim.cpu.GroupCommandProcessor;
 import chat.dim.crypto.SymmetricKey;
@@ -64,7 +62,7 @@ public class QuitCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public Content<ID> process(Content<ID> content, ID sender, ReliableMessage<ID, SymmetricKey, Meta, Profile> rMsg) {
+    public Content<ID> process(Content<ID> content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
         assert content instanceof QuitCommand : "quit command error: " + content;
         ID group = content.getGroup();
         // 1. check permission

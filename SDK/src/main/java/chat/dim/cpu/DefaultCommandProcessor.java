@@ -33,8 +33,6 @@ package chat.dim.cpu;
 import chat.dim.Content;
 import chat.dim.ID;
 import chat.dim.Messenger;
-import chat.dim.Meta;
-import chat.dim.Profile;
 import chat.dim.ReliableMessage;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.Command;
@@ -47,7 +45,7 @@ class DefaultCommandProcessor extends CommandProcessor {
     }
 
     @Override
-    public Content<ID> process(Content<ID> content, ID sender, ReliableMessage<ID, SymmetricKey, Meta, Profile> rMsg) {
+    public Content<ID> process(Content<ID> content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
         assert content instanceof Command : "command error: " + content;
         Command cmd = (Command) content;
         String text = String.format("Command (name: %s) not support yet!", cmd.command);

@@ -74,7 +74,7 @@ public abstract class Paths {
     public static String filename(String path) {
         int pos = path.lastIndexOf(separator);
         if (pos >= 0) {
-            return path.substring(pos + 1);
+            return path.substring(pos + separator.length());
         }
         return path;
     }
