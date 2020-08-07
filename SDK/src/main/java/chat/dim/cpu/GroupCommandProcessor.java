@@ -33,7 +33,6 @@ package chat.dim.cpu;
 import java.util.ArrayList;
 import java.util.List;
 
-import chat.dim.Content;
 import chat.dim.Facebook;
 import chat.dim.ID;
 import chat.dim.Messenger;
@@ -43,8 +42,9 @@ import chat.dim.cpu.group.InviteCommandProcessor;
 import chat.dim.cpu.group.QueryCommandProcessor;
 import chat.dim.cpu.group.QuitCommandProcessor;
 import chat.dim.cpu.group.ResetCommandProcessor;
-import chat.dim.crypto.*;
+import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.Command;
+import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
 
 public class GroupCommandProcessor extends HistoryCommandProcessor {
@@ -107,7 +107,7 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
     }
 
     @Override
-    public Content<ID> process(Content<ID> content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
+    public Content process(Content content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
         assert getClass() == GroupCommandProcessor.class : "error!"; // override me!
         assert content instanceof Command : "group command error: " + content;
         // process command content by name

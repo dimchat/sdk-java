@@ -399,8 +399,10 @@ public abstract class Messenger extends Transceiver {
 
     private InstantMessage<ID, SymmetricKey> process(InstantMessage<ID, SymmetricKey> iMsg, ReliableMessage<ID, SymmetricKey> rMsg) {
 
+        chat.dim.protocol.Content content = chat.dim.protocol.Content.getInstance(iMsg.getContent());
+
         // process content from sender
-        Content<ID> response = process(iMsg.getContent(), iMsg.envelope.getSender(), rMsg);
+        chat.dim.protocol.Content response = process(content, iMsg.envelope.getSender(), rMsg);
         if (!saveMessage(iMsg)) {
             // error
             return null;
@@ -420,7 +422,7 @@ public abstract class Messenger extends Transceiver {
 
     // TODO: override to check group
     // TODO: override to filter the response
-    protected Content<ID> process(Content<ID> content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
+    protected chat.dim.protocol.Content process(chat.dim.protocol.Content content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
         // call CPU to process it
         return cpu.process(content, sender, rMsg);
     }

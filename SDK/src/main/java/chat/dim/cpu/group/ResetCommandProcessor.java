@@ -35,13 +35,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import chat.dim.Content;
 import chat.dim.Facebook;
 import chat.dim.ID;
 import chat.dim.Messenger;
 import chat.dim.ReliableMessage;
 import chat.dim.cpu.GroupCommandProcessor;
 import chat.dim.crypto.SymmetricKey;
+import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.group.InviteCommand;
 import chat.dim.protocol.group.QueryCommand;
@@ -53,7 +53,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
         super(messenger);
     }
 
-    private Content<ID> temporarySave(List<ID> newMembers, ID sender, ID group) {
+    private Content temporarySave(List<ID> newMembers, ID sender, ID group) {
         if (containsOwner(newMembers, group)) {
             // it's a full list, save it now
             Facebook facebook = getFacebook();
@@ -117,7 +117,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public Content<ID> process(Content<ID> content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
+    public Content process(Content content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
         assert content instanceof ResetCommand || content instanceof InviteCommand : "reset command error: " + content;
         ID group = content.getGroup();
         // new members

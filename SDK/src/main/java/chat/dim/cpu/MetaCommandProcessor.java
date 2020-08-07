@@ -30,13 +30,13 @@
  */
 package chat.dim.cpu;
 
-import chat.dim.Content;
 import chat.dim.Facebook;
 import chat.dim.ID;
 import chat.dim.Messenger;
 import chat.dim.Meta;
 import chat.dim.ReliableMessage;
 import chat.dim.crypto.SymmetricKey;
+import chat.dim.protocol.Content;
 import chat.dim.protocol.MetaCommand;
 import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.TextContent;
@@ -47,7 +47,7 @@ public class MetaCommandProcessor extends CommandProcessor {
         super(messenger);
     }
 
-    private Content<ID> getMeta(ID identifier) {
+    private Content getMeta(ID identifier) {
         Facebook facebook = getFacebook();
         // query meta for ID
         Meta meta = facebook.getMeta(identifier);
@@ -60,7 +60,7 @@ public class MetaCommandProcessor extends CommandProcessor {
         return new MetaCommand(identifier, meta);
     }
 
-    private Content<ID> putMeta(ID identifier, Meta meta) {
+    private Content putMeta(ID identifier, Meta meta) {
         Facebook facebook = getFacebook();
         // received a meta for ID
         if (!facebook.verify(meta, identifier)) {
@@ -79,7 +79,7 @@ public class MetaCommandProcessor extends CommandProcessor {
     }
 
     @Override
-    public Content<ID> process(Content<ID> content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
+    public Content process(Content content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
         assert content instanceof MetaCommand : "meta command error: " + content;
         MetaCommand cmd = (MetaCommand) content;
         Meta meta = cmd.getMeta();

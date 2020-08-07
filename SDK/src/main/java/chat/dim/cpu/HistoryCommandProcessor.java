@@ -30,12 +30,12 @@
  */
 package chat.dim.cpu;
 
-import chat.dim.Content;
 import chat.dim.ID;
 import chat.dim.Messenger;
 import chat.dim.ReliableMessage;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.Command;
+import chat.dim.protocol.Content;
 
 public class HistoryCommandProcessor extends CommandProcessor {
 
@@ -53,7 +53,7 @@ public class HistoryCommandProcessor extends CommandProcessor {
     }
 
     @Override
-    public Content<ID> process(Content<ID> content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
+    public Content process(Content content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
         assert getClass() == HistoryCommandProcessor.class : "error!"; // override me!
         assert content instanceof Command : "history command error: " + content;
 
