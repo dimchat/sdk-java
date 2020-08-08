@@ -48,7 +48,7 @@ public interface Writable extends Readable {
      * @return file length
      * @throws IOException on writing error
      */
-    int save(String path) throws IOException;
+    int write(String path) throws IOException;
 
     /**
      *  Delete file

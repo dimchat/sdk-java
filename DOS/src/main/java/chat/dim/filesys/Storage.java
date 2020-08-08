@@ -30,7 +30,12 @@
  */
 package chat.dim.filesys;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class Storage extends Resource implements Writable {
 
@@ -43,27 +48,27 @@ public class Storage extends Resource implements Writable {
     }
 
     @Override
-    public int load(String path) throws IOException {
+    public int read(String path) throws IOException {
         File file = new File(path);
         if (!file.exists()) {
             // file not found
             throw new IOException("file not found: " + path);
         }
         try (InputStream is = new FileInputStream(file)) {
-            return load(is);
+            return read(is);
         }
     }
 
     //---- write
 
     @Override
-    public void setData(byte[] data) {
-        fileContent = data;
+    public void setData(byte[] fileContent) {
+        data = fileContent;
     }
 
     @Override
-    public int save(String path) throws IOException {
-        if (fileContent == null) {
+    public int write(String path) throws IOException {
+        if (data == null) {
             return -1;
         }
         File file = new File(path);
@@ -74,14 +79,14 @@ public class Storage extends Resource implements Writable {
                 throw new IOException("failed to create directory: " + dir);
             }
         }
-        try (FileOutputStream fos = new FileOutputStream(file)) {
-            return save(fos);
+        try (OutputStream os = new FileOutputStream(file)) {
+            return write(os);
         }
     }
 
-    public int save(OutputStream os) throws IOException {
-        os.write(fileContent);
-        return fileContent.length;
+    public int write(OutputStream os) throws IOException {
+        os.write(data);
+        return data.length;
     }
 
     @Override

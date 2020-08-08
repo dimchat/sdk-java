@@ -35,37 +35,40 @@ import java.io.InputStream;
 
 public class Resource implements Readable {
 
-    byte[] fileContent = null;
+    byte[] data = null;
 
     @Override
     public byte[] getData() {
-        return fileContent;
+        return data;
     }
 
     @Override
-    public boolean exists(String path) throws IOException {
+    public boolean exists(String path) {
         try (InputStream is = getClass().getResourceAsStream(path)) {
             return is != null;
+        } catch (IOException e) {
+            //e.printStackTrace();
+            return false;
         }
     }
 
     @Override
-    public int load(String path) throws IOException {
+    public int read(String path) throws IOException {
         try (InputStream is = getClass().getResourceAsStream(path)) {
             if (is == null) {
                 return -1;
             }
-            return load(is);
+            return read(is);
         }
     }
 
-    public int load(InputStream is) throws IOException {
+    public int read(InputStream is) throws IOException {
         int size = is.available();
-        fileContent = new byte[size];
+        data = new byte[size];
         int offset = 0;
         int length;
         while (offset < size) {
-            length = is.read(fileContent, offset, size - offset);
+            length = is.read(data, offset, size - offset);
             if (length <= 0) {
                 throw new IOException("failed to read data from input stream");
             }

@@ -54,29 +54,32 @@ public abstract class Paths {
     }
 
     /**
-     *  Get filename from a URL
+     *  Get filename from a URL/Path
      *
-     * @param url - url string
+     * @param path - uri string
      * @return filename
      */
-    public static String filenameFromURL(String url) {
-        int pos = url.indexOf("?");
+    public static String getFilename(String path) {
+        int pos;
+        // ignore URI query string
+        pos = path.indexOf("?");
         if (pos >= 0) {
-            url = url.substring(0, pos);
+            path = path.substring(0, pos);
         }
-        pos = url.indexOf("#");
+        // ignore URI fragment
+        pos = path.indexOf("#");
         if (pos >= 0) {
-            url = url.substring(0, pos);
+            path = path.substring(0, pos);
         }
-        return filename(url);
-    }
-
-    public static String filename(String path) {
-        int pos = path.lastIndexOf(separator);
-        if (pos >= 0) {
-            return path.substring(pos + separator.length());
+        // get last path component
+        pos = path.lastIndexOf("/");
+        if (pos < 0) {
+            pos = path.lastIndexOf("\\");
+            if (pos < 0) {
+                return path;
+            }
         }
-        return path;
+        return path.substring(pos + 1);
     }
 
     /**
@@ -85,12 +88,11 @@ public abstract class Paths {
      * @param filename - file name
      * @return file extension
      */
-    public static String extension(String filename) {
+    public static String getExtension(String filename) {
         int pos = filename.lastIndexOf(".");
-        if (pos > 0) {
-            return filename.substring(pos + 1);
-        } else {
+        if (pos < 0) {
             return null;
         }
+        return filename.substring(pos + 1);
     }
 }

@@ -40,7 +40,7 @@ public interface Readable {
      * @param path - file path
      * @return true on file exists
      */
-    boolean exists(String path) throws IOException;
+    boolean exists(String path);
 
     /**
      *  Read file content data
@@ -49,7 +49,7 @@ public interface Readable {
      * @return file length
      * @throws IOException on reading error
      */
-    int load(String path) throws IOException;
+    int read(String path) throws IOException;
 
     /**
      *  Get file content

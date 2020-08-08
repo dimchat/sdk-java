@@ -85,7 +85,7 @@ public class Immortals extends chat.dim.mkm.Plugins implements UserDataSource {
     private static Map loadJSON(String filename) throws IOException {
         String path = Paths.appendPathComponent(root, filename);
         Resource resource = new Resource();
-        resource.load(path);
+        resource.read(path);
         byte[] data = resource.getData();
         return (Map) JSON.decode(data);
     }
