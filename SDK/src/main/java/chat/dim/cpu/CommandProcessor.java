@@ -36,9 +36,15 @@ import java.util.Map;
 import chat.dim.ID;
 import chat.dim.Messenger;
 import chat.dim.ReliableMessage;
+import chat.dim.cpu.group.ExpelCommandProcessor;
+import chat.dim.cpu.group.InviteCommandProcessor;
+import chat.dim.cpu.group.QueryCommandProcessor;
+import chat.dim.cpu.group.QuitCommandProcessor;
+import chat.dim.cpu.group.ResetCommandProcessor;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
+import chat.dim.protocol.GroupCommand;
 
 public class CommandProcessor extends ContentProcessor {
 
@@ -107,5 +113,12 @@ public class CommandProcessor extends ContentProcessor {
 
         // default
         register(UNKNOWN, DefaultCommandProcessor.class);
+
+        // group
+        register(GroupCommand.INVITE, InviteCommandProcessor.class);
+        register(GroupCommand.EXPEL, ExpelCommandProcessor.class);
+        register(GroupCommand.QUIT, QuitCommandProcessor.class);
+        register(GroupCommand.RESET, ResetCommandProcessor.class);
+        register(GroupCommand.QUERY, QueryCommandProcessor.class);
     }
 }

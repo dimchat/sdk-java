@@ -1,11 +1,11 @@
 
-import java.util.HashMap;
-import java.util.Map;
-
-import chat.dim.protocol.*;
 import junit.framework.TestCase;
 import org.junit.Test;
 
+import java.util.HashMap;
+import java.util.Map;
+
+import chat.dim.Content;
 import chat.dim.ID;
 import chat.dim.Immortals;
 import chat.dim.InstantMessage;
@@ -13,18 +13,22 @@ import chat.dim.Meta;
 import chat.dim.ReliableMessage;
 import chat.dim.SecureMessage;
 import chat.dim.User;
+
+import chat.dim.common.KeyStore;
+import chat.dim.cpu.CommandProcessor;
+import chat.dim.cpu.HandshakeCommandProcessor;
+import chat.dim.cpu.TextContentProcessor;
 import chat.dim.crypto.SymmetricKey;
+import chat.dim.protocol.Command;
+import chat.dim.protocol.ContentType;
+import chat.dim.protocol.GroupCommand;
+import chat.dim.protocol.TextContent;
+import chat.dim.protocol.group.JoinCommand;
 
 import chat.dim.core.Barrack;
 import chat.dim.core.KeyCache;
 import chat.dim.core.Transceiver;
-import chat.dim.cpu.CommandProcessor;
 import chat.dim.cpu.ContentProcessor;
-import chat.dim.protocol.group.JoinCommand;
-
-import chat.dim.common.KeyStore;
-import chat.dim.cpu.HandshakeCommandProcessor;
-import chat.dim.cpu.TextContentProcessor;
 
 public class Tests extends TestCase {
 

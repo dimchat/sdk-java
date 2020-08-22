@@ -4,8 +4,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import chat.dim.*;
-import chat.dim.crypto.*;
+import chat.dim.Facebook;
+import chat.dim.Group;
+import chat.dim.ID;
+import chat.dim.Immortals;
+import chat.dim.Meta;
+import chat.dim.Profile;
+import chat.dim.User;
+import chat.dim.crypto.DecryptKey;
+import chat.dim.crypto.EncryptKey;
+import chat.dim.crypto.PrivateKey;
+import chat.dim.crypto.SignKey;
+import chat.dim.crypto.VerifyKey;
 
 public class MyFacebook extends Facebook {
     private static MyFacebook ourInstance = new MyFacebook();

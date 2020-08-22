@@ -91,6 +91,7 @@ public class ReceiptCommand extends Command {
         return (String) get("message");
     }
 
+    @SuppressWarnings("unchecked")
     public Envelope<ID> getEnvelope() {
         if (envelope == null) {
             // envelope: { sender: "...", receiver: "...", time: 0 }
@@ -102,8 +103,10 @@ public class ReceiptCommand extends Command {
                     env = dictionary;
                 }
             }
-            //noinspection unchecked
-            envelope = Envelope.getInstance(env);
+            if (env instanceof Map) {
+                envelope = Envelope.getInstance((Map<String, Object>) env);
+                envelope.setDelegate(getDelegate());
+            }
         }
         return envelope;
     }

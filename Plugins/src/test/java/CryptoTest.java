@@ -3,15 +3,19 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Map;
 
 import chat.dim.ID;
 import chat.dim.Meta;
-import chat.dim.format.*;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.digest.RIPEMD160;
 import chat.dim.digest.SHA256;
+import chat.dim.format.Base58;
+import chat.dim.format.Base64;
+import chat.dim.format.JSON;
+import chat.dim.format.UTF8;
 import chat.dim.protocol.MetaType;
 import chat.dim.protocol.NetworkType;
 
@@ -75,13 +79,13 @@ public class CryptoTest {
 
     private void checkX(String metaJson, String skJson) throws ClassNotFoundException {
         Object metaDict = JSON.decode(UTF8.encode(metaJson));
-        Meta meta = Meta.getInstance(metaDict);
+        Meta meta = Meta.getInstance((Map<String, Object>) metaDict);
         ID identifier = meta.generateID(NetworkType.Main);
         Log.info("meta: " + meta);
         Log.info("ID: " + identifier);
 
         Object skDict = JSON.decode(UTF8.encode(skJson));
-        PrivateKey sk = PrivateKey.getInstance(skDict);
+        PrivateKey sk = PrivateKey.getInstance((Map<String, Object>) skDict);
         Log.info("private key: " + sk);
         Assert.assertTrue(meta.getKey().matches(sk));
 

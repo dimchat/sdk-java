@@ -65,12 +65,16 @@ public class UserProfile extends Profile {
      */
     private EncryptKey key = null;
 
+    @SuppressWarnings("unchecked")
     @Override
     public EncryptKey getKey() {
         if (key == null) {
             // get public key
             try {
-                key = (EncryptKey) PublicKey.getInstance(getProperty("key"));
+                Object info = getProperty("key");
+                if (info instanceof Map) {
+                    key = (EncryptKey) PublicKey.getInstance((Map<String, Object>) info);
+                }
             } catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
@@ -89,8 +93,8 @@ public class UserProfile extends Profile {
      *
      * @return nickname
      */
-    @Override
     @SuppressWarnings("unchecked")
+    @Override
     public String getName() {
         String name = super.getName();
         if (name == null) {
@@ -124,5 +128,25 @@ public class UserProfile extends Profile {
 
     public void setAvatar(String url) {
         setProperty("avatar", url);
+    }
+
+    public static UserProfile getInstance(Map<String, Object> dictionary) {
+        if (dictionary == null) {
+            return null;
+        } else if (dictionary instanceof UserProfile) {
+            return (UserProfile) dictionary;
+        }
+        Object identifier = dictionary.get("ID");
+        if (identifier instanceof ID) {
+            if (!((ID) identifier).isUser()) {
+                // not a user profile
+                return null;
+            }
+        } else if (!dictionary.containsKey("avatar") &&
+                !dictionary.containsKey("key")) {
+            // not a user profile
+            return null;
+        }
+        return new UserProfile(dictionary);
     }
 }

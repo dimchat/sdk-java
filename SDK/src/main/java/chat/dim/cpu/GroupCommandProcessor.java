@@ -37,11 +37,6 @@ import chat.dim.Facebook;
 import chat.dim.ID;
 import chat.dim.Messenger;
 import chat.dim.ReliableMessage;
-import chat.dim.cpu.group.ExpelCommandProcessor;
-import chat.dim.cpu.group.InviteCommandProcessor;
-import chat.dim.cpu.group.QueryCommandProcessor;
-import chat.dim.cpu.group.QuitCommandProcessor;
-import chat.dim.cpu.group.ResetCommandProcessor;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
@@ -53,6 +48,7 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
         super(messenger);
     }
 
+    @SuppressWarnings("unchecked")
     protected List<ID> getMembers(GroupCommand cmd) {
         List members = cmd.getMembers();
         if (members == null) {
@@ -61,7 +57,6 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
                 return null;
             }
             members = new ArrayList();
-            //noinspection unchecked
             members.add(member);
         }
         return convertMembers(members);
@@ -123,19 +118,5 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
          */
         assert cpu != this : "Dead cycle!";
         return cpu.process(content, sender, rMsg);
-    }
-
-    static {
-
-        //
-        //  Register all processors with command name
-        //
-
-        register(GroupCommand.INVITE, InviteCommandProcessor.class);
-        register(GroupCommand.EXPEL, ExpelCommandProcessor.class);
-        register(GroupCommand.QUIT, QuitCommandProcessor.class);
-        register(GroupCommand.RESET, ResetCommandProcessor.class);
-
-        register(GroupCommand.QUERY, QueryCommandProcessor.class);
     }
 }

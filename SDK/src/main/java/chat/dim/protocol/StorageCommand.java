@@ -30,11 +30,13 @@
  */
 package chat.dim.protocol;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import chat.dim.ID;
 import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.PrivateKey;
+import chat.dim.crypto.SignKey;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.format.Base64;
 import chat.dim.format.JSON;
@@ -159,23 +161,44 @@ public class StorageCommand extends Command {
 
     public byte[] decrypt(SymmetricKey key) {
         if (plaintext == null) {
-            assert key != null : "password should not be empty";
+            if (key == null) {
+                throw new NullPointerException("symmetric key empty");
+            }
             byte[] data = getData();
-            assert data != null : "encrypted data not found: " + dictionary;
+            if (data == null) {
+                return null;
+            }
             plaintext = key.decrypt(data);
         }
         return plaintext;
     }
 
+    @SuppressWarnings("unchecked")
     public byte[] decrypt(PrivateKey privateKey) throws ClassNotFoundException {
         if (password == null) {
-            assert privateKey instanceof DecryptKey : "private key error: " + privateKey;
-            byte[] key = getKey();
-            assert key != null : "key data not found: " + dictionary;
-            key = ((DecryptKey) privateKey).decrypt(key);
-            assert key != null : "failed to decrypt key with: " + privateKey;
-            password = SymmetricKey.getInstance(JSON.decode(key));
+            if (privateKey instanceof DecryptKey) {
+                password = decryptKey((DecryptKey) privateKey);
+            } else {
+                throw new IllegalArgumentException("private key error: " + privateKey);
+            }
         }
         return decrypt(password);
+    }
+
+    @SuppressWarnings("unchecked")
+    private SymmetricKey decryptKey(DecryptKey privateKey) throws ClassNotFoundException {
+        byte[] data = getKey();
+        if (data == null) {
+            return null;
+        }
+        byte[] key = privateKey.decrypt(data);
+        if (key == null) {
+            throw new NullPointerException("failed to decrypt key: " + Arrays.toString(data));
+        }
+        Object info = JSON.decode(key);
+        if (info instanceof Map) {
+            return SymmetricKey.getInstance((Map<String, Object>) info);
+        }
+        return null;
     }
 }

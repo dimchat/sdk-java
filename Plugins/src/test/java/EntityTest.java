@@ -1,5 +1,4 @@
 
-import chat.dim.format.UTF8;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -8,10 +7,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import chat.dim.*;
+import chat.dim.Address;
+import chat.dim.Group;
+import chat.dim.ID;
+import chat.dim.Immortals;
+import chat.dim.Meta;
+import chat.dim.Profile;
+import chat.dim.User;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.PublicKey;
 import chat.dim.crypto.SignKey;
+import chat.dim.format.UTF8;
 import chat.dim.protocol.MetaType;
 import chat.dim.protocol.NetworkType;
 

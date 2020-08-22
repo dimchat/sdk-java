@@ -107,16 +107,19 @@ public class Immortals extends chat.dim.mkm.Plugins implements UserDataSource {
         assert OK : "profile error: " + profile;
     }
 
+    @SuppressWarnings("unchecked")
     private Meta loadMeta(String filename) throws IOException, ClassNotFoundException {
         Map dict = loadJSON(filename);
         return Meta.getInstance(dict);
     }
 
+    @SuppressWarnings("unchecked")
     private PrivateKey loadPrivateKey(String filename) throws IOException, ClassNotFoundException {
         Map dict = loadJSON(filename);
         return PrivateKey.getInstance(dict);
     }
 
+    @SuppressWarnings("unchecked")
     private Profile loadProfile(String filename) throws IOException {
         Map dict = loadJSON(filename);
         Profile profile = Profile.getInstance(dict);

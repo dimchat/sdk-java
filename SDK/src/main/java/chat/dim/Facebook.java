@@ -317,7 +317,7 @@ public abstract class Facebook extends Barrack {
             return true;
         }
         ID owner = getOwner(group);
-        return owner == null || owner.equals(member);
+        return owner != null && owner.equals(member);
     }
 
     //

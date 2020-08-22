@@ -75,10 +75,10 @@ public class ContentProcessor {
 
     //-------- Runtime --------
 
+    @SuppressWarnings("unchecked")
     protected ContentProcessor createProcessor(Class clazz) {
         // try 'new Clazz(dict)'
         try {
-            //noinspection unchecked
             Constructor constructor = clazz.getConstructor(Messenger.class);
             return (ContentProcessor) constructor.newInstance(getMessenger());
         } catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
