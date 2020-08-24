@@ -95,8 +95,9 @@ public class StorageCommand extends Command {
         title = name;
     }
 
-    public String getIdentifier() {
-        return (String) get("ID");
+    // user ID
+    public ID getIdentifier() {
+        return getDelegate().getID("ID");
     }
 
     public void setIdentifier(ID identifier) {
