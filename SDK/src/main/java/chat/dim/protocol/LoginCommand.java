@@ -94,7 +94,7 @@ public class LoginCommand extends Command {
 
     // user ID
     public ID getIdentifier() {
-        return getDelegate().getID("ID");
+        return getDelegate().getID(get("ID"));
     }
 
     // device ID
