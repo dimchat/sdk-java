@@ -91,7 +91,11 @@ public abstract class AddressNameService {
     }
 
     public boolean isReserved(String name) {
-        return reserved.get(name);
+        Boolean value = reserved.get(name);
+        if (value == null) {
+            return false;
+        }
+        return value;
     }
 
     public boolean cache(String name, ID identifier) {
