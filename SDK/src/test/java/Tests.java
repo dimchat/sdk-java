@@ -14,10 +14,7 @@ import chat.dim.ReliableMessage;
 import chat.dim.SecureMessage;
 import chat.dim.User;
 
-import chat.dim.common.KeyStore;
 import chat.dim.cpu.CommandProcessor;
-import chat.dim.cpu.HandshakeCommandProcessor;
-import chat.dim.cpu.TextContentProcessor;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.ContentType;
@@ -26,9 +23,13 @@ import chat.dim.protocol.TextContent;
 import chat.dim.protocol.group.JoinCommand;
 
 import chat.dim.core.Barrack;
-import chat.dim.core.KeyCache;
 import chat.dim.core.Transceiver;
 import chat.dim.cpu.ContentProcessor;
+
+import chat.dim.KeyCache;
+import chat.dim.KeyStore;
+import chat.dim.cpu.HandshakeCommandProcessor;
+import chat.dim.cpu.TextContentProcessor;
 
 public class Tests extends TestCase {
 

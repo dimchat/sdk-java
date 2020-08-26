@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
+ *  DIMP : Decentralized Instant Messaging Protocol
  *
  *                                Written in 2019 by Moky <albert.moky@gmail.com>
  *
@@ -28,48 +28,55 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.common;
+package chat.dim.crypto.plugins;
 
-import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.core.KeyCache;
-import chat.dim.filesys.ExternalStorage;
-import chat.dim.filesys.Paths;
+import chat.dim.crypto.SymmetricKey;
 
-public class KeyStore extends KeyCache {
+/**
+ *  Symmetric key for broadcast message,
+ *  which will do nothing when en/decoding message data
+ */
+public final class PlainKey extends SymmetricKey {
 
-    private static final KeyStore ourInstance = new KeyStore();
-    public static KeyStore getInstance() { return ourInstance; }
-    private KeyStore() {
-        super();
-    }
+    private final static String PLAIN = "PLAIN";
 
-    // '/tmp/.dim/protected/keystore.js'
-    private String getPath() {
-        String root = ExternalStorage.root;
-        return Paths.appendPathComponent(root, "protected", "keystore.js");
+    public PlainKey(Map<String, Object> dictionary) {
+        super(dictionary);
     }
 
     @Override
-    public boolean saveKeys(Map keyMap) {
-        try {
-            String path = getPath();
-            return ExternalStorage.saveJSON(keyMap, path);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        }
+    public byte[] encrypt(byte[] plaintext) {
+        return plaintext;
     }
 
     @Override
-    public Map loadKeys() {
-        try {
-            String path = getPath();
-            return (Map) ExternalStorage.loadJSON(path);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+    public byte[] decrypt(byte[] ciphertext) {
+        return ciphertext;
+    }
+
+    @Override
+    public byte[] getData() {
+        return new byte[0];
+    }
+
+    //-------- Runtime --------
+
+    private static SymmetricKey ourInstance = null;
+
+    public static SymmetricKey getInstance() {
+        if (ourInstance == null) {
+            Map<String, Object> dictionary = new HashMap<>();
+            dictionary.put("algorithm", PLAIN);
+            ourInstance = new PlainKey(dictionary);
         }
+        return ourInstance;
+    }
+
+    static {
+        // PLAIN
+        register(PLAIN, PlainKey.class);
     }
 }
