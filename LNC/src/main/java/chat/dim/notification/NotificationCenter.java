@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  Local Notification
+ *  LNC: Local Notification Center
  *
  *                                Written in 2019 by Moky <albert.moky@gmail.com>
  *

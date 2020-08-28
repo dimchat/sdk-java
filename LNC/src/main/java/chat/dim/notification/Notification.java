@@ -1,13 +1,13 @@
 /* license: https://mit-license.org
  *
- *  TCP: Transmission Control Protocol
+ *  LNC: Local Notification Center
  *
- *                                Written in 2020 by Moky <albert.moky@gmail.com>
+ *                                Written in 2019 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Albert Moky
+ * Copyright (c) 2019 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,31 +28,27 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.tcp;
+package chat.dim.notification;
 
-public interface ConnectionHandler {
+import java.util.Map;
 
-    /**
-     *  Call when connection status changed
-     *
-     * @param connection - current connection
-     * @param oldStatus - status before
-     * @param newStatus - status after
-     */
-    void onConnectionStatusChanged(Connection connection, ConnectionStatus oldStatus, ConnectionStatus newStatus);
+/**
+ *  Notification object with name, sender and extra info
+ */
+public class Notification {
 
-    /**
-     *  Call when received data from a connection
-     *
-     * @param connection - current connection
-     */
-    void onConnectionReceivedData(Connection connection);
+    public final String name;
+    public final Object sender;
+    public final Map userInfo;
 
-    /**
-     *  Call when connection's cache is full
-     *
-     * @param connection - current connection
-     * @param ejected - dropped data
-     */
-    void onConnectionOverflowed(Connection connection, byte[] ejected);
+    public Notification(String name, Object sender, Map userInfo) {
+        super();
+        this.name = name;
+        this.sender = sender;
+        this.userInfo = userInfo;
+    }
+
+    public Notification(String name, Object sender) {
+        this(name, sender, null);
+    }
 }

@@ -18,7 +18,7 @@ plugins {
 
 group 'chat.dim'
 //version '1.0-SNAPSHOT'
-version '0.1.5'
+version '0.1.0'
 
 sourceCompatibility = 1.8
 
@@ -29,9 +29,6 @@ repositories {
 }
 
 dependencies {
-    compile group: 'chat.dim', name: 'MTP', version: '0.1.0'
-    compile group: 'chat.dim', name: 'TCP', version: '0.1.0'
-
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
@@ -56,8 +53,8 @@ install {
         pom {
             project {
                 packaging 'jar'
-                name 'StarGate'
-                description 'Network Connection Module'
+                name 'LNC'
+                description 'Local Notification Center'
                 url siteUrl
                 licenses {
                     license {
@@ -149,8 +146,8 @@ bintray {
     pkg {
         userOrg = 'dimchat'
         repo = 'common'
-        name = 'stargate'
-        desc = 'Network Connection Module'
+        name = 'lnc'
+        desc = 'Local Notification Center'
         websiteUrl = siteUrl
         vcsUrl = gitUrl
         licenses = ['MIT']

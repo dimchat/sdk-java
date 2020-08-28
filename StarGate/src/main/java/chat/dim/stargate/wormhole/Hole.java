@@ -31,7 +31,12 @@
 package chat.dim.stargate.wormhole;
 
 import java.lang.ref.WeakReference;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -42,7 +47,10 @@ import chat.dim.mtp.protocol.TransactionID;
 import chat.dim.stargate.Star;
 import chat.dim.stargate.StarDelegate;
 import chat.dim.stargate.StarStatus;
-import chat.dim.tcp.*;
+import chat.dim.tcp.ClientConnection;
+import chat.dim.tcp.Connection;
+import chat.dim.tcp.ConnectionHandler;
+import chat.dim.tcp.ConnectionStatus;
 import chat.dim.tlv.Data;
 
 public class Hole extends Thread implements Star, ConnectionHandler {
@@ -222,7 +230,7 @@ public class Hole extends Thread implements Star, ConnectionHandler {
 
         while (running) {
             try {
-                // 1. send on task
+                // 1. send one task
                 outgo = getTask();
                 if (outgo != null) {
                     connection.send(outgo.getRequestData());

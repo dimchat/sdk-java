@@ -1,13 +1,13 @@
 /* license: https://mit-license.org
  *
- *  TCP: Transmission Control Protocol
+ *  LNC: Local Notification Center
  *
- *                                Written in 2020 by Moky <albert.moky@gmail.com>
+ *                                Written in 2019 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Albert Moky
+ * Copyright (c) 2019 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,39 +28,12 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.tcp;
+package chat.dim.notification;
 
-import java.io.IOException;
-import java.net.Socket;
+/**
+ *  Notification observer
+ */
+public interface Observer {
 
-public class ServerConnection extends Connection {
-
-    public ServerConnection(Socket clientSocket) {
-        super(clientSocket,
-                clientSocket.getRemoteSocketAddress(),
-                clientSocket.getInetAddress().getHostAddress(),
-                clientSocket.getPort());
-    }
-
-    @Override
-    protected byte[] read() {
-        try {
-            return super.read();
-        } catch (IOException e) {
-            e.printStackTrace();
-            close();
-            return null;
-        }
-    }
-
-    @Override
-    protected int write(byte[] data) {
-        try {
-            return super.write(data);
-        } catch (IOException e) {
-            e.printStackTrace();
-            close();
-            return -1;
-        }
-    }
+    void onReceiveNotification(Notification notification);
 }
