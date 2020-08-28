@@ -33,11 +33,11 @@ package chat.dim.fsm;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class State {
+public abstract class State<S extends State> {
 
-    private List<Transition> transitionList = new ArrayList<>();
+    private List<Transition<S>> transitionList = new ArrayList<>();
 
-    public void addTransition(Transition transition) {
+    public void addTransition(Transition<S> transition) {
         if (transitionList.contains(transition)) {
             throw new ArithmeticException("transition exists");
         }
@@ -45,8 +45,8 @@ public abstract class State {
     }
 
     // called by machine.tick()
-    void tick(Machine machine) {
-        for (Transition transition : transitionList) {
+    void tick(Machine<S> machine) {
+        for (Transition<S> transition : transitionList) {
             if (transition.evaluate(machine)) {
                 // OK
                 machine.changeState(transition.target);
@@ -60,26 +60,26 @@ public abstract class State {
      *
      * @param machine - finite state machine
      */
-    protected abstract void onEnter(Machine machine);
+    protected abstract void onEnter(Machine<S> machine);
 
     /**
      *  Callback when exit state
      *
      * @param machine - finite state machine
      */
-    protected abstract void onExit(Machine machine);
+    protected abstract void onExit(Machine<S> machine);
 
     /**
      *  Callback when state paused
      *
      * @param machine - finite state machine
      */
-    protected abstract void onPause(Machine machine);
+    protected abstract void onPause(Machine<S> machine);
 
     /**
      *  Callback when state resumed
      *
      * @param machine - finite state machine
      */
-    protected abstract void onResume(Machine machine);
+    protected abstract void onResume(Machine<S> machine);
 }

@@ -30,9 +30,9 @@
  */
 package chat.dim.fsm;
 
-public abstract class Transition {
+public abstract class Transition<S extends State> {
 
-    final String target;
+    final String target; // target state name
 
     protected Transition(String targetStateName) {
         super();
@@ -45,5 +45,5 @@ public abstract class Transition {
      * @param machine - finite state machine
      * @return true when state should be changed
      */
-    protected abstract boolean evaluate(Machine machine);
+    protected abstract boolean evaluate(Machine<S> machine);
 }

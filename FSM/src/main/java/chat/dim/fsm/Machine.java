@@ -30,22 +30,14 @@
  */
 package chat.dim.fsm;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.lang.ref.WeakReference;
 
-public class Machine {
+public abstract class Machine<S extends State> {
 
-    public StateDelegate delegate;
-
-    private Map<String, State> stateMap;
-
-    private String defaultStateName;
-    private State currentState;
-
-    enum Status {
+    private enum Status {
         Stopped (0),
-        Running(1),
-        Paused(2);
+        Running (1),
+        Paused  (2);
 
         final int value;
 
@@ -53,17 +45,34 @@ public class Machine {
             this.value = value;
         }
     }
-    private Status status;
+    private Status status = Status.Stopped;
 
-    public Machine(String defaultStateName) {
+    private WeakReference<StateDelegate<S>> delegateRef = null;
+
+    private State<S> currentState = null;
+    private String defaultStateName;
+
+    protected Machine(String defaultStateName) {
         super();
         this.defaultStateName = defaultStateName;
-        this.currentState = null;
-        this.stateMap = new HashMap<>();
-        this.status = Status.Stopped;
     }
 
-    public State getCurrentState() {
+    public void setDelegate(StateDelegate<S> delegate) {
+        if (delegate == null) {
+            delegateRef = null;
+        } else {
+            delegateRef = new WeakReference<>(delegate);
+        }
+    }
+    public StateDelegate<S> getDelegate() {
+        if (delegateRef == null) {
+            return null;
+        } else {
+            return delegateRef.get();
+        }
+    }
+
+    public State<S> getCurrentState() {
         return currentState;
     }
 
@@ -73,21 +82,29 @@ public class Machine {
      * @param name - name for state
      * @param state - finite state
      */
-    public void addState(String name, State state) {
-        stateMap.put(name, state);
-    }
+    public abstract void addState(String name, State<S> state);
 
-    void changeState(String stateName) {
+    protected abstract State<S> getState(String name);
+
+    public void changeState(String stateName) {
+        StateDelegate<S> delegate = getDelegate();
+
         // exit current state
         if (currentState != null) {
-            delegate.exitState(currentState, this);
+            if (delegate != null) {
+                delegate.exitState(currentState, this);
+            }
             currentState.onExit(this);
         }
-        // enter new state
-        State newState = stateMap.get(stateName);
+
+        State<S> newState = getState(stateName);
         currentState = newState;
+
+        // enter new state
         if (newState != null) {
-            delegate.enterState(newState, this);
+            if (delegate != null) {
+                delegate.enterState(newState, this);
+            }
             newState.onEnter(this);
         }
     }
@@ -96,9 +113,7 @@ public class Machine {
      *  start machine from default state
      */
     public void start() {
-        if (status != Status.Stopped || currentState != null) {
-            throw new AssertionError("FSM start error: " + status + ", " + currentState);
-        }
+        assert currentState == null && Status.Stopped.equals(status) : "FSM start error: " + status + ", " + currentState;
         changeState(defaultStateName);
         status = Status.Running;
     }
@@ -107,9 +122,7 @@ public class Machine {
      *  stop machine and set current state to null
      */
     public void stop() {
-        if (status == Status.Stopped || currentState == null) {
-            throw new AssertionError("FSM stop error: " + status + ", " + currentState);
-        }
+        assert currentState != null && !Status.Stopped.equals(status) : "FSM stop error: " + status + ", " + currentState;
         status = Status.Stopped;
         changeState(null);
     }
@@ -118,10 +131,11 @@ public class Machine {
      *  pause machine, current state not change
      */
     public void pause() {
-        if (status != Status.Running || currentState == null) {
-            throw new AssertionError("FSM pause error: " + status + ", " + currentState);
+        assert currentState != null && Status.Running.equals(status) : "FSM pause error: " + status + ", " + currentState;
+        StateDelegate<S> delegate = getDelegate();
+        if (delegate != null) {
+            delegate.pauseState(currentState, this);
         }
-        delegate.pauseState(currentState, this);
         status = Status.Paused;
         currentState.onPause(this);
     }
@@ -130,10 +144,11 @@ public class Machine {
      *  resume machine with current state
      */
     public void resume() {
-        if (status != Status.Paused || currentState == null) {
-            throw new AssertionError("FSM resume error: " + status + ", " + currentState);
+        assert currentState != null && Status.Paused.equals(status) : "FSM resume error: " + status + ", " + currentState;
+        StateDelegate<S> delegate = getDelegate();
+        if (delegate != null) {
+            delegate.resumeState(currentState, this);
         }
-        delegate.resumeState(currentState, this);
         status = Status.Running;
         currentState.onResume(this);
     }
@@ -141,7 +156,7 @@ public class Machine {
     /**
      *  Drive the machine running forward
      */
-    public synchronized void tick() {
+    public void tick() {
         if (status == Status.Running) {
             currentState.tick(this);
         }
