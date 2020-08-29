@@ -45,6 +45,7 @@ import chat.dim.mtp.protocol.Header;
 import chat.dim.mtp.protocol.Package;
 import chat.dim.mtp.protocol.TransactionID;
 import chat.dim.sg.Star;
+import chat.dim.sg.StarDelegate;
 import chat.dim.sg.StarStatus;
 import chat.dim.tcp.ClientConnection;
 import chat.dim.tcp.Connection;
@@ -52,13 +53,13 @@ import chat.dim.tcp.ConnectionHandler;
 import chat.dim.tcp.ConnectionStatus;
 import chat.dim.tlv.Data;
 
-public class Gate extends Thread implements Star<TransactionID, Package>, ConnectionHandler {
+public class Gate extends Thread implements Star<Package>, ConnectionHandler {
 
     private Connection connection = null;
     private boolean running = false;
 
-    private final WeakReference<Ship.Delegate> delegateRef;
-    private final Map<TransactionID, WeakReference<Ship.Delegate>> handlers = new HashMap<>();
+    private final WeakReference<StarDelegate<Package>> delegateRef;
+    private final Map<TransactionID, WeakReference<StarDelegate<Package>>> handlers = new HashMap<>();
 
     // tasks for sending out
     private final List<Ship> urgentList = new ArrayList<>();
@@ -66,23 +67,23 @@ public class Gate extends Thread implements Star<TransactionID, Package>, Connec
     private final List<Ship> slowerList = new ArrayList<>();
     private final ReentrantReadWriteLock shipLock = new ReentrantReadWriteLock();
 
-    public Gate(Ship.Delegate delegate) {
+    public Gate(StarDelegate<Package> delegate) {
         super();
         delegateRef = new WeakReference<>(delegate);
     }
 
-    private Ship.Delegate getDelegate() {
+    private StarDelegate<Package> getDelegate() {
         return delegateRef.get();
     }
 
-    private Ship.Delegate getHandler(TransactionID sn) {
-        WeakReference<Ship.Delegate> ref = handlers.get(sn);
+    private StarDelegate<Package> getHandler(TransactionID sn) {
+        WeakReference<StarDelegate<Package>> ref = handlers.get(sn);
         if (ref == null) {
             return null;
         }
         return ref.get();
     }
-    private void setHandler(TransactionID sn, Ship.Delegate delegate) {
+    private void setHandler(TransactionID sn, StarDelegate<Package> delegate) {
         handlers.put(sn, new WeakReference<>(delegate));
     }
     private void removeHandler(TransactionID sn) {
@@ -93,15 +94,14 @@ public class Gate extends Thread implements Star<TransactionID, Package>, Connec
         Lock writeLock = shipLock.writeLock();
         writeLock.lock();
         try {
-            int priority = task.getPriority();
-            if (priority == Passenger.URGENT) {
+            if (task.priority == Ship.URGENT) {
                 urgentList.add(task);
-            } else if (priority == Passenger.NORMAL) {
+            } else if (task.priority == Ship.NORMAL) {
                 normalList.add(task);
-            } else if (priority == Passenger.SLOWER) {
+            } else if (task.priority == Ship.SLOWER) {
                 normalList.add(task);
             } else {
-                throw new IndexOutOfBoundsException("priority error: " + priority);
+                throw new IndexOutOfBoundsException("priority error: " + task.priority);
             }
         } finally {
             writeLock.unlock();
@@ -225,7 +225,7 @@ public class Gate extends Thread implements Star<TransactionID, Package>, Connec
 
     @Override
     public void run() {
-        Ship.Delegate delegate;
+        StarDelegate<Package> delegate;
         Package income;
         Ship outgo;
         byte[] body;
@@ -345,22 +345,16 @@ public class Gate extends Thread implements Star<TransactionID, Package>, Connec
 
     @Override
     public void enterBackground() {
-
     }
 
     @Override
     public void enterForeground() {
-
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public void send(chat.dim.sg.Passenger passenger, chat.dim.sg.StarDelegate delegate) {
-        addTask(createShip(passenger, delegate));
-    }
-
-    protected Ship createShip(chat.dim.sg.Passenger passenger, chat.dim.sg.StarDelegate delegate) {
-        return new Ship((Passenger) passenger, (Ship.Delegate) delegate);
+    public void send(chat.dim.sg.Ship<Package> ship) {
+        addTask((Ship) ship);
     }
 
     //
@@ -369,7 +363,7 @@ public class Gate extends Thread implements Star<TransactionID, Package>, Connec
 
     @Override
     public void onConnectionStatusChanged(Connection connection, ConnectionStatus oldStatus, ConnectionStatus newStatus) {
-        Ship.Delegate delegate = getDelegate();
+        StarDelegate<Package> delegate = getDelegate();
         if (delegate != null) {
             delegate.onStatusChanged(this, getStatus(oldStatus), getStatus(newStatus));
         }

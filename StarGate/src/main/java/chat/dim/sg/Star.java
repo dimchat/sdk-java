@@ -32,7 +32,7 @@ package chat.dim.sg;
 
 import java.util.Map;
 
-public interface Star<ID, PACK> {
+public interface Star<PACK> {
 
     /**
      *  Get connection status
@@ -66,8 +66,7 @@ public interface Star<ID, PACK> {
     /**
      *  Send data package to the connected server
      *
-     * @param passenger - request data
-     * @param delegate - callback
+     * @param ship - data container, with delegate maybe
      */
-    void send(Passenger<ID, PACK> passenger, StarDelegate<ID, PACK> delegate);
+    void send(Ship<PACK> ship);
 }

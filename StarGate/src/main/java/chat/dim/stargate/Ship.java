@@ -32,34 +32,40 @@ package chat.dim.stargate;
 
 import java.lang.ref.WeakReference;
 
+import chat.dim.mtp.protocol.DataType;
 import chat.dim.mtp.protocol.Package;
 import chat.dim.mtp.protocol.TransactionID;
+import chat.dim.sg.StarDelegate;
+import chat.dim.tlv.Data;
 
-class Ship implements chat.dim.sg.Ship<TransactionID, Package> {
+public class Ship implements chat.dim.sg.Ship<Package> {
 
-    private final Passenger passenger;
-    private final WeakReference<Delegate> delegateRef;
+    public static final int URGENT = -1;
+    public static final int NORMAL = 0;
+    public static final int SLOWER = 1;
 
-    Ship(Passenger passenger, Delegate delegate) {
+    final int priority;
+
+    private final Package pack;
+    private final WeakReference<StarDelegate<Package>> delegateRef;
+
+    public Ship(int priority, Package pack, StarDelegate<Package> delegate) {
         super();
-        this.passenger = passenger;
+        this.priority = priority;
+        this.pack = pack;
         delegateRef = new WeakReference<>(delegate);
     }
 
-    int getPriority() {
-        return getPassenger().priority;
-    }
-
-    Package getPackage() {
-        return getPassenger().getPackage();
+    public Ship(int priority, byte[] payload, StarDelegate<Package> delegate) {
+        this(priority, Package.create(DataType.Message, payload.length, new Data(payload)), delegate);
     }
 
     TransactionID getTransactionID() {
-        return getPassenger().getID();
+        return pack.head.sn;
     }
 
     byte[] getRequestData() {
-        return getPassenger().getRequestData();
+        return pack.getBytes();
     }
 
     //
@@ -67,19 +73,12 @@ class Ship implements chat.dim.sg.Ship<TransactionID, Package> {
     //
 
     @Override
-    public Passenger getPassenger() {
-        return passenger;
+    public Package getPackage() {
+        return pack;
     }
 
     @Override
-    public Delegate getDelegate() {
+    public StarDelegate<Package> getDelegate() {
         return delegateRef.get();
-    }
-
-    //
-    //  StarDelegate
-    //
-
-    interface Delegate extends chat.dim.sg.StarDelegate<TransactionID, Package> {
     }
 }
