@@ -88,23 +88,27 @@ public abstract class Machine<S extends State> {
 
     public void changeState(String stateName) {
         StateDelegate<S> delegate = getDelegate();
-
-        // exit current state
-        if (currentState != null) {
-            if (delegate != null) {
-                delegate.exitState(currentState, this);
-            }
-            currentState.onExit(this);
-        }
-
+        S oldState = currentState;
         S newState = getState(stateName);
-        currentState = newState;
 
-        // enter new state
-        if (newState != null) {
-            if (delegate != null) {
+        // events before state changed
+        if (delegate != null) {
+            if (oldState != null) {
+                delegate.exitState(oldState, this);
+            }
+            if (newState != null) {
                 delegate.enterState(newState, this);
             }
+        }
+
+        // change state
+        currentState = newState;
+
+        // events after state changed
+        if (oldState != null) {
+            oldState.onExit(this);
+        }
+        if (newState != null) {
             newState.onEnter(this);
         }
     }
