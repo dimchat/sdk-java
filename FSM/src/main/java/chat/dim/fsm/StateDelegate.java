@@ -32,9 +32,9 @@ package chat.dim.fsm;
 
 public interface StateDelegate<S extends State> {
 
-    void enterState(State<S> state, Machine<S> machine);
-    void exitState(State<S> state, Machine<S> machine);
+    void enterState(S state, Machine<S> machine);
+    void exitState(S state, Machine<S> machine);
 
-    void pauseState(State<S> state, Machine<S> machine);
-    void resumeState(State<S> state, Machine<S> machine);
+    void pauseState(S state, Machine<S> machine);
+    void resumeState(S state, Machine<S> machine);
 }

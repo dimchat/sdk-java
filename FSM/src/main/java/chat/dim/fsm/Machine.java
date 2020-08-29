@@ -49,7 +49,7 @@ public abstract class Machine<S extends State> {
 
     private WeakReference<StateDelegate<S>> delegateRef = null;
 
-    private State<S> currentState = null;
+    private S currentState = null;
     private String defaultStateName;
 
     protected Machine(String defaultStateName) {
@@ -72,7 +72,7 @@ public abstract class Machine<S extends State> {
         }
     }
 
-    public State<S> getCurrentState() {
+    public S getCurrentState() {
         return currentState;
     }
 
@@ -82,9 +82,9 @@ public abstract class Machine<S extends State> {
      * @param name - name for state
      * @param state - finite state
      */
-    public abstract void addState(String name, State<S> state);
+    public abstract void addState(String name, S state);
 
-    protected abstract State<S> getState(String name);
+    protected abstract S getState(String name);
 
     public void changeState(String stateName) {
         StateDelegate<S> delegate = getDelegate();
@@ -97,7 +97,7 @@ public abstract class Machine<S extends State> {
             currentState.onExit(this);
         }
 
-        State<S> newState = getState(stateName);
+        S newState = getState(stateName);
         currentState = newState;
 
         // enter new state

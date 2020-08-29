@@ -35,7 +35,7 @@ import java.util.Map;
 
 public class AutoMachine<S extends State> extends Machine<S> implements Runnable {
 
-    private Map<String, State<S>> stateMap = new HashMap<>();
+    private Map<String, S> stateMap = new HashMap<>();
 
     private Thread thread = null;
 
@@ -44,16 +44,16 @@ public class AutoMachine<S extends State> extends Machine<S> implements Runnable
     }
 
     @Override
-    public void addState(String name, State<S> state) {
+    public void addState(String name, S state) {
         stateMap.put(name, state);
     }
 
     @Override
-    protected State<S> getState(String name) {
+    protected S getState(String name) {
         if (name == null) {
             return null;
         }
-        State<S> state = stateMap.get(name);
+        S state = stateMap.get(name);
         assert state != null : "FSM failed to get state: " + name;
         return state;
     }
