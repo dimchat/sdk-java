@@ -28,10 +28,58 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.sg.simplegate;
+package chat.dim.stargate;
+
+import java.lang.ref.WeakReference;
 
 import chat.dim.mtp.protocol.Package;
 import chat.dim.mtp.protocol.TransactionID;
 
-public interface StarDelegate extends chat.dim.sg.StarDelegate<TransactionID, Package> {
+class Ship implements chat.dim.sg.Ship<TransactionID, Package> {
+
+    private final Passenger passenger;
+    private final WeakReference<Delegate> delegateRef;
+
+    Ship(Passenger passenger, Delegate delegate) {
+        super();
+        this.passenger = passenger;
+        delegateRef = new WeakReference<>(delegate);
+    }
+
+    int getPriority() {
+        return getPassenger().priority;
+    }
+
+    Package getPackage() {
+        return getPassenger().getPackage();
+    }
+
+    TransactionID getTransactionID() {
+        return getPassenger().getID();
+    }
+
+    byte[] getRequestData() {
+        return getPassenger().getRequestData();
+    }
+
+    //
+    //  Ship
+    //
+
+    @Override
+    public Passenger getPassenger() {
+        return passenger;
+    }
+
+    @Override
+    public Delegate getDelegate() {
+        return delegateRef.get();
+    }
+
+    //
+    //  StarDelegate
+    //
+
+    interface Delegate extends chat.dim.sg.StarDelegate<TransactionID, Package> {
+    }
 }

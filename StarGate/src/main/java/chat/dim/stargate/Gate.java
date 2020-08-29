@@ -28,7 +28,17 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.sg.simplegate;
+package chat.dim.stargate;
+
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import chat.dim.mtp.protocol.DataType;
 import chat.dim.mtp.protocol.Header;
@@ -42,18 +52,13 @@ import chat.dim.tcp.ConnectionHandler;
 import chat.dim.tcp.ConnectionStatus;
 import chat.dim.tlv.Data;
 
-import java.lang.ref.WeakReference;
-import java.util.*;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-
 public class Gate extends Thread implements Star<TransactionID, Package>, ConnectionHandler {
 
     private Connection connection = null;
     private boolean running = false;
 
-    private final WeakReference<StarDelegate> delegateRef;
-    private final Map<TransactionID, WeakReference<StarDelegate>> handlers = new HashMap<>();
+    private final WeakReference<Ship.Delegate> delegateRef;
+    private final Map<TransactionID, WeakReference<Ship.Delegate>> handlers = new HashMap<>();
 
     // tasks for sending out
     private final List<Ship> urgentList = new ArrayList<>();
@@ -61,23 +66,23 @@ public class Gate extends Thread implements Star<TransactionID, Package>, Connec
     private final List<Ship> slowerList = new ArrayList<>();
     private final ReentrantReadWriteLock shipLock = new ReentrantReadWriteLock();
 
-    public Gate(StarDelegate delegate) {
+    public Gate(Ship.Delegate delegate) {
         super();
         delegateRef = new WeakReference<>(delegate);
     }
 
-    private StarDelegate getDelegate() {
+    private Ship.Delegate getDelegate() {
         return delegateRef.get();
     }
 
-    private StarDelegate getHandler(TransactionID sn) {
-        WeakReference<StarDelegate> ref = handlers.get(sn);
+    private Ship.Delegate getHandler(TransactionID sn) {
+        WeakReference<Ship.Delegate> ref = handlers.get(sn);
         if (ref == null) {
             return null;
         }
         return ref.get();
     }
-    private void setHandler(TransactionID sn, StarDelegate delegate) {
+    private void setHandler(TransactionID sn, Ship.Delegate delegate) {
         handlers.put(sn, new WeakReference<>(delegate));
     }
     private void removeHandler(TransactionID sn) {
@@ -220,7 +225,7 @@ public class Gate extends Thread implements Star<TransactionID, Package>, Connec
 
     @Override
     public void run() {
-        StarDelegate delegate;
+        Ship.Delegate delegate;
         Package income;
         Ship outgo;
         byte[] body;
@@ -351,8 +356,11 @@ public class Gate extends Thread implements Star<TransactionID, Package>, Connec
     @SuppressWarnings("unchecked")
     @Override
     public void send(chat.dim.sg.Passenger passenger, chat.dim.sg.StarDelegate delegate) {
-        Ship task = new Ship((Passenger) passenger, (StarDelegate) delegate);
-        addTask(task);
+        addTask(createShip(passenger, delegate));
+    }
+
+    protected Ship createShip(chat.dim.sg.Passenger passenger, chat.dim.sg.StarDelegate delegate) {
+        return new Ship((Passenger) passenger, (Ship.Delegate) delegate);
     }
 
     //
@@ -361,7 +369,7 @@ public class Gate extends Thread implements Star<TransactionID, Package>, Connec
 
     @Override
     public void onConnectionStatusChanged(Connection connection, ConnectionStatus oldStatus, ConnectionStatus newStatus) {
-        StarDelegate delegate = getDelegate();
+        Ship.Delegate delegate = getDelegate();
         if (delegate != null) {
             delegate.onStatusChanged(this, getStatus(oldStatus), getStatus(newStatus));
         }

@@ -28,7 +28,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.sg.simplegate;
+package chat.dim.stargate;
 
 import chat.dim.mtp.protocol.DataType;
 import chat.dim.mtp.protocol.Package;
@@ -52,10 +52,7 @@ public class Passenger implements chat.dim.sg.Passenger<TransactionID, Package> 
     }
 
     public Passenger(byte[] payload, int priority) {
-        super();
-        Data body = new Data(payload);
-        this.request = Package.create(DataType.Message, body.getLength(), body);
-        this.priority = priority;
+        this(Package.create(DataType.Message, payload.length, new Data(payload)), priority);
     }
 
     //
