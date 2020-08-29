@@ -62,9 +62,8 @@ public class Gate extends Thread implements Star<Package>, ConnectionHandler {
     private final Map<TransactionID, WeakReference<StarDelegate<Package>>> handlers = new HashMap<>();
 
     // tasks for sending out
-    private final List<Ship> urgentList = new ArrayList<>();
-    private final List<Ship> normalList = new ArrayList<>();
-    private final List<Ship> slowerList = new ArrayList<>();
+    private final List<Integer> priorityList = new ArrayList<>();
+    private final Map<Integer, List<Ship>> shipTables = new HashMap<>();
     private final ReentrantReadWriteLock shipLock = new ReentrantReadWriteLock();
 
     public Gate(StarDelegate<Package> delegate) {
@@ -94,15 +93,24 @@ public class Gate extends Thread implements Star<Package>, ConnectionHandler {
         Lock writeLock = shipLock.writeLock();
         writeLock.lock();
         try {
-            if (task.priority == Ship.URGENT) {
-                urgentList.add(task);
-            } else if (task.priority == Ship.NORMAL) {
-                normalList.add(task);
-            } else if (task.priority == Ship.SLOWER) {
-                normalList.add(task);
-            } else {
-                throw new IndexOutOfBoundsException("priority error: " + task.priority);
+            int priority = task.priority;
+            List<Ship> table = shipTables.get(priority);
+            if (table == null) {
+                // create new table for this priority
+                table = new ArrayList<>();
+                shipTables.put(priority, table);
+                // insert the priority in a sorted list
+                int index = 0;
+                for (; index < priorityList.size(); ++index) {
+                    if (priority < priorityList.get(index)) {
+                        // insert priority before the bigger one
+                        break;
+                    }
+                }
+                priorityList.add(index, priority);
             }
+            // append to tail
+            table.add(task);
         } finally {
             writeLock.unlock();
         }
@@ -112,12 +120,14 @@ public class Gate extends Thread implements Star<Package>, ConnectionHandler {
         Lock writeLock = shipLock.writeLock();
         writeLock.lock();
         try {
-            if (urgentList.size() > 0) {
-                task = urgentList.remove(0);
-            } else if (normalList.size() > 0) {
-                task = normalList.remove(0);
-            } else if (slowerList.size() > 0) {
-                task = slowerList.remove(0);
+            List<Ship> table;
+            for (int priority : priorityList) {
+                table = shipTables.get(priority);
+                if (table == null || table.size() == 0) {
+                    continue;
+                }
+                // get from the head
+                task = table.remove(0);
             }
         } finally {
             writeLock.unlock();
