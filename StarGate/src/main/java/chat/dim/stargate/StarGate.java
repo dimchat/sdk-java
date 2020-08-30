@@ -127,8 +127,9 @@ public class StarGate extends Thread implements Star<StarShip>, ConnectionHandle
                 if (table == null || table.size() == 0) {
                     continue;
                 }
-                // get from the head
+                // pop from the head
                 task = table.remove(0);
+                break;
             }
         } finally {
             writeLock.unlock();
@@ -245,22 +246,9 @@ public class StarGate extends Thread implements Star<StarShip>, ConnectionHandle
 
         while (running) {
             try {
-                // 1. send one task
-                outgo = getTask();
-                if (outgo != null) {
-                    connection.send(outgo.getRequestData());
-                    delegate = outgo.getDelegate();
-                    if (delegate != null) {
-                        // set handler for callback when received response
-                        setHandler(outgo.getTransactionID(), delegate);
-                        _sleep(100);
-                        // callback for sent
-                        delegate.onSent(this, outgo.getPackage(), null);
-                    }
-                }
-                // 2. receive one package
+                // 1. receive all package(s)
                 income = receive();
-                if (income != null && income.body.getLength() > 0) {
+                if (income != null) {
                     body = income.body.getBytes();
                     // TODO: process commands
                     if (body.length > 5 || (!Arrays.equals(body, PING) &&
@@ -279,7 +267,25 @@ public class StarGate extends Thread implements Star<StarShip>, ConnectionHandle
                             removeHandler(income.head.sn);
                         }
                     }
+                    // until all package(s) processed
+                    continue;
                 }
+
+                // 2. send one task
+                outgo = getTask();
+                if (outgo != null) {
+                    connection.send(outgo.getRequestData());
+                    delegate = outgo.getDelegate();
+                    if (delegate != null) {
+                        // set handler for callback when received response
+                        setHandler(outgo.getTransactionID(), delegate);
+                        // callback for sent
+                        delegate.onSent(this, outgo.getPackage(), null);
+                    }
+                    _sleep(100);
+                    continue;
+                }
+
                 // 3. check time for next heartbeat
                 now = (new Date()).getTime();
                 if (now > expired) {
@@ -289,10 +295,8 @@ public class StarGate extends Thread implements Star<StarShip>, ConnectionHandle
                     // try heartbeat next 2 seconds
                     expired = now + 2000;
                 }
-                if (outgo == null && income == null) {
-                    // idling
-                    _sleep(500);
-                }
+                // idling
+                _sleep(500);
             } catch (Exception e) {
                 e.printStackTrace();
             }
