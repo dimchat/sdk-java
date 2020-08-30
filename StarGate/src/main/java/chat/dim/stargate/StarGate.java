@@ -56,6 +56,11 @@ public class StarGate extends Thread implements Star<StarShip>, ConnectionHandle
     public interface Delegate extends chat.dim.sg.Delegate<Package, StarGate> {
     }
 
+    // milliseconds
+    public static int INCOME_INTERVAL = 8;
+    public static int OUTGO_INTERVAL = 32;
+    public static int IDLE_INTERVAL = 256;
+
     private Connection connection = null;
     private boolean running = false;
 
@@ -240,6 +245,8 @@ public class StarGate extends Thread implements Star<StarShip>, ConnectionHandle
         Delegate delegate;
         Package income;
         StarShip outgo;
+        int res;
+
         byte[] body;
         long now = (new Date()).getTime();
         long expired = now + Connection.EXPIRES;
@@ -268,21 +275,26 @@ public class StarGate extends Thread implements Star<StarShip>, ConnectionHandle
                         }
                     }
                     // until all package(s) processed
+                    _sleep(INCOME_INTERVAL);
                     continue;
                 }
 
                 // 2. send one task
                 outgo = getTask();
                 if (outgo != null) {
-                    connection.send(outgo.getRequestData());
+                    res = connection.send(outgo.getRequestData());
                     delegate = outgo.getDelegate();
                     if (delegate != null) {
                         // set handler for callback when received response
                         setHandler(outgo.getTransactionID(), delegate);
                         // callback for sent
-                        delegate.onSent(this, outgo.getPackage(), null);
+                        if (res < 0) {
+                            delegate.onSent(this, outgo.getPackage(), new StarError(outgo));
+                        } else {
+                            delegate.onSent(this, outgo.getPackage(), null);
+                        }
                     }
-                    _sleep(100);
+                    _sleep(OUTGO_INTERVAL);
                     continue;
                 }
 
@@ -296,10 +308,18 @@ public class StarGate extends Thread implements Star<StarShip>, ConnectionHandle
                     expired = now + 2000;
                 }
                 // idling
-                _sleep(500);
+                _sleep(IDLE_INTERVAL);
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    public class StarError extends Error {
+        public final StarShip ship;
+        StarError(StarShip s) {
+            super();
+            ship = s;
         }
     }
 

@@ -40,6 +40,7 @@ import chat.dim.tlv.Data;
 
 public class StarShip implements Ship<Package, StarGate> {
 
+    // priorities
     public static final int URGENT = -1;
     public static final int NORMAL = 0;
     public static final int SLOWER = 1;
