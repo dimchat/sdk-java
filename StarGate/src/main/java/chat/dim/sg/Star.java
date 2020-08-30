@@ -32,14 +32,28 @@ package chat.dim.sg;
 
 import java.util.Map;
 
-public interface Star<PACK> {
+public interface Star<S extends Ship> {
+
+    enum Status {
+
+        Error     (-1),
+        Init       (0),
+        Connecting (1),
+        Connected  (2);
+
+        public final int value;
+
+        Status(int v) {
+            value = v;
+        }
+    }
 
     /**
      *  Get connection status
      *
      * @return connection status
      */
-    StarStatus getStatus();
+    Status getStatus();
 
     /**
      *  Connect to a server
@@ -68,5 +82,5 @@ public interface Star<PACK> {
      *
      * @param ship - data container, with delegate maybe
      */
-    void send(Ship<PACK> ship);
+    void send(S ship);
 }

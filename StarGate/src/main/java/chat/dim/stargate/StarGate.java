@@ -45,56 +45,57 @@ import chat.dim.mtp.protocol.Header;
 import chat.dim.mtp.protocol.Package;
 import chat.dim.mtp.protocol.TransactionID;
 import chat.dim.sg.Star;
-import chat.dim.sg.StarDelegate;
-import chat.dim.sg.StarStatus;
 import chat.dim.tcp.ClientConnection;
 import chat.dim.tcp.Connection;
 import chat.dim.tcp.ConnectionHandler;
 import chat.dim.tcp.ConnectionStatus;
 import chat.dim.tlv.Data;
 
-public class Gate extends Thread implements Star<Package>, ConnectionHandler {
+public class StarGate extends Thread implements Star<StarShip>, ConnectionHandler {
+
+    public interface Delegate extends chat.dim.sg.Delegate<Package, StarGate> {
+    }
 
     private Connection connection = null;
     private boolean running = false;
 
-    private final WeakReference<StarDelegate<Package>> delegateRef;
-    private final Map<TransactionID, WeakReference<StarDelegate<Package>>> handlers = new HashMap<>();
+    private final WeakReference<Delegate> delegateRef;
+    private final Map<TransactionID, WeakReference<Delegate>> handlers = new HashMap<>();
 
     // tasks for sending out
     private final List<Integer> priorityList = new ArrayList<>();
-    private final Map<Integer, List<Ship>> shipTables = new HashMap<>();
+    private final Map<Integer, List<StarShip>> shipTables = new HashMap<>();
     private final ReentrantReadWriteLock shipLock = new ReentrantReadWriteLock();
 
-    public Gate(StarDelegate<Package> delegate) {
+    public StarGate(Delegate delegate) {
         super();
         delegateRef = new WeakReference<>(delegate);
     }
 
-    private StarDelegate<Package> getDelegate() {
+    private Delegate getDelegate() {
         return delegateRef.get();
     }
 
-    private StarDelegate<Package> getHandler(TransactionID sn) {
-        WeakReference<StarDelegate<Package>> ref = handlers.get(sn);
+    private Delegate getHandler(TransactionID sn) {
+        WeakReference<Delegate> ref = handlers.get(sn);
         if (ref == null) {
             return null;
         }
         return ref.get();
     }
-    private void setHandler(TransactionID sn, StarDelegate<Package> delegate) {
+    private void setHandler(TransactionID sn, Delegate delegate) {
         handlers.put(sn, new WeakReference<>(delegate));
     }
     private void removeHandler(TransactionID sn) {
         handlers.remove(sn);
     }
 
-    private void addTask(Ship task) {
+    private void addTask(StarShip task) {
         Lock writeLock = shipLock.writeLock();
         writeLock.lock();
         try {
             int priority = task.priority;
-            List<Ship> table = shipTables.get(priority);
+            List<StarShip> table = shipTables.get(priority);
             if (table == null) {
                 // create new table for this priority
                 table = new ArrayList<>();
@@ -115,12 +116,12 @@ public class Gate extends Thread implements Star<Package>, ConnectionHandler {
             writeLock.unlock();
         }
     }
-    private Ship getTask() {
-        Ship task = null;
+    private StarShip getTask() {
+        StarShip task = null;
         Lock writeLock = shipLock.writeLock();
         writeLock.lock();
         try {
-            List<Ship> table;
+            List<StarShip> table;
             for (int priority : priorityList) {
                 table = shipTables.get(priority);
                 if (table == null || table.size() == 0) {
@@ -235,9 +236,9 @@ public class Gate extends Thread implements Star<Package>, ConnectionHandler {
 
     @Override
     public void run() {
-        StarDelegate<Package> delegate;
+        Delegate delegate;
         Package income;
-        Ship outgo;
+        StarShip outgo;
         byte[] body;
         long now = (new Date()).getTime();
         long expired = now + Connection.EXPIRES;
@@ -309,32 +310,32 @@ public class Gate extends Thread implements Star<Package>, ConnectionHandler {
     //  Star
     //
 
-    private StarStatus getStatus(ConnectionStatus status) {
+    private Status getStatus(ConnectionStatus status) {
         switch (status) {
             case Default: {
-                return StarStatus.Connecting;
+                return Status.Connecting;
             }
             case Connecting: {
-                return StarStatus.Connecting;
+                return Status.Connecting;
             }
             case Connected: {
-                return StarStatus.Connected;
+                return Status.Connected;
             }
             case Expired: {
-                return StarStatus.Connected;
+                return Status.Connected;
             }
             case Maintaining: {
-                return StarStatus.Connected;
+                return Status.Connected;
             }
             case Error: {
-                return StarStatus.Error;
+                return Status.Error;
             }
         }
-        return StarStatus.Init;
+        return Status.Init;
     }
 
     @Override
-    public StarStatus getStatus() {
+    public Status getStatus() {
         long now = (new Date()).getTime();
         return getStatus(connection.getStatus(now));
     }
@@ -361,10 +362,9 @@ public class Gate extends Thread implements Star<Package>, ConnectionHandler {
     public void enterForeground() {
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public void send(chat.dim.sg.Ship<Package> ship) {
-        addTask((Ship) ship);
+    public void send(StarShip ship) {
+        addTask(ship);
     }
 
     //
@@ -373,7 +373,7 @@ public class Gate extends Thread implements Star<Package>, ConnectionHandler {
 
     @Override
     public void onConnectionStatusChanged(Connection connection, ConnectionStatus oldStatus, ConnectionStatus newStatus) {
-        StarDelegate<Package> delegate = getDelegate();
+        Delegate delegate = getDelegate();
         if (delegate != null) {
             delegate.onStatusChanged(this, getStatus(oldStatus), getStatus(newStatus));
         }

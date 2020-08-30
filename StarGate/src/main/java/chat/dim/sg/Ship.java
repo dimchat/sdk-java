@@ -30,19 +30,19 @@
  */
 package chat.dim.sg;
 
-public interface Ship<PACK> {
+public interface Ship<P, G extends Star> {
 
     /**
      *  Get request will be sent to remote star
      *
      * @return data package (with wrapper)
      */
-    PACK getPackage();
+    P getPackage();
 
     /**
      *  Get request handler
      *
      * @return delegate
      */
-    StarDelegate<PACK> getDelegate();
+    Delegate<P, G> getDelegate();
 }

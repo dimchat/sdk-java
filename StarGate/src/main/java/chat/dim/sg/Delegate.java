@@ -30,7 +30,7 @@
  */
 package chat.dim.sg;
 
-public interface StarDelegate<PACK> {
+public interface Delegate<P, G extends Star> {
 
     /**
      *  Callback when connection status changed
@@ -39,7 +39,7 @@ public interface StarDelegate<PACK> {
      * @param oldStatus - last status
      * @param newStatus - current status
      */
-    void onStatusChanged(Star<PACK> star, StarStatus oldStatus, StarStatus newStatus);
+    void onStatusChanged(G star, Star.Status oldStatus, Star.Status newStatus);
 
     /**
      *  Callback when new package received
@@ -47,7 +47,7 @@ public interface StarDelegate<PACK> {
      * @param star     - remote
      * @param response - data package
      */
-    void onReceived(Star<PACK> star, PACK response);
+    void onReceived(G star, P response);
 
     /**
      *  Callback when package sent
@@ -56,5 +56,5 @@ public interface StarDelegate<PACK> {
      * @param request - data package
      * @param error   - null on success
      */
-    void onSent(Star<PACK> star, PACK request, Error error);
+    void onSent(G star, P request, Error error);
 }

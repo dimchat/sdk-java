@@ -35,10 +35,10 @@ import java.lang.ref.WeakReference;
 import chat.dim.mtp.protocol.DataType;
 import chat.dim.mtp.protocol.Package;
 import chat.dim.mtp.protocol.TransactionID;
-import chat.dim.sg.StarDelegate;
+import chat.dim.sg.Ship;
 import chat.dim.tlv.Data;
 
-public class Ship implements chat.dim.sg.Ship<Package> {
+public class StarShip implements Ship<Package, StarGate> {
 
     public static final int URGENT = -1;
     public static final int NORMAL = 0;
@@ -47,16 +47,16 @@ public class Ship implements chat.dim.sg.Ship<Package> {
     final int priority;
 
     private final Package pack;
-    private final WeakReference<StarDelegate<Package>> delegateRef;
+    private final WeakReference<StarGate.Delegate> delegateRef;
 
-    public Ship(int priority, Package pack, StarDelegate<Package> delegate) {
+    public StarShip(int priority, Package pack, StarGate.Delegate delegate) {
         super();
         this.priority = priority;
         this.pack = pack;
         delegateRef = new WeakReference<>(delegate);
     }
 
-    public Ship(int priority, byte[] payload, StarDelegate<Package> delegate) {
+    public StarShip(int priority, byte[] payload, StarGate.Delegate delegate) {
         this(priority, Package.create(DataType.Message, payload.length, new Data(payload)), delegate);
     }
 
@@ -78,7 +78,7 @@ public class Ship implements chat.dim.sg.Ship<Package> {
     }
 
     @Override
-    public StarDelegate<Package> getDelegate() {
+    public StarGate.Delegate getDelegate() {
         return delegateRef.get();
     }
 }
