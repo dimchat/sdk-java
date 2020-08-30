@@ -275,7 +275,7 @@ public abstract class Messenger extends Transceiver {
      * @param callback - if needs callback, set it here
      * @return true on success
      */
-    public boolean sendContent(Content<ID> content, ID receiver, Callback callback) {
+    public boolean sendContent(Content<ID> content, ID receiver, Callback callback, int priority) {
         // Application Layer should make sure user is already login before it send message to server.
         // Application layer should put message into queue so that it will send automatically after user login
         User user = getFacebook().getCurrentUser();
@@ -290,7 +290,7 @@ public abstract class Messenger extends Transceiver {
         }
          */
         InstantMessage<ID, SymmetricKey> iMsg = new InstantMessage<>(content, user.identifier, receiver);
-        return sendMessage(iMsg, callback);
+        return sendMessage(iMsg, callback, priority);
     }
 
     /**
@@ -300,7 +300,7 @@ public abstract class Messenger extends Transceiver {
      * @param callback - if needs callback, set it here
      * @return true on success
      */
-    public boolean sendMessage(InstantMessage<ID, SymmetricKey> iMsg, Callback callback) {
+    public boolean sendMessage(InstantMessage<ID, SymmetricKey> iMsg, Callback callback, int priority) {
         // Send message (secured + certified) to target station
         SecureMessage<ID, SymmetricKey> sMsg = encryptMessage(iMsg);
         if (sMsg == null) {
@@ -314,7 +314,7 @@ public abstract class Messenger extends Transceiver {
             throw new NullPointerException("failed to sign message: " + sMsg);
         }
 
-        boolean OK = sendMessage(rMsg, callback);
+        boolean OK = sendMessage(rMsg, callback, priority);
         // TODO: if OK, set iMsg.state = sending; else set iMsg.state = waiting
 
         if (!saveMessage(iMsg)) {
@@ -323,7 +323,7 @@ public abstract class Messenger extends Transceiver {
         return OK;
     }
 
-    public boolean sendMessage(ReliableMessage<ID, SymmetricKey> rMsg, Callback callback) {
+    public boolean sendMessage(ReliableMessage<ID, SymmetricKey> rMsg, Callback callback, int priority) {
         CompletionHandler handler = new CompletionHandler() {
             @Override
             public void onSuccess() {
@@ -340,7 +340,7 @@ public abstract class Messenger extends Transceiver {
             }
         };
         byte[] data = serializeMessage(rMsg);
-        return getDelegate().sendPackage(data, handler);
+        return getDelegate().sendPackage(data, handler, priority);
     }
 
     //-------- Processing Message

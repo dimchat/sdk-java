@@ -57,5 +57,5 @@ public interface MessengerDelegate {
      * @param handler - completion handler
      * @return true on success
      */
-    boolean sendPackage(byte[] data, CompletionHandler handler);
+    boolean sendPackage(byte[] data, CompletionHandler handler, int priority);
 }
