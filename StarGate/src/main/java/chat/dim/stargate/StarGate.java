@@ -56,6 +56,8 @@ public class StarGate extends Thread implements Star<StarShip>, ConnectionHandle
     public interface Delegate extends chat.dim.sg.Delegate<Package, StarGate> {
     }
 
+    // flow control
+    public static int MAX_INCOMES_PER_OUTGO = 4;
     // milliseconds
     public static int INCOME_INTERVAL = 8;
     public static int OUTGO_INTERVAL = 32;
@@ -242,63 +244,43 @@ public class StarGate extends Thread implements Star<StarShip>, ConnectionHandle
 
     @Override
     public void run() {
-        Delegate delegate;
-        Package income;
-        StarShip outgo;
-        int res;
-
-        byte[] body;
         long now = (new Date()).getTime();
         long expired = now + Connection.EXPIRES;
 
+        int count = 0;
         while (running) {
             try {
-                // 1. receive all package(s)
-                income = receive();
-                if (income != null) {
-                    body = income.body.getBytes();
-                    // TODO: process commands
-                    if (body.length > 5 || (!Arrays.equals(body, PING) &&
-                            !Arrays.equals(body, PONG) &&
-                            !Arrays.equals(body, AGAIN)&&
-                            !Arrays.equals(body, OK))) {
-                        // dispatch received package
-                        delegate = getHandler(income.head.sn);
-                        if (delegate == null) {
-                            delegate = getDelegate();
-                        }
-                        if (delegate != null) {
-                            // callback for received data
-                            delegate.onReceived(this, income);
-                            // remove handler
-                            removeHandler(income.head.sn);
+                // process incoming packages / outgoing tasks
+                if (MAX_INCOMES_PER_OUTGO > 0) {
+                    // incoming priority
+                    if (count < MAX_INCOMES_PER_OUTGO) {
+                        if (processIncome()) {
+                            ++count;
+                            continue;
                         }
                     }
-                    // until all package(s) processed
-                    _sleep(INCOME_INTERVAL);
-                    continue;
-                }
-
-                // 2. send one task
-                outgo = getTask();
-                if (outgo != null) {
-                    res = connection.send(outgo.getRequestData());
-                    delegate = outgo.getDelegate();
-                    if (delegate != null) {
-                        // set handler for callback when received response
-                        setHandler(outgo.getTransactionID(), delegate);
-                        // callback for sent
-                        if (res < 0) {
-                            delegate.onSent(this, outgo.getPackage(), new StarError(outgo));
-                        } else {
-                            delegate.onSent(this, outgo.getPackage(), null);
+                    // keep a chance for outgoing packages
+                    count = 0;
+                    if (processOutgo()) {
+                        continue;
+                    }
+                } else {
+                    assert MAX_INCOMES_PER_OUTGO != 0 : "can not set MAX_INCOMES_PER_OUTGO to 0!";
+                    // outgoing priority
+                    if (count > MAX_INCOMES_PER_OUTGO) {
+                        if (processOutgo()) {
+                            --count;
+                            continue;
                         }
                     }
-                    _sleep(OUTGO_INTERVAL);
-                    continue;
+                    // keep a chance for incoming packages
+                    count = 0;
+                    if (processIncome()) {
+                        continue;
+                    }
                 }
 
-                // 3. check time for next heartbeat
+                // check time for next heartbeat
                 now = (new Date()).getTime();
                 if (now > expired) {
                     if (connection.isExpired(now)) {
@@ -308,11 +290,76 @@ public class StarGate extends Thread implements Star<StarShip>, ConnectionHandle
                     expired = now + 2000;
                 }
                 // idling
+                assert IDLE_INTERVAL > 0 : "IDLE_INTERVAL error: " + IDLE_INTERVAL;
                 _sleep(IDLE_INTERVAL);
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
+    }
+    private boolean processIncome() {
+        Package income = receive();
+        if (income == null) {
+            // no more package now
+            return false;
+        }
+        byte[] body = income.body.getBytes();
+        if (body.length < 6 && (
+                Arrays.equals(body, PING) ||
+                Arrays.equals(body, PONG) ||
+                Arrays.equals(body, AGAIN) ||
+                Arrays.equals(body, OK))) {
+            // TODO: process commands
+            return false;
+        }
+
+        Delegate delegate = getHandler(income.head.sn);
+        if (delegate == null) {
+            delegate = getDelegate();
+        }
+        if (delegate != null) {
+            // dispatch received package
+            delegate.onReceived(this, income);
+            // remove handler
+            removeHandler(income.head.sn);
+        }
+        // flow control
+        if (INCOME_INTERVAL > 0) {
+            _sleep(INCOME_INTERVAL);
+        }
+        return true;
+    }
+    private boolean processOutgo() {
+        StarShip outgo = getTask();
+        if (outgo == null) {
+            // no more task now
+            return false;
+        }
+        // send out request data
+        Package pack = outgo.getPackage();
+        int res = connection.send(pack.getBytes());
+
+        Delegate delegate = outgo.getDelegate();
+        if (delegate == null) {
+            delegate = getDelegate();
+        } else if (res == pack.getLength()) {
+            // set handler for callback when received response
+            setHandler(outgo.getTransactionID(), delegate);
+        }
+        if (delegate != null) {
+            if (res == pack.getLength()) {
+                // callback for sent success
+                delegate.onSent(this, outgo.getPackage(), null);
+            } else {
+                // callback for sent failed
+                delegate.onSent(this, outgo.getPackage(), new StarError(outgo));
+            }
+        }
+        // flow control
+        if (OUTGO_INTERVAL > 0) {
+            _sleep(OUTGO_INTERVAL);
+        }
+        return true;
     }
 
     public class StarError extends Error {

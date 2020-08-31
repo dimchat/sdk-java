@@ -65,10 +65,6 @@ public class StarShip implements Ship<Package, StarGate> {
         return pack.head.sn;
     }
 
-    byte[] getRequestData() {
-        return pack.getBytes();
-    }
-
     //
     //  Ship
     //
