@@ -1,0 +1,106 @@
+/* license: https://mit-license.org
+ *
+ *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
+ *
+ *                                Written in 2020 by Moky <albert.moky@gmail.com>
+ *
+ * ==============================================================================
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2020 Albert Moky
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * ==============================================================================
+ */
+package chat.dim.cpu;
+
+import chat.dim.ID;
+import chat.dim.InstantMessage;
+import chat.dim.Messenger;
+import chat.dim.MessengerDelegate;
+import chat.dim.ReliableMessage;
+import chat.dim.SecureMessage;
+import chat.dim.crypto.SymmetricKey;
+import chat.dim.protocol.Content;
+import chat.dim.protocol.FileContent;
+
+public class FileContentProcessor extends ContentProcessor {
+
+    public FileContentProcessor(Messenger messenger) {
+        super(messenger);
+    }
+
+    private MessengerDelegate getDelegate() {
+        return getMessenger().getDelegate();
+    }
+
+    public boolean uploadFileContent(FileContent content, SymmetricKey password, InstantMessage<ID, SymmetricKey> iMsg) {
+        byte[] data = content.getData();
+        if (data == null || data.length == 0) {
+            throw new NullPointerException("failed to get file data: " + content);
+        }
+        // encrypt and upload file data onto CDN and save the URL in message content
+        byte[] encrypted = password.encrypt(data);
+        if (encrypted == null || encrypted.length == 0) {
+            throw new NullPointerException("failed to encrypt file data with key: " + password);
+        }
+        String url = getDelegate().uploadData(encrypted, iMsg);
+        if (url == null) {
+            return false;
+        } else {
+            // replace 'data' with 'URL'
+            content.setURL(url);
+            content.setData(null);
+            return true;
+        }
+    }
+
+    public boolean downloadFileContent(FileContent content, SymmetricKey password, SecureMessage<ID, SymmetricKey> sMsg) {
+        String url = content.getURL();
+        if (url == null || !url.contains("://")) {
+            // download URL not found
+            return false;
+        }
+        InstantMessage iMsg = new InstantMessage<>(content, sMsg.getEnvelope());
+        // download from CDN
+        byte[] encrypted = getDelegate().downloadData(url, iMsg);
+        if (encrypted == null || encrypted.length == 0) {
+            // save symmetric key for decrypted file data after download from CDN
+            content.setPassword(password);
+            return false;
+        } else {
+            // decrypt file data
+            byte[] fileData = password.decrypt(encrypted);
+            if (fileData == null || fileData.length == 0) {
+                throw new NullPointerException("failed to decrypt file data with key: " + password);
+            }
+            content.setData(fileData);
+            content.setURL(null);
+            return true;
+        }
+    }
+
+    @Override
+    public Content process(Content content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
+        assert content instanceof FileContent : "file content error: " + content;
+        // TODO: process file content
+
+        return null;
+    }
+}

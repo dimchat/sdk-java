@@ -103,6 +103,9 @@ public class ContentProcessor {
         }
     }
 
+    public ContentProcessor getCPU(ContentType type) {
+        return getCPU(type.value);
+    }
     private ContentProcessor getCPU(int type) {
         // 1. get from pool
         ContentProcessor cpu = contentProcessors.get(type);
@@ -130,7 +133,7 @@ public class ContentProcessor {
     public Content process(Content content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
         assert getClass() == ContentProcessor.class : "error!"; // override me!
         // process content by type
-        ContentProcessor cpu = getCPU(content.type);
+        ContentProcessor cpu = getCPU(content.getType());
         assert cpu != this : "Dead cycle!";
         return cpu.process(content, sender, rMsg);
     }
@@ -141,6 +144,7 @@ public class ContentProcessor {
         //  Register content processor(s) with content type
         //
         register(ContentType.FORWARD, ForwardContentProcessor.class);
+        register(ContentType.FILE, FileContentProcessor.class);
 
         //
         //  Register all processors with content types

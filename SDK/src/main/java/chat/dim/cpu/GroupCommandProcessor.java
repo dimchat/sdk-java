@@ -106,7 +106,7 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
         assert getClass() == GroupCommandProcessor.class : "error!"; // override me!
         assert content instanceof Command : "group command error: " + content;
         // process command content by name
-        String command = ((Command) content).command;
+        String command = ((Command) content).getCommand();
         CommandProcessor cpu = getCPU(command);
         /*
         if (cpu == null) {

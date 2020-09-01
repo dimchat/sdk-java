@@ -62,30 +62,13 @@ import chat.dim.network.Station;
  */
 public class LoginCommand extends Command {
 
-    public final Date time;
-
     public LoginCommand(Map<String, Object> dictionary) {
         super(dictionary);
-        Object timestamp = dictionary.get("time");
-        if (timestamp == null) {
-            time = null;
-        } else {
-            time = getDate((Number) timestamp);
-        }
     }
 
     public LoginCommand(ID identifier) {
         super(LOGIN);
         put("ID", identifier);
-        time = new Date();
-        put("time", getTimestamp(time));
-    }
-
-    private long getTimestamp(Date time) {
-        return time.getTime() / 1000;
-    }
-    private Date getDate(Number timestamp) {
-        return new Date(timestamp.longValue() * 1000);
     }
 
     //

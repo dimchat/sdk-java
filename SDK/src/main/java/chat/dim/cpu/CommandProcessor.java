@@ -98,7 +98,7 @@ public class CommandProcessor extends ContentProcessor {
         assert content instanceof Command : "command error: " + content;
         Command cmd = (Command) content;
         // process command content by name
-        CommandProcessor cpu = getCPU(cmd.command);
+        CommandProcessor cpu = getCPU(cmd.getCommand());
         assert cpu != this : "Dead cycle!";
         return cpu.process(content, sender, rMsg);
     }

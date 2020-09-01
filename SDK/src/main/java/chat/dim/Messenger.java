@@ -37,10 +37,12 @@ import java.util.Map;
 
 import chat.dim.core.Transceiver;
 import chat.dim.cpu.ContentProcessor;
+import chat.dim.cpu.FileContentProcessor;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.BlockCommand;
 import chat.dim.protocol.Command;
+import chat.dim.protocol.ContentType;
 import chat.dim.protocol.FileContent;
 import chat.dim.protocol.HandshakeCommand;
 import chat.dim.protocol.LoginCommand;
@@ -143,7 +145,7 @@ public abstract class Messenger extends Transceiver {
         if (sMsg.getDelegate() == null) {
             sMsg.setDelegate(this);
         }
-        ID receiver = sMsg.envelope.getReceiver();
+        ID receiver = sMsg.getReceiver();
         User user = select(receiver);
         if (user == null) {
             // current users not match
@@ -170,7 +172,7 @@ public abstract class Messenger extends Transceiver {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-        ID sender = rMsg.envelope.getSender();
+        ID sender = rMsg.getSender();
         if (meta == null) {
             meta = getFacebook().getMeta(sender);
             if (meta == null) {
@@ -209,16 +211,8 @@ public abstract class Messenger extends Transceiver {
     public byte[] serializeContent(Content<ID> content, SymmetricKey password, InstantMessage<ID, SymmetricKey> iMsg) {
         // check attachment for File/Image/Audio/Video message content
         if (content instanceof FileContent) {
-            FileContent file = (FileContent) content;
-            byte[] data = file.getData();
-            // encrypt and upload file data onto CDN and save the URL in message content
-            data = password.encrypt(data);
-            String url = getDelegate().uploadData(data, iMsg);
-            if (url != null) {
-                // replace 'data' with 'URL'
-                file.setURL(url);
-                file.setData(null);
-            }
+            FileContentProcessor fpu = (FileContentProcessor) cpu.getCPU(ContentType.FILE);
+            fpu.uploadFileContent((FileContent) content, password, iMsg);
         }
         return super.serializeContent(content, password, iMsg);
     }
@@ -249,18 +243,8 @@ public abstract class Messenger extends Transceiver {
         }
         // check attachment for File/Image/Audio/Video message content
         if (content instanceof FileContent) {
-            FileContent file = (FileContent) content;
-            InstantMessage iMsg = new InstantMessage<>(content, sMsg.envelope);
-            // download from CDN
-            byte[] fileData = getDelegate().downloadData(file.getURL(), iMsg);
-            if (fileData == null) {
-                // save symmetric key for decrypted file data after download from CDN
-                file.setPassword(password);
-            } else {
-                // decrypt file data
-                file.setData(password.decrypt(fileData));
-                file.setURL(null);
-            }
+            FileContentProcessor fpu = (FileContentProcessor) cpu.getCPU(ContentType.FILE);
+            fpu.downloadFileContent((FileContent) content, password, sMsg);
         }
         return content;
     }
@@ -413,7 +397,7 @@ public abstract class Messenger extends Transceiver {
         chat.dim.protocol.Content content = chat.dim.protocol.Content.getInstance(iMsg.getContent());
 
         // process content from sender
-        chat.dim.protocol.Content response = process(content, iMsg.envelope.getSender(), rMsg);
+        chat.dim.protocol.Content response = process(content, iMsg.getSender(), rMsg);
         if (!saveMessage(iMsg)) {
             // error
             return null;
@@ -424,11 +408,11 @@ public abstract class Messenger extends Transceiver {
         }
 
         // check receiver
-        User user = select(iMsg.envelope.getReceiver());
-        assert user != null : "receiver error: " + iMsg.envelope.getReceiver();
+        User user = select(iMsg.getReceiver());
+        assert user != null : "receiver error: " + iMsg.getReceiver();
 
         // pack message
-        return new InstantMessage<>(response, user.identifier, iMsg.envelope.getSender());
+        return new InstantMessage<>(response, user.identifier, iMsg.getSender());
     }
 
     // TODO: override to check group

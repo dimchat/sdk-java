@@ -36,7 +36,6 @@ import java.util.Map;
 import chat.dim.ID;
 import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.PrivateKey;
-import chat.dim.crypto.SignKey;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.format.Base64;
 import chat.dim.format.JSON;

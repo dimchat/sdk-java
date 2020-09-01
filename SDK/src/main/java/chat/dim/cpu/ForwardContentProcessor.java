@@ -47,7 +47,7 @@ public class ForwardContentProcessor extends ContentProcessor {
     public Content process(Content content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
         assert content instanceof ForwardContent : "forward content error: " + content;
         ForwardContent forward = (ForwardContent) content;
-        ReliableMessage<ID, SymmetricKey> secret = forward.forwardMessage;
+        ReliableMessage<ID, SymmetricKey> secret = forward.getMessage();
         // call messenger to process it
         secret = getMessenger().process(secret);
         // check response
@@ -55,7 +55,7 @@ public class ForwardContentProcessor extends ContentProcessor {
             // Over The Top
             return new ForwardContent(secret);
         }/* else {
-            Object receiver = forward.forwardMessage.envelope.receiver;
+            Object receiver = forward.forwardMessage.getReceiver();
             String text = String.format("Message forwarded: %s", receiver);
             return new ReceiptCommand(text);
         }*/

@@ -74,7 +74,7 @@ public class Tests extends TestCase {
         ID groupID = ID.getInstance("Group-1280719982@7oMeWadRw4qat2sL4mTdcQSDAqZSo7LH5G");
         JoinCommand join = new JoinCommand(groupID);
         Log.info("join: " + join);
-        assertEquals(GroupCommand.JOIN, join.command);
+        assertEquals(GroupCommand.JOIN, join.getCommand());
     }
 
     @Test

@@ -60,7 +60,7 @@ public class HistoryCommandProcessor extends CommandProcessor {
         CommandProcessor cpu;
         if (content.getGroup() == null) {
             // process command content by name
-            String command = ((Command) content).command;
+            String command = ((Command) content).getCommand();
             cpu = getCPU(command);
             /*
             if (cpu == null) {

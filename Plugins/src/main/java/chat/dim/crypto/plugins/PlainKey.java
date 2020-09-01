@@ -1,9 +1,4 @@
 /* license: https://mit-license.org
- *
- *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
- *
- *                                Written in 2019 by Moky <albert.moky@gmail.com>
- *
  * ==============================================================================
  * The MIT License (MIT)
  *
@@ -28,33 +23,55 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.cpu;
+package chat.dim.crypto.plugins;
 
-import chat.dim.ID;
-import chat.dim.Messenger;
-import chat.dim.ReliableMessage;
+import java.util.HashMap;
+import java.util.Map;
+
 import chat.dim.crypto.SymmetricKey;
-import chat.dim.protocol.Command;
-import chat.dim.protocol.Content;
-import chat.dim.protocol.TextContent;
 
-class DefaultCommandProcessor extends CommandProcessor {
+/**
+ *  Symmetric key for broadcast message,
+ *  which will do nothing when en/decoding message data
+ */
+public final class PlainKey extends SymmetricKey {
 
-    public DefaultCommandProcessor(Messenger messenger) {
-        super(messenger);
+    private final static String PLAIN = "PLAIN";
+
+    public PlainKey(Map<String, Object> dictionary) {
+        super(dictionary);
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
-        assert content instanceof Command : "command error: " + content;
-        Command cmd = (Command) content;
-        String text = String.format("Command (name: %s) not support yet!", cmd.getCommand());
-        Content res = new TextContent(text);
-        // check group message
-        ID group = content.getGroup();
-        if (group != null) {
-            res.setGroup(group);
+    public byte[] encrypt(byte[] plaintext) {
+        return plaintext;
+    }
+
+    @Override
+    public byte[] decrypt(byte[] ciphertext) {
+        return ciphertext;
+    }
+
+    @Override
+    public byte[] getData() {
+        return new byte[0];
+    }
+
+    //-------- Runtime --------
+
+    private static SymmetricKey ourInstance = null;
+
+    public static SymmetricKey getInstance() {
+        if (ourInstance == null) {
+            Map<String, Object> dictionary = new HashMap<>();
+            dictionary.put("algorithm", PLAIN);
+            ourInstance = new PlainKey(dictionary);
         }
-        return res;
+        return ourInstance;
+    }
+
+    static {
+        // PLAIN
+        register(PLAIN, PlainKey.class);
     }
 }

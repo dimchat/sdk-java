@@ -45,7 +45,7 @@ class DefaultContentProcessor extends ContentProcessor {
 
     @Override
     public Content process(Content content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
-        int type = content.type;
+        int type = content.getType();
         String text = String.format("Content (type: %d) not support yet!", type);
         Content res = new TextContent(text);
         // check group message
