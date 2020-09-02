@@ -395,9 +395,11 @@ public abstract class Messenger extends Transceiver {
             iMsg.setDelegate(this);
         }
         chat.dim.protocol.Content content = chat.dim.protocol.Content.getInstance(iMsg.getContent());
+        ID sender = iMsg.getSender();
+        ID receiver = iMsg.getReceiver();
 
         // process content from sender
-        chat.dim.protocol.Content response = process(content, iMsg.getSender(), rMsg);
+        chat.dim.protocol.Content response = process(content, sender, rMsg);
         if (!saveMessage(iMsg)) {
             // error
             return null;
@@ -408,11 +410,11 @@ public abstract class Messenger extends Transceiver {
         }
 
         // check receiver
-        User user = select(iMsg.getReceiver());
-        assert user != null : "receiver error: " + iMsg.getReceiver();
+        User user = select(receiver);
+        assert user != null : "receiver error: " + receiver;
 
         // pack message
-        return new InstantMessage<>(response, user.identifier, iMsg.getSender());
+        return new InstantMessage<>(response, user.identifier, sender);
     }
 
     // TODO: override to check group

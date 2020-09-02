@@ -145,6 +145,9 @@ public class ContentProcessor {
         //
         register(ContentType.FORWARD, ForwardContentProcessor.class);
         register(ContentType.FILE, FileContentProcessor.class);
+        register(ContentType.IMAGE, FileContentProcessor.class);
+        register(ContentType.AUDIO, FileContentProcessor.class);
+        register(ContentType.VIDEO, FileContentProcessor.class);
 
         //
         //  Register all processors with content types
