@@ -25,17 +25,18 @@
  */
 package chat.dim.format;
 
+import java.io.IOException;
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.RSAPrivateCrtKeySpec;
+import java.security.spec.RSAPublicKeySpec;
+
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 
-import java.io.IOException;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.RSAPrivateCrtKeySpec;
-import java.security.spec.RSAPublicKeySpec;
+import chat.dim.crypto.CryptoUtils;
 
 final class PEMContent {
 
@@ -44,26 +45,26 @@ final class PEMContent {
     final byte[] publicKeyData;       // X.509
     final byte[] privateKeyData;      // PKCS#8
 
-    PEMContent(String fileContent) throws InvalidKeySpecException, NoSuchAlgorithmException, NoSuchProviderException {
+    PEMContent(String fileContent, String algorithm) throws InvalidKeySpecException, NoSuchAlgorithmException {
         super();
 
         this.fileContent = fileContent;
-        this.publicKeyData = getPublicKeyData(fileContent);
-        this.privateKeyData = getPrivateKeyData(fileContent);
+        this.publicKeyData = getPublicKeyData(fileContent, algorithm);
+        this.privateKeyData = getPrivateKeyData(fileContent, algorithm);
     }
 
-    PEMContent(java.security.PublicKey publicKey) throws IOException {
+    PEMContent(java.security.PublicKey publicKey, String algorithm) throws IOException {
         super();
 
-        this.fileContent = getFileContent(publicKey);
+        this.fileContent = getFileContent(publicKey, algorithm);
         this.publicKeyData = publicKey.getEncoded();
         this.privateKeyData = null;
     }
 
-    PEMContent(java.security.PrivateKey privateKey) throws IOException {
+    PEMContent(java.security.PrivateKey privateKey, String algorithm) throws IOException {
         super();
 
-        this.fileContent = getFileContent(privateKey);
+        this.fileContent = getFileContent(privateKey, algorithm);
         this.publicKeyData = null;
         this.privateKeyData = privateKey.getEncoded();
     }
@@ -94,65 +95,74 @@ final class PEMContent {
         return base64;
     }
 
-    private static String getFileContent(java.security.PublicKey publicKey) throws IOException {
+    private static String getFileContent(java.security.PublicKey publicKey, String algorithm) throws IOException {
         byte[] data = publicKey.getEncoded();
-        String format = publicKey.getFormat();
-        if (format.equals("X.509")) {
-            // convert to PKCS#1
-            data = (new X509(data)).toPKCS1();
+        if (algorithm.equals("RSA")) {
+            String format = publicKey.getFormat();
+            if (format.equals("X.509")) {
+                // convert to PKCS#1
+                data = (new X509(data)).toPKCS1();
+            }
         }
         return "-----BEGIN PUBLIC KEY-----\r\n" + rfc2045(data) + "\r\n-----END PUBLIC KEY-----";
     }
 
-    private static String getFileContent(java.security.PrivateKey privateKey) throws IOException {
+    private static String getFileContent(java.security.PrivateKey privateKey, String algorithm) throws IOException {
         byte[] data = privateKey.getEncoded();
-        String format = privateKey.getFormat();
-        if (format.equals("PKCS#8")) {
-            // convert to PKCS#1
-            data = (new PKCS8(data)).toPKCS1();
+        if (algorithm.equals("RSA")) {
+            String format = privateKey.getFormat();
+            if (format.equals("PKCS#8")) {
+                // convert to PKCS#1
+                data = (new PKCS8(data)).toPKCS1();
+            }
+            return "-----BEGIN RSA PRIVATE KEY-----\r\n" + rfc2045(data) + "\r\n-----END RSA PRIVATE KEY-----";
         }
-        return "-----BEGIN RSA PRIVATE KEY-----\r\n" + rfc2045(data) + "\r\n-----END RSA PRIVATE KEY-----";
+        return "-----BEGIN PRIVATE KEY-----\r\n" + rfc2045(data) + "\r\n-----END PRIVATE KEY-----";
     }
 
-    private static byte[] getPublicKeyData(String pem) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
-        String keyContent = getKeyContent(pem, "PUBLIC");
+    private static byte[] getPublicKeyData(String pem, String algorithm) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        String keyContent = getKeyContent(pem, algorithm, "PUBLIC");
         boolean isPrivate = false;
         if (keyContent == null) {
             // get from private key content
-            keyContent = getKeyContent(pem, "PRIVATE");
+            keyContent = getKeyContent(pem, algorithm, "PRIVATE");
             if (keyContent == null) {
                 return null;
             }
             isPrivate = true;
         }
         byte[] data = Base64.decode(keyContent);
-        try {
-            // convert from "PKCS#1" to "X.509"
-            data = (new PKCS1(data, isPrivate)).toX509();
-        } catch (IllegalArgumentException e) {
-            //e.printStackTrace();
+        if (algorithm.equals("RSA")) {
+            try {
+                // convert from "PKCS#1" to "X.509"
+                data = (new PKCS1(data, isPrivate)).toX509();
+            } catch (IllegalArgumentException e) {
+                //e.printStackTrace();
+            }
         }
         return data;
     }
 
-    private static byte[] getPrivateKeyData(String pem) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
-        String keyContent = getKeyContent(pem, "PRIVATE");
+    private static byte[] getPrivateKeyData(String pem, String algorithm) throws NoSuchAlgorithmException, InvalidKeySpecException {
+        String keyContent = getKeyContent(pem, algorithm, "PRIVATE");
         if (keyContent == null) {
             return null;
         }
         byte[] data = Base64.decode(keyContent);
-        try {
-            // convert from "PKCS#1" to "PKCS#8"
-            data = (new PKCS1(data, true)).toPKCS8();
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
+        if (algorithm.equals("RSA")) {
+            try {
+                // convert from "PKCS#1" to "PKCS#8"
+                data = (new PKCS1(data, true)).toPKCS8();
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+            }
         }
         return data;
     }
 
-    private static String getKeyContent(String pem, String tag) {
-        String sTag = "-----BEGIN RSA " + tag + " KEY-----";
-        String eTag = "-----END RSA " + tag + " KEY-----";
+    private static String getKeyContent(String pem, String algorithm, String tag) {
+        String sTag = "-----BEGIN " + algorithm + " " + tag + " KEY-----";
+        String eTag = "-----END " + algorithm + " " + tag + " KEY-----";
         int sPos = pem.indexOf(sTag);
         if (sPos < 0) {
             // not PKCS#1 ? try PKCS#8
@@ -220,7 +230,7 @@ final class PKCS1 {
     }
 
     // TODO: convert PKCS#1 to X.509
-    byte[] toX509() throws NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
+    byte[] toX509() throws NoSuchAlgorithmException, InvalidKeySpecException {
         /*
         byte[] header = X509.header;
         byte[] out = new byte[header.length + data.length];
@@ -228,13 +238,7 @@ final class PKCS1 {
         System.arraycopy(data, 0, out, header.length, data.length);
         return out;
         */
-        KeyFactory keyFactory;
-        try {
-            keyFactory = KeyFactory.getInstance("RSA", "BC");
-        } catch (NoSuchAlgorithmException e) {
-            //e.printStackTrace();
-            keyFactory = KeyFactory.getInstance("RSA");
-        }
+        KeyFactory keyFactory = CryptoUtils.getKeyFactory("RSA");
         if (isPrivate) {
             // get public key data from private key data
             org.bouncycastle.asn1.pkcs.RSAPrivateKey privateKey;
@@ -249,17 +253,11 @@ final class PKCS1 {
     }
 
     // convert PKCS#1 to PKCS#8
-    byte[] toPKCS8() throws NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
+    byte[] toPKCS8() throws NoSuchAlgorithmException, InvalidKeySpecException {
         if (!isPrivate) {
             throw new InvalidKeySpecException("it's not private key data");
         }
-        KeyFactory keyFactory;
-        try {
-            keyFactory = KeyFactory.getInstance("RSA", "BC");
-        } catch (NoSuchAlgorithmException e) {
-            //e.printStackTrace();
-            keyFactory = KeyFactory.getInstance("RSA");
-        }
+        KeyFactory keyFactory = CryptoUtils.getKeyFactory("RSA");
         org.bouncycastle.asn1.pkcs.RSAPrivateKey privateKey;
         privateKey = org.bouncycastle.asn1.pkcs.RSAPrivateKey.getInstance(data);
         RSAPrivateCrtKeySpec keySpec = new RSAPrivateCrtKeySpec(privateKey.getModulus(), privateKey.getPublicExponent(),

@@ -28,79 +28,77 @@ package chat.dim.format;
 import java.io.IOException;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
+import chat.dim.crypto.CryptoUtils;
+
 public class PEM {
 
-    public static String encodePublicKey(PublicKey key) {
+    public static String encodePublicKey(PublicKey key, String algorithm) {
         try {
-            return (new PEMContent(key)).toString();
+            PEMContent file = new PEMContent(key, algorithm);
+            return file.toString();
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
     }
 
-    public static String encodePrivateKey(PrivateKey key) {
+    public static String encodePrivateKey(PrivateKey key, String algorithm) {
         try {
-            return (new PEMContent(key)).toString();
+            PEMContent file = new PEMContent(key, algorithm);
+            return file.toString();
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
     }
 
-    public static PublicKey decodePublicKey(String pem) {
-        PEMContent file = null;
+    public static PublicKey decodePublicKey(String pem, String algorithm) {
+        byte[] keyData;
         try {
-            file = new PEMContent(pem);
-        } catch (InvalidKeySpecException | NoSuchAlgorithmException | NoSuchProviderException e) {
+            PEMContent file = new PEMContent(pem, algorithm);
+            keyData = file.publicKeyData;
+        } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
             e.printStackTrace();
+            return null;
         }
-        byte[] keyData = file == null ? null : file.publicKeyData;
         if (keyData != null) {
             // X.509
             X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyData);
             try {
-                return getFactory().generatePublic(keySpec);
-            } catch (InvalidKeySpecException | NoSuchProviderException | NoSuchAlgorithmException e) {
+                KeyFactory factory = CryptoUtils.getKeyFactory(algorithm);
+                return factory.generatePublic(keySpec);
+            } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
                 e.printStackTrace();
             }
         }
         return null;
     }
 
-    public static PrivateKey decodePrivateKey(String pem) {
-        PEMContent file = null;
+    public static PrivateKey decodePrivateKey(String pem, String algorithm) {
+        byte[] keyData;
         try {
-            file = new PEMContent(pem);
-        } catch (InvalidKeySpecException | NoSuchAlgorithmException | NoSuchProviderException e) {
+            PEMContent file = new PEMContent(pem, algorithm);
+            keyData = file.privateKeyData;
+        } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
             e.printStackTrace();
+            return null;
         }
-        byte[] keyData = file == null ? null : file.privateKeyData;
         if (keyData != null) {
             // PKCS#8
             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyData);
             try {
-                return getFactory().generatePrivate(keySpec);
-            } catch (InvalidKeySpecException | NoSuchProviderException | NoSuchAlgorithmException e) {
+                KeyFactory factory = CryptoUtils.getKeyFactory(algorithm);
+                return factory.generatePrivate(keySpec);
+            } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
                 e.printStackTrace();
             }
         }
         return null;
-    }
-
-    private static KeyFactory getFactory() throws NoSuchProviderException, NoSuchAlgorithmException {
-        try {
-            return KeyFactory.getInstance("RSA", "BC");
-        } catch (NoSuchAlgorithmException e) {
-            //e.printStackTrace();
-            return KeyFactory.getInstance("RSA");
-        }
     }
 }

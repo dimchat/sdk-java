@@ -32,11 +32,11 @@ import javax.crypto.NoSuchPaddingException;
 import java.security.InvalidKeyException;
 import java.security.InvalidParameterException;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.util.Map;
 
+import chat.dim.crypto.CryptoUtils;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.PublicKey;
 import chat.dim.format.PEM;
@@ -45,8 +45,8 @@ import chat.dim.format.PEM;
  *  RSA Public Key
  *
  *      keyInfo format: {
- *          algorithm: "RSA",
- *          data: "..."       // base64
+ *          algorithm : "RSA",
+ *          data      : "..." // base64_encode()
  *      }
  */
 public final class RSAPublicKey extends PublicKey implements EncryptKey {
@@ -74,7 +74,7 @@ public final class RSAPublicKey extends PublicKey implements EncryptKey {
         if (data == null) {
             throw new NoSuchFieldException("RSA public key data not found");
         }
-        return (java.security.interfaces.RSAPublicKey) PEM.decodePublicKey(data);
+        return (java.security.interfaces.RSAPublicKey) PEM.decodePublicKey(data, "RSA");
     }
 
     @Override
@@ -88,17 +88,10 @@ public final class RSAPublicKey extends PublicKey implements EncryptKey {
             throw new InvalidParameterException("RSA plain text length error: " + plaintext.length);
         }
         try {
-            Cipher cipher;
-            try {
-                cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding", "BC");
-            } catch (NoSuchAlgorithmException e) {
-                //e.printStackTrace();
-                cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-            }
+            Cipher cipher = CryptoUtils.getCipher("RSA/ECB/PKCS1Padding");
             cipher.init(Cipher.ENCRYPT_MODE, publicKey);
             return cipher.doFinal(plaintext);
-        } catch (NoSuchProviderException | NoSuchAlgorithmException | NoSuchPaddingException |
-                InvalidKeyException |
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException |
                 IllegalBlockSizeException | BadPaddingException e) {
             e.printStackTrace();
             return null;
@@ -108,17 +101,11 @@ public final class RSAPublicKey extends PublicKey implements EncryptKey {
     @Override
     public boolean verify(byte[] data, byte[] signature) {
         try {
-            Signature signer;
-            try {
-                signer = Signature.getInstance("SHA256withRSA", "BC");
-            } catch (NoSuchAlgorithmException e) {
-                //e.printStackTrace();
-                signer = Signature.getInstance("SHA256withRSA");
-            }
+            Signature signer = CryptoUtils.getSignature("SHA256withRSA");
             signer.initVerify(publicKey);
             signer.update(data);
             return signer.verify(signature);
-        } catch (NoSuchProviderException | NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
             e.printStackTrace();
             return false;
         }

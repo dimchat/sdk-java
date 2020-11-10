@@ -34,12 +34,12 @@ import java.security.InvalidParameterException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.util.HashMap;
 import java.util.Map;
 
+import chat.dim.crypto.CryptoUtils;
 import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.PublicKey;
@@ -49,9 +49,8 @@ import chat.dim.format.PEM;
  *  RSA Private Key
  *
  *      keyInfo format: {
- *          algorithm    : "RSA",
- *          keySizeInBits: 1024, // optional
- *          data         : "..." // base64_encode()
+ *          algorithm : "RSA",
+ *          data      : "..." // base64_encode()
  *      }
  */
 public final class RSAPrivateKey extends PrivateKey implements DecryptKey {
@@ -59,7 +58,7 @@ public final class RSAPrivateKey extends PrivateKey implements DecryptKey {
     private final java.security.interfaces.RSAPrivateKey privateKey;
     private final java.security.interfaces.RSAPublicKey publicKey;
 
-    public RSAPrivateKey(Map<String, Object> dictionary) throws NoSuchAlgorithmException, NoSuchProviderException {
+    public RSAPrivateKey(Map<String, Object> dictionary) throws NoSuchAlgorithmException {
         super(dictionary);
         KeyPair keyPair = getKeyPair();
         if (keyPair == null) {
@@ -82,38 +81,33 @@ public final class RSAPrivateKey extends PrivateKey implements DecryptKey {
         }
     }
 
-    private KeyPair getKeyPair() throws NoSuchAlgorithmException, NoSuchProviderException {
+    private KeyPair getKeyPair() throws NoSuchAlgorithmException {
         String data = (String) get("data");
         if (data == null) {
             // generate key
-            int bits = keySize() * 8;
-            return generate(bits);
+            return generate(keySize() * 8);
         } else {
             // parse PEM file content
-            return new KeyPair(PEM.decodePublicKey(data), PEM.decodePrivateKey(data));
+            java.security.PublicKey publicKey = PEM.decodePublicKey(data, "RSA");
+            java.security.PrivateKey privateKey = PEM.decodePrivateKey(data, "RSA");
+            return new KeyPair(publicKey, privateKey);
         }
     }
 
-    private KeyPair generate(int sizeInBits) throws NoSuchAlgorithmException, NoSuchProviderException {
-        KeyPairGenerator generator;
-        try {
-            generator = KeyPairGenerator.getInstance("RSA", "BC");
-        } catch (NoSuchAlgorithmException e) {
-            //e.printStackTrace();
-            generator = KeyPairGenerator.getInstance("RSA");
-        }
+    private KeyPair generate(int sizeInBits) throws NoSuchAlgorithmException {
+        KeyPairGenerator generator = CryptoUtils.getKeyPairGenerator("RSA");
         generator.initialize(sizeInBits);
         KeyPair keyPair = generator.generateKeyPair();
 
         // -----BEGIN PUBLIC KEY-----
-        String pkString = PEM.encodePublicKey(keyPair.getPublic());
+        String pkString = PEM.encodePublicKey(keyPair.getPublic(), "RSA");
         // -----END PUBLIC KEY-----
 
         // -----BEGIN RSA PRIVATE KEY-----
-        String skString = PEM.encodePrivateKey(keyPair.getPrivate());
+        String skString = PEM.encodePrivateKey(keyPair.getPrivate(), "RSA");
         // -----END RSA PRIVATE KEY-----
 
-        put("data", pkString + "\n" + skString);
+        put("data", pkString + "\r\n" + skString);
 
         // other parameters
         put("mode", "ECB");
@@ -133,9 +127,9 @@ public final class RSAPrivateKey extends PrivateKey implements DecryptKey {
         if (publicKey == null) {
             throw new NullPointerException("public key not found");
         }
-        String pem = PEM.encodePublicKey(publicKey);
+        String pem = PEM.encodePublicKey(publicKey, "RSA");
         Map<String, Object> keyInfo = new HashMap<>();
-        keyInfo.put("algorithm", get("algorithm"));
+        keyInfo.put("algorithm", RSA);
         keyInfo.put("data", pem);
         keyInfo.put("mode", "ECB");
         keyInfo.put("padding", "PKCS1");
@@ -154,16 +148,10 @@ public final class RSAPrivateKey extends PrivateKey implements DecryptKey {
             throw new InvalidParameterException("RSA cipher text length error: " + ciphertext.length);
         }
         try {
-            Cipher cipher;
-            try {
-                cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding", "BC");
-            } catch (NoSuchAlgorithmException e) {
-                //e.printStackTrace();
-                cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
-            }
+            Cipher cipher = CryptoUtils.getCipher("RSA/ECB/PKCS1Padding");
             cipher.init(Cipher.DECRYPT_MODE, privateKey);
             return cipher.doFinal(ciphertext);
-        } catch (NoSuchProviderException | NoSuchAlgorithmException | NoSuchPaddingException |
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException |
                 InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
             e.printStackTrace();
             return null;
@@ -173,17 +161,11 @@ public final class RSAPrivateKey extends PrivateKey implements DecryptKey {
     @Override
     public byte[] sign(byte[] data) {
         try {
-            Signature signer;
-            try {
-                signer = Signature.getInstance("SHA256withRSA", "BC");
-            } catch (NoSuchAlgorithmException e) {
-                //e.printStackTrace();
-                signer = Signature.getInstance("SHA256withRSA");
-            }
+            Signature signer = CryptoUtils.getSignature("SHA256withRSA");
             signer.initSign(privateKey);
             signer.update(data);
             return signer.sign();
-        } catch (NoSuchProviderException | NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
             e.printStackTrace();
             return null;
         }

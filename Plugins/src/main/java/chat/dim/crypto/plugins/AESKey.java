@@ -34,10 +34,10 @@ import javax.crypto.spec.SecretKeySpec;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.util.Map;
 import java.util.Random;
 
+import chat.dim.crypto.CryptoUtils;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.format.Base64;
 
@@ -58,19 +58,12 @@ public final class AESKey extends SymmetricKey {
     private final SecretKeySpec keySpec;
     private final IvParameterSpec ivSpec;
 
-    public AESKey(Map<String, Object> dictionary) throws NoSuchPaddingException, NoSuchAlgorithmException, NoSuchProviderException {
+    public AESKey(Map<String, Object> dictionary) throws NoSuchPaddingException, NoSuchAlgorithmException {
         super(dictionary);
         // TODO: check algorithm parameters
         // 1. check mode = 'CBC'
         // 2. check padding = 'PKCS7Padding'
-        Cipher aes;
-        try {
-            aes = Cipher.getInstance("AES/CBC/PKCS7Padding", "BC");
-        } catch (NoSuchAlgorithmException e) {
-            //e.printStackTrace();
-            aes = Cipher.getInstance("AES/CBC/PKCS7Padding");
-        }
-        cipher = aes;
+        cipher = CryptoUtils.getCipher("AES/CBC/PKCS7Padding");
         keySpec = new SecretKeySpec(getData(), "AES");
         ivSpec = new IvParameterSpec(getInitVector());
     }
