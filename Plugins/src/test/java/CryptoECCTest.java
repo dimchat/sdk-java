@@ -73,3 +73,12 @@ public class CryptoECCTest {
         Assert.assertTrue(ok);
     }
 }
+
+// openssl ecparam -name secp256k1 -genkey -out secp256k1-priv.pem
+// openssl ecparam -name secp256k1 -genkey -noout -out secp256k1-priv.pem
+
+// openssl pkey -in secp256k1-priv.pem -text
+
+// openssl ec -in secp256k1-priv.pem -pubout -out secp256k1-pub.pem
+
+// openssl pkcs8 -topk8 -nocrypt -in secp256k1-priv.pem -out secp256k1-priv-pk8.pem

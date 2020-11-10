@@ -104,7 +104,10 @@ final class PEMContent {
                 data = (new X509(data)).toPKCS1();
             }
         }
-        return "-----BEGIN PUBLIC KEY-----\r\n" + rfc2045(data) + "\r\n-----END PUBLIC KEY-----";
+        // PKCS#1
+        String begin = "-----BEGIN PUBLIC KEY-----\r\n";
+        String end = "\r\n-----END PUBLIC KEY-----";
+        return begin + rfc2045(data) + end;
     }
 
     private static String getFileContent(java.security.PrivateKey privateKey, String algorithm) throws IOException {
@@ -115,9 +118,11 @@ final class PEMContent {
                 // convert to PKCS#1
                 data = (new PKCS8(data)).toPKCS1();
             }
-            return "-----BEGIN RSA PRIVATE KEY-----\r\n" + rfc2045(data) + "\r\n-----END RSA PRIVATE KEY-----";
         }
-        return "-----BEGIN PRIVATE KEY-----\r\n" + rfc2045(data) + "\r\n-----END PRIVATE KEY-----";
+        // PKCS#1
+        String begin = "-----BEGIN " + algorithm + " PRIVATE KEY-----\r\n";
+        String end = "\r\n-----END " + algorithm + " PRIVATE KEY-----";
+        return begin + rfc2045(data) + end;
     }
 
     private static byte[] getPublicKeyData(String pem, String algorithm) throws NoSuchAlgorithmException, InvalidKeySpecException {
