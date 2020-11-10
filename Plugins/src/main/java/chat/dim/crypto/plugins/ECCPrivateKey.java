@@ -2,7 +2,7 @@
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Albert Moky
+ * Copyright (c) 2020 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,92 +25,88 @@
  */
 package chat.dim.crypto.plugins;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
-import java.security.InvalidParameterException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.security.spec.ECGenParameterSpec;
 import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.crypto.CryptoUtils;
-import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.PublicKey;
 import chat.dim.format.PEM;
 
 /**
- *  RSA Private Key
+ *  ECC Private Key
  *
  *      keyInfo format: {
- *          algorithm : "RSA",
- *          data      : "..." // base64_encode()
+ *          algorithm    : "ECC",
+ *          curve        : "secp256k1",
+ *          data         : "..." // base64_encode()
  *      }
  */
-public final class RSAPrivateKey extends PrivateKey implements DecryptKey {
+public final class ECCPrivateKey extends PrivateKey {
 
-    private final java.security.interfaces.RSAPrivateKey privateKey;
-    private final java.security.interfaces.RSAPublicKey publicKey;
+    private final java.security.interfaces.ECPrivateKey privateKey;
+    private final java.security.interfaces.ECPublicKey publicKey;
 
-    public RSAPrivateKey(Map<String, Object> dictionary) throws NoSuchAlgorithmException {
+    public ECCPrivateKey(Map<String, Object> dictionary) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
         super(dictionary);
         KeyPair keyPair = getKeyPair();
         if (keyPair == null) {
             privateKey = null;
             publicKey = null;
         } else {
-            privateKey = (java.security.interfaces.RSAPrivateKey) keyPair.getPrivate();
-            publicKey = (java.security.interfaces.RSAPublicKey) keyPair.getPublic();
+            privateKey = (java.security.interfaces.ECPrivateKey) keyPair.getPrivate();
+            publicKey = (java.security.interfaces.ECPublicKey) keyPair.getPublic();
         }
     }
 
-    private int keySize() {
-        // TODO: get from key
-
-        Object size = get("keySize");
-        if (size == null) {
-            return 1024 / 8; // 128
-        } else  {
-            return (int) size;
+    private String getCurveName() {
+        String curve = (String) get("curve");
+        if (curve == null) {
+            curve = "secp256k1";
         }
+        return curve;
     }
 
-    private KeyPair getKeyPair() throws NoSuchAlgorithmException {
+    private KeyPair getKeyPair() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
         String data = (String) get("data");
         if (data == null) {
             // generate key
-            return generateKeyPair(keySize() * 8);
+            return generateKeyPair(getCurveName());
         } else {
             // parse PEM file content
-            java.security.PublicKey publicKey = PEM.decodePublicKey(data, "RSA");
-            java.security.PrivateKey privateKey = PEM.decodePrivateKey(data, "RSA");
+            java.security.PublicKey publicKey = PEM.decodePublicKey(data, "EC");
+            java.security.PrivateKey privateKey = PEM.decodePrivateKey(data, "EC");
             return new KeyPair(publicKey, privateKey);
         }
     }
 
-    private KeyPair generateKeyPair(int sizeInBits) throws NoSuchAlgorithmException {
-        KeyPairGenerator generator = CryptoUtils.getKeyPairGenerator("RSA");
-        generator.initialize(sizeInBits);
+    private KeyPair generateKeyPair(String curveName) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
+        KeyPairGenerator generator = CryptoUtils.getKeyPairGenerator("EC");
+        ECGenParameterSpec spec = new ECGenParameterSpec(curveName);
+        generator.initialize(spec, new SecureRandom());
         KeyPair keyPair = generator.generateKeyPair();
 
         // -----BEGIN PUBLIC KEY-----
-        String pkString = PEM.encodePublicKey(keyPair.getPublic(), "RSA");
+        String pkString = PEM.encodePublicKey(keyPair.getPublic(), "EC");
         // -----END PUBLIC KEY-----
 
-        // -----BEGIN RSA PRIVATE KEY-----
-        String skString = PEM.encodePrivateKey(keyPair.getPrivate(), "RSA");
-        // -----END RSA PRIVATE KEY-----
+        // -----BEGIN ECC PRIVATE KEY-----
+        String skString = PEM.encodePrivateKey(keyPair.getPrivate(), "EC");
+        // -----END ECC PRIVATE KEY-----
 
         put("data", pkString + "\r\n" + skString);
 
         // other parameters
-        put("mode", "ECB");
+        put("curve", curveName);
         put("padding", "PKCS1");
         put("digest", "SHA256");
 
@@ -127,32 +123,16 @@ public final class RSAPrivateKey extends PrivateKey implements DecryptKey {
         if (publicKey == null) {
             throw new NullPointerException("public key not found");
         }
-        String pem = PEM.encodePublicKey(publicKey, "RSA");
+        String pem = PEM.encodePublicKey(publicKey, "EC");
         Map<String, Object> keyInfo = new HashMap<>();
-        keyInfo.put("algorithm", get("algorithm"));  // RSA
+        keyInfo.put("algorithm", get("algorithm"));  // ECC
         keyInfo.put("data", pem);
-        keyInfo.put("mode", get("mode"));            // ECB
+        keyInfo.put("curve", getCurveName());        // secp256k1
         keyInfo.put("padding", get("padding"));      // PKCS1
         keyInfo.put("digest", get("digest"));        // SHA256
         try {
-            return new RSAPublicKey(keyInfo);
+            return new ECCPublicKey(keyInfo);
         } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    @Override
-    public byte[] decrypt(byte[] ciphertext) {
-        if (ciphertext.length != keySize()) {
-            throw new InvalidParameterException("RSA cipher text length error: " + ciphertext.length);
-        }
-        try {
-            Cipher cipher = CryptoUtils.getCipher("RSA/ECB/PKCS1Padding");
-            cipher.init(Cipher.DECRYPT_MODE, privateKey);
-            return cipher.doFinal(ciphertext);
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException |
-                InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
             e.printStackTrace();
             return null;
         }
@@ -161,7 +141,7 @@ public final class RSAPrivateKey extends PrivateKey implements DecryptKey {
     @Override
     public byte[] sign(byte[] data) {
         try {
-            Signature signer = CryptoUtils.getSignature("SHA256withRSA");
+            Signature signer = CryptoUtils.getSignature("SHA256withECDSA");
             signer.initSign(privateKey);
             signer.update(data);
             return signer.sign();
