@@ -25,6 +25,7 @@
  */
 package chat.dim.crypto.plugins;
 
+import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
@@ -136,7 +137,11 @@ public final class ECCPrivateKey extends PrivateKey {
 
     @Override
     public byte[] getData() {
-        return privateKey == null ? null : privateKey.getEncoded();
+        if (privateKey == null) {
+            return null;
+        }
+        BigInteger s = privateKey.getS();
+        return s.toByteArray();
     }
 
     @Override

@@ -97,31 +97,43 @@ final class PEMContent {
 
     private static String getFileContent(java.security.PublicKey publicKey, String algorithm) throws IOException {
         byte[] data = publicKey.getEncoded();
-        if (algorithm.equals("RSA")) {
-            String format = publicKey.getFormat();
-            if (format.equals("X.509")) {
+        String format = publicKey.getFormat();
+        if (format.equals("X.509")) {
+            if (algorithm.equals("RSA")) {
                 // convert to PKCS#1
                 data = (new X509(data)).toPKCS1();
+                format = "PKCS#1";
             }
         }
-        // PKCS#1
-        String begin = "-----BEGIN PUBLIC KEY-----\r\n";
-        String end = "\r\n-----END PUBLIC KEY-----";
+        String begin, end;
+        if (format.equals("PKCS#1")) {
+            begin = "-----BEGIN " + algorithm + " PUBLIC KEY-----\r\n";
+            end = "\r\n-----END " + algorithm + " PUBLIC KEY-----";
+        } else {
+            begin = "-----BEGIN PUBLIC KEY-----\r\n";
+            end = "\r\n-----END PUBLIC KEY-----";
+        }
         return begin + rfc2045(data) + end;
     }
 
     private static String getFileContent(java.security.PrivateKey privateKey, String algorithm) throws IOException {
         byte[] data = privateKey.getEncoded();
-        if (algorithm.equals("RSA")) {
-            String format = privateKey.getFormat();
-            if (format.equals("PKCS#8")) {
+        String format = privateKey.getFormat();
+        if (format.equals("PKCS#8")) {
+            if (algorithm.equals("RSA")) {
                 // convert to PKCS#1
                 data = (new PKCS8(data)).toPKCS1();
+                format = "PKCS#1";
             }
         }
-        // PKCS#1
-        String begin = "-----BEGIN " + algorithm + " PRIVATE KEY-----\r\n";
-        String end = "\r\n-----END " + algorithm + " PRIVATE KEY-----";
+        String begin, end;
+        if (format.equals("PKCS#1")) {
+            begin = "-----BEGIN " + algorithm + " PRIVATE KEY-----\r\n";
+            end = "\r\n-----END " + algorithm + " PRIVATE KEY-----";
+        } else {
+            begin = "-----BEGIN PRIVATE KEY-----\r\n";
+            end = "\r\n-----END PRIVATE KEY-----";
+        }
         return begin + rfc2045(data) + end;
     }
 

@@ -29,7 +29,10 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.security.interfaces.ECPublicKey;
 import java.util.Map;
+
+import org.bouncycastle.math.ec.ECPoint;
 
 import chat.dim.crypto.CryptoUtils;
 import chat.dim.crypto.PublicKey;
@@ -46,24 +49,28 @@ import chat.dim.format.PEM;
  */
 public final class ECCPublicKey extends PublicKey {
 
-    private final java.security.interfaces.ECPublicKey publicKey;
+    private final ECPublicKey publicKey;
 
     public ECCPublicKey(Map<String, Object> dictionary) throws NoSuchFieldException {
         super(dictionary);
         publicKey = getKey();
     }
 
-    private java.security.interfaces.ECPublicKey getKey() throws NoSuchFieldException {
+    private ECPublicKey getKey() throws NoSuchFieldException {
         String data = (String) get("data");
         if (data == null) {
             throw new NoSuchFieldException("ECC public key data not found");
         }
-        return (java.security.interfaces.ECPublicKey) PEM.decodePublicKey(data, "EC");
+        return (ECPublicKey) PEM.decodePublicKey(data, "EC");
     }
 
     @Override
     public byte[] getData() {
-        return publicKey == null ? null : publicKey.getEncoded();
+        if (publicKey == null) {
+            return null;
+        }
+        ECPoint w = ((org.bouncycastle.jce.interfaces.ECPublicKey) publicKey).getQ();
+        return w.getEncoded(false);
     }
 
     @Override

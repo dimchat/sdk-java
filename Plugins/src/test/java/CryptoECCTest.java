@@ -7,6 +7,7 @@ import java.util.Map;
 
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.PublicKey;
+import chat.dim.format.Hex;
 import chat.dim.format.UTF8;
 
 public class CryptoECCTest {
@@ -53,6 +54,10 @@ public class CryptoECCTest {
     public void testPublicKey() throws ClassNotFoundException {
         PublicKey key = getPublicKey();
         Log.info("ECC public key: " + key);
+
+        byte[] data = key.getData();
+        String hex = Hex.encode(data);
+        Log.info("pub: " + hex);
     }
 
     @Test
@@ -60,9 +65,12 @@ public class CryptoECCTest {
         PrivateKey sk = getPrivateKey();
         Log.info("ECC private key: " + sk);
 
+        byte[] data = sk.getData();
+        String hex = Hex.encode(data);
+        Log.info("priv: " + hex);
+
         PublicKey pk = sk.getPublicKey();
         Log.info("ECC public key: " + pk);
-
 
         String text = "moky9527";
         byte[] plaintext = UTF8.encode(text);
