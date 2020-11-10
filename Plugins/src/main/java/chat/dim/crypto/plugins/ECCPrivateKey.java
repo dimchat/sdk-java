@@ -27,15 +27,24 @@ package chat.dim.crypto.plugins;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
+import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.bouncycastle.jce.ECNamedCurveTable;
+import org.bouncycastle.jce.spec.ECParameterSpec;
+import org.bouncycastle.jce.spec.ECPublicKeySpec;
+import org.bouncycastle.math.ec.ECPoint;
 
 import chat.dim.crypto.CryptoUtils;
 import chat.dim.crypto.PrivateKey;
@@ -53,19 +62,14 @@ import chat.dim.format.PEM;
  */
 public final class ECCPrivateKey extends PrivateKey {
 
-    private final java.security.interfaces.ECPrivateKey privateKey;
-    private final java.security.interfaces.ECPublicKey publicKey;
+    private ECPrivateKey privateKey;
+    private ECPublicKey publicKey;
 
     public ECCPrivateKey(Map<String, Object> dictionary) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
         super(dictionary);
         KeyPair keyPair = getKeyPair();
-        if (keyPair == null) {
-            privateKey = null;
-            publicKey = null;
-        } else {
-            privateKey = (java.security.interfaces.ECPrivateKey) keyPair.getPrivate();
-            publicKey = (java.security.interfaces.ECPublicKey) keyPair.getPublic();
-        }
+        privateKey = (ECPrivateKey) keyPair.getPrivate();
+        publicKey = (ECPublicKey) keyPair.getPublic();
     }
 
     private String getCurveName() {
@@ -107,10 +111,27 @@ public final class ECCPrivateKey extends PrivateKey {
 
         // other parameters
         put("curve", curveName);
-        put("padding", "PKCS1");
         put("digest", "SHA256");
 
         return keyPair;
+    }
+
+    private static ECPublicKey generatePublicKey(ECPrivateKey privateKey) {
+        // Generate public key from private key
+        ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec("secp256k1");
+        org.bouncycastle.jce.interfaces.ECPrivateKey pk = (org.bouncycastle.jce.interfaces.ECPrivateKey) privateKey;
+        ECPoint Q = ecSpec.getG().multiply(pk.getD());
+        byte[] publicDerBytes = Q.getEncoded(false);
+
+        ECPoint point = ecSpec.getCurve().decodePoint(publicDerBytes);
+        ECPublicKeySpec pubSpec = new ECPublicKeySpec(point, ecSpec);
+        try {
+            KeyFactory keyFactory = CryptoUtils.getKeyFactory("EC");
+            return  (ECPublicKey) keyFactory.generatePublic(pubSpec);
+        } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     @Override
@@ -121,15 +142,20 @@ public final class ECCPrivateKey extends PrivateKey {
     @Override
     public PublicKey getPublicKey() {
         if (publicKey == null) {
-            throw new NullPointerException("public key not found");
+            if (privateKey == null) {
+                throw new NullPointerException("private key not found");
+            }
+            publicKey = generatePublicKey(privateKey);
+            if (publicKey == null) {
+                throw new NullPointerException("failed to get public key from private key");
+            }
         }
         String pem = PEM.encodePublicKey(publicKey, "EC");
         Map<String, Object> keyInfo = new HashMap<>();
         keyInfo.put("algorithm", get("algorithm"));  // ECC
         keyInfo.put("data", pem);
         keyInfo.put("curve", getCurveName());        // secp256k1
-        keyInfo.put("padding", get("padding"));      // PKCS1
-        keyInfo.put("digest", get("digest"));        // SHA256
+        keyInfo.put("digest", "SHA256");
         try {
             return new ECCPublicKey(keyInfo);
         } catch (NoSuchFieldException e) {

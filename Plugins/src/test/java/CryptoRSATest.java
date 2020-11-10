@@ -1,21 +1,20 @@
 
-import chat.dim.crypto.DecryptKey;
-import chat.dim.crypto.EncryptKey;
-import chat.dim.format.UTF8;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.PublicKey;
+import chat.dim.crypto.DecryptKey;
+import chat.dim.crypto.EncryptKey;
+import chat.dim.format.UTF8;
 
 public class CryptoRSATest {
 
     @Test
-    public void testRSA() throws UnsupportedEncodingException, ClassNotFoundException {
+    public void testRSA() throws ClassNotFoundException {
         PrivateKey sk = PrivateKey.generate(PrivateKey.RSA);
         Log.info("RSA private key: " + sk);
 
@@ -36,7 +35,8 @@ public class CryptoRSATest {
         byte[] signature = sk.sign(plaintext);
         Log.info("signature(\"" + text + "\") = " + Utils.hexEncode(signature));
 
-        Assert.assertTrue(pk.verify(plaintext, signature));
+        boolean ok = pk.verify(plaintext, signature);
+        Assert.assertTrue(ok);
     }
 
     @Test

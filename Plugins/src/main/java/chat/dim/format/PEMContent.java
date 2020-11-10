@@ -139,6 +139,9 @@ final class PEMContent {
             } catch (IllegalArgumentException e) {
                 //e.printStackTrace();
             }
+        } else if (isPrivate) {
+            // TODO: get public key data from private key data
+            return null;
         }
         return data;
     }

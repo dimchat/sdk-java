@@ -1,20 +1,19 @@
 
-import chat.dim.format.UTF8;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.format.Base64;
 import chat.dim.format.JSON;
+import chat.dim.format.UTF8;
 
 public class CryptoAESTest {
 
     @Test
-    public void testAES() throws UnsupportedEncodingException, ClassNotFoundException {
+    public void testAES() throws ClassNotFoundException {
         Map<String, Object> dictionary = new HashMap<>();
         dictionary.put("algorithm", "AES");
         dictionary.put("data", "C2+xGizLL1G1+z9QLPYNdp/bPP/seDvNw45SXPAvQqk=");

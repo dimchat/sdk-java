@@ -2,7 +2,6 @@
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Map;
 
 import chat.dim.ID;
@@ -22,7 +21,7 @@ import chat.dim.protocol.NetworkType;
 public class CryptoTest {
 
     @Test
-    public void testHash() throws UnsupportedEncodingException {
+    public void testHash() {
         Log.info("Crypto test");
 
         String string = "moky";
@@ -48,7 +47,7 @@ public class CryptoTest {
     }
 
     @Test
-    public void testEncode() throws UnsupportedEncodingException {
+    public void testEncode() {
         String string = "moky";
         byte[] data = UTF8.encode(string);
 
@@ -77,6 +76,7 @@ public class CryptoTest {
         Log.info("SK: " + UTF8.decode(JSON.encode(sk)));
     }
 
+    @SuppressWarnings("unchecked")
     private void checkX(String metaJson, String skJson) throws ClassNotFoundException {
         Object metaDict = JSON.decode(UTF8.encode(metaJson));
         Meta meta = Meta.getInstance((Map<String, Object>) metaDict);

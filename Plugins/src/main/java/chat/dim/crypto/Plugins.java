@@ -30,6 +30,8 @@ import java.security.Security;
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
 
 import chat.dim.crypto.plugins.AESKey;
+import chat.dim.crypto.plugins.ECCPrivateKey;
+import chat.dim.crypto.plugins.ECCPublicKey;
 import chat.dim.crypto.plugins.RSAPrivateKey;
 import chat.dim.crypto.plugins.RSAPublicKey;
 import chat.dim.digest.Hash;
@@ -59,7 +61,8 @@ public abstract class Plugins extends chat.dim.format.Plugins {
         PrivateKey.register("RSA/ECB/PKCS1Padding", RSAPrivateKey.class);
 
         // ECC
-        // ...
+        PrivateKey.register(PrivateKey.ECC, ECCPrivateKey.class); // default
+        PrivateKey.register("SHA256withECDSA", ECCPrivateKey.class);
 
         /*
          *  Public Key
@@ -70,7 +73,8 @@ public abstract class Plugins extends chat.dim.format.Plugins {
         PublicKey.register("RSA/ECB/PKCS1Padding", RSAPublicKey.class);
 
         // ECC
-        // ...
+        PublicKey.register(PublicKey.ECC, ECCPublicKey.class); // default
+        PublicKey.register("SHA256withECDSA", ECCPublicKey.class);
 
         /*
          *  Digest

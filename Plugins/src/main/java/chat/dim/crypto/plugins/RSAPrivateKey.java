@@ -55,19 +55,14 @@ import chat.dim.format.PEM;
  */
 public final class RSAPrivateKey extends PrivateKey implements DecryptKey {
 
-    private final java.security.interfaces.RSAPrivateKey privateKey;
-    private final java.security.interfaces.RSAPublicKey publicKey;
+    private java.security.interfaces.RSAPrivateKey privateKey;
+    private java.security.interfaces.RSAPublicKey publicKey;
 
     public RSAPrivateKey(Map<String, Object> dictionary) throws NoSuchAlgorithmException {
         super(dictionary);
         KeyPair keyPair = getKeyPair();
-        if (keyPair == null) {
-            privateKey = null;
-            publicKey = null;
-        } else {
-            privateKey = (java.security.interfaces.RSAPrivateKey) keyPair.getPrivate();
-            publicKey = (java.security.interfaces.RSAPublicKey) keyPair.getPublic();
-        }
+        privateKey = (java.security.interfaces.RSAPrivateKey) keyPair.getPrivate();
+        publicKey = (java.security.interfaces.RSAPublicKey) keyPair.getPublic();
     }
 
     private int keySize() {
@@ -131,9 +126,9 @@ public final class RSAPrivateKey extends PrivateKey implements DecryptKey {
         Map<String, Object> keyInfo = new HashMap<>();
         keyInfo.put("algorithm", get("algorithm"));  // RSA
         keyInfo.put("data", pem);
-        keyInfo.put("mode", get("mode"));            // ECB
-        keyInfo.put("padding", get("padding"));      // PKCS1
-        keyInfo.put("digest", get("digest"));        // SHA256
+        keyInfo.put("mode", "ECB");
+        keyInfo.put("padding", "PKCS1");
+        keyInfo.put("digest", "SHA256");
         try {
             return new RSAPublicKey(keyInfo);
         } catch (NoSuchFieldException e) {

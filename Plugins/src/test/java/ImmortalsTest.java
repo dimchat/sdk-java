@@ -1,9 +1,9 @@
 
-import chat.dim.Immortals;
 import org.junit.Test;
 
 import chat.dim.User;
 import chat.dim.ID;
+import chat.dim.Immortals;
 
 public class ImmortalsTest {
 

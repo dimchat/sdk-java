@@ -23,8 +23,8 @@ import chat.dim.protocol.NetworkType;
 
 public class EntityTest {
 
-    static Facebook facebook = Facebook.getInstance();
-    static String satoshi = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa";
+    private static Facebook facebook = Facebook.getInstance();
+    private static String satoshi = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa";
 
     private String getAddressInfo(Address address) {
         Map<String, Object> info = new HashMap<>();
