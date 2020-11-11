@@ -2,12 +2,12 @@
  *
  *  Ming-Ke-Ming : Decentralized User Identity Authentication
  *
- *                                Written in 2019 by Moky <albert.moky@gmail.com>
+ *                                Written in 2020 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Albert Moky
+ * Copyright (c) 2020 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,49 +30,39 @@
  */
 package chat.dim.mkm.plugins;
 
-import java.util.Arrays;
-
 import chat.dim.Address;
-import chat.dim.digest.RIPEMD160;
-import chat.dim.digest.SHA256;
-import chat.dim.format.Base58;
+import chat.dim.digest.Keccak256;
+import chat.dim.format.Hex;
+import chat.dim.protocol.NetworkType;
 
 /**
- *  Address like BitCoin
+ *  Address like Ethereum
  *
- *      data format: "network+digest+code"
- *          network    --  1 byte
- *          digest     -- 20 bytes
- *          code       --  4 bytes
+ *      data format: "0x{address}"
  *
  *      algorithm:
  *          fingerprint = sign(seed, SK);  // public key data
- *          digest      = ripemd160(sha256(fingerprint));
- *          code        = sha256(sha256(network + digest)).prefix(4);
- *          address     = base58_encode(network + digest + code);
+ *          digest      = keccak256(fingerprint);
+ *          address     = hex_encode(digest.suffix(20));
  */
-public final class BTCAddress extends Address {
+public final class ETHAddress extends Address {
 
     private final byte network;
     private final long code;
 
-    public BTCAddress(String string) {
+    public ETHAddress(String string) {
         super(string);
         // decode
-        byte[] data = Base58.decode(string);
-        if (data.length != 25) {
+        if (string.startsWith("0x")) {
+            string = string.substring(2);
+        }
+        byte[] data = Hex.decode(string);
+        if (data.length != 20) {
             throw new IndexOutOfBoundsException("address length error: " + data.length);
         }
-        // Check Code
-        byte[] prefix = new byte[21];
-        byte[] suffix = new byte[4];
-        System.arraycopy(data, 0, prefix, 0, 21);
-        System.arraycopy(data, 21, suffix, 0, 4);
-        byte[] cc = checkCode(prefix);
-        if (!Arrays.equals(cc, suffix)) {
-            throw new ArithmeticException("address check code error: " + string);
-        }
-        this.network = data[0];
+        String tail = string.substring(string.length() - 8);
+        byte[] cc = Hex.decode(tail);
+        this.network = NetworkType.Main.value;
         this.code    = userNumber(cc);
     }
 
@@ -93,28 +83,14 @@ public final class BTCAddress extends Address {
      * @param network - address type
      * @return Address object
      */
-    public static BTCAddress generate(byte[] fingerprint, byte network) {
-        // 1. digest = ripemd160(sha256(fingerprint))
-        byte[] digest = RIPEMD160.digest(SHA256.digest(fingerprint));
-        // 2. head = network + digest
-        byte[] head = new byte[21];
-        head[0] = network;
-        System.arraycopy(digest, 0, head, 1, 20);
-        // 3. cc = sha256(sha256(head)).prefix(4)
-        byte[] cc = checkCode(head);
-        // 4. data = base58_encode(head + cc)
-        byte[] data = new byte[25];
-        System.arraycopy(head, 0, data, 0, 21);
-        System.arraycopy(cc,0, data, 21, 4);
-        return new BTCAddress(Base58.encode(data));
-    }
-
-    private static byte[] checkCode(byte[] data) {
-        byte[] sha256d = SHA256.digest(SHA256.digest(data));
-        assert sha256d != null : "sha256 error";
-        byte[] cc = new byte[4];
-        System.arraycopy(sha256d, 0, cc, 0, 4);
-        return cc;
+    public static ETHAddress generate(byte[] fingerprint, byte network) {
+        // 1. digest = keccak256(fingerprint);
+        byte[] digest = Keccak256.digest(fingerprint);
+        // 2. address = hex_encode(digest.suffix(20));
+        byte[] tail = new byte[20];
+        System.arraycopy(digest, digest.length - 20, tail, 0, 20);
+        String address = "0x" + Hex.encode(tail);
+        return new ETHAddress(address);
     }
 
     private static long userNumber(byte[] cc) {
