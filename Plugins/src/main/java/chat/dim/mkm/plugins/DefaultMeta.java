@@ -85,6 +85,6 @@ public final class DefaultMeta extends Meta {
             return identifier.address;
         }
         // generate
-        return DefaultAddress.generate(getFingerprint(), network);
+        return BTCAddress.generate(getFingerprint(), network);
     }
 }

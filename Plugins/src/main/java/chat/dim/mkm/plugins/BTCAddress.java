@@ -51,12 +51,12 @@ import chat.dim.format.Base58;
  *          code        = sha256(sha256(network + digest)).prefix(4);
  *          address     = base58_encode(network + digest + code);
  */
-public final class DefaultAddress extends Address {
+public final class BTCAddress extends Address {
 
     private final byte network;
     private final long code;
 
-    public DefaultAddress(String string) {
+    public BTCAddress(String string) {
         super(string);
         // decode
         byte[] data = Base58.decode(string);
@@ -93,7 +93,7 @@ public final class DefaultAddress extends Address {
      * @param network - address type
      * @return Address object
      */
-    static DefaultAddress generate(byte[] fingerprint, byte network) {
+    public static BTCAddress generate(byte[] fingerprint, byte network) {
         // 1. digest = ripemd160(sha256(fingerprint))
         byte[] digest = RIPEMD160.digest(SHA256.digest(fingerprint));
         // 2. head = network + digest
@@ -106,7 +106,7 @@ public final class DefaultAddress extends Address {
         byte[] data = new byte[25];
         System.arraycopy(head, 0, data, 0, 21);
         System.arraycopy(cc,0, data, 21, 4);
-        return new DefaultAddress(Base58.encode(data));
+        return new BTCAddress(Base58.encode(data));
     }
 
     private static byte[] checkCode(byte[] data) {

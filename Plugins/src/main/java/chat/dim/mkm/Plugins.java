@@ -37,7 +37,7 @@ import chat.dim.Address;
 import chat.dim.ID;
 import chat.dim.Meta;
 import chat.dim.Profile;
-import chat.dim.mkm.plugins.DefaultAddress;
+import chat.dim.mkm.plugins.BTCAddress;
 import chat.dim.mkm.plugins.DefaultMeta;
 import chat.dim.mkm.plugins.UserProfile;
 import chat.dim.protocol.MetaType;
@@ -55,7 +55,7 @@ public abstract class Plugins extends chat.dim.crypto.Plugins {
         serializeConfig.put(ID.class, ToStringSerializer.instance);
 
         // Address
-        Address.register(DefaultAddress.class);
+        Address.register(BTCAddress.class);
 
         // Meta
         Meta.register(MetaType.MKM, DefaultMeta.class);

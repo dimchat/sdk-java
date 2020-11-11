@@ -5,28 +5,54 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
+import chat.dim.Address;
+import chat.dim.digest.RIPEMD160;
+import chat.dim.digest.SHA256;
+import chat.dim.mkm.plugins.BTCAddress;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.PublicKey;
 import chat.dim.format.Hex;
-import chat.dim.format.UTF8;
 
 public class CryptoECCTest {
 
-    @Test
-    public void testECC() throws ClassNotFoundException {
-        PrivateKey sk = PrivateKey.generate(PrivateKey.ECC);
-        Log.info("ECC private key: " + sk);
+    private void testKeys(PrivateKey sKey, PublicKey pKey) {
+        Log.info("ECC private key: " + sKey);
+        Log.info("secret data: " + Hex.encode(sKey.getData()));
 
-        PublicKey pk = sk.getPublicKey();
-        Log.info("ECC public key: " + pk);
+        Log.info("ECC public key: " + pKey);
+        Log.info("pub data: " + Hex.encode(pKey.getData()));
 
-        String text = "moky9527";
-        byte[] plaintext = UTF8.encode(text);
-        byte[] signature = sk.sign(plaintext);
-        Log.info("ECC signature(\"" + text + "\") = " + Utils.hexEncode(signature));
+        // sign
+        byte[] data = "moky".getBytes();
+        byte[] signature = sKey.sign(data);
+        String res = Hex.encode(signature);
+        Log.info("signature(moky) = " + res);
 
-        boolean ok = pk.verify(plaintext, signature);
+        // verify
+        boolean ok = pKey.verify(data, signature);
         Assert.assertTrue(ok);
+
+        pKey = sKey.getPublicKey();
+        ok = pKey.verify(data, signature);
+        Assert.assertTrue(ok);
+    }
+
+    private PrivateKey testKeys(String secret, String pub) throws ClassNotFoundException {
+        // create private key
+        Map<String, Object> dict1 = new HashMap<>();
+        dict1.put("algorithm", "ECC");
+        dict1.put("data", secret);
+        PrivateKey sKey = PrivateKey.getInstance(dict1);
+
+        // create public key
+        Map<String, Object> dict2 = new HashMap<>();
+        dict2.put("algorithm", "ECC");
+        dict2.put("data", pub);
+        PublicKey pKey = PublicKey.getInstance(dict2);
+
+        testKeys(sKey, pKey);
+
+        return sKey;
     }
 
     private static PublicKey getPublicKey() throws ClassNotFoundException {
@@ -51,7 +77,7 @@ public class CryptoECCTest {
     }
 
     @Test
-    public void testPublicKey() throws ClassNotFoundException {
+    public void testECCPublicKey() throws ClassNotFoundException {
         PublicKey key = getPublicKey();
         Log.info("ECC public key: " + key);
 
@@ -64,35 +90,37 @@ public class CryptoECCTest {
     }
 
     @Test
-    public void testPrivateKey() throws ClassNotFoundException {
-        PrivateKey sk = getPrivateKey();
-        Log.info("ECC private key: " + sk);
+    public void testECCWithPEM() throws ClassNotFoundException {
+        Log.info("-------- test PEM --------");
+        PrivateKey sKey = getPrivateKey();
+        Log.info("ECC private key: " + sKey);
 
-        byte[] data = sk.getData();
+        byte[] data = sKey.getData();
         String hex = Hex.encode(data);
         Log.info("priv: " + hex);
         String expected = "39498636ab19f03bca97b78f1d4dbc06970f4a1715d2c4a03a34d8dae9a132a9";
         Assert.assertEquals(expected, hex);
 
-        PublicKey pk = sk.getPublicKey();
-        Log.info("ECC public key: " + pk);
+        PublicKey pKey = sKey.getPublicKey();
+        testKeys(sKey, pKey);
 
-        String text = "moky9527";
-        byte[] plaintext = UTF8.encode(text);
-        byte[] signature = sk.sign(plaintext);
-        Log.info("ECC signature(\"" + text + "\") = " + Utils.hexEncode(signature));
-
-        boolean ok = pk.verify(plaintext, signature);
-        Assert.assertTrue(ok);
+        pKey = getPublicKey();
+        testKeys(sKey, pKey);
     }
 
     @Test
-    public void testSignature() throws ClassNotFoundException {
-        String secret = "c6e193266883a500c6e51a117e012d96ad113d5f21f42b28eb648be92a78f92f";
-        Map<String, Object> dictionary = new HashMap<>();
-        dictionary.put("algorithm", "ECC");
-        dictionary.put("data", secret);
-        PrivateKey sKey = PrivateKey.getInstance(dictionary);
+    public void testECCNewKeys() throws ClassNotFoundException {
+        Log.info("-------- test new keys --------");
+        PrivateKey sk = PrivateKey.generate(PrivateKey.ECC);
+        PublicKey pk = sk.getPublicKey();
+        testKeys(sk, pk);
+    }
+
+    @Test
+    public void testECCWithHex() throws ClassNotFoundException {
+        Log.info("-------- test HEX --------");
+        PrivateKey sKey = testKeys("c6e193266883a500c6e51a117e012d96ad113d5f21f42b28eb648be92a78f92f",
+                "0314bf901a6640033ea07b39c6b3acb675fc0af6a6ab526f378216085a93e5c7a2");
 
         byte[] data = "hello".getBytes();
         byte[] signature = sKey.sign(data);
@@ -110,18 +138,25 @@ public class CryptoECCTest {
         byte[] signature2 = Hex.decode(exp);
         ok = pKey.verify(data, signature2);
         Assert.assertTrue(ok);
+    }
 
-        String pub = "0314bf901a6640033ea07b39c6b3acb675fc0af6a6ab526f378216085a93e5c7a2";
-        dictionary.put("data", pub);
-        pKey = PublicKey.getInstance(dictionary);
-        Log.info("ECC public key: " + pKey);
-        Log.info("pub data: " + Hex.encode(pKey.getData()));
+    @Test
+    public void testECCKeys() throws ClassNotFoundException {
+        Log.info("-------- test keys --------");
+        PrivateKey sKey = testKeys("de97fdbdb823a197603e1f2cb8b1bded3824147e88ebd47367ba82d4b5600d73",
+                "047c91259636a5a16538e0603636f06c532dd6f2bb42f8dd33fa0cdb39546cf449612f3eaf15db9443b7e0668ef22187de9059633eb23112643a38771c630db911");
+        PublicKey pKey = sKey.getPublicKey();
 
-        ok = pKey.verify(data, signature);
-        Assert.assertTrue(ok);
+        byte[] pub = pKey.getData();
+        Log.info("pub: " + Hex.encode(pub));
 
-        ok = pKey.verify(data, signature2);
-        Assert.assertTrue(ok);
+        pub = Hex.decode("04d061e9c5891f579fd548cfd22ff29f5c642714cc7e7a9215f0071ef5a5723f691757b28e31be71f09f24673eed52348e58d53bcfd26f4d96ec6bf1489eab429d");
+
+        byte[] data = RIPEMD160.digest(SHA256.digest(pub));
+        Log.info("hash: " + Hex.encode(data));
+
+        Address address = BTCAddress.generate(pub, (byte) 0);
+        Log.info("address: " + address);
     }
 }
 
