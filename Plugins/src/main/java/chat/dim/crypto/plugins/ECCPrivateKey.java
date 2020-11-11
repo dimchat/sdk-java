@@ -28,7 +28,6 @@ package chat.dim.crypto.plugins;
 import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
-import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -38,14 +37,8 @@ import java.security.SignatureException;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
-import java.security.spec.InvalidKeySpecException;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.bouncycastle.jce.ECNamedCurveTable;
-import org.bouncycastle.jce.spec.ECParameterSpec;
-import org.bouncycastle.jce.spec.ECPublicKeySpec;
-import org.bouncycastle.math.ec.ECPoint;
 
 import chat.dim.crypto.CryptoUtils;
 import chat.dim.crypto.PrivateKey;
@@ -117,24 +110,6 @@ public final class ECCPrivateKey extends PrivateKey {
         return keyPair;
     }
 
-    private static ECPublicKey generatePublicKey(ECPrivateKey privateKey) {
-        // Generate public key from private key
-        ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec("secp256k1");
-        org.bouncycastle.jce.interfaces.ECPrivateKey pk = (org.bouncycastle.jce.interfaces.ECPrivateKey) privateKey;
-        ECPoint Q = ecSpec.getG().multiply(pk.getD());
-        byte[] publicDerBytes = Q.getEncoded(false);
-
-        ECPoint point = ecSpec.getCurve().decodePoint(publicDerBytes);
-        ECPublicKeySpec pubSpec = new ECPublicKeySpec(point, ecSpec);
-        try {
-            KeyFactory keyFactory = CryptoUtils.getKeyFactory("EC");
-            return  (ECPublicKey) keyFactory.generatePublic(pubSpec);
-        } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
     @Override
     public byte[] getData() {
         if (privateKey == null) {
@@ -150,7 +125,7 @@ public final class ECCPrivateKey extends PrivateKey {
             if (privateKey == null) {
                 throw new NullPointerException("private key not found");
             }
-            publicKey = generatePublicKey(privateKey);
+            publicKey = ECCKeys.generatePublicKey(privateKey);
             if (publicKey == null) {
                 throw new NullPointerException("failed to get public key from private key");
             }

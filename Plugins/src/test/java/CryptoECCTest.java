@@ -59,7 +59,8 @@ public class CryptoECCTest {
         String hex = Hex.encode(data);
         Log.info("pub: " + hex);
         String expected = "04f365dd8abe7c3671ffbd2b9d68e43682c1ecd7d9fb71f7d250c87388d9d48d63b88c79820da334d4847f8a1bde9e9d05fdaca7d6ffb353d2be7b9db8ed86c35a";
-        Assert.assertEquals(expected, hex);
+        expected = expected.substring(2, hex.length());
+        Assert.assertEquals(expected, hex.substring(2));
     }
 
     @Test
@@ -82,6 +83,44 @@ public class CryptoECCTest {
         Log.info("ECC signature(\"" + text + "\") = " + Utils.hexEncode(signature));
 
         boolean ok = pk.verify(plaintext, signature);
+        Assert.assertTrue(ok);
+    }
+
+    @Test
+    public void testSignature() throws ClassNotFoundException {
+        String secret = "c6e193266883a500c6e51a117e012d96ad113d5f21f42b28eb648be92a78f92f";
+        Map<String, Object> dictionary = new HashMap<>();
+        dictionary.put("algorithm", "ECC");
+        dictionary.put("data", secret);
+        PrivateKey sKey = PrivateKey.getInstance(dictionary);
+
+        byte[] data = "hello".getBytes();
+        byte[] signature = sKey.sign(data);
+        String res = Hex.encode(signature);
+        Log.info("signature(hello) = " + res);
+
+        PublicKey pKey = sKey.getPublicKey();
+        Log.info("ECC public key: " + pKey);
+        Log.info("pub data: " + Hex.encode(pKey.getData()));
+
+        boolean ok = pKey.verify(data, signature);
+        Assert.assertTrue(ok);
+
+        String exp = "3045022100a314a579fb9f30a804c172eec4881ed603e661eed692797149dfdbce24d671d202203ccfab0603ad97c34864caa22d42a24d0cb5750fcb159476b8ae30a11edc0ed6";
+        byte[] signature2 = Hex.decode(exp);
+        ok = pKey.verify(data, signature2);
+        Assert.assertTrue(ok);
+
+        String pub = "0314bf901a6640033ea07b39c6b3acb675fc0af6a6ab526f378216085a93e5c7a2";
+        dictionary.put("data", pub);
+        pKey = PublicKey.getInstance(dictionary);
+        Log.info("ECC public key: " + pKey);
+        Log.info("pub data: " + Hex.encode(pKey.getData()));
+
+        ok = pKey.verify(data, signature);
+        Assert.assertTrue(ok);
+
+        ok = pKey.verify(data, signature2);
         Assert.assertTrue(ok);
     }
 }

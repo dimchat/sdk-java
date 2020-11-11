@@ -25,10 +25,78 @@
  */
 package chat.dim.format;
 
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.interfaces.ECPrivateKey;
+import java.security.interfaces.ECPublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.KeySpec;
+import java.security.spec.PKCS8EncodedKeySpec;
+
+import org.bouncycastle.jce.ECNamedCurveTable;
+import org.bouncycastle.jce.spec.ECNamedCurveSpec;
+import org.bouncycastle.jce.spec.ECParameterSpec;
+import org.bouncycastle.jce.spec.ECPublicKeySpec;
+import org.bouncycastle.math.ec.ECPoint;
+
+import chat.dim.crypto.CryptoUtils;
 
 public class ECCKeys {
+
+    private static byte[] privatePrefix = Hex.decode("303E020100301006072A8648CE3D020106052B8104000A042730250201010420");
+
+    public static PrivateKey createPrivateKey(byte[] privateKey) {
+        byte[] full = new byte[privatePrefix.length + privateKey.length];
+        System.arraycopy(privatePrefix, 0, full, 0, privatePrefix.length);
+        System.arraycopy(privateKey, 0, full, privatePrefix.length, privateKey.length);
+        KeySpec spec = new PKCS8EncodedKeySpec(full);
+        try {
+            KeyFactory factory = CryptoUtils.getKeyFactory("EC");
+            return factory.generatePrivate(spec);
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static PublicKey createPublicKey(byte[] publicKey) {
+        ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec("secp256k1");
+        return createPublicKey(publicKey, ecSpec);
+    }
+
+    private static PublicKey createPublicKey(byte[] publicKey, ECParameterSpec ecSpec) {
+        ECPoint point = ecSpec.getCurve().decodePoint(publicKey);
+        ECPublicKeySpec pubSpec = new ECPublicKeySpec(point, ecSpec);
+        try {
+            KeyFactory keyFactory = CryptoUtils.getKeyFactory("EC");
+            return  keyFactory.generatePublic(pubSpec);
+        } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static ECPublicKey generatePublicKey(ECPrivateKey privateKey) {
+        // get curve name from private key
+        String curveName;
+        java.security.spec.ECParameterSpec namedSpec = privateKey.getParams();
+        if (namedSpec instanceof ECNamedCurveSpec) {
+            curveName = ((ECNamedCurveSpec) namedSpec).getName();
+        } else {
+            curveName = "secp256k1";
+        }
+        // Generate public key from private key
+        ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec(curveName);
+        ECPoint Q = ecSpec.getG().multiply(privateKey.getS());
+        byte[] publicDerBytes = Q.getEncoded(false);
+        return (ECPublicKey) createPublicKey(publicDerBytes, ecSpec);
+    }
+
+    //
+    //  PEM
+    //
 
     public static String encodePublicKey(PublicKey key) {
         return publicKeyParser.encode(key);
@@ -55,6 +123,20 @@ public class ECCKeys {
 
         @Override
         public PublicKey decode(String pem) {
+            // check for raw data (33/65 bytes)
+            int len = pem.length();
+            if (len == 66 || len == 130) {
+                // Hex format
+                return createPublicKey(Hex.decode(pem));
+            } else if (len == 44 || len == 88) {
+                // Base64 format
+                byte[] data = Base64.decode(pem);
+                if (data.length == 32) {
+                    // private key data
+                    return null;
+                }
+                return createPublicKey(Base64.decode(pem));
+            }
             return PEM.decodePublicKey(pem, "EC");
         }
     };
@@ -68,6 +150,20 @@ public class ECCKeys {
 
         @Override
         public PrivateKey decode(String pem) {
+            // check for raw data (32 bytes)
+            int len = pem.length();
+            if (len == 64) {
+                // Hex format
+                return createPrivateKey(Hex.decode(pem));
+            } else if (len == 44) {
+                // Base64 format
+                byte[] data = Base64.decode(pem);
+                if (data.length == 33) {
+                    // public key data
+                    return null;
+                }
+                return createPrivateKey(Base64.decode(pem));
+            }
             return PEM.decodePrivateKey(pem, "EC");
         }
     };
