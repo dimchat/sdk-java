@@ -11,8 +11,10 @@ import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.digest.RIPEMD160;
 import chat.dim.digest.SHA256;
+import chat.dim.digest.Keccak256;
 import chat.dim.format.Base58;
 import chat.dim.format.Base64;
+import chat.dim.format.Hex;
 import chat.dim.format.JSON;
 import chat.dim.format.UTF8;
 import chat.dim.protocol.MetaType;
@@ -44,6 +46,23 @@ public class CryptoTest {
         exp = "44bd174123aee452c6ec23a6ab7153fa30fa3b91";
         Log.info("ripemd160(" + string + ") = " + res);
         Assert.assertEquals(exp, res);
+    }
+
+    private void testKeccak(String text, String exp) {
+        byte[] data = text.getBytes();
+        byte[] d = Keccak256.digest(data);
+        String res = Hex.encode(d);
+        Log.info("Keccak(" + text + "): " + res);
+        Assert.assertEquals(exp, res);
+    }
+
+    @Test
+    public void testKeccak() {
+        // https://keccak-256.cloxy.net
+
+        testKeccak("moky", "96b07f3103d45cc7df2dd6e597922a17f48c86257dffe790d442bbd1ff46514d");
+        testKeccak("hello", "1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8");
+        testKeccak("abc", "4e03657aea45a94fc7d47ba826c8d667c0d1e6e33a64a036ec44f58fa12d6c45");
     }
 
     @Test
