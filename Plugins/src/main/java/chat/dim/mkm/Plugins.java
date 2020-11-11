@@ -38,7 +38,10 @@ import chat.dim.ID;
 import chat.dim.Meta;
 import chat.dim.Profile;
 import chat.dim.mkm.plugins.BTCAddress;
+import chat.dim.mkm.plugins.BTCMeta;
 import chat.dim.mkm.plugins.DefaultMeta;
+import chat.dim.mkm.plugins.ETHAddress;
+import chat.dim.mkm.plugins.ETHMeta;
 import chat.dim.mkm.plugins.UserProfile;
 import chat.dim.protocol.MetaType;
 
@@ -56,9 +59,14 @@ public abstract class Plugins extends chat.dim.crypto.Plugins {
 
         // Address
         Address.register(BTCAddress.class);
+        Address.register(ETHAddress.class);
 
         // Meta
         Meta.register(MetaType.MKM, DefaultMeta.class);
+        Meta.register(MetaType.BTC, BTCMeta.class);
+        Meta.register(MetaType.ExBTC, BTCMeta.class);
+        Meta.register(MetaType.ETH, ETHMeta.class);
+        Meta.register(MetaType.ExETH, ETHMeta.class);
 
         // Profile
         Profile.register(UserProfile.class);
