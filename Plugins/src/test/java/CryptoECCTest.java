@@ -58,6 +58,8 @@ public class CryptoECCTest {
         byte[] data = key.getData();
         String hex = Hex.encode(data);
         Log.info("pub: " + hex);
+        String expected = "04f365dd8abe7c3671ffbd2b9d68e43682c1ecd7d9fb71f7d250c87388d9d48d63b88c79820da334d4847f8a1bde9e9d05fdaca7d6ffb353d2be7b9db8ed86c35a";
+        Assert.assertEquals(expected, hex);
     }
 
     @Test
@@ -68,6 +70,8 @@ public class CryptoECCTest {
         byte[] data = sk.getData();
         String hex = Hex.encode(data);
         Log.info("priv: " + hex);
+        String expected = "39498636ab19f03bca97b78f1d4dbc06970f4a1715d2c4a03a34d8dae9a132a9";
+        Assert.assertEquals(expected, hex);
 
         PublicKey pk = sk.getPublicKey();
         Log.info("ECC public key: " + pk);

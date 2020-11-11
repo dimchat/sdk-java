@@ -39,7 +39,7 @@ import java.util.Map;
 import chat.dim.crypto.CryptoUtils;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.PublicKey;
-import chat.dim.format.PEM;
+import chat.dim.format.RSAKeys;
 
 /**
  *  RSA Public Key
@@ -74,7 +74,7 @@ public final class RSAPublicKey extends PublicKey implements EncryptKey {
         if (data == null) {
             throw new NoSuchFieldException("RSA public key data not found");
         }
-        return (java.security.interfaces.RSAPublicKey) PEM.decodePublicKey(data, "RSA");
+        return (java.security.interfaces.RSAPublicKey) RSAKeys.decodePublicKey(data);
     }
 
     @Override

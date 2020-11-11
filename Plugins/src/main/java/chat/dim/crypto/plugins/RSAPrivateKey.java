@@ -43,7 +43,7 @@ import chat.dim.crypto.CryptoUtils;
 import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.PublicKey;
-import chat.dim.format.PEM;
+import chat.dim.format.RSAKeys;
 
 /**
  *  RSA Private Key
@@ -83,8 +83,8 @@ public final class RSAPrivateKey extends PrivateKey implements DecryptKey {
             return generateKeyPair(keySize() * 8);
         } else {
             // parse PEM file content
-            java.security.PublicKey publicKey = PEM.decodePublicKey(data, "RSA");
-            java.security.PrivateKey privateKey = PEM.decodePrivateKey(data, "RSA");
+            java.security.PublicKey publicKey = RSAKeys.decodePublicKey(data);
+            java.security.PrivateKey privateKey = RSAKeys.decodePrivateKey(data);
             return new KeyPair(publicKey, privateKey);
         }
     }
@@ -95,11 +95,11 @@ public final class RSAPrivateKey extends PrivateKey implements DecryptKey {
         KeyPair keyPair = generator.generateKeyPair();
 
         // -----BEGIN PUBLIC KEY-----
-        String pkString = PEM.encodePublicKey(keyPair.getPublic(), "RSA");
+        String pkString = RSAKeys.encodePublicKey(keyPair.getPublic());
         // -----END PUBLIC KEY-----
 
         // -----BEGIN RSA PRIVATE KEY-----
-        String skString = PEM.encodePrivateKey(keyPair.getPrivate(), "RSA");
+        String skString = RSAKeys.encodePrivateKey(keyPair.getPrivate());
         // -----END RSA PRIVATE KEY-----
 
         put("data", pkString + "\r\n" + skString);
@@ -122,7 +122,7 @@ public final class RSAPrivateKey extends PrivateKey implements DecryptKey {
         if (publicKey == null) {
             throw new NullPointerException("public key not found");
         }
-        String pem = PEM.encodePublicKey(publicKey, "RSA");
+        String pem = RSAKeys.encodePublicKey(publicKey);
         Map<String, Object> keyInfo = new HashMap<>();
         keyInfo.put("algorithm", get("algorithm"));  // RSA
         keyInfo.put("data", pem);

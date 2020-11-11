@@ -50,7 +50,7 @@ import org.bouncycastle.math.ec.ECPoint;
 import chat.dim.crypto.CryptoUtils;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.PublicKey;
-import chat.dim.format.PEM;
+import chat.dim.format.ECCKeys;
 
 /**
  *  ECC Private Key
@@ -88,8 +88,8 @@ public final class ECCPrivateKey extends PrivateKey {
             return generateKeyPair(getCurveName());
         } else {
             // parse PEM file content
-            java.security.PublicKey publicKey = PEM.decodePublicKey(data, "EC");
-            java.security.PrivateKey privateKey = PEM.decodePrivateKey(data, "EC");
+            java.security.PublicKey publicKey = ECCKeys.decodePublicKey(data);
+            java.security.PrivateKey privateKey = ECCKeys.decodePrivateKey(data);
             return new KeyPair(publicKey, privateKey);
         }
     }
@@ -101,11 +101,11 @@ public final class ECCPrivateKey extends PrivateKey {
         KeyPair keyPair = generator.generateKeyPair();
 
         // -----BEGIN PUBLIC KEY-----
-        String pkString = PEM.encodePublicKey(keyPair.getPublic(), "EC");
+        String pkString = ECCKeys.encodePublicKey(keyPair.getPublic());
         // -----END PUBLIC KEY-----
 
         // -----BEGIN ECC PRIVATE KEY-----
-        String skString = PEM.encodePrivateKey(keyPair.getPrivate(), "EC");
+        String skString = ECCKeys.encodePrivateKey(keyPair.getPrivate());
         // -----END ECC PRIVATE KEY-----
 
         put("data", pkString + "\r\n" + skString);
@@ -155,7 +155,7 @@ public final class ECCPrivateKey extends PrivateKey {
                 throw new NullPointerException("failed to get public key from private key");
             }
         }
-        String pem = PEM.encodePublicKey(publicKey, "EC");
+        String pem = ECCKeys.encodePublicKey(publicKey);
         Map<String, Object> keyInfo = new HashMap<>();
         keyInfo.put("algorithm", get("algorithm"));  // ECC
         keyInfo.put("data", pem);

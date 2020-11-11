@@ -36,29 +36,27 @@ import java.security.spec.X509EncodedKeySpec;
 
 import chat.dim.crypto.CryptoUtils;
 
-public class PEM {
+final class PEM {
 
-    public static String encodePublicKey(PublicKey key, String algorithm) {
+    static String encodePublicKey(PublicKey key, String algorithm) {
         try {
-            PEMContent file = new PEMContent(key, algorithm);
-            return file.toString();
+            return (new PEMContent(key, algorithm)).toString();
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
     }
 
-    public static String encodePrivateKey(PrivateKey key, String algorithm) {
+    static String encodePrivateKey(PrivateKey key, String algorithm) {
         try {
-            PEMContent file = new PEMContent(key, algorithm);
-            return file.toString();
+            return (new PEMContent(key, algorithm)).toString();
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
     }
 
-    public static PublicKey decodePublicKey(String pem, String algorithm) {
+    static PublicKey decodePublicKey(String pem, String algorithm) {
         byte[] keyData;
         try {
             PEMContent file = new PEMContent(pem, algorithm);
@@ -80,7 +78,7 @@ public class PEM {
         return null;
     }
 
-    public static PrivateKey decodePrivateKey(String pem, String algorithm) {
+    static PrivateKey decodePrivateKey(String pem, String algorithm) {
         byte[] keyData;
         try {
             PEMContent file = new PEMContent(pem, algorithm);
@@ -100,5 +98,154 @@ public class PEM {
             }
         }
         return null;
+    }
+
+    //
+    //  PEM content
+    //
+
+    final static class PEMContent {
+
+        final String fileContent; // PKCS#1 @DER @PEM
+
+        final byte[] publicKeyData;       // X.509
+        final byte[] privateKeyData;      // PKCS#8
+
+        PEMContent(String fileContent, String algorithm) throws InvalidKeySpecException, NoSuchAlgorithmException {
+            super();
+
+            this.fileContent = fileContent;
+            this.publicKeyData = getPublicKeyData(fileContent, algorithm);
+            this.privateKeyData = getPrivateKeyData(fileContent, algorithm);
+        }
+
+        PEMContent(java.security.PublicKey publicKey, String algorithm) throws IOException {
+            super();
+
+            this.fileContent = getFileContent(publicKey, algorithm);
+            this.publicKeyData = publicKey.getEncoded();
+            this.privateKeyData = null;
+        }
+
+        PEMContent(java.security.PrivateKey privateKey, String algorithm) throws IOException {
+            super();
+
+            this.fileContent = getFileContent(privateKey, algorithm);
+            this.publicKeyData = null;
+            this.privateKeyData = privateKey.getEncoded();
+        }
+
+        @Override
+        public String toString() {
+            return fileContent;
+        }
+
+        static String getFileContent(java.security.PublicKey publicKey, String algorithm) throws IOException {
+            byte[] data = publicKey.getEncoded();
+            String format = publicKey.getFormat();
+            if (format.equals("X.509")) {
+                if (algorithm.equals("RSA")) {
+                    // convert to PKCS#1
+                    data = (new X509(data)).toPKCS1();
+                    format = "PKCS#1";
+                }
+            }
+            String begin, end;
+            if (format.equals("PKCS#1")) {
+                begin = "-----BEGIN " + algorithm + " PUBLIC KEY-----\r\n";
+                end = "\r\n-----END " + algorithm + " PUBLIC KEY-----";
+            } else {
+                begin = "-----BEGIN PUBLIC KEY-----\r\n";
+                end = "\r\n-----END PUBLIC KEY-----";
+            }
+            return begin + RFC.rfc2045(data) + end;
+        }
+
+        static String getFileContent(java.security.PrivateKey privateKey, String algorithm) throws IOException {
+            byte[] data = privateKey.getEncoded();
+            String format = privateKey.getFormat();
+            if (format.equals("PKCS#8")) {
+                if (algorithm.equals("RSA")) {
+                    // convert to PKCS#1
+                    data = (new PKCS8(data)).toPKCS1();
+                    format = "PKCS#1";
+                }
+            }
+            String begin, end;
+            if (format.equals("PKCS#1")) {
+                begin = "-----BEGIN " + algorithm + " PRIVATE KEY-----\r\n";
+                end = "\r\n-----END " + algorithm + " PRIVATE KEY-----";
+            } else {
+                begin = "-----BEGIN PRIVATE KEY-----\r\n";
+                end = "\r\n-----END PRIVATE KEY-----";
+            }
+            return begin + RFC.rfc2045(data) + end;
+        }
+
+        static byte[] getPublicKeyData(String pem, String algorithm) throws NoSuchAlgorithmException, InvalidKeySpecException {
+            String keyContent = getKeyContent(pem, algorithm, "PUBLIC");
+            boolean isPrivate = false;
+            if (keyContent == null) {
+                // get from private key content
+                keyContent = getKeyContent(pem, algorithm, "PRIVATE");
+                if (keyContent == null) {
+                    return null;
+                }
+                isPrivate = true;
+            }
+            byte[] data = Base64.decode(keyContent);
+            if (algorithm.equals("RSA")) {
+                try {
+                    // convert from "PKCS#1" to "X.509"
+                    data = (new PKCS1(data, isPrivate)).toX509();
+                } catch (IllegalArgumentException e) {
+                    //e.printStackTrace();
+                }
+            } else if (isPrivate) {
+                // TODO: get public key data from private key data
+                return null;
+            }
+            return data;
+        }
+
+        static byte[] getPrivateKeyData(String pem, String algorithm) throws NoSuchAlgorithmException, InvalidKeySpecException {
+            String keyContent = getKeyContent(pem, algorithm, "PRIVATE");
+            if (keyContent == null) {
+                return null;
+            }
+            byte[] data = Base64.decode(keyContent);
+            if (algorithm.equals("RSA")) {
+                try {
+                    // convert from "PKCS#1" to "PKCS#8"
+                    data = (new PKCS1(data, true)).toPKCS8();
+                } catch (IllegalArgumentException e) {
+                    e.printStackTrace();
+                }
+            }
+            return data;
+        }
+
+        static String getKeyContent(String pem, String algorithm, String tag) {
+            String sTag = "-----BEGIN " + algorithm + " " + tag + " KEY-----";
+            String eTag = "-----END " + algorithm + " " + tag + " KEY-----";
+            int sPos = pem.indexOf(sTag);
+            if (sPos < 0) {
+                // not PKCS#1 ? try PKCS#8
+                sTag = "-----BEGIN " + tag + " KEY-----";
+                eTag = "-----END " + tag + " KEY-----";
+                sPos = pem.indexOf(sTag);
+                if (sPos < 0) {
+                    // not found
+                    return null;
+                }
+            }
+            sPos += sTag.length();
+            int ePos = pem.indexOf(eTag, sPos);
+            if (ePos < 0) {
+                throw new StringIndexOutOfBoundsException("PEM format error: " + pem);
+            }
+            // got it
+            return pem.substring(sPos, ePos).replaceAll("[\r\n\\s]+", "");
+        }
     }
 }

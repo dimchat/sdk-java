@@ -59,7 +59,7 @@ public abstract class Plugins {
         };
 
         // JsON format
-        JSON.parser = new DataParser() {
+        JSON.parser = new DataParser<Object>() {
             @Override
             public byte[] encode(Object container) {
                 /*

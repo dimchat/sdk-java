@@ -36,7 +36,7 @@ import org.bouncycastle.math.ec.ECPoint;
 
 import chat.dim.crypto.CryptoUtils;
 import chat.dim.crypto.PublicKey;
-import chat.dim.format.PEM;
+import chat.dim.format.ECCKeys;
 
 /**
  *  ECC Public Key
@@ -61,7 +61,7 @@ public final class ECCPublicKey extends PublicKey {
         if (data == null) {
             throw new NoSuchFieldException("ECC public key data not found");
         }
-        return (ECPublicKey) PEM.decodePublicKey(data, "EC");
+        return (ECPublicKey) ECCKeys.decodePublicKey(data);
     }
 
     @Override
