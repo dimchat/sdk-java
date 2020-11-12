@@ -32,10 +32,10 @@ package chat.dim.mkm.plugins;
 
 import java.util.Arrays;
 
-import chat.dim.Address;
 import chat.dim.digest.RIPEMD160;
 import chat.dim.digest.SHA256;
 import chat.dim.format.Base58;
+import chat.dim.protocol.Address;
 
 /**
  *  Address like BitCoin
@@ -51,39 +51,18 @@ import chat.dim.format.Base58;
  *          code        = sha256(sha256(network + digest)).prefix(4);
  *          address     = base58_encode(network + digest + code);
  */
-public final class BTCAddress extends Address {
+public final class BTCAddress extends chat.dim.type.String implements Address {
 
     private final byte network;
-    private final long code;
 
-    public BTCAddress(String string) {
+    public BTCAddress(String string, byte network) {
         super(string);
-        // decode
-        byte[] data = Base58.decode(string);
-        if (data.length != 25) {
-            throw new IndexOutOfBoundsException("address length error: " + data.length);
-        }
-        // Check Code
-        byte[] prefix = new byte[21];
-        byte[] suffix = new byte[4];
-        System.arraycopy(data, 0, prefix, 0, 21);
-        System.arraycopy(data, 21, suffix, 0, 4);
-        byte[] cc = checkCode(prefix);
-        if (!Arrays.equals(cc, suffix)) {
-            throw new ArithmeticException("address check code error: " + string);
-        }
-        this.network = data[0];
-        this.code    = userNumber(cc);
+        this.network = network;
     }
 
     @Override
     public byte getNetwork() {
         return network;
-    }
-
-    @Override
-    public long getCode() {
-        return code;
     }
 
     /**
@@ -106,7 +85,31 @@ public final class BTCAddress extends Address {
         byte[] data = new byte[25];
         System.arraycopy(head, 0, data, 0, 21);
         System.arraycopy(cc,0, data, 21, 4);
-        return new BTCAddress(Base58.encode(data));
+        return new BTCAddress(Base58.encode(data), network);
+    }
+
+    /**
+     *  Parse a string for BTC address
+     *
+     * @param string - address string
+     * @return null on error
+     */
+    public static BTCAddress parse(String string) {
+        // decode
+        byte[] data = Base58.decode(string);
+        if (data.length != 25) {
+            return null;
+        }
+        // Check Code
+        byte[] prefix = new byte[21];
+        byte[] suffix = new byte[4];
+        System.arraycopy(data, 0, prefix, 0, 21);
+        System.arraycopy(data, 21, suffix, 0, 4);
+        byte[] cc = checkCode(prefix);
+        if (!Arrays.equals(cc, suffix)) {
+            return null;
+        }
+        return new BTCAddress(string, data[0]);
     }
 
     private static byte[] checkCode(byte[] data) {

@@ -30,10 +30,10 @@
  */
 package chat.dim.network;
 
-import chat.dim.Profile;
 import chat.dim.User;
-import chat.dim.ID;
+import chat.dim.protocol.ID;
 import chat.dim.protocol.NetworkType;
+import chat.dim.protocol.Profile;
 
 public class Station extends User {
 

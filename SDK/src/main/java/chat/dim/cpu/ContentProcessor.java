@@ -37,12 +37,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.Facebook;
-import chat.dim.ID;
 import chat.dim.Messenger;
-import chat.dim.ReliableMessage;
-import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
+import chat.dim.protocol.ID;
+import chat.dim.protocol.ReliableMessage;
 
 /**
  *  Content/Command Processing Units
@@ -130,7 +129,7 @@ public class ContentProcessor {
 
     //-------- Main --------
 
-    public Content process(Content content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
+    public Content process(Content content, ID sender, ReliableMessage rMsg) {
         assert getClass() == ContentProcessor.class : "error!"; // override me!
         // process content by type
         ContentProcessor cpu = getCPU(content.getType());

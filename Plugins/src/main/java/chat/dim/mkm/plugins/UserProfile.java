@@ -33,59 +33,12 @@ package chat.dim.mkm.plugins;
 import java.util.List;
 import java.util.Map;
 
-import chat.dim.ID;
-import chat.dim.Profile;
-import chat.dim.crypto.EncryptKey;
-import chat.dim.crypto.PublicKey;
+import chat.dim.mkm.BaseProfile;
 
-public class UserProfile extends Profile {
+public class UserProfile extends BaseProfile {
 
     public UserProfile(Map<String, Object> dictionary) {
         super(dictionary);
-        Object identifier = dictionary.get("ID");
-        if (identifier instanceof ID) {
-            if (!((ID) identifier).isUser()) {
-                throw new ClassCastException("not a user profile: " + dictionary);
-            }
-        } else if (!dictionary.containsKey("avatar") &&
-                !dictionary.containsKey("key")) {
-            throw new ClassCastException("not a user profile: " + dictionary);
-        }
-    }
-
-    public UserProfile(ID identifier) {
-        super(identifier);
-        assert identifier.isUser() : "user ID error: " + identifier;
-    }
-
-    /**
-     *  Public key (used for encryption, can be same with meta.key)
-     *
-     *      RSA
-     */
-    private EncryptKey key = null;
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public EncryptKey getKey() {
-        if (key == null) {
-            // get public key
-            try {
-                Object info = getProperty("key");
-                if (info instanceof Map) {
-                    key = (EncryptKey) PublicKey.getInstance((Map<String, Object>) info);
-                }
-            } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            }
-        }
-        return key;
-    }
-
-    @Override
-    public void setKey(EncryptKey publicKey) {
-        key = publicKey;
-        setProperty("key", key);
     }
 
     /**
@@ -93,7 +46,6 @@ public class UserProfile extends Profile {
      *
      * @return nickname
      */
-    @SuppressWarnings("unchecked")
     @Override
     public String getName() {
         String name = super.getName();
@@ -110,7 +62,6 @@ public class UserProfile extends Profile {
         return name;
     }
 
-    @SuppressWarnings("unchecked")
     public String getAvatar() {
         String url = (String) getProperty("avatar");
         if (url == null) {
@@ -128,25 +79,5 @@ public class UserProfile extends Profile {
 
     public void setAvatar(String url) {
         setProperty("avatar", url);
-    }
-
-    public static UserProfile getInstance(Map<String, Object> dictionary) {
-        if (dictionary == null) {
-            return null;
-        } else if (dictionary instanceof UserProfile) {
-            return (UserProfile) dictionary;
-        }
-        Object identifier = dictionary.get("ID");
-        if (identifier instanceof ID) {
-            if (!((ID) identifier).isUser()) {
-                // not a user profile
-                return null;
-            }
-        } else if (!dictionary.containsKey("avatar") &&
-                !dictionary.containsKey("key")) {
-            // not a user profile
-            return null;
-        }
-        return new UserProfile(dictionary);
     }
 }

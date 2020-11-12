@@ -30,12 +30,11 @@
  */
 package chat.dim.cpu;
 
-import chat.dim.ID;
 import chat.dim.Messenger;
-import chat.dim.ReliableMessage;
-import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
+import chat.dim.protocol.ID;
+import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.TextContent;
 
 class DefaultCommandProcessor extends CommandProcessor {
@@ -45,11 +44,11 @@ class DefaultCommandProcessor extends CommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
+    public Content process(Content content, ID sender, ReliableMessage rMsg) {
         assert content instanceof Command : "command error: " + content;
         Command cmd = (Command) content;
         String text = String.format("Command (name: %s) not support yet!", cmd.getCommand());
-        Content res = new TextContent(text);
+        TextContent res = new TextContent(text);
         // check group message
         ID group = content.getGroup();
         if (group != null) {

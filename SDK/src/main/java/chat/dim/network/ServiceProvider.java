@@ -33,7 +33,7 @@ package chat.dim.network;
 import java.util.List;
 
 import chat.dim.Group;
-import chat.dim.ID;
+import chat.dim.protocol.ID;
 import chat.dim.protocol.NetworkType;
 
 public class ServiceProvider extends Group {

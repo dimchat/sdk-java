@@ -30,13 +30,13 @@
  */
 package chat.dim.mkm.plugins;
 
-import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.Address;
-import chat.dim.ID;
-import chat.dim.Meta;
-import chat.dim.crypto.PublicKey;
+import chat.dim.crypto.VerifyKey;
+import chat.dim.mkm.BaseMeta;
+import chat.dim.mkm.Identifier;
+import chat.dim.protocol.Address;
+import chat.dim.protocol.ID;
 import chat.dim.protocol.MetaType;
 
 /**
@@ -51,42 +51,49 @@ import chat.dim.protocol.MetaType;
  *          digest      = keccak256(fingerprint);
  *          address     = hex_encode(digest.suffix(20));
  */
-public final class ETHMeta extends Meta {
+public final class ETHMeta extends BaseMeta {
 
     public ETHMeta(Map<String, Object> dictionary) {
         super(dictionary);
     }
 
-    // memory cache
-    private Map<Byte, ID> idMap = new HashMap<>();
-
     @Override
-    public ID generateID(byte network) {
-        // check cache
-        ID identifier = idMap.get(network);
+    public boolean matches(ID identifier) {
         if (identifier == null) {
-            // generate and cache it
-            identifier = super.generateID(network);
-            assert identifier.isValid() : "failed to generate ID: " + this;
-            idMap.put(network, identifier);
+            return false;
         }
-        return identifier;
+        Address address = identifier.getAddress();
+        if (address instanceof ETHAddress) {
+            return identifier.equals(generateID());
+        }
+        return false;
     }
 
-    @Override
-    protected Address generateAddress(byte network) {
-        assert MetaType.ETH.equals(getVersion()) || MetaType.ExETH.equals(getVersion()) : "meta version error";
+    // caches
+    private ID cachedID = null;
+    private Address cachedAddress = null;
+
+    public ID generateID() {
+        // check cache
+        if (cachedID == null) {
+            // generate and cache it
+            cachedID = new Identifier(getSeed(), generateAddress());
+        }
+        return cachedID;
+    }
+
+    private Address generateAddress() {
+        assert MetaType.ETH.equals(getType()) || MetaType.ExETH.equals(getType()) : "meta version error";
         if (!isValid()) {
-            throw new IllegalArgumentException("meta invalid: " + dictionary);
+            throw new IllegalArgumentException("meta invalid: " + getMap());
         }
         // check cache
-        ID identifier = idMap.get(network);
-        if (identifier != null) {
-            return identifier.address;
+        if (cachedAddress == null) {
+            // generate and cache it
+            VerifyKey key = getKey();
+            byte[] data = key.getData();
+            cachedAddress = ETHAddress.generate(data);
         }
-        PublicKey key = getKey();
-        byte[] data = key.getData();
-        // generate
-        return ETHAddress.generate(data, network);
+        return cachedAddress;
     }
 }

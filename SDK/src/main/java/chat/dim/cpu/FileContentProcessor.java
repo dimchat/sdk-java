@@ -30,15 +30,16 @@
  */
 package chat.dim.cpu;
 
-import chat.dim.ID;
-import chat.dim.InstantMessage;
 import chat.dim.Messenger;
 import chat.dim.MessengerDelegate;
-import chat.dim.ReliableMessage;
-import chat.dim.SecureMessage;
 import chat.dim.crypto.SymmetricKey;
+import chat.dim.dkd.PlainMessage;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.FileContent;
+import chat.dim.protocol.ID;
+import chat.dim.protocol.InstantMessage;
+import chat.dim.protocol.ReliableMessage;
+import chat.dim.protocol.SecureMessage;
 
 public class FileContentProcessor extends ContentProcessor {
 
@@ -50,7 +51,7 @@ public class FileContentProcessor extends ContentProcessor {
         return getMessenger().getDelegate();
     }
 
-    public boolean uploadFileContent(FileContent content, SymmetricKey password, InstantMessage<ID, SymmetricKey> iMsg) {
+    public boolean uploadFileContent(FileContent content, SymmetricKey password, InstantMessage iMsg) {
         byte[] data = content.getData();
         if (data == null || data.length == 0) {
             throw new NullPointerException("failed to get file data: " + content);
@@ -71,13 +72,13 @@ public class FileContentProcessor extends ContentProcessor {
         }
     }
 
-    public boolean downloadFileContent(FileContent content, SymmetricKey password, SecureMessage<ID, SymmetricKey> sMsg) {
+    public boolean downloadFileContent(FileContent content, SymmetricKey password, SecureMessage sMsg) {
         String url = content.getURL();
         if (url == null || !url.contains("://")) {
             // download URL not found
             return false;
         }
-        InstantMessage iMsg = new InstantMessage<>(content, sMsg.getEnvelope());
+        InstantMessage iMsg = new PlainMessage(content, sMsg.getEnvelope());
         // download from CDN
         byte[] encrypted = getDelegate().downloadData(url, iMsg);
         if (encrypted == null || encrypted.length == 0) {
@@ -97,7 +98,7 @@ public class FileContentProcessor extends ContentProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
+    public Content process(Content content, ID sender, ReliableMessage rMsg) {
         assert content instanceof FileContent : "file content error: " + content;
         // TODO: process file content
 

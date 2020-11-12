@@ -33,7 +33,7 @@ package chat.dim.group;
 import java.util.List;
 
 import chat.dim.GroupDataSource;
-import chat.dim.ID;
+import chat.dim.protocol.ID;
 
 /**
  *  This interface is for getting information for chatroom

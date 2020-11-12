@@ -33,18 +33,17 @@ package chat.dim.cpu;
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.ID;
 import chat.dim.Messenger;
-import chat.dim.ReliableMessage;
 import chat.dim.cpu.group.ExpelCommandProcessor;
 import chat.dim.cpu.group.InviteCommandProcessor;
 import chat.dim.cpu.group.QueryCommandProcessor;
 import chat.dim.cpu.group.QuitCommandProcessor;
 import chat.dim.cpu.group.ResetCommandProcessor;
-import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
+import chat.dim.protocol.ID;
+import chat.dim.protocol.ReliableMessage;
 
 public class CommandProcessor extends ContentProcessor {
 
@@ -93,7 +92,7 @@ public class CommandProcessor extends ContentProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
+    public Content process(Content content, ID sender, ReliableMessage rMsg) {
         assert getClass() == CommandProcessor.class : "error!"; // override me!
         assert content instanceof Command : "command error: " + content;
         Command cmd = (Command) content;

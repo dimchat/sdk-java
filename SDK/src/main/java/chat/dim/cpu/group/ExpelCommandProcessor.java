@@ -34,13 +34,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import chat.dim.Facebook;
-import chat.dim.ID;
 import chat.dim.Messenger;
-import chat.dim.ReliableMessage;
 import chat.dim.cpu.GroupCommandProcessor;
-import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
+import chat.dim.protocol.ID;
+import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.group.ExpelCommand;
 
 public class ExpelCommandProcessor extends GroupCommandProcessor {
@@ -75,7 +74,7 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
+    public Content process(Content content, ID sender, ReliableMessage rMsg) {
         assert content instanceof ExpelCommand : "expel command error: " + content;
         ID group = content.getGroup();
         // 1. check permission
@@ -94,7 +93,7 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
         // 2.1. get removed-list
         List<ID> removed = doExpel(expelList, group);
         if (removed != null) {
-            content.put("removed", removed);
+            ((ExpelCommand) content).put("removed", removed);
         }
         // 3. response (no need to response this group command)
         return null;

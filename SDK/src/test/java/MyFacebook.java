@@ -6,16 +6,18 @@ import java.util.Map;
 
 import chat.dim.Facebook;
 import chat.dim.Group;
-import chat.dim.ID;
 import chat.dim.Immortals;
-import chat.dim.Meta;
-import chat.dim.Profile;
 import chat.dim.User;
 import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
 import chat.dim.crypto.VerifyKey;
+import chat.dim.mkm.Identifier;
+import chat.dim.protocol.Address;
+import chat.dim.protocol.ID;
+import chat.dim.protocol.Meta;
+import chat.dim.protocol.Profile;
 
 public class MyFacebook extends Facebook {
     private static MyFacebook ourInstance = new MyFacebook();
@@ -65,12 +67,18 @@ public class MyFacebook extends Facebook {
     //---- Profile
 
     protected boolean cacheProfile(Profile profile) {
-        ID identifier = ID.getInstance(profile.getIdentifier());
+        ID identifier = profile.getIdentifier();
         profileMap.put(identifier, profile);
         return true;
     }
 
     //-------- SocialNetworkDataSource
+
+    @Override
+    public ID getID(Address address) {
+        // TODO: generate ID from meta
+        return new Identifier(null, address);
+    }
 
     @Override
     public User getUser(ID identifier) {

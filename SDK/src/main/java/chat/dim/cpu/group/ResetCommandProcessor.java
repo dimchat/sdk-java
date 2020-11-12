@@ -36,13 +36,12 @@ import java.util.List;
 import java.util.Map;
 
 import chat.dim.Facebook;
-import chat.dim.ID;
 import chat.dim.Messenger;
-import chat.dim.ReliableMessage;
 import chat.dim.cpu.GroupCommandProcessor;
-import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
+import chat.dim.protocol.ID;
+import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.group.InviteCommand;
 import chat.dim.protocol.group.QueryCommand;
 import chat.dim.protocol.group.ResetCommand;
@@ -117,7 +116,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
+    public Content process(Content content, ID sender, ReliableMessage rMsg) {
         assert content instanceof ResetCommand || content instanceof InviteCommand : "reset command error: " + content;
         ID group = content.getGroup();
         // new members
@@ -143,11 +142,11 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
         Map<String, Object> result = doReset(newMembers, group);
         Object added = result.get("added");
         if (added != null) {
-            content.put("added", added);
+            ((GroupCommand) content).put("added", added);
         }
         Object removed = result.get("removed");
         if (removed != null) {
-            content.put("removed", removed);
+            ((GroupCommand) content).put("removed", removed);
         }
         // 3. response (no need to response this group command)
         return null;

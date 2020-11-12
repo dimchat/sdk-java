@@ -5,10 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import chat.dim.GroupDataSource;
-import chat.dim.ID;
 import chat.dim.Immortals;
-import chat.dim.Meta;
-import chat.dim.Profile;
 import chat.dim.User;
 import chat.dim.UserDataSource;
 import chat.dim.crypto.DecryptKey;
@@ -16,6 +13,9 @@ import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
 import chat.dim.crypto.VerifyKey;
+import chat.dim.protocol.ID;
+import chat.dim.protocol.Meta;
+import chat.dim.protocol.Profile;
 
 public class Facebook implements UserDataSource, GroupDataSource {
     private static Facebook ourInstance = new Facebook();

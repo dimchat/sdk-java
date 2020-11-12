@@ -35,10 +35,15 @@ import java.util.List;
 import chat.dim.core.Barrack;
 import chat.dim.group.Chatroom;
 import chat.dim.group.Polylogue;
+import chat.dim.mkm.BroadcastAddress;
 import chat.dim.network.Robot;
 import chat.dim.network.ServiceProvider;
 import chat.dim.network.Station;
+import chat.dim.protocol.Address;
+import chat.dim.protocol.ID;
+import chat.dim.protocol.Meta;
 import chat.dim.protocol.NetworkType;
+import chat.dim.protocol.Profile;
 
 public abstract class Facebook extends Barrack {
 
@@ -77,7 +82,7 @@ public abstract class Facebook extends Barrack {
     }
     public boolean verify(Profile profile) {
         assert profile != null : "profile should not be empty";
-        ID identifier = getID(profile.getIdentifier());
+        ID identifier = profile.getIdentifier();
         if (identifier == null) {
             throw new NullPointerException("profile ID error: " + profile);
         }
@@ -86,7 +91,7 @@ public abstract class Facebook extends Barrack {
         //         else (this is a user profile)
         //             verify it with the user's meta.key
         Meta meta;
-        if (identifier.isGroup()) {
+        if (NetworkType.isGroup(identifier.getType())) {
             // check by each member
             List<ID> members = getMembers(identifier);
             if (members != null) {
@@ -122,7 +127,6 @@ public abstract class Facebook extends Barrack {
                 meta = getMeta(owner);
             }
         } else {
-            assert identifier.isUser() : "profile ID error: " + identifier;
             meta = getMeta(identifier);
         }
         return meta != null && profile.verify(meta.getKey());
@@ -169,32 +173,11 @@ public abstract class Facebook extends Barrack {
 
     //--------
 
-    public ID getID(Address address) {
-        ID identifier = new ID(null, address);
-        Meta meta = getMeta(identifier);
-        if (meta == null) {
-            // failed to get meta for this ID
-            return null;
-        }
-        String seed = meta.getSeed();
-        if (seed == null || seed.length() == 0) {
-            return identifier;
-        }
-        identifier = meta.generateID(address.getNetwork());
-        cache(identifier);
-        return identifier;
-    }
-
-    @Override
-    protected ID createID(String string) {
-        assert string != null : "ID string should not be empty";
-        return ID.getInstance(string);
-    }
+    public abstract ID getID(Address address);
 
     @Override
     protected User createUser(ID identifier) {
-        assert identifier.isUser() : "user ID error: " + identifier;
-        if (identifier.isBroadcast()) {
+        if (identifier.getAddress() instanceof BroadcastAddress) {
             // create user 'anyone@anywhere'
             return new User(identifier);
         }
@@ -216,8 +199,7 @@ public abstract class Facebook extends Barrack {
 
     @Override
     protected Group createGroup(ID identifier) {
-        assert identifier.isGroup() : "group ID error: " + identifier;
-        if (identifier.isBroadcast()) {
+        if (identifier.getAddress() instanceof BroadcastAddress) {
             // create group 'everyone@everywhere'
             return new Group(identifier);
         }
@@ -254,7 +236,6 @@ public abstract class Facebook extends Barrack {
                 // it means this meta was generate by the member's private key
                 Meta m;
                 for (ID item : members) {
-                    assert item.isUser() : "member ID error: " + item;
                     m = getMeta(item);
                     if (m == null) {
                         continue;
@@ -286,8 +267,6 @@ public abstract class Facebook extends Barrack {
     }
 
     public boolean isFounder(ID member, ID group) {
-        assert member.isUser() : "member ID error: " + member;
-        assert group.isGroup() : "group ID error: " + group;
         // check member's public key with group's meta.key
         Meta gMeta = getMeta(group);
         if (gMeta == null) {
@@ -301,8 +280,6 @@ public abstract class Facebook extends Barrack {
     }
 
     public boolean isOwner(ID member, ID group) {
-        assert member.isUser() : "member ID error: " + member;
-        assert group.isGroup() : "group ID error: " + group;
         if (NetworkType.Polylogue.equals(group.getType())) {
             return isFounder(member, group);
         }
@@ -310,8 +287,6 @@ public abstract class Facebook extends Barrack {
     }
 
     public boolean existsMember(ID member, ID group) {
-        assert member.isUser() : "member ID error: " + member;
-        assert group.isGroup() : "group ID error: " + group;
         List<ID> members = getMembers(group);
         if (members != null && members.contains(member)) {
             return true;

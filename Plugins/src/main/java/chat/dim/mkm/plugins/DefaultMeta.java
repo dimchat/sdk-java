@@ -30,12 +30,9 @@
  */
 package chat.dim.mkm.plugins;
 
-import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.Address;
-import chat.dim.ID;
-import chat.dim.Meta;
+import chat.dim.protocol.Address;
 import chat.dim.protocol.MetaType;
 
 /**
@@ -51,38 +48,17 @@ import chat.dim.protocol.MetaType;
  *      address = base58_encode(network + hash + code);
  *      number  = uint(code);
  */
-public final class DefaultMeta extends Meta {
+public final class DefaultMeta extends BTCMeta {
 
     public DefaultMeta(Map<String, Object> dictionary) {
         super(dictionary);
     }
 
-    // memory cache
-    private Map<Byte, ID> idMap = new HashMap<>();
-
-    @Override
-    public ID generateID(byte network) {
-        // check cache
-        ID identifier = idMap.get(network);
-        if (identifier == null) {
-            // generate and cache it
-            identifier = super.generateID(network);
-            assert identifier.isValid() : "failed to generate ID: " + this;
-            idMap.put(network, identifier);
-        }
-        return identifier;
-    }
-
     @Override
     protected Address generateAddress(byte network) {
-        assert MetaType.MKM.equals(getVersion()) : "meta version error";
+        assert MetaType.MKM.equals(getType()) : "meta version error";
         if (!isValid()) {
-            throw new IllegalArgumentException("meta invalid: " + dictionary);
-        }
-        // check cache
-        ID identifier = idMap.get(network);
-        if (identifier != null) {
-            return identifier.address;
+            throw new IllegalArgumentException("meta invalid: " + getMap());
         }
         // generate
         return BTCAddress.generate(getFingerprint(), network);

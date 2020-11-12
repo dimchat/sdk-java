@@ -1,8 +1,9 @@
 
+import chat.dim.mkm.BroadcastAddress;
+import chat.dim.protocol.ID;
 import org.junit.Test;
 
 import chat.dim.User;
-import chat.dim.ID;
 import chat.dim.Immortals;
 
 public class ImmortalsTest {
@@ -30,16 +31,14 @@ public class ImmortalsTest {
         User anyone = new User(ID.ANYONE);
         anyone.setDataSource(facebook);
         Log.info("broadcast: " + anyone.identifier);
-        Log.info("number: " + anyone.getNumber());
         Log.info("anyone: " + anyone);
-        Log.info("is broadcast: " + anyone.identifier.isBroadcast());
+        Log.info("is broadcast: " + (anyone.identifier.getAddress() instanceof BroadcastAddress));
 
         // Everyone
         User everyone = new User(ID.EVERYONE);
         everyone.setDataSource(facebook);
         Log.info("broadcast: " + everyone.identifier);
-        Log.info("number: " + everyone.getNumber());
         Log.info("everyone: " + everyone);
-        Log.info("is broadcast: " + everyone.identifier.isBroadcast());
+        Log.info("is broadcast: " + (everyone.identifier.getAddress() instanceof BroadcastAddress));
     }
 }

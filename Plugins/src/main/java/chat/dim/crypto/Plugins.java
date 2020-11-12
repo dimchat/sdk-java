@@ -27,13 +27,19 @@ package chat.dim.crypto;
 
 import java.security.Security;
 
+import org.bouncycastle.crypto.digests.RIPEMD160Digest;
+import org.bouncycastle.crypto.digests.SHA3Digest;
+
 import chat.dim.crypto.plugins.AESKey;
 import chat.dim.crypto.plugins.ECCPrivateKey;
 import chat.dim.crypto.plugins.ECCPublicKey;
 import chat.dim.crypto.plugins.RSAPrivateKey;
 import chat.dim.crypto.plugins.RSAPublicKey;
+import chat.dim.digest.Hash;
+import chat.dim.digest.Keccak256;
+import chat.dim.digest.RIPEMD160;
 
-public abstract class Plugins extends chat.dim.digest.Plugins {
+public abstract class Plugins extends chat.dim.format.Plugins {
 
     static {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
@@ -41,6 +47,7 @@ public abstract class Plugins extends chat.dim.digest.Plugins {
         /*
          *  Symmetric Key
          */
+
         // AES
         SymmetricKey.register(SymmetricKey.AES, AESKey.class); // default
         SymmetricKey.register("AES/CBC/PKCS7Padding", AESKey.class);
@@ -51,6 +58,7 @@ public abstract class Plugins extends chat.dim.digest.Plugins {
         /*
          *  Private Key
          */
+
         // RSA
         PrivateKey.register(PrivateKey.RSA, RSAPrivateKey.class); // default
         PrivateKey.register("SHA256withRSA", RSAPrivateKey.class);
@@ -63,6 +71,7 @@ public abstract class Plugins extends chat.dim.digest.Plugins {
         /*
          *  Public Key
          */
+
         // RSA
         PublicKey.register(PublicKey.RSA, RSAPublicKey.class); // default
         PublicKey.register("SHA256withRSA", RSAPublicKey.class);
@@ -71,5 +80,36 @@ public abstract class Plugins extends chat.dim.digest.Plugins {
         // ECC
         PublicKey.register(PublicKey.ECC, ECCPublicKey.class); // default
         PublicKey.register("SHA256withECDSA", ECCPublicKey.class);
+    }
+
+    static {
+
+        /*
+         *  Digest
+         */
+
+        // RIPEMD160
+        RIPEMD160.hash = new Hash() {
+            @Override
+            public byte[] digest(byte[] data) {
+                RIPEMD160Digest digest = new RIPEMD160Digest();
+                digest.update(data, 0, data.length);
+                byte[] out = new byte[20];
+                digest.doFinal(out, 0);
+                return out;
+            }
+        };
+
+        // Keccak256
+        Keccak256.hash = new Hash() {
+            @Override
+            public byte[] digest(byte[] data) {
+                SHA3Digest digest = new SHA3Digest(256);
+                digest.update(data, 0, data.length);
+                byte[] out = new byte[digest.getDigestSize()];
+                digest.doFinal(out, 0);
+                return out;
+            }
+        };
     }
 }

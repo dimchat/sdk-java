@@ -33,14 +33,14 @@ package chat.dim.cpu;
 import java.util.ArrayList;
 import java.util.List;
 
+import chat.dim.Entity;
 import chat.dim.Facebook;
-import chat.dim.ID;
 import chat.dim.Messenger;
-import chat.dim.ReliableMessage;
-import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
+import chat.dim.protocol.ID;
+import chat.dim.protocol.ReliableMessage;
 
 public class GroupCommandProcessor extends HistoryCommandProcessor {
 
@@ -64,11 +64,10 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
 
     // convert String list to ID list
     private List<ID> convertMembers(List members) {
-        Facebook facebook = getFacebook();
         List<ID> array = new ArrayList<>();
         ID identifier;
         for (Object item : members) {
-            identifier = facebook.getID(item);
+            identifier = Entity.parseID(item);
             if (identifier == null) {
                 throw new NullPointerException("Member ID error: " + item);
             }
@@ -82,7 +81,7 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
         Facebook facebook = getFacebook();
         ID identifier;
         for (Object item : members) {
-            identifier = facebook.getID(item);
+            identifier = Entity.parseID(item);
             if (facebook.isOwner(identifier, group)) {
                 return true;
             }
@@ -102,7 +101,7 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
+    public Content process(Content content, ID sender, ReliableMessage rMsg) {
         assert getClass() == GroupCommandProcessor.class : "error!"; // override me!
         assert content instanceof Command : "group command error: " + content;
         // process command content by name

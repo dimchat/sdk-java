@@ -30,20 +30,14 @@
  */
 package chat.dim.mkm;
 
+import java.util.Map;
+
+import chat.dim.mkm.plugins.*;
+import chat.dim.protocol.*;
 import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.serializer.ToStringSerializer;
 
-import chat.dim.Address;
-import chat.dim.ID;
-import chat.dim.Meta;
-import chat.dim.Profile;
-import chat.dim.mkm.plugins.BTCAddress;
-import chat.dim.mkm.plugins.BTCMeta;
-import chat.dim.mkm.plugins.DefaultMeta;
-import chat.dim.mkm.plugins.ETHAddress;
-import chat.dim.mkm.plugins.ETHMeta;
-import chat.dim.mkm.plugins.UserProfile;
-import chat.dim.protocol.MetaType;
+import chat.dim.Entity;
 
 public abstract class Plugins extends chat.dim.crypto.Plugins {
 
@@ -57,18 +51,48 @@ public abstract class Plugins extends chat.dim.crypto.Plugins {
         serializeConfig.put(Address.class, ToStringSerializer.instance);
         serializeConfig.put(ID.class, ToStringSerializer.instance);
 
-        // Address
-        Address.register(BTCAddress.class);
-        Address.register(ETHAddress.class);
+        Entity.parser = new EntityParser() {
 
-        // Meta
-        Meta.register(MetaType.MKM, DefaultMeta.class);
-        Meta.register(MetaType.BTC, BTCMeta.class);
-        Meta.register(MetaType.ExBTC, BTCMeta.class);
-        Meta.register(MetaType.ETH, ETHMeta.class);
-        Meta.register(MetaType.ExETH, ETHMeta.class);
+            @Override
+            protected Address createAddress(String string) {
+                if (string == null) {
+                    return null;
+                }
+                Address address = super.createAddress(string);
+                if (address != null) {
+                    return address;
+                }
+                int len = string.length();
+                if (len == 40 || len == 42) {
+                    return ETHAddress.parse(string);
+                }
+                return BTCAddress.parse(string);
+            }
 
-        // Profile
-        Profile.register(UserProfile.class);
+            @Override
+            protected Meta createMeta(Map<String, Object> meta) {
+                int version = (int) meta.get("version");
+                if (MetaType.Default.equals(version)) {
+                    return new DefaultMeta(meta);
+                } else if (MetaType.BTC.equals(version) || MetaType.ExBTC.equals(version)) {
+                    return new BTCMeta(meta);
+                } else if (MetaType.ETH.equals(version) || MetaType.ExETH.equals(version)) {
+                    return new ETHMeta(meta);
+                }
+                return null;
+            }
+
+            @Override
+            protected Profile createProfile(Map<String, Object> profile) {
+                ID identifier = parseID(profile.get("ID"));
+                if (identifier == null) {
+                    return null;
+                }
+                if (NetworkType.isUser(identifier.getType())) {
+                    return new UserProfile(profile);
+                }
+                return super.createProfile(profile);
+            }
+        };
     }
 }

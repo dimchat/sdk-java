@@ -45,6 +45,9 @@ import chat.dim.crypto.VerifyKey;
 import chat.dim.filesys.Paths;
 import chat.dim.filesys.Resource;
 import chat.dim.format.JSON;
+import chat.dim.protocol.ID;
+import chat.dim.protocol.Meta;
+import chat.dim.protocol.Profile;
 
 /**
  *  Built-in accounts (for test)
@@ -70,8 +73,8 @@ public class Immortals extends chat.dim.mkm.Plugins implements UserDataSource {
         super();
         try {
             // load built-in users
-            loadBuiltInAccount(ID.getInstance(MOKI));
-            loadBuiltInAccount(ID.getInstance(HULK));
+            loadBuiltInAccount(Entity.parseID(MOKI));
+            loadBuiltInAccount(Entity.parseID(HULK));
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -94,23 +97,23 @@ public class Immortals extends chat.dim.mkm.Plugins implements UserDataSource {
         boolean OK = cache(identifier);
         assert OK : "ID error: " + identifier;
         // load meta for ID
-        Meta meta = loadMeta(identifier.name + "_meta.js");
+        Meta meta = loadMeta(identifier.getName() + "_meta.js");
         OK = cache(meta, identifier);
         assert OK : "meta error: " + meta;
         // load private key for ID
-        PrivateKey key = loadPrivateKey(identifier.name + "_secret.js");
+        PrivateKey key = loadPrivateKey(identifier.getName() + "_secret.js");
         OK = cache(key, identifier);
         assert OK : "private key error: " + key;
         // load profile for ID
-        Profile profile = loadProfile(identifier.name + "_profile.js");
+        Profile profile = loadProfile(identifier.getName() + "_profile.js");
         OK = cache(profile, identifier);
         assert OK : "profile error: " + profile;
     }
 
     @SuppressWarnings("unchecked")
-    private Meta loadMeta(String filename) throws IOException, ClassNotFoundException {
+    private Meta loadMeta(String filename) throws IOException {
         Map dict = loadJSON(filename);
-        return Meta.getInstance(dict);
+        return Entity.parseMeta(dict);
     }
 
     @SuppressWarnings("unchecked")
@@ -122,7 +125,7 @@ public class Immortals extends chat.dim.mkm.Plugins implements UserDataSource {
     @SuppressWarnings("unchecked")
     private Profile loadProfile(String filename) throws IOException {
         Map dict = loadJSON(filename);
-        Profile profile = Profile.getInstance(dict);
+        Profile profile = Entity.parseProfile(dict);
         assert profile != null : "failed to load profile: " + filename + ", " + dict;
         // copy 'name'
         Object name = dict.get("name");
@@ -166,7 +169,6 @@ public class Immortals extends chat.dim.mkm.Plugins implements UserDataSource {
     //-------- cache
 
     private boolean cache(ID identifier) {
-        assert identifier.isValid() : "ID not valid: " + identifier;
         idMap.put(identifier.toString(), identifier);
         return true;
     }
@@ -178,7 +180,6 @@ public class Immortals extends chat.dim.mkm.Plugins implements UserDataSource {
     }
 
     private boolean cache(PrivateKey key, ID identifier) {
-        assert getMeta(identifier).getKey().matches(key) : "SK error: " + identifier + ", " + key;
         privateKeyMap.put(identifier, key);
         return true;
     }
@@ -211,7 +212,6 @@ public class Immortals extends chat.dim.mkm.Plugins implements UserDataSource {
     }
 
     public User getUser(ID identifier) {
-        assert identifier.isUser() : "user ID error: " + identifier;
         User user = userMap.get(identifier);
         if (user == null) {
             // only create exists account
@@ -240,7 +240,6 @@ public class Immortals extends chat.dim.mkm.Plugins implements UserDataSource {
 
     @Override
     public List<ID> getContacts(ID user) {
-        assert user.isUser() : "user ID error: " + user;
         if (!idMap.containsValue(user)) {
             return null;
         }
@@ -256,14 +255,12 @@ public class Immortals extends chat.dim.mkm.Plugins implements UserDataSource {
 
     @Override
     public EncryptKey getPublicKeyForEncryption(ID user) {
-        assert user.isUser() : "user ID error: " + user;
         // NOTICE: return nothing to use profile.key or meta.key
         return null;
     }
 
     @Override
     public List<DecryptKey> getPrivateKeysForDecryption(ID user) {
-        assert user.isUser() : "user ID error: " + user;
         PrivateKey key = privateKeyMap.get(user);
         if (key instanceof DecryptKey) {
             List<DecryptKey> array = new ArrayList<>();
@@ -275,13 +272,11 @@ public class Immortals extends chat.dim.mkm.Plugins implements UserDataSource {
 
     @Override
     public SignKey getPrivateKeyForSignature(ID user) {
-        assert user.isUser() : "user ID error: " + user;
         return privateKeyMap.get(user);
     }
 
     @Override
     public List<VerifyKey> getPublicKeysForVerification(ID user) {
-        assert user.isUser() : "user ID error: " + user;
         // NOTICE: return nothing to use meta.key
         return null;
     }

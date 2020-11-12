@@ -5,31 +5,29 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.Content;
-import chat.dim.ID;
+import chat.dim.Entity;
 import chat.dim.Immortals;
-import chat.dim.InstantMessage;
-import chat.dim.Meta;
-import chat.dim.ReliableMessage;
-import chat.dim.SecureMessage;
+import chat.dim.KeyCache;
+import chat.dim.KeyStore;
 import chat.dim.User;
-
-import chat.dim.cpu.CommandProcessor;
-import chat.dim.crypto.SymmetricKey;
-import chat.dim.protocol.Command;
-import chat.dim.protocol.ContentType;
-import chat.dim.protocol.GroupCommand;
-import chat.dim.protocol.TextContent;
-import chat.dim.protocol.group.JoinCommand;
-
 import chat.dim.core.Barrack;
 import chat.dim.core.Transceiver;
 import chat.dim.cpu.ContentProcessor;
-
-import chat.dim.KeyCache;
-import chat.dim.KeyStore;
+import chat.dim.cpu.CommandProcessor;
 import chat.dim.cpu.HandshakeCommandProcessor;
 import chat.dim.cpu.TextContentProcessor;
+import chat.dim.dkd.PlainMessage;
+import chat.dim.protocol.Command;
+import chat.dim.protocol.Content;
+import chat.dim.protocol.ContentType;
+import chat.dim.protocol.GroupCommand;
+import chat.dim.protocol.ID;
+import chat.dim.protocol.InstantMessage;
+import chat.dim.protocol.Meta;
+import chat.dim.protocol.ReliableMessage;
+import chat.dim.protocol.SecureMessage;
+import chat.dim.protocol.TextContent;
+import chat.dim.protocol.group.JoinCommand;
 
 public class Tests extends TestCase {
 
@@ -64,14 +62,14 @@ public class Tests extends TestCase {
     @Test
     public void testUser() {
 
-        ID identifier = barrack.getID(Immortals.MOKI);
+        ID identifier = Entity.parseID(Immortals.MOKI);
         User user = barrack.getUser(identifier);
         Log.info("user: " + user);
     }
 
     @Test
     public void testGroupCommand() {
-        ID groupID = ID.getInstance("Group-1280719982@7oMeWadRw4qat2sL4mTdcQSDAqZSo7LH5G");
+        ID groupID = Entity.parseID("Group-1280719982@7oMeWadRw4qat2sL4mTdcQSDAqZSo7LH5G");
         JoinCommand join = new JoinCommand(groupID);
         Log.info("join: " + join);
         assertEquals(GroupCommand.JOIN, join.getCommand());
@@ -80,17 +78,17 @@ public class Tests extends TestCase {
     @Test
     public void testTransceiver() {
 
-        ID sender = ID.getInstance("moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
-        ID receiver = ID.getInstance("hulk@4YeVEN3aUnvC1DNUufCq1bs9zoBSJTzVEj");
+        ID sender = Entity.parseID("moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
+        ID receiver = Entity.parseID("hulk@4YeVEN3aUnvC1DNUufCq1bs9zoBSJTzVEj");
 
         Content content = new TextContent("Hello");
 
-        InstantMessage<ID, SymmetricKey> iMsg = new InstantMessage<>(content, sender, receiver);
+        InstantMessage iMsg = new PlainMessage(content, sender, receiver);
         iMsg.setDelegate(transceiver);
-        SecureMessage<ID, SymmetricKey> sMsg = transceiver.encryptMessage(iMsg);
-        ReliableMessage<ID, SymmetricKey> rMsg = transceiver.signMessage(sMsg);
+        SecureMessage sMsg = transceiver.encryptMessage(iMsg);
+        ReliableMessage rMsg = transceiver.signMessage(sMsg);
 
-        SecureMessage<ID, SymmetricKey> sMsg2 = transceiver.verifyMessage(rMsg);
+        SecureMessage sMsg2 = transceiver.verifyMessage(rMsg);
         InstantMessage iMsg2 = transceiver.decryptMessage(sMsg2);
 
         Log.info("send message: " + iMsg2);
@@ -98,12 +96,12 @@ public class Tests extends TestCase {
 
     @Test
     public void testBarrack() {
-        ID identifier = barrack.getID("moky@4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ");
+        ID identifier = Entity.parseID("moky@4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ");
 
         Meta meta = barrack.getMeta(identifier);
         Log.info("meta: " + meta);
 
-        identifier = barrack.getID("moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
+        identifier = Entity.parseID("moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
         User user = barrack.getUser(identifier);
 
 //        identifier = ID.getInstance("Group-1280719982@7oMeWadRw4qat2sL4mTdcQSDAqZSo7LH5G");

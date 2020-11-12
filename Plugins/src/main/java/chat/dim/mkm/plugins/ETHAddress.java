@@ -30,9 +30,9 @@
  */
 package chat.dim.mkm.plugins;
 
-import chat.dim.Address;
 import chat.dim.digest.Keccak256;
 import chat.dim.format.Hex;
+import chat.dim.protocol.Address;
 import chat.dim.protocol.NetworkType;
 
 /**
@@ -45,45 +45,24 @@ import chat.dim.protocol.NetworkType;
  *          digest      = keccak256(fingerprint);
  *          address     = hex_encode(digest.suffix(20));
  */
-public final class ETHAddress extends Address {
-
-    private final byte network;
-    private final long code;
+public final class ETHAddress extends chat.dim.type.String implements Address {
 
     public ETHAddress(String string) {
         super(string);
-        // decode
-        if (string.startsWith("0x")) {
-            string = string.substring(2);
-        }
-        byte[] data = Hex.decode(string);
-        if (data.length != 20) {
-            throw new IndexOutOfBoundsException("address length error: " + data.length);
-        }
-        String tail = string.substring(string.length() - 8);
-        byte[] cc = Hex.decode(tail);
-        this.network = NetworkType.Main.value;
-        this.code    = userNumber(cc);
     }
 
     @Override
     public byte getNetwork() {
-        return network;
-    }
-
-    @Override
-    public long getCode() {
-        return code;
+        return NetworkType.Main.value;
     }
 
     /**
      *  Generate address with fingerprint and network ID
      *
      * @param fingerprint = meta.fingerprint or key.data
-     * @param network - address type
      * @return Address object
      */
-    public static ETHAddress generate(byte[] fingerprint, byte network) {
+    public static ETHAddress generate(byte[] fingerprint) {
         // 1. digest = keccak256(fingerprint);
         byte[] digest = Keccak256.digest(fingerprint);
         // 2. address = hex_encode(digest.suffix(20));
@@ -93,11 +72,21 @@ public final class ETHAddress extends Address {
         return new ETHAddress(address);
     }
 
-    private static long userNumber(byte[] cc) {
-        return (long)
-                (cc[3] & 0xFF) << 24 |
-                (cc[2] & 0xFF) << 16 |
-                (cc[1] & 0xFF) << 8 |
-                (cc[0] & 0xFF);
+    /**
+     *  Parse a string for ETH address
+     *
+     * @param string - address string
+     * @return null on error
+     */
+    public static ETHAddress parse(String string) {
+        // decode
+        if (string.startsWith("0x")) {
+            string = string.substring(2);
+        }
+        byte[] data = Hex.decode(string);
+        if (data.length != 20) {
+            throw new IndexOutOfBoundsException("address length error: " + data.length);
+        }
+        return new ETHAddress(string);
     }
 }

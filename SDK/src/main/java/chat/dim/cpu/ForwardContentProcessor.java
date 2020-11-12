@@ -30,12 +30,11 @@
  */
 package chat.dim.cpu;
 
-import chat.dim.ID;
 import chat.dim.Messenger;
-import chat.dim.ReliableMessage;
-import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ForwardContent;
+import chat.dim.protocol.ID;
+import chat.dim.protocol.ReliableMessage;
 
 public class ForwardContentProcessor extends ContentProcessor {
 
@@ -44,10 +43,10 @@ public class ForwardContentProcessor extends ContentProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
+    public Content process(Content content, ID sender, ReliableMessage rMsg) {
         assert content instanceof ForwardContent : "forward content error: " + content;
         ForwardContent forward = (ForwardContent) content;
-        ReliableMessage<ID, SymmetricKey> secret = forward.getMessage();
+        ReliableMessage secret = forward.getMessage();
         // call messenger to process it
         secret = getMessenger().process(secret);
         // check response

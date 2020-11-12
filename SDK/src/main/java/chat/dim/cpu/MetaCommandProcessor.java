@@ -31,14 +31,13 @@
 package chat.dim.cpu;
 
 import chat.dim.Facebook;
-import chat.dim.ID;
 import chat.dim.Messenger;
-import chat.dim.Meta;
-import chat.dim.ReliableMessage;
-import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.Content;
+import chat.dim.protocol.ID;
+import chat.dim.protocol.Meta;
 import chat.dim.protocol.MetaCommand;
 import chat.dim.protocol.ReceiptCommand;
+import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.TextContent;
 
 public class MetaCommandProcessor extends CommandProcessor {
@@ -79,7 +78,7 @@ public class MetaCommandProcessor extends CommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
+    public Content process(Content content, ID sender, ReliableMessage rMsg) {
         assert content instanceof MetaCommand : "meta command error: " + content;
         MetaCommand cmd = (MetaCommand) content;
         Meta meta = cmd.getMeta();

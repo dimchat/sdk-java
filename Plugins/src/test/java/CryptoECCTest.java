@@ -1,11 +1,11 @@
 
+import chat.dim.protocol.Address;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.Address;
 import chat.dim.digest.RIPEMD160;
 import chat.dim.digest.SHA256;
 import chat.dim.mkm.plugins.BTCAddress;

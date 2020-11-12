@@ -31,7 +31,7 @@
 package chat.dim.group;
 
 import chat.dim.Group;
-import chat.dim.ID;
+import chat.dim.protocol.ID;
 import chat.dim.protocol.NetworkType;
 
 /**
@@ -47,7 +47,7 @@ public class Polylogue extends Group {
     @Override
     public ID getOwner() {
         ID owner = super.getOwner();
-        if (owner != null && owner.isValid()) {
+        if (owner != null) {
             assert owner == getFounder() : "polylogue owner error: " + owner + ", " + getFounder();
             return owner;
         }

@@ -36,6 +36,8 @@ import java.util.Map;
 import chat.dim.core.CipherKeyDelegate;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.crypto.plugins.PlainKey;
+import chat.dim.mkm.BroadcastAddress;
+import chat.dim.protocol.ID;
 
 /**
  *  Symmetric Keys Cache
@@ -116,10 +118,10 @@ public abstract class KeyCache implements CipherKeyDelegate {
         boolean changed = false;
         Map<String, Map<String, Object>> map = (Map<String, Map<String, Object>>)keyMap;
         for (Map.Entry<String, Map<String, Object>> entry1 : map.entrySet()) {
-            ID from = ID.getInstance(entry1.getKey());
+            ID from = Entity.parseID(entry1.getKey());
             Map<String, Object> table = entry1.getValue();
             for (Map.Entry<String, Object> entity2 : table.entrySet()) {
-                ID to = ID.getInstance(entity2.getKey());
+                ID to = Entity.parseID(entity2.getKey());
                 SymmetricKey newKey = SymmetricKey.getInstance((Map<String, Object>) entity2.getValue());
                 assert newKey != null : "key error(" + from + " -> " + to + "): " + entity2.getValue();
                 // check whether exists an old key
@@ -180,7 +182,7 @@ public abstract class KeyCache implements CipherKeyDelegate {
 
     @Override
     public SymmetricKey getCipherKey(ID sender, ID receiver) {
-        if (receiver.isBroadcast()) {
+        if (receiver.getAddress() instanceof BroadcastAddress) {
             return PlainKey.getInstance();
         }
         // get key from cache
@@ -191,7 +193,7 @@ public abstract class KeyCache implements CipherKeyDelegate {
 
     @Override
     public void cacheCipherKey(ID sender, ID receiver, SymmetricKey key) {
-        if (receiver.isBroadcast()) {
+        if (receiver.getAddress() instanceof BroadcastAddress) {
             // broadcast message has no key
             return;
         }

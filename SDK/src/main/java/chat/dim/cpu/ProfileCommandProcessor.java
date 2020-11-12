@@ -30,16 +30,17 @@
  */
 package chat.dim.cpu;
 
+import java.util.Map;
+
 import chat.dim.Facebook;
-import chat.dim.ID;
 import chat.dim.Messenger;
-import chat.dim.Meta;
-import chat.dim.Profile;
-import chat.dim.ReliableMessage;
-import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.Content;
+import chat.dim.protocol.ID;
+import chat.dim.protocol.Meta;
+import chat.dim.protocol.Profile;
 import chat.dim.protocol.ProfileCommand;
 import chat.dim.protocol.ReceiptCommand;
+import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.TextContent;
 
 public class ProfileCommandProcessor extends CommandProcessor {
@@ -48,11 +49,21 @@ public class ProfileCommandProcessor extends CommandProcessor {
         super(messenger);
     }
 
+    private boolean isEmpty(Profile profile) {
+        if (profile == null) {
+            return true;
+        }
+        if (profile instanceof Map) {
+            return !((Map) profile).containsKey("data");
+        }
+        return true;
+    }
+
     private Content getProfile(ID identifier) {
         Facebook facebook = getFacebook();
         // query profile for ID
         Profile profile = facebook.getProfile(identifier);
-        if (profile == null || !profile.containsKey("data")) {
+        if (isEmpty(profile)) {
             // profile not found
             String text = String.format("Sorry, profile not found for ID: %s", identifier);
             return new TextContent(text);
@@ -93,7 +104,7 @@ public class ProfileCommandProcessor extends CommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage<ID, SymmetricKey> rMsg) {
+    public Content process(Content content, ID sender, ReliableMessage rMsg) {
         assert content instanceof ProfileCommand : "profile command error: " + content;
         ProfileCommand cmd = (ProfileCommand) content;
         Profile profile = cmd.getProfile();
