@@ -104,7 +104,7 @@ public class StorageCommand extends Command {
         if (identifier == null) {
             remove("ID");
         } else {
-            put("ID", identifier);
+            put("ID", identifier.toString());
         }
     }
 

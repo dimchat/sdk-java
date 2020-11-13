@@ -168,7 +168,7 @@ public abstract class Messenger extends Transceiver {
             rMsg.setDelegate(this);
         }
         // Notice: check meta before calling me
-        Meta meta = Entity.parseMeta(rMsg.getMeta());
+        Meta meta = rMsg.getMeta();
         ID sender = rMsg.getSender();
         if (meta == null) {
             meta = getFacebook().getMeta(sender);

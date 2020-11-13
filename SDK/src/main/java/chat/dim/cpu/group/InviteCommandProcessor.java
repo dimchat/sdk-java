@@ -66,7 +66,7 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
         return cpu.process(content, sender, rMsg);
     }
 
-    private List<ID> doInvite(List<ID> inviteList, ID group) {
+    private List<String> doInvite(List<ID> inviteList, ID group) {
         Facebook facebook = getFacebook();
         // existed members
         List<ID> members = facebook.getMembers(group);
@@ -74,13 +74,13 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
             members = new ArrayList<>();
         }
         // added list
-        List<ID> addedList = new ArrayList<>();
+        List<String> addedList = new ArrayList<>();
         for (ID item: inviteList) {
             if (members.contains(item)) {
                 continue;
             }
             // adding member found
-            addedList.add(item);
+            addedList.add(item.toString());
             members.add(item);
         }
         if (addedList.size() > 0) {
@@ -124,9 +124,9 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
             return callReset(content, sender, rMsg);
         }
         // 2.2. get invited-list
-        List<ID> added = doInvite(inviteList, group);
+        List<String> added = doInvite(inviteList, group);
         if (added != null) {
-            ((InviteCommand) content).put("added", added);
+            content.put("added", added);
         }
         // 3. response (no need to response this group command)
         return null;

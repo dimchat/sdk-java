@@ -82,22 +82,22 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
             members = new ArrayList<>();
         }
         // removed list
-        List<ID> removedList = new ArrayList<>();
+        List<String> removedList = new ArrayList<>();
         for (ID item : members) {
             if (newMembers.contains(item)) {
                 continue;
             }
             // removing member found
-            removedList.add(item);
+            removedList.add(item.toString());
         }
         // added list
-        List<ID> addedList = new ArrayList<>();
+        List<String> addedList = new ArrayList<>();
         for (ID item : newMembers) {
             if (members.contains(item)) {
                 continue;
             }
             // adding member found
-            addedList.add(item);
+            addedList.add(item.toString());
         }
         Map<String, Object> result = new HashMap<>();
         if (addedList.size() > 0 || removedList.size() > 0) {
@@ -142,11 +142,11 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
         Map<String, Object> result = doReset(newMembers, group);
         Object added = result.get("added");
         if (added != null) {
-            ((GroupCommand) content).put("added", added);
+            content.put("added", added);
         }
         Object removed = result.get("removed");
         if (removed != null) {
-            ((GroupCommand) content).put("removed", removed);
+            content.put("removed", removed);
         }
         // 3. response (no need to response this group command)
         return null;

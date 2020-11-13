@@ -47,7 +47,7 @@ public class MuteCommand extends Command {
     public static final String MUTE   = "mute";
 
     // mute-list
-    private List muteList = null;
+    private List<ID> muteList = null;
 
     public MuteCommand(Map<String, Object> dictionary) {
         super(dictionary);
@@ -58,7 +58,7 @@ public class MuteCommand extends Command {
      *
      * @param list - mute list
      */
-    public MuteCommand(List list) {
+    public MuteCommand(List<ID> list) {
         super(MUTE);
         setMuteList(list);
     }
@@ -72,21 +72,22 @@ public class MuteCommand extends Command {
 
     //-------- setters/getters --------
 
-    public List getMuteList() {
+    @SuppressWarnings("unchecked")
+    public List<ID> getMuteList() {
         if (muteList == null) {
             Object list = get("list");
             if (list != null) {
-                muteList = (List) list;
+                muteList = GroupCommand.convertList((List<String>) list);
             }
         }
         return muteList;
     }
 
-    public void setMuteList(List list) {
+    public void setMuteList(List<ID> list) {
         if (list == null) {
             remove("list");
         } else {
-            put("list", list);
+            put("list", GroupCommand.revertList(list));
         }
         muteList = list;
     }

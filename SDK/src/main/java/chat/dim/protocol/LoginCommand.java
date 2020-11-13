@@ -67,7 +67,7 @@ public class LoginCommand extends Command {
 
     public LoginCommand(ID identifier) {
         super(LOGIN);
-        put("ID", identifier);
+        put("ID", identifier.toString());
     }
 
     //
@@ -109,7 +109,7 @@ public class LoginCommand extends Command {
     }
     public void setStation(Station station) {
         Map<String, Object> info = new HashMap<>();
-        info.put("ID", station.identifier);
+        info.put("ID", station.identifier.toString());
         info.put("host", station.getHost());
         info.put("port", station.getPort());
         put("station", info);
@@ -125,7 +125,7 @@ public class LoginCommand extends Command {
     }
     public void setProvider(ServiceProvider provider) {
         Map<String, Object> info = new HashMap<>();
-        info.put("ID", provider.identifier);
+        info.put("ID", provider.identifier.toString());
         put("provider", info);
     }
 }

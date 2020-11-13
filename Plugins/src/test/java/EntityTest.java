@@ -28,7 +28,6 @@ public class EntityTest {
     private String getAddressInfo(Address address) {
         Map<String, Object> info = new HashMap<>();
         info.put("type", address.getNetwork());
-        info.put("number", address.getNetwork());
         byte network = NetworkType.Robot.value;
         int result = network & NetworkType.Thing.value;
         Assert.assertEquals(result, NetworkType.Thing.value);

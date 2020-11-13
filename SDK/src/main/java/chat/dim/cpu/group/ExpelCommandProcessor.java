@@ -48,7 +48,7 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
         super(messenger);
     }
 
-    private List<ID> doExpel(List<ID> expelList, ID group) {
+    private List<String> doExpel(List<ID> expelList, ID group) {
         Facebook facebook = getFacebook();
         // existed members
         List<ID> members = facebook.getMembers(group);
@@ -56,13 +56,13 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
             throw new NullPointerException("Group members not found: " + group);
         }
         // removed list
-        List<ID> removedList = new ArrayList<>();
+        List<String> removedList = new ArrayList<>();
         for (ID item: expelList) {
             if (!members.contains(item)) {
                 continue;
             }
             // removing member found
-            removedList.add(item);
+            removedList.add(item.toString());
             members.remove(item);
         }
         if (removedList.size() > 0) {
@@ -91,9 +91,9 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
             throw new NullPointerException("expel command error: " + content);
         }
         // 2.1. get removed-list
-        List<ID> removed = doExpel(expelList, group);
+        List<String> removed = doExpel(expelList, group);
         if (removed != null) {
-            ((ExpelCommand) content).put("removed", removed);
+            content.put("removed", removed);
         }
         // 3. response (no need to response this group command)
         return null;

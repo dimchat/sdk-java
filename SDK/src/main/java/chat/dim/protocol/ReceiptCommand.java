@@ -70,8 +70,8 @@ public class ReceiptCommand extends Command {
         }
         // envelope of the message responding to
         if (env != null) {
-            put("sender", env.getSender());
-            put("receiver", env.getReceiver());
+            put("sender", env.getSender().toString());
+            put("receiver", env.getReceiver().toString());
             Date time = env.getTime();
             if (time != null) {
                 put("time", time.getTime() / 1000);

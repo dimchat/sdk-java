@@ -47,7 +47,7 @@ public class BlockCommand extends Command {
     public static final String BLOCK   = "block";
 
     // Block-list
-    private List blockList = null;
+    private List<ID> blockList = null;
 
     public BlockCommand(Map<String, Object> dictionary) {
         super(dictionary);
@@ -58,7 +58,7 @@ public class BlockCommand extends Command {
      *
      * @param list - block list
      */
-    public BlockCommand(List list) {
+    public BlockCommand(List<ID> list) {
         super(BLOCK);
         setBlockCList(list);
     }
@@ -72,21 +72,22 @@ public class BlockCommand extends Command {
 
     //-------- setters/getters --------
 
-    public List getBlockCList() {
+    @SuppressWarnings("unchecked")
+    public List<ID> getBlockCList() {
         if (blockList == null) {
             Object list = get("list");
             if (list != null) {
-                blockList = (List) list;
+                blockList = GroupCommand.convertList((List<String>) list);
             }
         }
         return blockList;
     }
 
-    public void setBlockCList(List list) {
+    public void setBlockCList(List<ID> list) {
         if (list == null) {
             remove("list");
         } else {
-            put("list", list);
+            put("list", GroupCommand.revertList(list));
         }
         blockList = list;
     }
