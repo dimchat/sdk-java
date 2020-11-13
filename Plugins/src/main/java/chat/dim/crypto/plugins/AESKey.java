@@ -40,6 +40,7 @@ import java.util.Random;
 import chat.dim.crypto.CryptoUtils;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.format.Base64;
+import chat.dim.type.Dictionary;
 
 /**
  *  AES Key
@@ -51,7 +52,7 @@ import chat.dim.format.Base64;
  *          iv       : "{BASE64_ENCODE}", // initialization vector
  *      }
  */
-public final class AESKey extends SymmetricKey {
+public final class AESKey extends Dictionary implements SymmetricKey {
 
     private final Cipher cipher;
 

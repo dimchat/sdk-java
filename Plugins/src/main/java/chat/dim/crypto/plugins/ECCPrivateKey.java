@@ -44,6 +44,7 @@ import chat.dim.crypto.CryptoUtils;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.PublicKey;
 import chat.dim.format.ECCKeys;
+import chat.dim.type.Dictionary;
 
 /**
  *  ECC Private Key
@@ -54,7 +55,7 @@ import chat.dim.format.ECCKeys;
  *          data         : "..." // base64_encode()
  *      }
  */
-public final class ECCPrivateKey extends PrivateKey {
+public final class ECCPrivateKey extends Dictionary implements PrivateKey {
 
     private ECPrivateKey privateKey;
     private ECPublicKey publicKey;

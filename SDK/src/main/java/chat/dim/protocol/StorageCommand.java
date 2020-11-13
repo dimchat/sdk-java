@@ -35,6 +35,7 @@ import java.util.Map;
 
 import chat.dim.Entity;
 import chat.dim.crypto.DecryptKey;
+import chat.dim.crypto.KeyFactory;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.format.Base64;
@@ -186,7 +187,7 @@ public class StorageCommand extends Command {
     }
 
     @SuppressWarnings("unchecked")
-    private SymmetricKey decryptKey(DecryptKey privateKey) throws ClassNotFoundException {
+    private SymmetricKey decryptKey(DecryptKey privateKey) {
         byte[] data = getKey();
         if (data == null) {
             return null;
@@ -197,7 +198,7 @@ public class StorageCommand extends Command {
         }
         Object info = JSON.decode(key);
         if (info instanceof Map) {
-            return SymmetricKey.getInstance((Map<String, Object>) info);
+            return KeyFactory.getSymmetricKey((Map<String, Object>) info);
         }
         return null;
     }

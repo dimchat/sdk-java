@@ -37,6 +37,7 @@ import org.bouncycastle.math.ec.ECPoint;
 import chat.dim.crypto.CryptoUtils;
 import chat.dim.crypto.PublicKey;
 import chat.dim.format.ECCKeys;
+import chat.dim.type.Dictionary;
 
 /**
  *  ECC Public Key
@@ -47,7 +48,7 @@ import chat.dim.format.ECCKeys;
  *          data         : "..." // base64_encode()
  *      }
  */
-public final class ECCPublicKey extends PublicKey {
+public final class ECCPublicKey extends Dictionary implements PublicKey {
 
     private final ECPublicKey publicKey;
 

@@ -39,6 +39,7 @@ import java.util.Map;
 
 import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.EncryptKey;
+import chat.dim.crypto.KeyFactory;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
 import chat.dim.crypto.VerifyKey;
@@ -55,7 +56,7 @@ import chat.dim.protocol.Profile;
  *      1. Immortal Hulk - hulk@4YeVEN3aUnvC1DNUufCq1bs9zoBSJTzVEj
  *      2. Monkey King   - moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk
  */
-public class Immortals extends chat.dim.mkm.Plugins implements UserDataSource {
+public final class Immortals extends chat.dim.mkm.Plugins implements UserDataSource {
 
     // Immortal Hulk (195-183-9394)
     public static final String HULK = "hulk@4YeVEN3aUnvC1DNUufCq1bs9zoBSJTzVEj";
@@ -117,9 +118,9 @@ public class Immortals extends chat.dim.mkm.Plugins implements UserDataSource {
     }
 
     @SuppressWarnings("unchecked")
-    private PrivateKey loadPrivateKey(String filename) throws IOException, ClassNotFoundException {
+    private PrivateKey loadPrivateKey(String filename) throws IOException {
         Map dict = loadJSON(filename);
-        return PrivateKey.getInstance(dict);
+        return KeyFactory.getPrivateKey(dict);
     }
 
     @SuppressWarnings("unchecked")

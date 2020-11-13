@@ -44,6 +44,7 @@ import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.PublicKey;
 import chat.dim.format.RSAKeys;
+import chat.dim.type.Dictionary;
 
 /**
  *  RSA Private Key
@@ -53,7 +54,7 @@ import chat.dim.format.RSAKeys;
  *          data      : "..." // base64_encode()
  *      }
  */
-public final class RSAPrivateKey extends PrivateKey implements DecryptKey {
+public final class RSAPrivateKey extends Dictionary implements PrivateKey, DecryptKey {
 
     private java.security.interfaces.RSAPrivateKey privateKey;
     private java.security.interfaces.RSAPublicKey publicKey;

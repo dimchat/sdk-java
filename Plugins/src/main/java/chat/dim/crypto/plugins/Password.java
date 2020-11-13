@@ -28,6 +28,7 @@ package chat.dim.crypto.plugins;
 import java.util.HashMap;
 import java.util.Map;
 
+import chat.dim.crypto.KeyFactory;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.digest.SHA256;
 import chat.dim.format.Base64;
@@ -64,12 +65,7 @@ public final class Password {
         key.put("algorithm", SymmetricKey.AES);
         key.put("data", Base64.encode(data));
         key.put("iv", Base64.encode(iv));
-        try {
-            return SymmetricKey.getInstance(key);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return null;
-        }
+        return KeyFactory.getSymmetricKey(key);
     }
 
     /**

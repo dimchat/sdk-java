@@ -55,6 +55,7 @@ public class UserProfile extends BaseProfile {
      *
      * @return nickname
      */
+    @SuppressWarnings("unchecked")
     @Override
     public String getName() {
         String name = super.getName();
@@ -71,6 +72,7 @@ public class UserProfile extends BaseProfile {
         return name;
     }
 
+    @SuppressWarnings("unchecked")
     public String getAvatar() {
         String url = (String) getProperty("avatar");
         if (url == null) {

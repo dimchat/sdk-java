@@ -30,11 +30,7 @@ import java.security.Security;
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
 import org.bouncycastle.crypto.digests.SHA3Digest;
 
-import chat.dim.crypto.plugins.AESKey;
-import chat.dim.crypto.plugins.ECCPrivateKey;
-import chat.dim.crypto.plugins.ECCPublicKey;
-import chat.dim.crypto.plugins.RSAPrivateKey;
-import chat.dim.crypto.plugins.RSAPublicKey;
+import chat.dim.crypto.plugins.KeyParser;
 import chat.dim.digest.Hash;
 import chat.dim.digest.Keccak256;
 import chat.dim.digest.RIPEMD160;
@@ -45,41 +41,9 @@ public abstract class Plugins extends chat.dim.format.Plugins {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 
         /*
-         *  Symmetric Key
+         *  Key Parser
          */
-
-        // AES
-        SymmetricKey.register(SymmetricKey.AES, AESKey.class); // default
-        SymmetricKey.register("AES/CBC/PKCS7Padding", AESKey.class);
-
-        // DES
-        // ...
-
-        /*
-         *  Private Key
-         */
-
-        // RSA
-        PrivateKey.register(PrivateKey.RSA, RSAPrivateKey.class); // default
-        PrivateKey.register("SHA256withRSA", RSAPrivateKey.class);
-        PrivateKey.register("RSA/ECB/PKCS1Padding", RSAPrivateKey.class);
-
-        // ECC
-        PrivateKey.register(PrivateKey.ECC, ECCPrivateKey.class); // default
-        PrivateKey.register("SHA256withECDSA", ECCPrivateKey.class);
-
-        /*
-         *  Public Key
-         */
-
-        // RSA
-        PublicKey.register(PublicKey.RSA, RSAPublicKey.class); // default
-        PublicKey.register("SHA256withRSA", RSAPublicKey.class);
-        PublicKey.register("RSA/ECB/PKCS1Padding", RSAPublicKey.class);
-
-        // ECC
-        PublicKey.register(PublicKey.ECC, ECCPublicKey.class); // default
-        PublicKey.register("SHA256withECDSA", ECCPublicKey.class);
+        KeyFactory.parser = new KeyParser();
     }
 
     static {

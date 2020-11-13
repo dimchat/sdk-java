@@ -29,14 +29,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.crypto.SymmetricKey;
+import chat.dim.type.Dictionary;
 
 /**
  *  Symmetric key for broadcast message,
  *  which will do nothing when en/decoding message data
  */
-public final class PlainKey extends SymmetricKey {
+public final class PlainKey extends Dictionary implements SymmetricKey {
 
-    private final static String PLAIN = "PLAIN";
+    public final static String PLAIN = "PLAIN";
 
     public PlainKey(Map<String, Object> dictionary) {
         super(dictionary);
@@ -68,10 +69,5 @@ public final class PlainKey extends SymmetricKey {
             ourInstance = new PlainKey(dictionary);
         }
         return ourInstance;
-    }
-
-    static {
-        // PLAIN
-        register(PLAIN, PlainKey.class);
     }
 }
