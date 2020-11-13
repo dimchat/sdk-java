@@ -175,7 +175,7 @@ public class StorageCommand extends Command {
     }
 
     @SuppressWarnings("unchecked")
-    public byte[] decrypt(PrivateKey privateKey) throws ClassNotFoundException {
+    public byte[] decrypt(PrivateKey privateKey) {
         if (password == null) {
             if (privateKey instanceof DecryptKey) {
                 password = decryptKey((DecryptKey) privateKey);

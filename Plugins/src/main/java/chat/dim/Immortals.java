@@ -76,7 +76,7 @@ public final class Immortals extends chat.dim.mkm.Plugins implements UserDataSou
             // load built-in users
             loadBuiltInAccount(Entity.parseID(MOKI));
             loadBuiltInAccount(Entity.parseID(HULK));
-        } catch (IOException | ClassNotFoundException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -94,7 +94,7 @@ public final class Immortals extends chat.dim.mkm.Plugins implements UserDataSou
         return (Map) JSON.decode(data);
     }
 
-    private void loadBuiltInAccount(ID identifier) throws IOException, ClassNotFoundException {
+    private void loadBuiltInAccount(ID identifier) throws IOException {
         boolean OK = cache(identifier);
         assert OK : "ID error: " + identifier;
         // load meta for ID

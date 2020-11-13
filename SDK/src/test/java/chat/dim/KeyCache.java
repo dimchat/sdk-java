@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.core.CipherKeyDelegate;
+import chat.dim.crypto.KeyFactory;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.crypto.plugins.PlainKey;
 import chat.dim.mkm.BroadcastAddress;
@@ -64,12 +65,7 @@ public abstract class KeyCache implements CipherKeyDelegate {
         if (dictionary == null) {
             return false;
         }
-        try {
-            return updateKeys(dictionary);
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            return false;
-        }
+        return updateKeys(dictionary);
     }
 
     /**
@@ -108,10 +104,9 @@ public abstract class KeyCache implements CipherKeyDelegate {
      *
      * @param keyMap - cipher keys(with direction) from local storage
      * @return NO on nothing changed
-     * @throws ClassNotFoundException when key error
      */
     @SuppressWarnings("unchecked")
-    public boolean updateKeys(Map keyMap) throws ClassNotFoundException {
+    public boolean updateKeys(Map keyMap) {
         if (keyMap == null || keyMap.isEmpty()) {
             return false;
         }
@@ -122,7 +117,7 @@ public abstract class KeyCache implements CipherKeyDelegate {
             Map<String, Object> table = entry1.getValue();
             for (Map.Entry<String, Object> entity2 : table.entrySet()) {
                 ID to = Entity.parseID(entity2.getKey());
-                SymmetricKey newKey = SymmetricKey.getInstance((Map<String, Object>) entity2.getValue());
+                SymmetricKey newKey = KeyFactory.getSymmetricKey((Map<String, Object>) entity2.getValue());
                 assert newKey != null : "key error(" + from + " -> " + to + "): " + entity2.getValue();
                 // check whether exists an old key
                 SymmetricKey oldKey = getKey(from, to);

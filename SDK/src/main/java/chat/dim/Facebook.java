@@ -31,7 +31,6 @@
 package chat.dim;
 
 import java.util.List;
-import java.util.Map;
 
 import chat.dim.core.Barrack;
 import chat.dim.group.Chatroom;
@@ -40,7 +39,6 @@ import chat.dim.mkm.BroadcastAddress;
 import chat.dim.network.Robot;
 import chat.dim.network.ServiceProvider;
 import chat.dim.network.Station;
-import chat.dim.protocol.Address;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 import chat.dim.protocol.NetworkType;
@@ -76,11 +74,8 @@ public abstract class Facebook extends Barrack {
         if (profile == null) {
             return true;
         }
-        if (profile instanceof Map) {
-            String json = (String) ((Map) profile).get("data");
-            return json == null || json.length() == 0;
-        }
-        return true;
+        String json = (String) profile.get("data");
+        return json == null || json.length() == 0;
     }
 
     public boolean verify(Profile profile, ID identifier) {

@@ -1,16 +1,17 @@
 
-import chat.dim.protocol.Address;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import chat.dim.crypto.KeyFactory;
+import chat.dim.crypto.PrivateKey;
+import chat.dim.crypto.PublicKey;
 import chat.dim.digest.RIPEMD160;
 import chat.dim.digest.SHA256;
 import chat.dim.mkm.plugins.BTCAddress;
-import chat.dim.crypto.PrivateKey;
-import chat.dim.crypto.PublicKey;
+import chat.dim.protocol.Address;
 import chat.dim.format.Hex;
 
 public class CryptoECCTest {
@@ -37,35 +38,35 @@ public class CryptoECCTest {
         Assert.assertTrue(ok);
     }
 
-    private PrivateKey testKeys(String secret, String pub) throws ClassNotFoundException {
+    private PrivateKey testKeys(String secret, String pub) {
         // create private key
         Map<String, Object> dict1 = new HashMap<>();
         dict1.put("algorithm", "ECC");
         dict1.put("data", secret);
-        PrivateKey sKey = PrivateKey.getInstance(dict1);
+        PrivateKey sKey = KeyFactory.getPrivateKey(dict1);
 
         // create public key
         Map<String, Object> dict2 = new HashMap<>();
         dict2.put("algorithm", "ECC");
         dict2.put("data", pub);
-        PublicKey pKey = PublicKey.getInstance(dict2);
+        PublicKey pKey = KeyFactory.getPublicKey(dict2);
 
         testKeys(sKey, pKey);
 
         return sKey;
     }
 
-    private static PublicKey getPublicKey() throws ClassNotFoundException {
+    private static PublicKey getPublicKey() {
         Map<String, Object> dictionary = new HashMap<>();
         dictionary.put("algorithm", "ECC");
         dictionary.put("data", "-----BEGIN PUBLIC KEY-----\n" +
                 "MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAE82Xdir58NnH/vSudaOQ2gsHs19n7cffS\n" +
                 "UMhziNnUjWO4jHmCDaM01IR/ihvenp0F/ayn1v+zU9K+e5247YbDWg==\n" +
                 "-----END PUBLIC KEY-----");
-        return PublicKey.getInstance(dictionary);
+        return KeyFactory.getPublicKey(dictionary);
     }
 
-    private static PrivateKey getPrivateKey() throws ClassNotFoundException {
+    private static PrivateKey getPrivateKey() {
         Map<String, Object> dictionary = new HashMap<>();
         dictionary.put("algorithm", "ECC");
         dictionary.put("data", "-----BEGIN PRIVATE KEY-----\n" +
@@ -73,11 +74,11 @@ public class CryptoECCTest {
                 "BpcPShcV0sSgOjTY2umhMqmhRANCAATzZd2Kvnw2cf+9K51o5DaCwezX2ftx99JQ\n" +
                 "yHOI2dSNY7iMeYINozTUhH+KG96enQX9rKfW/7NT0r57nbjthsNa\n" +
                 "-----END PRIVATE KEY-----");
-        return PrivateKey.getInstance(dictionary);
+        return KeyFactory.getPrivateKey(dictionary);
     }
 
     @Test
-    public void testECCPublicKey() throws ClassNotFoundException {
+    public void testECCPublicKey() {
         PublicKey key = getPublicKey();
         Log.info("ECC public key: " + key);
 
@@ -90,7 +91,7 @@ public class CryptoECCTest {
     }
 
     @Test
-    public void testECCWithPEM() throws ClassNotFoundException {
+    public void testECCWithPEM() {
         Log.info("-------- test PEM --------");
         PrivateKey sKey = getPrivateKey();
         Log.info("ECC private key: " + sKey);
@@ -109,15 +110,15 @@ public class CryptoECCTest {
     }
 
     @Test
-    public void testECCNewKeys() throws ClassNotFoundException {
+    public void testECCNewKeys() {
         Log.info("-------- test new keys --------");
-        PrivateKey sk = PrivateKey.generate(PrivateKey.ECC);
+        PrivateKey sk = KeyFactory.getPrivateKey(PrivateKey.ECC);
         PublicKey pk = sk.getPublicKey();
         testKeys(sk, pk);
     }
 
     @Test
-    public void testECCWithHex() throws ClassNotFoundException {
+    public void testECCWithHex() {
         Log.info("-------- test HEX --------");
         PrivateKey sKey = testKeys("c6e193266883a500c6e51a117e012d96ad113d5f21f42b28eb648be92a78f92f",
                 "0314bf901a6640033ea07b39c6b3acb675fc0af6a6ab526f378216085a93e5c7a2");
@@ -141,7 +142,7 @@ public class CryptoECCTest {
     }
 
     @Test
-    public void testECCKeys() throws ClassNotFoundException {
+    public void testECCKeys() {
         Log.info("-------- test keys --------");
         PrivateKey sKey = testKeys("de97fdbdb823a197603e1f2cb8b1bded3824147e88ebd47367ba82d4b5600d73",
                 "047c91259636a5a16538e0603636f06c532dd6f2bb42f8dd33fa0cdb39546cf449612f3eaf15db9443b7e0668ef22187de9059633eb23112643a38771c630db911");

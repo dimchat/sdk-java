@@ -397,7 +397,7 @@ public abstract class Messenger extends Transceiver {
         ID receiver = iMsg.getReceiver();
 
         // process content from sender
-        chat.dim.protocol.Content response = process(content, sender, rMsg);
+        Content response = process(content, sender, rMsg);
         if (!saveMessage(iMsg)) {
             // error
             return null;

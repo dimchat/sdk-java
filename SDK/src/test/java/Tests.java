@@ -43,16 +43,10 @@ public class Tests extends TestCase {
         barrack = MyFacebook.getInstance();
 
         // keystore
-        try {
-            Map keys = new HashMap();
-            keyStore = KeyStore.getInstance();
-            boolean changed = keyStore.updateKeys(keys);
-            keyStore.flush();
-
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-            keyStore = null;
-        }
+        Map keys = new HashMap();
+        keyStore = KeyStore.getInstance();
+        keyStore.updateKeys(keys);
+        keyStore.flush();
 
         // transceiver
         transceiver = new Transceiver();
@@ -100,20 +94,15 @@ public class Tests extends TestCase {
     @Test
     public void testBarrack() {
         ID identifier = Entity.parseID("moky@4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ");
-
         Meta meta = barrack.getMeta(identifier);
         Log.info("meta: " + meta);
 
         identifier = Entity.parseID("moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
         User user = barrack.getUser(identifier);
+        Log.info("user: " + user);
 
-//        identifier = ID.getInstance("Group-1280719982@7oMeWadRw4qat2sL4mTdcQSDAqZSo7LH5G");
-//
+//        identifier = Entity.parseID("Group-1280719982@7oMeWadRw4qat2sL4mTdcQSDAqZSo7LH5G");
 //        Group group = barrack.getGroup(identifier);
-
-        Map<ID, Meta> map = new HashMap<>();
-        identifier = null;
-        meta = map.get(identifier);
-        Log.info("meta: " + meta);
+//        Log.info("group: " + group);
     }
 }

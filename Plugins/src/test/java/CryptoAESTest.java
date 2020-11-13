@@ -5,6 +5,7 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
+import chat.dim.crypto.KeyFactory;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.format.Base64;
 import chat.dim.format.JSON;
@@ -13,13 +14,13 @@ import chat.dim.format.UTF8;
 public class CryptoAESTest {
 
     @Test
-    public void testAES() throws ClassNotFoundException {
+    public void testAES() {
         Map<String, Object> dictionary = new HashMap<>();
         dictionary.put("algorithm", "AES");
         dictionary.put("data", "C2+xGizLL1G1+z9QLPYNdp/bPP/seDvNw45SXPAvQqk=");
         dictionary.put("iv", "SxPwi6u4+ZLXLdAFJezvSQ==");
 
-        SymmetricKey key = SymmetricKey.getInstance(dictionary);
+        SymmetricKey key = KeyFactory.getSymmetricKey(dictionary);
         Log.info("key: " + key);
         String json = UTF8.decode(JSON.encode(key));
         Log.info("JSON(" + json.length() + " bytes): " + json);
@@ -48,7 +49,7 @@ public class CryptoAESTest {
 
         Assert.assertEquals("0xtbqZN6x2aWTZn0DpCoCA==", Base64.encode(ciphertext));
 
-        SymmetricKey key2 = SymmetricKey.getInstance(dictionary);
+        SymmetricKey key2 = KeyFactory.getSymmetricKey(dictionary);
         Log.info("key2: " + key2);
         Assert.assertEquals(key, key2);
 //        Assert.assertTrue(key.equals(key2));
@@ -62,7 +63,7 @@ public class CryptoAESTest {
 //        log("FIXED: " + text + " -> " + (plaintext == null ? null : new String(plaintext)));
 
         // random key
-        key = SymmetricKey.generate(SymmetricKey.AES);
+        key = KeyFactory.getSymmetricKey(SymmetricKey.AES);
         Log.info("key: " + key);
 
         text = "moky";
