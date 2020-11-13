@@ -34,11 +34,20 @@ import java.util.List;
 import java.util.Map;
 
 import chat.dim.mkm.BaseProfile;
+import chat.dim.protocol.ID;
 
 public class UserProfile extends BaseProfile {
 
     public UserProfile(Map<String, Object> dictionary) {
         super(dictionary);
+    }
+
+    public UserProfile(ID identifier, String data, byte[] signature) {
+        super(identifier, data, signature);
+    }
+
+    public UserProfile(ID identifier) {
+        this(identifier, null, null);
     }
 
     /**

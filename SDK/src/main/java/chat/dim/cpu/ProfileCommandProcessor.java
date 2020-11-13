@@ -30,8 +30,6 @@
  */
 package chat.dim.cpu;
 
-import java.util.Map;
-
 import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.protocol.Content;
@@ -49,21 +47,11 @@ public class ProfileCommandProcessor extends CommandProcessor {
         super(messenger);
     }
 
-    private boolean isEmpty(Profile profile) {
-        if (profile == null) {
-            return true;
-        }
-        if (profile instanceof Map) {
-            return !((Map) profile).containsKey("data");
-        }
-        return true;
-    }
-
     private Content getProfile(ID identifier) {
         Facebook facebook = getFacebook();
         // query profile for ID
         Profile profile = facebook.getProfile(identifier);
-        if (isEmpty(profile)) {
+        if (facebook.isEmpty(profile)) {
             // profile not found
             String text = String.format("Sorry, profile not found for ID: %s", identifier);
             return new TextContent(text);

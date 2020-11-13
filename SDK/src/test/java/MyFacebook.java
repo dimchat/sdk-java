@@ -75,12 +75,6 @@ public class MyFacebook extends Facebook {
     //-------- SocialNetworkDataSource
 
     @Override
-    public ID getID(Address address) {
-        // TODO: generate ID from meta
-        return new Identifier(null, address);
-    }
-
-    @Override
     public User getUser(ID identifier) {
         User user = super.getUser(identifier);
         if (user != null) {

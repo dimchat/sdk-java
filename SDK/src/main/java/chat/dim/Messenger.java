@@ -35,30 +35,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import chat.dim.core.BaseContent;
 import chat.dim.core.Transceiver;
 import chat.dim.cpu.ContentProcessor;
 import chat.dim.cpu.FileContentProcessor;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.SymmetricKey;
-import chat.dim.dkd.PlainMessage;
 import chat.dim.mkm.BroadcastAddress;
-import chat.dim.protocol.BlockCommand;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
+import chat.dim.protocol.Envelope;
 import chat.dim.protocol.FileContent;
-import chat.dim.protocol.HandshakeCommand;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
-import chat.dim.protocol.LoginCommand;
 import chat.dim.protocol.Meta;
-import chat.dim.protocol.MuteCommand;
 import chat.dim.protocol.NetworkType;
-import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
-import chat.dim.protocol.StorageCommand;
 
 public abstract class Messenger extends Transceiver {
 
@@ -277,7 +270,8 @@ public abstract class Messenger extends Transceiver {
             }
         }
          */
-        InstantMessage iMsg = new PlainMessage(content, user.identifier, receiver);
+        Envelope env = MessageFactory.getEnvelope(user.identifier, receiver);
+        InstantMessage iMsg = MessageFactory.getInstantMessage(env, content);
         return sendMessage(iMsg, callback, priority);
     }
 
@@ -398,7 +392,7 @@ public abstract class Messenger extends Transceiver {
         if (iMsg.getDelegate() == null) {
             iMsg.setDelegate(this);
         }
-        Content content = BaseContent.getInstance(iMsg.getContent());
+        Content content = iMsg.getContent();
         ID sender = iMsg.getSender();
         ID receiver = iMsg.getReceiver();
 
@@ -418,7 +412,8 @@ public abstract class Messenger extends Transceiver {
         assert user != null : "receiver error: " + receiver;
 
         // pack message
-        return new PlainMessage(response, user.identifier, sender);
+        Envelope env = MessageFactory.getEnvelope(user.identifier, sender);
+        return MessageFactory.getInstantMessage(env, response);
     }
 
     // TODO: override to check group
@@ -458,21 +453,6 @@ public abstract class Messenger extends Transceiver {
     public abstract void suspendMessage(InstantMessage msg);
 
     static {
-
-        //
-        //  Register new Commands
-        //
-
-        Command.register(Command.RECEIPT, ReceiptCommand.class);
-        Command.register(Command.HANDSHAKE, HandshakeCommand.class);
-        Command.register(Command.LOGIN, LoginCommand.class);
-
-        Command.register(MuteCommand.MUTE, MuteCommand.class);
-        Command.register(BlockCommand.BLOCK, BlockCommand.class);
-
-        // storage (contacts, private_key)
-        Command.register(StorageCommand.STORAGE, StorageCommand.class);
-        Command.register(StorageCommand.CONTACTS, StorageCommand.class);
-        Command.register(StorageCommand.PRIVATE_KEY, StorageCommand.class);
+        Command.parser = new CommandParser();
     }
 }

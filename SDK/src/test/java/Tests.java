@@ -9,6 +9,7 @@ import chat.dim.Entity;
 import chat.dim.Immortals;
 import chat.dim.KeyCache;
 import chat.dim.KeyStore;
+import chat.dim.MessageFactory;
 import chat.dim.User;
 import chat.dim.core.Barrack;
 import chat.dim.core.Transceiver;
@@ -16,10 +17,10 @@ import chat.dim.cpu.ContentProcessor;
 import chat.dim.cpu.CommandProcessor;
 import chat.dim.cpu.HandshakeCommandProcessor;
 import chat.dim.cpu.TextContentProcessor;
-import chat.dim.dkd.PlainMessage;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
+import chat.dim.protocol.Envelope;
 import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
@@ -81,9 +82,11 @@ public class Tests extends TestCase {
         ID sender = Entity.parseID("moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
         ID receiver = Entity.parseID("hulk@4YeVEN3aUnvC1DNUufCq1bs9zoBSJTzVEj");
 
+        Envelope env = MessageFactory.getEnvelope(sender, receiver);
+
         Content content = new TextContent("Hello");
 
-        InstantMessage iMsg = new PlainMessage(content, sender, receiver);
+        InstantMessage iMsg = MessageFactory.getInstantMessage(env, content);
         iMsg.setDelegate(transceiver);
         SecureMessage sMsg = transceiver.encryptMessage(iMsg);
         ReliableMessage rMsg = transceiver.signMessage(sMsg);

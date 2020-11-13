@@ -33,7 +33,9 @@ package chat.dim.mkm.plugins;
 import java.util.HashMap;
 import java.util.Map;
 
+import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.VerifyKey;
+import chat.dim.format.UTF8;
 import chat.dim.mkm.BaseMeta;
 import chat.dim.mkm.Identifier;
 import chat.dim.protocol.Address;
@@ -58,6 +60,10 @@ public class BTCMeta extends BaseMeta {
 
     public BTCMeta(Map<String, Object> dictionary) {
         super(dictionary);
+    }
+
+    public BTCMeta(int version, VerifyKey key, String seed, byte[] fingerprint) {
+        super(version, key, seed, fingerprint);
     }
 
     @Override
@@ -113,5 +119,25 @@ public class BTCMeta extends BaseMeta {
         VerifyKey key = getKey();
         byte[] data = key.getData();
         return BTCAddress.generate(data, network);
+    }
+
+    /**
+     *  Generate meta with private key
+     *
+     * @param sKey - private key
+     * @param seed - ID.name
+     * @return Meta
+     */
+    public static BTCMeta generate(PrivateKey sKey, String seed) {
+        int version;
+        byte[] fingerprint;
+        if (seed == null || seed.length() == 0) {
+            version = MetaType.BTC.value;
+            fingerprint = null;
+        } else {
+            version = MetaType.ExBTC.value;
+            fingerprint = sKey.sign(UTF8.encode(seed));
+        }
+        return new BTCMeta(version, sKey.getPublicKey(), seed, fingerprint);
     }
 }

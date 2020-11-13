@@ -33,7 +33,7 @@ package chat.dim.protocol;
 import java.util.Date;
 import java.util.Map;
 
-import chat.dim.dkd.MessageEnvelope;
+import chat.dim.MessageFactory;
 
 /**
  *  Command message: {
@@ -103,7 +103,7 @@ public class ReceiptCommand extends Command {
                 }
             }
             if (env instanceof Map) {
-                envelope = new MessageEnvelope((Map<String, Object>) env);
+                envelope = MessageFactory.getEnvelope((Map<String, Object>) env);
             }
         }
         return envelope;

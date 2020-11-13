@@ -32,12 +32,22 @@ package chat.dim.mkm;
 
 import java.util.Map;
 
-import chat.dim.mkm.plugins.*;
-import chat.dim.protocol.*;
+import chat.dim.Entity;
+import chat.dim.EntityParser;
+import chat.dim.mkm.plugins.BTCAddress;
+import chat.dim.mkm.plugins.BTCMeta;
+import chat.dim.mkm.plugins.DefaultMeta;
+import chat.dim.mkm.plugins.ETHAddress;
+import chat.dim.mkm.plugins.ETHMeta;
+import chat.dim.mkm.plugins.UserProfile;
+import chat.dim.protocol.Address;
+import chat.dim.protocol.ID;
+import chat.dim.protocol.Meta;
+import chat.dim.protocol.MetaType;
+import chat.dim.protocol.NetworkType;
+import chat.dim.protocol.Profile;
 import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.serializer.ToStringSerializer;
-
-import chat.dim.Entity;
 
 public abstract class Plugins extends chat.dim.crypto.Plugins {
 

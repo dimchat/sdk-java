@@ -31,6 +31,7 @@
 package chat.dim;
 
 import java.util.List;
+import java.util.Map;
 
 import chat.dim.core.Barrack;
 import chat.dim.group.Chatroom;
@@ -71,6 +72,17 @@ public abstract class Facebook extends Barrack {
     //
     //  Profile
     //
+    public boolean isEmpty(Profile profile) {
+        if (profile == null) {
+            return true;
+        }
+        if (profile instanceof Map) {
+            String json = (String) ((Map) profile).get("data");
+            return json == null || json.length() == 0;
+        }
+        return true;
+    }
+
     public boolean verify(Profile profile, ID identifier) {
         if (identifier != null) {
             if (profile == null || !identifier.equals(profile.getIdentifier())) {
@@ -172,8 +184,6 @@ public abstract class Facebook extends Barrack {
     }
 
     //--------
-
-    public abstract ID getID(Address address);
 
     @Override
     protected User createUser(ID identifier) {
