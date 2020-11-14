@@ -43,38 +43,41 @@ import chat.dim.protocol.StorageCommand;
 public class CommandParser extends Command.Parser {
 
     @Override
-    public Command parseCommand(Map<String, Object> cmd) {
+    protected Command parseCommand(Map<String, Object> cmd, String name) {
+        // parse core command first
+        Command core = super.parseCommand(cmd, name);
+        if (core != null) {
+            return core;
+        }
 
-        String command = (String) cmd.get("command");
-
-        if (command.equals(Command.RECEIPT)) {
+        if (Command.RECEIPT.equals(name)) {
             return new ReceiptCommand(cmd);
         }
-        if (command.equals(Command.HANDSHAKE)) {
+        if (Command.HANDSHAKE.equals(name)) {
             return new HandshakeCommand(cmd);
         }
-        if (command.equals(Command.LOGIN)) {
+        if (Command.LOGIN.equals(name)) {
             return new LoginCommand(cmd);
         }
 
-        if (command.equals(MuteCommand.MUTE)) {
+        if (MuteCommand.MUTE.equals(name)) {
             return new MuteCommand(cmd);
         }
-        if (command.equals(BlockCommand.BLOCK)) {
+        if (BlockCommand.BLOCK.equals(name)) {
             return new BlockCommand(cmd);
         }
 
         // storage (contacts, private_key)
-        if (command.equals(StorageCommand.STORAGE)) {
+        if (StorageCommand.STORAGE.equals(name)) {
             return new StorageCommand(cmd);
         }
-        if (command.equals(StorageCommand.CONTACTS)) {
+        if (StorageCommand.CONTACTS.equals(name)) {
             return new StorageCommand(cmd);
         }
-        if (command.equals(StorageCommand.PRIVATE_KEY)) {
+        if (StorageCommand.PRIVATE_KEY.equals(name)) {
             return new StorageCommand(cmd);
         }
 
-        return super.parseCommand(cmd);
+        return null;
     }
 }
