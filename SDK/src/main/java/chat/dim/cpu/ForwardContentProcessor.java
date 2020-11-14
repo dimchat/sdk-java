@@ -48,7 +48,7 @@ public class ForwardContentProcessor extends ContentProcessor {
         ForwardContent forward = (ForwardContent) content;
         ReliableMessage secret = forward.getMessage();
         // call messenger to process it
-        secret = getMessenger().process(secret);
+        secret = getMessenger().getMessageProcessor().process(secret);
         // check response
         if (secret != null) {
             // Over The Top

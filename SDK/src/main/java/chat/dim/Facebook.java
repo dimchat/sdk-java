@@ -50,6 +50,41 @@ public abstract class Facebook extends Barrack {
         super();
     }
 
+    /**
+     *  Select receiver account from local users
+     *
+     * @param receiver - user ID
+     * @return local user
+     */
+    public User select(ID receiver) {
+        List<User> users = getLocalUsers();
+        if (users == null || users.size() == 0) {
+            throw new NullPointerException("local users should not be empty");
+        } else if (receiver.getAddress() instanceof BroadcastAddress) {
+            // broadcast message can decrypt by anyone, so just return current user
+            return users.get(0);
+        }
+        if (NetworkType.isGroup(receiver.getType())) {
+            // group message (recipient not designated)
+            for (User item : users) {
+                if (existsMember(item.identifier, receiver)) {
+                    // set this item to be current user?
+                    return item;
+                }
+            }
+        } else {
+            // 1. personal message
+            // 2. split group message
+            for (User item : users) {
+                if (receiver.equals(item.identifier)) {
+                    // set this item to be current user?
+                    return item;
+                }
+            }
+        }
+        return null;
+    }
+
     //
     //  Meta
     //

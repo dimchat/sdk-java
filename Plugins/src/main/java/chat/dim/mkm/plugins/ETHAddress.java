@@ -59,7 +59,7 @@ public final class ETHAddress extends chat.dim.type.String implements Address {
     /**
      *  Generate address with fingerprint and network ID
      *
-     * @param fingerprint = meta.fingerprint or key.data
+     * @param fingerprint = key.data
      * @return Address object
      */
     public static ETHAddress generate(byte[] fingerprint) {

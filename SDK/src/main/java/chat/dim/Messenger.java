@@ -32,7 +32,6 @@ package chat.dim;
 
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import chat.dim.core.Transceiver;
@@ -40,8 +39,6 @@ import chat.dim.cpu.ContentProcessor;
 import chat.dim.cpu.FileContentProcessor;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.SymmetricKey;
-import chat.dim.mkm.BroadcastAddress;
-import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
 import chat.dim.protocol.Envelope;
@@ -59,11 +56,22 @@ public abstract class Messenger extends Transceiver {
 
     private WeakReference<MessengerDelegate> delegateRef = null;
 
-    private ContentProcessor cpu;
+    private MessageProcessor messageProcessor = null;
 
     public Messenger() {
         super();
-        cpu = new ContentProcessor(this);
+    }
+
+    public void setMessageProcessor(MessageProcessor processor) {
+        messageProcessor = processor;
+    }
+
+    public MessageProcessor getMessageProcessor() {
+        return messageProcessor;
+    }
+
+    public ContentProcessor getCPU(ContentType type) {
+        return messageProcessor.getCPU(type);
     }
 
     //
@@ -112,43 +120,13 @@ public abstract class Messenger extends Transceiver {
         return (Facebook) facebook;
     }
 
-    protected User select(ID receiver) {
-        Facebook facebook = getFacebook();
-        List<User> users = facebook.getLocalUsers();
-        if (users == null || users.size() == 0) {
-            throw new NullPointerException("local users should not be empty");
-        } else if (receiver.getAddress() instanceof BroadcastAddress) {
-            // broadcast message can decrypt by anyone, so just return current user
-            return users.get(0);
-        }
-        if (NetworkType.isGroup(receiver.getType())) {
-            // group message (recipient not designated)
-            for (User item : users) {
-                if (facebook.existsMember(item.identifier, receiver)) {
-                    // set this item to be current user?
-                    return item;
-                }
-            }
-        } else {
-            // 1. personal message
-            // 2. split group message
-            for (User item : users) {
-                if (receiver.equals(item.identifier)) {
-                    // set this item to be current user?
-                    return item;
-                }
-            }
-        }
-        return null;
-    }
-
     private SecureMessage trim(SecureMessage sMsg) {
         // check message delegate
         if (sMsg.getDelegate() == null) {
             sMsg.setDelegate(this);
         }
         ID receiver = sMsg.getReceiver();
-        User user = select(receiver);
+        User user = getFacebook().select(receiver);
         if (user == null) {
             // current users not match
             sMsg = null;
@@ -208,7 +186,7 @@ public abstract class Messenger extends Transceiver {
     public byte[] serializeContent(Content content, SymmetricKey password, InstantMessage iMsg) {
         // check attachment for File/Image/Audio/Video message content
         if (content instanceof FileContent) {
-            FileContentProcessor fpu = (FileContentProcessor) cpu.getCPU(ContentType.FILE);
+            FileContentProcessor fpu = (FileContentProcessor) getCPU(ContentType.FILE);
             fpu.uploadFileContent((FileContent) content, password, iMsg);
         }
         return super.serializeContent(content, password, iMsg);
@@ -240,7 +218,7 @@ public abstract class Messenger extends Transceiver {
         }
         // check attachment for File/Image/Audio/Video message content
         if (content instanceof FileContent) {
-            FileContentProcessor fpu = (FileContentProcessor) cpu.getCPU(ContentType.FILE);
+            FileContentProcessor fpu = (FileContentProcessor) getCPU(ContentType.FILE);
             fpu.downloadFileContent((FileContent) content, password, sMsg);
         }
         return content;
@@ -341,90 +319,13 @@ public abstract class Messenger extends Transceiver {
             return null;
         }
         // 2. process message
-        rMsg = process(rMsg);
+        rMsg = messageProcessor.process(rMsg);
         if (rMsg == null) {
             // nothing to respond
             return null;
         }
         // 3. serialize message
         return serializeMessage(rMsg);
-    }
-
-    // TODO: override to check broadcast message before calling it
-    // TODO: override to deliver to the receiver when catch exception "receiver error ..."
-    public ReliableMessage process(ReliableMessage rMsg) {
-        // 1. verify message
-        SecureMessage sMsg = verifyMessage(rMsg);
-        if (sMsg == null) {
-            // waiting for sender's meta if not exists
-            return null;
-        }
-        // 2. process message
-        sMsg = process(sMsg, rMsg);
-        if (sMsg == null) {
-            // nothing to respond
-            return null;
-        }
-        // 3. sign message
-        return signMessage(sMsg);
-    }
-
-    private SecureMessage process(SecureMessage sMsg, ReliableMessage rMsg) {
-        // 1. decrypt message
-        InstantMessage iMsg = decryptMessage(sMsg);
-        if (iMsg == null) {
-            // cannot decrypt this message, not for you?
-            // delivering message to other receiver?
-            return null;
-        }
-        // 2. process message
-        iMsg = process(iMsg, rMsg);
-        if (iMsg == null) {
-            // nothing to respond
-            return null;
-        }
-        // 3. encrypt message
-        return encryptMessage(iMsg);
-    }
-
-    private InstantMessage process(InstantMessage iMsg, ReliableMessage rMsg) {
-        // check message delegate
-        if (iMsg.getDelegate() == null) {
-            iMsg.setDelegate(this);
-        }
-        Content content = iMsg.getContent();
-        ID sender = iMsg.getSender();
-        ID receiver = iMsg.getReceiver();
-
-        // process content from sender
-        Content response = process(content, sender, rMsg);
-        if (!saveMessage(iMsg)) {
-            // error
-            return null;
-        }
-        if (response == null) {
-            // nothing to respond
-            return null;
-        }
-
-        // check receiver
-        User user = select(receiver);
-        assert user != null : "receiver error: " + receiver;
-
-        // pack message
-        Envelope env = MessageFactory.getEnvelope(user.identifier, sender);
-        return MessageFactory.getInstantMessage(env, response);
-    }
-
-    // TODO: override to check group
-    // TODO: override to filter the response
-    protected Content process(Content content, ID sender, ReliableMessage rMsg) {
-        // check message delegate
-        if (rMsg.getDelegate() == null) {
-            rMsg.setDelegate(this);
-        }
-        // call CPU to process it
-        return cpu.process(content, sender, rMsg);
     }
 
     //-------- Saving Message
@@ -451,8 +352,4 @@ public abstract class Messenger extends Transceiver {
      * @param msg - instant message to be sent
      */
     public abstract void suspendMessage(InstantMessage msg);
-
-    static {
-        Command.parser = new CommandParser();
-    }
 }
