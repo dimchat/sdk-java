@@ -236,9 +236,16 @@ public class CryptoECCTest {
         //
     }
 
+    private static void testValidate(String address, String expected) {
+        String validate = ETHAddress.getValidateAddress(address);
+        Log.info("validate(" + address + "): " + validate);
+        Assert.assertEquals(expected, validate);
+    }
+
     @Test
     public void testValidateAddress() {
         boolean ok;
+        Log.info("-------- test validate --------");
 
         ok = ETHAddress.isValidate("0xD4a16aa11Bd0D3315698792F5E1F66770F9Cd78F");
         Assert.assertTrue(ok);
@@ -248,6 +255,11 @@ public class CryptoECCTest {
 
         ok = ETHAddress.isValidate("0x50352B904445576242444bc1924e93e61090738c");
         Assert.assertTrue(!ok);
+
+        testValidate("0x50352B904445576242444bc1924e93e61090738c",
+                "0x50352B904445576242444bc1924e93e61090738C");
+        testValidate("0xfb6916095ca1df60bb79ce92ce3ea74c37c5d359",
+                "0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359");
     }
 }
 

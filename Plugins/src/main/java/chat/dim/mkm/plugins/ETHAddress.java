@@ -97,6 +97,7 @@ public final class ETHAddress extends chat.dim.type.String implements Address {
     }
 
     public static String getValidateAddress(String address) {
+        address = address.toLowerCase();
         if (address.startsWith("0x")) {
             address = address.substring(2);
         }
