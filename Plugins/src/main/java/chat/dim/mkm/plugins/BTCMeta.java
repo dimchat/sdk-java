@@ -73,7 +73,7 @@ public class BTCMeta extends BaseMeta {
         }
         Address address = identifier.getAddress();
         if (address instanceof BTCAddress) {
-            byte network = ((BTCAddress) address).getNetwork();
+            byte network = address.getNetwork();
             return identifier.equals(generateID(network));
         }
         return false;

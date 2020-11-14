@@ -221,7 +221,7 @@ public class CryptoECCTest {
 
         testAddress("18e14a7b6a307f426a94f8114701e7c8e774e7f9a47e2c2035db29a206321725");
         // 16UwLL9Risc3QfPqBUvKofHmBQ7wMtjvM
-        // 0x3E9003153...289c3E
+        // 0x3E9003153d9A39D3f57B126b0c38513D5e289c3E
 
         testAddress("ccea9c5a20e2b78c2e0fbdd8ae2d2b67e6b1894ccb7a55fc1de08bd53994ea64");
         // 14xfJr1DArtYR156XBs28FoYk6sQqirT2s
@@ -234,6 +234,20 @@ public class CryptoECCTest {
 
         testAddress("11af9e9f87c53beedfe7eb3f1e9b6e2592b382ab3ecd83a92a6c20cb0c885f63");
         //
+    }
+
+    @Test
+    public void testValidateAddress() {
+        boolean ok;
+
+        ok = ETHAddress.isValidate("0xD4a16aa11Bd0D3315698792F5E1F66770F9Cd78F");
+        Assert.assertTrue(ok);
+
+        ok = ETHAddress.isValidate("0x40DAB7E81503AA1F8c1ef3574842017277755646");
+        Assert.assertTrue(ok);
+
+        ok = ETHAddress.isValidate("0x50352B904445576242444bc1924e93e61090738c");
+        Assert.assertTrue(!ok);
     }
 }
 

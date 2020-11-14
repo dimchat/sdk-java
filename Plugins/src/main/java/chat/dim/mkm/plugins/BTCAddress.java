@@ -119,12 +119,4 @@ public final class BTCAddress extends chat.dim.type.String implements Address {
         System.arraycopy(sha256d, 0, cc, 0, 4);
         return cc;
     }
-
-    private static long userNumber(byte[] cc) {
-        return (long)
-                (cc[3] & 0xFF) << 24 |
-                (cc[2] & 0xFF) << 16 |
-                (cc[1] & 0xFF) << 8 |
-                (cc[0] & 0xFF);
-    }
 }

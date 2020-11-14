@@ -74,8 +74,60 @@ public final class ETHAddress extends chat.dim.type.String implements Address {
         // 2. address = hex_encode(digest.suffix(20));
         byte[] tail = new byte[20];
         System.arraycopy(digest, digest.length - 20, tail, 0, 20);
-        String address = "0x" + Hex.encode(tail);
+        String address = "0x" + eip55(Hex.encode(tail));
         return new ETHAddress(address);
+    }
+
+    // https://eips.ethereum.org/EIPS/eip-55
+    private static String eip55(String hex) {
+        StringBuilder sb = new StringBuilder();
+        byte[] hash = Keccak256.digest(hex.getBytes());
+        char ch;
+        for (int i = 0; i < 40; ++i) {
+            ch = hex.charAt(i);
+            if (ch > '9') {
+                // check for each 4 bits in the hash table
+                // if the first bit is '1',
+                //     change the character to uppercase
+                ch -= (hash[i >> 1] << (i << 2 & 4) & 0x80) >> 2;
+            }
+            sb.append(ch);
+        }
+        return sb.toString();
+    }
+
+    public static String getValidateAddress(String address) {
+        if (address.startsWith("0x")) {
+            address = address.substring(2);
+        }
+        return "0x" + eip55(address);
+    }
+
+    public static boolean isValidate(String address) {
+        int len = address.length();
+        if (len != 42) {
+            return false;
+        }
+        if (address.charAt(0) != '0' || address.charAt(1) != 'x') {
+            return false;
+        }
+        char ch;
+        for (int i = 2; i < 42; ++i) {
+            ch = address.charAt(i);
+            if (ch >= '0' && ch <= '9') {
+                continue;
+            }
+            if (ch >= 'A' && ch <= 'Z') {
+                continue;
+            }
+            if (ch >= 'a' && ch <= 'z') {
+                continue;
+            }
+            // unexpected character
+            return false;
+        }
+        String hex = address.substring(2);
+        return eip55(hex.toLowerCase()).equals(hex);
     }
 
     /**
@@ -85,13 +137,26 @@ public final class ETHAddress extends chat.dim.type.String implements Address {
      * @return null on error
      */
     public static ETHAddress parse(String string) {
-        // decode
-        if (string.startsWith("0x")) {
-            string = string.substring(2);
+        int len = string.length();
+        if (len != 42) {
+            return null;
         }
-        byte[] data = Hex.decode(string);
-        if (data.length != 20) {
-            throw new IndexOutOfBoundsException("address length error: " + data.length);
+        if (string.charAt(0) != '0' || string.charAt(1) != 'x') {
+            return null;
+        }
+        char ch;
+        for (int i = 2; i < len; ++i) {
+            ch = string.charAt(i);
+            if (ch >= '0' && ch <= '9') {
+                continue;
+            }
+            if (ch >= 'A' && ch <= 'F') {
+                continue;
+            }
+            if (ch >= 'a' && ch <= 'f') {
+                continue;
+            }
+            return null;
         }
         return new ETHAddress(string);
     }
