@@ -57,12 +57,18 @@ public final class ETHAddress extends chat.dim.type.String implements Address {
     }
 
     /**
-     *  Generate address with fingerprint and network ID
+     *  Generate ETH address with key.data
      *
      * @param fingerprint = key.data
      * @return Address object
      */
     public static ETHAddress generate(byte[] fingerprint) {
+        if (fingerprint.length == 65) {
+            byte[] data = new byte[64];
+            System.arraycopy(fingerprint, 1, data, 0, 64);
+            fingerprint = data;
+        }
+        assert fingerprint.length == 64 : "key data length error: " + fingerprint.length;
         // 1. digest = keccak256(fingerprint);
         byte[] digest = Keccak256.digest(fingerprint);
         // 2. address = hex_encode(digest.suffix(20));
