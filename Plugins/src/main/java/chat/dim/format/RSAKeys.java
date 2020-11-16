@@ -48,6 +48,7 @@ public class RSAKeys {
 
     // public key parser
     public static KeyParser<PublicKey> publicKeyParser = new KeyParser<PublicKey>() {
+
         @Override
         public String encode(PublicKey key) {
             return PEM.encodePublicKey(key, "RSA");

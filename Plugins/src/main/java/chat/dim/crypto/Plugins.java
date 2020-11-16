@@ -25,8 +25,6 @@
  */
 package chat.dim.crypto;
 
-import java.security.Security;
-
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
 import org.bouncycastle.crypto.digests.SHA3Digest;
 
@@ -38,15 +36,11 @@ import chat.dim.digest.RIPEMD160;
 public abstract class Plugins extends chat.dim.format.Plugins {
 
     static {
-        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 
         /*
          *  Key Parser
          */
         KeyFactory.parser = new KeyParser();
-    }
-
-    static {
 
         /*
          *  Digest

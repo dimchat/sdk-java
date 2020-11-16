@@ -68,7 +68,7 @@ public final class ECCPublicKey extends Dictionary implements PublicKey {
         if (publicKey == null) {
             return null;
         }
-        return ECCKeys.getKeyData(publicKey);
+        return ECCKeys.getPointData(publicKey);
     }
 
     @Override

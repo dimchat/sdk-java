@@ -48,7 +48,7 @@ public class ECCKeys {
 
     private static byte[] privatePrefix = Hex.decode("303E020100301006072A8648CE3D020106052B8104000A042730250201010420");
 
-    public static PrivateKey createPrivateKey(byte[] privateKey) {
+    private static PrivateKey createPrivateKey(byte[] privateKey) {
         byte[] full = new byte[privatePrefix.length + privateKey.length];
         System.arraycopy(privatePrefix, 0, full, 0, privatePrefix.length);
         System.arraycopy(privateKey, 0, full, privatePrefix.length, privateKey.length);
@@ -62,7 +62,7 @@ public class ECCKeys {
         }
     }
 
-    public static PublicKey createPublicKey(byte[] publicKey) {
+    private static PublicKey createPublicKey(byte[] publicKey) {
         ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec("secp256k1");
         return createPublicKey(publicKey, ecSpec);
     }
@@ -95,12 +95,12 @@ public class ECCKeys {
         return (ECPublicKey) createPublicKey(publicDerBytes, ecSpec);
     }
 
-    public static byte[] getKeyData(ECPrivateKey sKey) {
+    public static byte[] getPointData(ECPrivateKey sKey) {
         BigInteger s = sKey.getS();
         return s.toByteArray();
     }
 
-    public static byte[] getKeyData(ECPublicKey pKey) {
+    public static byte[] getPointData(ECPublicKey pKey) {
         java.security.spec.ECPoint w = pKey.getW();
         byte[] x = w.getAffineX().toByteArray();
         byte[] y = w.getAffineY().toByteArray();
@@ -135,8 +135,7 @@ public class ECCKeys {
     public static KeyParser<PublicKey> publicKeyParser = new KeyParser<PublicKey>() {
         @Override
         public String encode(PublicKey key) {
-            byte[] data = getKeyData((ECPublicKey) key);
-            return Hex.encode(data);
+            return PEM.encodePublicKey(key, "EC");
         }
 
         @Override
@@ -163,8 +162,7 @@ public class ECCKeys {
     public static KeyParser<PrivateKey> privateKeyParser = new KeyParser<PrivateKey>() {
         @Override
         public String encode(PrivateKey key) {
-            byte[] data = getKeyData((ECPrivateKey) key);
-            return Hex.encode(data);
+            return PEM.encodePrivateKey(key, "EC");
         }
 
         @Override

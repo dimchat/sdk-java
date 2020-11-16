@@ -43,7 +43,6 @@ import chat.dim.crypto.CryptoUtils;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.PublicKey;
 import chat.dim.format.ECCKeys;
-import chat.dim.format.Hex;
 import chat.dim.type.Dictionary;
 
 /**
@@ -94,8 +93,11 @@ public final class ECCPrivateKey extends Dictionary implements PrivateKey {
         generator.initialize(spec, new SecureRandom());
         KeyPair keyPair = generator.generateKeyPair();
 
-        byte[] data = ECCKeys.getKeyData((ECPrivateKey) keyPair.getPrivate());
-        put("data", Hex.encode(data));
+        // -----BEGIN ECC PRIVATE KEY-----
+        String skString = ECCKeys.encodePrivateKey(keyPair.getPrivate());
+        // -----END ECC PRIVATE KEY-----
+
+        put("data", skString);
 
         // other parameters
         put("curve", curveName);
@@ -109,7 +111,7 @@ public final class ECCPrivateKey extends Dictionary implements PrivateKey {
         if (privateKey == null) {
             return null;
         }
-        return ECCKeys.getKeyData(privateKey);
+        return ECCKeys.getPointData(privateKey);
     }
 
     @Override
@@ -123,12 +125,11 @@ public final class ECCPrivateKey extends Dictionary implements PrivateKey {
                 throw new NullPointerException("failed to get public key from private key");
             }
         }
-        byte[] data = ECCKeys.getKeyData(publicKey);
-        String hex = Hex.encode(data);
+        String pem = ECCKeys.encodePublicKey(publicKey);
 
         Map<String, Object> keyInfo = new HashMap<>();
         keyInfo.put("algorithm", get("algorithm"));  // ECC
-        keyInfo.put("data", hex);
+        keyInfo.put("data", pem);
         keyInfo.put("curve", getCurveName());        // secp256k1
         keyInfo.put("digest", "SHA256");
         try {
