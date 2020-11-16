@@ -41,7 +41,7 @@ import chat.dim.protocol.NetworkType;
  *      data format: "0x{address}"
  *
  *      algorithm:
- *          fingerprint = sign(seed, SK);  // public key data
+ *          fingerprint = PK.data;
  *          digest      = keccak256(fingerprint);
  *          address     = hex_encode(digest.suffix(20));
  */

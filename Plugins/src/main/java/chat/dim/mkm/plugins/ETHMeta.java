@@ -49,9 +49,9 @@ import chat.dim.protocol.MetaType;
  *      0x05 - ExETH
  *
  *  algorithm:
- *          fingerprint = key.data;
- *          digest      = keccak256(fingerprint);
- *          address     = hex_encode(digest.suffix(20));
+ *      fingerprint = key.data;
+ *      digest      = keccak256(fingerprint);
+ *      address     = hex_encode(digest.suffix(20));
  */
 public final class ETHMeta extends BaseMeta {
 

@@ -25,6 +25,7 @@
  */
 package chat.dim.format;
 
+import java.math.BigInteger;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -94,6 +95,22 @@ public class ECCKeys {
         return (ECPublicKey) createPublicKey(publicDerBytes, ecSpec);
     }
 
+    public static byte[] getKeyData(ECPrivateKey sKey) {
+        BigInteger s = sKey.getS();
+        return s.toByteArray();
+    }
+
+    public static byte[] getKeyData(ECPublicKey pKey) {
+        java.security.spec.ECPoint w = pKey.getW();
+        byte[] x = w.getAffineX().toByteArray();
+        byte[] y = w.getAffineY().toByteArray();
+        byte[] data = new byte[65];
+        data[0] = 4;
+        System.arraycopy(x, x.length - 32, data, 1, 32);
+        System.arraycopy(y, y.length - 32, data, 33, 32);
+        return data;
+    }
+
     //
     //  PEM
     //
@@ -118,7 +135,8 @@ public class ECCKeys {
     public static KeyParser<PublicKey> publicKeyParser = new KeyParser<PublicKey>() {
         @Override
         public String encode(PublicKey key) {
-            return PEM.encodePublicKey(key, "EC");
+            byte[] data = getKeyData((ECPublicKey) key);
+            return Hex.encode(data);
         }
 
         @Override
@@ -145,7 +163,8 @@ public class ECCKeys {
     public static KeyParser<PrivateKey> privateKeyParser = new KeyParser<PrivateKey>() {
         @Override
         public String encode(PrivateKey key) {
-            return PEM.encodePrivateKey(key, "EC");
+            byte[] data = getKeyData((ECPrivateKey) key);
+            return Hex.encode(data);
         }
 
         @Override

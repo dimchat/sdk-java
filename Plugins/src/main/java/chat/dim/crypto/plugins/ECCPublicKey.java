@@ -32,8 +32,6 @@ import java.security.SignatureException;
 import java.security.interfaces.ECPublicKey;
 import java.util.Map;
 
-import org.bouncycastle.math.ec.ECPoint;
-
 import chat.dim.crypto.CryptoUtils;
 import chat.dim.crypto.PublicKey;
 import chat.dim.format.ECCKeys;
@@ -70,8 +68,7 @@ public final class ECCPublicKey extends Dictionary implements PublicKey {
         if (publicKey == null) {
             return null;
         }
-        ECPoint w = ((org.bouncycastle.jce.interfaces.ECPublicKey) publicKey).getQ();
-        return w.getEncoded(false);
+        return ECCKeys.getKeyData(publicKey);
     }
 
     @Override
