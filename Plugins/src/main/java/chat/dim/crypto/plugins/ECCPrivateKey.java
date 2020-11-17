@@ -125,8 +125,12 @@ public final class ECCPrivateKey extends Dictionary implements PrivateKey {
                 throw new NullPointerException("failed to get public key from private key");
             }
         }
+        // store public key in X.509 format
+        String pem = ECCKeys.encodePublicKey(publicKey);
+        /*
         byte[] data = ECCKeys.getPointData(publicKey);
         String pem = Hex.encode(data);
+         */
 
         Map<String, Object> keyInfo = new HashMap<>();
         keyInfo.put("algorithm", get("algorithm"));  // ECC
