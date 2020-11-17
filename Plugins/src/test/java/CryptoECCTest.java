@@ -18,6 +18,35 @@ import chat.dim.format.Hex;
 
 public class CryptoECCTest {
 
+    private static PublicKey getPublicKey(String pem) {
+        Map<String, Object> dictionary = new HashMap<>();
+        dictionary.put("algorithm", "ECC");
+        dictionary.put("data", pem);
+        return KeyFactory.getPublicKey(dictionary);
+    }
+
+    private static PrivateKey getPrivateKey(String pem) {
+        Map<String, Object> dictionary = new HashMap<>();
+        dictionary.put("algorithm", "ECC");
+        dictionary.put("data", pem);
+        return KeyFactory.getPrivateKey(dictionary);
+    }
+
+    private static PublicKey getPublicKey() {
+        return getPublicKey("-----BEGIN PUBLIC KEY-----\n" +
+                "MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAE82Xdir58NnH/vSudaOQ2gsHs19n7cffS\n" +
+                "UMhziNnUjWO4jHmCDaM01IR/ihvenp0F/ayn1v+zU9K+e5247YbDWg==\n" +
+                "-----END PUBLIC KEY-----");
+    }
+
+    private static PrivateKey getPrivateKey() {
+        return getPrivateKey("-----BEGIN PRIVATE KEY-----\n" +
+                "MIGEAgEAMBAGByqGSM49AgEGBSuBBAAKBG0wawIBAQQgOUmGNqsZ8DvKl7ePHU28\n" +
+                "BpcPShcV0sSgOjTY2umhMqmhRANCAATzZd2Kvnw2cf+9K51o5DaCwezX2ftx99JQ\n" +
+                "yHOI2dSNY7iMeYINozTUhH+KG96enQX9rKfW/7NT0r57nbjthsNa\n" +
+                "-----END PRIVATE KEY-----");
+    }
+
     private void testKeys(PrivateKey sKey, PublicKey pKey) {
         Log.info("ECC private key: " + sKey);
         Log.info("secret data: " + Hex.encode(sKey.getData()));
@@ -47,20 +76,9 @@ public class CryptoECCTest {
     }
 
     private PrivateKey testKeys(String secret, String pub) {
-        // create private key
-        Map<String, Object> dict1 = new HashMap<>();
-        dict1.put("algorithm", "ECC");
-        dict1.put("data", secret);
-        PrivateKey sKey = KeyFactory.getPrivateKey(dict1);
-
-        // create public key
-        Map<String, Object> dict2 = new HashMap<>();
-        dict2.put("algorithm", "ECC");
-        dict2.put("data", pub);
-        PublicKey pKey = KeyFactory.getPublicKey(dict2);
-
+        PrivateKey sKey = getPrivateKey(secret);
+        PublicKey pKey = getPublicKey(pub);
         testKeys(sKey, pKey);
-
         return sKey;
     }
 
@@ -73,35 +91,6 @@ public class CryptoECCTest {
 
         ETHAddress eth = ETHAddress.generate(pub);
         Log.info("ETH address: " + eth.toString());
-    }
-
-    private static PublicKey getPublicKey(String pem) {
-        Map<String, Object> dictionary = new HashMap<>();
-        dictionary.put("algorithm", "ECC");
-        dictionary.put("data", pem);
-        return KeyFactory.getPublicKey(dictionary);
-    }
-
-    private static PrivateKey getPrivateKey(String pem) {
-        Map<String, Object> dictionary = new HashMap<>();
-        dictionary.put("algorithm", "ECC");
-        dictionary.put("data", pem);
-        return KeyFactory.getPrivateKey(dictionary);
-    }
-
-    private static PublicKey getPublicKey() {
-        return getPublicKey("-----BEGIN PUBLIC KEY-----\n" +
-                "MFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAE82Xdir58NnH/vSudaOQ2gsHs19n7cffS\n" +
-                "UMhziNnUjWO4jHmCDaM01IR/ihvenp0F/ayn1v+zU9K+e5247YbDWg==\n" +
-                "-----END PUBLIC KEY-----");
-    }
-
-    private static PrivateKey getPrivateKey() {
-        return getPrivateKey("-----BEGIN PRIVATE KEY-----\n" +
-                "MIGEAgEAMBAGByqGSM49AgEGBSuBBAAKBG0wawIBAQQgOUmGNqsZ8DvKl7ePHU28\n" +
-                "BpcPShcV0sSgOjTY2umhMqmhRANCAATzZd2Kvnw2cf+9K51o5DaCwezX2ftx99JQ\n" +
-                "yHOI2dSNY7iMeYINozTUhH+KG96enQX9rKfW/7NT0r57nbjthsNa\n" +
-                "-----END PRIVATE KEY-----");
     }
 
     @Test
@@ -141,6 +130,31 @@ public class CryptoECCTest {
         PrivateKey sk = KeyFactory.getPrivateKey(PrivateKey.ECC);
         PublicKey pk = sk.getPublicKey();
         testKeys(sk, pk);
+
+//        sk = testKeys("-----BEGIN PRIVATE KEY-----\nMIGNAgEBMBAGByqGSM49AgEGBSuBBAAKBHYwdAIBAQQgRwNa2FuE6W8Z3cCrzwTL\nm4vSbeSrqbhHVOHUcNosBVGgBwYFK4EEAAqhRANCAASc98Xix4Xh0TWqLdrvQPZz\n6/CKMA5NT4vtwNmHzTJt7u6ZcRKTZzg++PKl8oR8qAnOeMbpapAbPxphUeTEtOsQ\n-----END PRIVATE KEY-----",
+//                "-----BEGIN PUBLIC KEY-----\nMFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEnPfF4seF4dE1qi3a70D2c+vwijAOTU+L\n7cDZh80ybe7umXESk2c4PvjypfKEfKgJznjG6WqQGz8aYVHkxLTrEA==\n-----END PUBLIC KEY-----");
+        sk = testKeys("5ae4c458c584ab3b3c8b14c7462f295ed6c22d4d376ae625e9d0a93145c3345c",
+                "04a34ba8e23e8abc035e238fb70920289d69e130c7779cf432005f0bfc9482282af496e9ae92ad3f7ff68932855d1d6d5bc30eb59dc0a6c579fa134c830ce14ce3");
+
+//        sk = getPrivateKey("-----BEGIN PRIVATE KEY-----\nMIGNAgEBMBAGByqGSM49AgEGBSuBBAAKBHYwdAIBAQQgWuTEWMWEqzs8ixTHRi8p\nXtbCLU03auYl6dCpMUXDNFygBwYFK4EEAAqhRANCAASjS6jiPoq8A14jj7cJICid\naeEwx3ec9DIAXwv8lIIoKvSW6a6SrT9/9okyhV0dbVvDDrWdwKbFefoTTIMM4Uzj\n-----END PRIVATE KEY-----");
+//        sk = getPrivateKey("5ae4c458c584ab3b3c8b14c7462f295ed6c22d4d376ae625e9d0a93145c3345c");
+        
+//        sk = getPrivateKey("-----BEGIN PRIVATE KEY-----\n" +
+//                "MIGEAgEAMBAGByqGSM49AgEGBSuBBAAKBG0wawIBAQQgRwNa2FuE6W8Z3cCrzwTL\n" +
+//                "m4vSbeSrqbhHVOHUcNosBVGhRANCAASc98Xix4Xh0TWqLdrvQPZz6/CKMA5NT4vt\n" +
+//                "wNmHzTJt7u6ZcRKTZzg++PKl8oR8qAnOeMbpapAbPxphUeTEtOsQ\n" +
+//                "-----END PRIVATE KEY-----");
+
+        byte[] pri = sk.getData();
+        Log.info("pri data: " + Hex.encode(pri));
+
+        pk = sk.getPublicKey();
+        byte[] pub = pk.getData();
+        Log.info("pub data: " + Hex.encode(pub));
+        
+        pk = getPublicKey("-----BEGIN PUBLIC KEY-----\nMFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAEnPfF4seF4dE1qi3a70D2c+vwijAOTU+L\n7cDZh80ybe7umXESk2c4PvjypfKEfKgJznjG6WqQGz8aYVHkxLTrEA==\n-----END PUBLIC KEY-----");
+        pub = pk.getData();
+        Log.info("pub2data: " + Hex.encode(pub));
     }
 
     @Test
@@ -207,20 +221,32 @@ public class CryptoECCTest {
         testAddress(pKey);
     }
 
-    private void testAddress(String hex) {
+    private PrivateKey testAddress(String hex) {
         PrivateKey sKey = getPrivateKey(hex);
         PublicKey pKey = sKey.getPublicKey();
         testKeys(sKey, pKey);
         testAddress(pKey);
+        return sKey;
     }
 
     @Test
     public void testETH() {
         Log.info("-------- test ETH --------");
+        PrivateKey sKey;
+        PublicKey pKey;
 
-        testAddress("18e14a7b6a307f426a94f8114701e7c8e774e7f9a47e2c2035db29a206321725");
+        sKey = testAddress("18e14a7b6a307f426a94f8114701e7c8e774e7f9a47e2c2035db29a206321725");
         // 16UwLL9Risc3QfPqBUvKofHmBQ7wMtjvM
         // 0x3E9003153d9A39D3f57B126b0c38513D5e289c3E
+        pKey = sKey.getPublicKey();
+        byte[] pub = pKey.getData();
+        byte[] sig = sKey.sign(pub);
+        String hex = Hex.encode(sig);
+        boolean ok = pKey.verify(pub, sig);
+        Log.info("signature: " + ok + " -> " + hex);
+
+        sig = Hex.decode("304402203e723721984515805335142c6710cb74862fb63163fed091a7cf91d7f4226e93022001272261ae70bee6e6fbf0e6cb950f3a80fed3941d616432b2a19417fda285c4");
+        ok = pKey.verify(pub, sig);
 
         testAddress("ccea9c5a20e2b78c2e0fbdd8ae2d2b67e6b1894ccb7a55fc1de08bd53994ea64");
         // 14xfJr1DArtYR156XBs28FoYk6sQqirT2s
