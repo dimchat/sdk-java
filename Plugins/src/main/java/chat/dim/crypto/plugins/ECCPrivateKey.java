@@ -95,6 +95,16 @@ public final class ECCPrivateKey extends Dictionary implements PrivateKey {
         KeyPair keyPair = generator.generateKeyPair();
 
         byte[] data = ECCKeys.getPointData((ECPrivateKey) keyPair.getPrivate());
+        if (data.length == 33) {
+            if (data[0] != 0) {
+                throw new ArithmeticException("ECC private key data error: " + Hex.encode(data));
+            }
+            byte[] cut = new byte[32];
+            System.arraycopy(data, 1, cut, 0, 32);
+            data = cut;
+        }
+        assert data.length == 32 : "ECC private key length error: " + data.length;
+
         String pem = Hex.encode(data);
 
         put("data", pem);
