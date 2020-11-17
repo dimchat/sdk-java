@@ -96,8 +96,14 @@ public class ECCKeys {
     }
 
     public static byte[] getPointData(ECPrivateKey sKey) {
-        BigInteger s = sKey.getS();
-        return s.toByteArray();
+        byte[] s = sKey.getS().toByteArray();
+        if (s.length == 32) {
+            return s;
+        }
+        assert s.length == 33 && s[0] == 0 : "ECC private key data error: " + Hex.encode(s);
+        byte[] data = new byte[32];
+        System.arraycopy(s, s.length - 32, data, 0, 32);
+        return data;
     }
 
     public static byte[] getPointData(ECPublicKey pKey) {
