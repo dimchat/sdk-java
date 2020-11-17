@@ -25,7 +25,6 @@
  */
 package chat.dim.format;
 
-import java.math.BigInteger;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -141,6 +140,10 @@ public class ECCKeys {
     public static KeyParser<PublicKey> publicKeyParser = new KeyParser<PublicKey>() {
         @Override
         public String encode(PublicKey key) {
+            /*
+            byte[] data = ECCKeys.getPointData((ECPublicKey) key);
+            return Hex.encode(data);
+             */
             return PEM.encodePublicKey(key, "EC");
         }
 
@@ -168,6 +171,10 @@ public class ECCKeys {
     public static KeyParser<PrivateKey> privateKeyParser = new KeyParser<PrivateKey>() {
         @Override
         public String encode(PrivateKey key) {
+            /*
+            byte[] data = ECCKeys.getPointData((ECPrivateKey) key);
+            return Hex.encode(data);
+             */
             return PEM.encodePrivateKey(key, "EC");
         }
 

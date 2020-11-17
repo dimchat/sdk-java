@@ -43,7 +43,6 @@ import chat.dim.crypto.CryptoUtils;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.PublicKey;
 import chat.dim.format.ECCKeys;
-import chat.dim.format.Hex;
 import chat.dim.type.Dictionary;
 
 /**
@@ -94,9 +93,8 @@ public final class ECCPrivateKey extends Dictionary implements PrivateKey {
         generator.initialize(spec, new SecureRandom());
         KeyPair keyPair = generator.generateKeyPair();
 
-        byte[] data = ECCKeys.getPointData((ECPrivateKey) keyPair.getPrivate());
-        String pem = Hex.encode(data);
-
+        // store private key in PKCS#8 format
+        String pem = ECCKeys.encodePrivateKey(keyPair.getPrivate());
         put("data", pem);
 
         // other parameters
@@ -127,10 +125,6 @@ public final class ECCPrivateKey extends Dictionary implements PrivateKey {
         }
         // store public key in X.509 format
         String pem = ECCKeys.encodePublicKey(publicKey);
-        /*
-        byte[] data = ECCKeys.getPointData(publicKey);
-        String pem = Hex.encode(data);
-         */
 
         Map<String, Object> keyInfo = new HashMap<>();
         keyInfo.put("algorithm", get("algorithm"));  // ECC
