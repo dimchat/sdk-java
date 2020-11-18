@@ -25,8 +25,8 @@
  */
 package chat.dim.crypto;
 
+import org.bouncycastle.crypto.digests.KeccakDigest;
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
-import org.bouncycastle.crypto.digests.SHA3Digest;
 
 import chat.dim.crypto.plugins.KeyParser;
 import chat.dim.digest.Hash;
@@ -62,7 +62,7 @@ public abstract class Plugins extends chat.dim.format.Plugins {
         Keccak256.hash = new Hash() {
             @Override
             public byte[] digest(byte[] data) {
-                SHA3Digest digest = new SHA3Digest(256);
+                KeccakDigest digest = new KeccakDigest(256);
                 digest.update(data, 0, data.length);
                 byte[] out = new byte[digest.getDigestSize()];
                 digest.doFinal(out, 0);
