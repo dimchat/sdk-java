@@ -103,6 +103,10 @@ public class CryptoECCTest {
         Log.info("pub: " + hex);
         String expected = "04f365dd8abe7c3671ffbd2b9d68e43682c1ecd7d9fb71f7d250c87388d9d48d63b88c79820da334d4847f8a1bde9e9d05fdaca7d6ffb353d2be7b9db8ed86c35a";
         Assert.assertEquals(expected, hex);
+
+        PrivateKey sKey = getPrivateKey("2d95856acf68e316092c145abed124418e6a5592b38cabe2a87d8403597424c4");
+        key = sKey.getPublicKey();
+        Log.info("public key: " + key);
     }
 
     @Test

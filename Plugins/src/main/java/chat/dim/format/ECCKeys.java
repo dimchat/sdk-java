@@ -25,6 +25,7 @@
  */
 package chat.dim.format;
 
+import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -36,7 +37,6 @@ import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 
 import org.bouncycastle.jce.ECNamedCurveTable;
-import org.bouncycastle.jce.spec.ECNamedCurveSpec;
 import org.bouncycastle.jce.spec.ECParameterSpec;
 import org.bouncycastle.jce.spec.ECPublicKeySpec;
 import org.bouncycastle.math.ec.ECPoint;
@@ -61,6 +61,25 @@ public class ECCKeys {
         }
     }
 
+    /*
+    private static PrivateKey createPrivateKey(byte[] privateKey) {
+        ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec("secp256k1");
+        return createPrivateKey(privateKey, ecSpec);
+    }
+
+    private static PrivateKey createPrivateKey(byte[] privateKey, ECParameterSpec ecSpec) {
+        BigInteger s = new BigInteger(privateKey);
+        ECPrivateKeySpec priSpec = new ECPrivateKeySpec(s, ecSpec);
+        try {
+            KeyFactory keyFactory = CryptoUtils.getKeyFactory("EC");
+            return  keyFactory.generatePrivate(priSpec);
+        } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+     */
+
     private static PublicKey createPublicKey(byte[] publicKey) {
         ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec("secp256k1");
         return createPublicKey(publicKey, ecSpec);
@@ -79,6 +98,16 @@ public class ECCKeys {
     }
 
     public static ECPublicKey generatePublicKey(ECPrivateKey privateKey) {
+        try {
+            return ECCGenerator.getPublicKey(privateKey);
+        } catch (GeneralSecurityException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /*
+    public static ECPublicKey generatePublicKey(ECPrivateKey privateKey) {
         // get curve name from private key
         String curveName;
         java.security.spec.ECParameterSpec namedSpec = privateKey.getParams();
@@ -93,6 +122,7 @@ public class ECCKeys {
         byte[] publicDerBytes = Q.getEncoded(false);
         return (ECPublicKey) createPublicKey(publicDerBytes, ecSpec);
     }
+     */
 
     public static byte[] getPointData(ECPrivateKey sKey) {
         byte[] s = sKey.getS().toByteArray();
