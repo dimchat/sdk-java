@@ -74,15 +74,15 @@ public final class DefaultMeta extends BTCMeta {
     /**
      *  Generate meta with private key
      *
-     * @param version - meta type
      * @param sKey - private key
      * @param seed - ID.name
      * @return Meta
      */
-    public static DefaultMeta generate(int version, PrivateKey sKey, String seed) {
+    public static DefaultMeta generate(PrivateKey sKey, String seed) {
         if (seed == null || seed.length() == 0) {
             throw new NullPointerException("default meta's seed should not be empty!");
         }
+        int version = MetaType.MKM.value;
         byte[] data = UTF8.encode(seed);
         byte[] fingerprint = sKey.sign(data);
         return new DefaultMeta(version, sKey.getPublicKey(), seed, fingerprint);

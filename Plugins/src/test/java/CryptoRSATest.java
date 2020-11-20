@@ -5,7 +5,11 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.crypto.*;
+import chat.dim.crypto.DecryptKey;
+import chat.dim.crypto.EncryptKey;
+import chat.dim.crypto.KeyFactory;
+import chat.dim.crypto.PrivateKey;
+import chat.dim.crypto.PublicKey;
 import chat.dim.format.UTF8;
 
 public class CryptoRSATest {
