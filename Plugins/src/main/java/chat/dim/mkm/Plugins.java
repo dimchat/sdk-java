@@ -74,7 +74,7 @@ public abstract class Plugins extends chat.dim.crypto.Plugins {
                     return address;
                 }
                 int len = string.length();
-                if (len == 40 || len == 42) {
+                if (len == 42) {
                     return ETHAddress.parse(string);
                 }
                 return BTCAddress.parse(string);
@@ -101,8 +101,10 @@ public abstract class Plugins extends chat.dim.crypto.Plugins {
                 }
                 if (NetworkType.isUser(identifier.getType())) {
                     return new UserProfile(profile);
+                } else if (NetworkType.isGroup(identifier.getType())) {
+                    return new BaseBulletin(profile);
                 }
-                return super.createProfile(profile);
+                return new BaseProfile(profile);
             }
         };
     }

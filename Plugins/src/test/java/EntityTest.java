@@ -56,7 +56,7 @@ public class EntityTest {
         Map<String, Object> info = new HashMap<>();
         info.put("ID", profile.getIdentifier());
         info.put("name", profile.getName());
-        info.put("key", profile.getKey());
+        info.put("key", profile.getProperty("key"));
         info.put("avatar", profile.getProperty("avatar"));
         info.put("properties", profile.propertyNames());
         info.put("valid", profile.isValid());
@@ -171,7 +171,7 @@ public class EntityTest {
         }
         Assert.assertEquals(account.getType(), user.getType());
 
-        Profile profile = user.getProfile();
+        Profile profile = user.getProfile(Profile.ANY);
         if (profile != null) {
             Log.info("profile: " + getProfileInfo(profile));
         }

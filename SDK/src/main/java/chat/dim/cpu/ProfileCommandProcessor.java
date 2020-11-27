@@ -47,10 +47,10 @@ public class ProfileCommandProcessor extends CommandProcessor {
         super(messenger);
     }
 
-    private Content getProfile(ID identifier) {
+    private Content getProfile(ID identifier, String type) {
         Facebook facebook = getFacebook();
         // query profile for ID
-        Profile profile = facebook.getProfile(identifier);
+        Profile profile = facebook.getProfile(identifier, type);
         if (facebook.isEmpty(profile)) {
             // profile not found
             String text = String.format("Sorry, profile not found for ID: %s", identifier);
@@ -98,7 +98,11 @@ public class ProfileCommandProcessor extends CommandProcessor {
         Profile profile = cmd.getProfile();
         ID identifier = cmd.getIdentifier();
         if (profile == null) {
-            return getProfile(identifier);
+            String type = (String) cmd.get("profile_type");
+            if (type == null) {
+                type = Profile.ANY;
+            }
+            return getProfile(identifier, type);
         } else {
             // check meta
             Meta meta = cmd.getMeta();

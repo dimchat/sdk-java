@@ -58,7 +58,7 @@ public class Station extends User {
      */
     public String getHost() {
         if (host == null) {
-            Profile profile = getProfile();
+            Profile profile = getProfile(Profile.ANY);
             if (profile != null) {
                 Object value = profile.getProperty("host");
                 if (value != null) {
@@ -79,7 +79,7 @@ public class Station extends User {
      */
     public int getPort() {
         if (port == 0) {
-            Profile profile = getProfile();
+            Profile profile = getProfile(Profile.ANY);
             if (profile != null) {
                 Object value = profile.getProperty("port");
                 if (value != null) {

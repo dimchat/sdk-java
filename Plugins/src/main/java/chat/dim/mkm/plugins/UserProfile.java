@@ -33,10 +33,10 @@ package chat.dim.mkm.plugins;
 import java.util.List;
 import java.util.Map;
 
-import chat.dim.mkm.BaseProfile;
+import chat.dim.mkm.BaseVisa;
 import chat.dim.protocol.ID;
 
-public class UserProfile extends BaseProfile {
+public class UserProfile extends BaseVisa {
 
     public UserProfile(Map<String, Object> dictionary) {
         super(dictionary);

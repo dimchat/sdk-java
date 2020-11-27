@@ -39,6 +39,7 @@ import chat.dim.cpu.ContentProcessor;
 import chat.dim.cpu.FileContentProcessor;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.SymmetricKey;
+import chat.dim.crypto.VerifyKey;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
 import chat.dim.protocol.Envelope;
@@ -47,8 +48,10 @@ import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.Meta;
 import chat.dim.protocol.NetworkType;
+import chat.dim.protocol.Profile;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
+import chat.dim.protocol.Visa;
 
 public abstract class Messenger extends Transceiver {
 
@@ -192,18 +195,34 @@ public abstract class Messenger extends Transceiver {
         return super.serializeContent(content, password, iMsg);
     }
 
+    private EncryptKey getPublicKeyForEncryption(ID receiver) {
+        Facebook facebook = getFacebook();
+        Profile profile = facebook.getProfile(receiver, Profile.VISA);
+        if (profile instanceof Visa) {
+            EncryptKey key = ((Visa) profile).getKey();
+            if (key != null) {
+                return key;
+            }
+        }
+        Meta meta = facebook.getMeta(receiver);
+        if (meta == null) {
+            return null;
+        }
+        VerifyKey key = meta.getKey();
+        if (key instanceof EncryptKey) {
+            return (EncryptKey) key;
+        }
+        return null;
+    }
+
     @Override
     public byte[] encryptKey(byte[] data, ID receiver, InstantMessage iMsg) {
-        Facebook facebook = getFacebook();
-        EncryptKey key = facebook.getPublicKeyForEncryption(receiver);
+        EncryptKey key = getPublicKeyForEncryption(receiver);
         if (key == null) {
-            Meta meta = facebook.getMeta(receiver);
-            if (meta == null || !(meta.getKey() instanceof EncryptKey)) {
-                // save this message in a queue waiting receiver's meta/profile response
-                suspendMessage(iMsg);
-                //throw new NullPointerException("failed to get encrypt key for receiver: " + receiver);
-                return null;
-            }
+            // save this message in a queue waiting receiver's meta/profile response
+            suspendMessage(iMsg);
+            //throw new NullPointerException("failed to get encrypt key for receiver: " + receiver);
+            return null;
         }
         return super.encryptKey(data, receiver, iMsg);
     }

@@ -9,7 +9,6 @@ import chat.dim.Group;
 import chat.dim.Immortals;
 import chat.dim.User;
 import chat.dim.crypto.DecryptKey;
-import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
 import chat.dim.crypto.VerifyKey;
@@ -105,7 +104,7 @@ public class MyFacebook extends Facebook {
     }
 
     @Override
-    public Profile getProfile(ID entity) {
+    public Profile getProfile(ID entity, String type) {
         return profileMap.get(entity);
     }
 
@@ -114,15 +113,6 @@ public class MyFacebook extends Facebook {
     @Override
     public List<ID> getContacts(ID user) {
         return immortals.getContacts(user);
-    }
-
-    @Override
-    public SignKey getPrivateKeyForSignature(ID user) {
-        SignKey key = privateKeyMap.get(user);
-        if (key == null) {
-            key = immortals.getPrivateKeyForSignature(user);
-        }
-        return key;
     }
 
     @Override
@@ -145,9 +135,17 @@ public class MyFacebook extends Facebook {
     }
 
     @Override
-    public EncryptKey getPublicKeyForEncryption(ID user) {
-        // NOTICE: return nothing to use profile.key or meta.key
-        return null;
+    public SignKey getPrivateKeyForSignature(ID user) {
+        SignKey key = privateKeyMap.get(user);
+        if (key == null) {
+            key = immortals.getPrivateKeyForSignature(user);
+        }
+        return key;
+    }
+
+    @Override
+    public SignKey getPrivateKeyForVisaSignature(ID user) {
+        return getPrivateKeyForSignature(user);
     }
 
     //---- GroupDataSource

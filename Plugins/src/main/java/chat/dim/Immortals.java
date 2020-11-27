@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 
 import chat.dim.crypto.DecryptKey;
-import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.KeyFactory;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
@@ -233,7 +232,7 @@ public final class Immortals extends chat.dim.mkm.Plugins implements UserDataSou
     }
 
     @Override
-    public Profile getProfile(ID identifier) {
+    public Profile getProfile(ID identifier, String type) {
         return profileMap.get(identifier);
     }
 
@@ -255,8 +254,8 @@ public final class Immortals extends chat.dim.mkm.Plugins implements UserDataSou
     }
 
     @Override
-    public EncryptKey getPublicKeyForEncryption(ID user) {
-        // NOTICE: return nothing to use profile.key or meta.key
+    public List<VerifyKey> getPublicKeysForVerification(ID user) {
+        // NOTICE: return nothing to use meta.key
         return null;
     }
 
@@ -277,8 +276,7 @@ public final class Immortals extends chat.dim.mkm.Plugins implements UserDataSou
     }
 
     @Override
-    public List<VerifyKey> getPublicKeysForVerification(ID user) {
-        // NOTICE: return nothing to use meta.key
-        return null;
+    public SignKey getPrivateKeyForVisaSignature(ID user) {
+        return privateKeyMap.get(user);
     }
 }
