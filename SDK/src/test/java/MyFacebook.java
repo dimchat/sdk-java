@@ -12,9 +12,9 @@ import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
 import chat.dim.crypto.VerifyKey;
+import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
-import chat.dim.protocol.Profile;
 
 public class MyFacebook extends Facebook {
     private static MyFacebook ourInstance = new MyFacebook();
@@ -29,7 +29,7 @@ public class MyFacebook extends Facebook {
     // memory caches
     private Map<ID, PrivateKey> privateKeyMap = new HashMap<>();
     private Map<ID, Meta>       metaMap       = new HashMap<>();
-    private Map<ID, Profile>    profileMap    = new HashMap<>();
+    private Map<ID, Document>   docMap        = new HashMap<>();
 
     // "/sdcard/chat.dim.sechat/.mkm/"
     public String directory = "/tmp/.mkm/";
@@ -40,7 +40,7 @@ public class MyFacebook extends Facebook {
     }
 
     @Override
-    public boolean saveProfile(Profile profile) {
+    public boolean saveDocument(Document doc) {
         return false;
     }
 
@@ -61,11 +61,11 @@ public class MyFacebook extends Facebook {
         return true;
     }
 
-    //---- Profile
+    //---- Entity Document
 
-    protected boolean cacheProfile(Profile profile) {
-        ID identifier = profile.getIdentifier();
-        profileMap.put(identifier, profile);
+    protected boolean cacheDocument(Document doc) {
+        ID identifier = doc.getIdentifier();
+        docMap.put(identifier, doc);
         return true;
     }
 
@@ -104,8 +104,8 @@ public class MyFacebook extends Facebook {
     }
 
     @Override
-    public Profile getProfile(ID entity, String type) {
-        return profileMap.get(entity);
+    public Document getDocument(ID entity, String type) {
+        return docMap.get(entity);
     }
 
     //---- UserDataSource

@@ -11,14 +11,14 @@ import chat.dim.Group;
 import chat.dim.Immortals;
 import chat.dim.User;
 import chat.dim.Entity;
+import chat.dim.crypto.SignKey;
 import chat.dim.mkm.BroadcastAddress;
 import chat.dim.mkm.plugins.BTCAddress;
 import chat.dim.protocol.Address;
+import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 import chat.dim.protocol.NetworkType;
-import chat.dim.protocol.Profile;
-import chat.dim.crypto.SignKey;
 
 public class EntityTest {
 
@@ -52,7 +52,7 @@ public class EntityTest {
         return info.toString();
     }
 
-    private String getProfileInfo(Profile profile) {
+    private String getProfileInfo(Document profile) {
         Map<String, Object> info = new HashMap<>();
         info.put("ID", profile.getIdentifier());
         info.put("name", profile.getName());
@@ -136,7 +136,7 @@ public class EntityTest {
         dict.put("ID", "moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
         dict.put("data", "{\"name\":\"齐天大圣\"}");
         dict.put("signature", "oMdD4Ssop/gOpzwAYpt+Cp3tVJswm+u5i1bu1UlEzzFt+g3ohmE1z018WmSgsBpCls6vXwJEhKS1O5gN9N8XCYhnYx/Q56M0n2NOSifcbQuZciOfQU1c2RMXgUEizIwL2tiFoam22qxyScKIjXcu7rD4XhBC0Gn/EhQpJCqWTMo=");
-        Profile profile = Entity.parseProfile(dict);
+        Document profile = Entity.parseDocument(dict);
         Log.info("profile: " + profile);
 
         ID identifier = Entity.parseID("moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
@@ -171,7 +171,7 @@ public class EntityTest {
         }
         Assert.assertEquals(account.getType(), user.getType());
 
-        Profile profile = user.getProfile(Profile.ANY);
+        Document profile = user.getDocument(Document.ANY);
         if (profile != null) {
             Log.info("profile: " + getProfileInfo(profile));
         }

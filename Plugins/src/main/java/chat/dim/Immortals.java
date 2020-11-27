@@ -45,9 +45,9 @@ import chat.dim.crypto.VerifyKey;
 import chat.dim.filesys.Paths;
 import chat.dim.filesys.Resource;
 import chat.dim.format.JSON;
+import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
-import chat.dim.protocol.Profile;
 
 /**
  *  Built-in accounts (for test)
@@ -66,7 +66,7 @@ public final class Immortals extends chat.dim.mkm.Plugins implements UserDataSou
     private Map<String, ID>     idMap         = new HashMap<>();
     private Map<ID, PrivateKey> privateKeyMap = new HashMap<>();
     private Map<ID, Meta>       metaMap       = new HashMap<>();
-    private Map<ID, Profile>    profileMap    = new HashMap<>();
+    private Map<ID, Document>   profileMap    = new HashMap<>();
     private Map<ID, User>       userMap       = new HashMap<>();
 
     public Immortals() {
@@ -105,7 +105,7 @@ public final class Immortals extends chat.dim.mkm.Plugins implements UserDataSou
         OK = cache(key, identifier);
         assert OK : "private key error: " + key;
         // load profile for ID
-        Profile profile = loadProfile(identifier.getName() + "_profile.js");
+        Document profile = loadProfile(identifier.getName() + "_profile.js");
         OK = cache(profile, identifier);
         assert OK : "profile error: " + profile;
     }
@@ -123,9 +123,9 @@ public final class Immortals extends chat.dim.mkm.Plugins implements UserDataSou
     }
 
     @SuppressWarnings("unchecked")
-    private Profile loadProfile(String filename) throws IOException {
+    private Document loadProfile(String filename) throws IOException {
         Map dict = loadJSON(filename);
-        Profile profile = Entity.parseProfile(dict);
+        Document profile = Entity.parseDocument(dict);
         assert profile != null : "failed to load profile: " + filename + ", " + dict;
         // copy 'name'
         Object name = dict.get("name");
@@ -159,7 +159,7 @@ public final class Immortals extends chat.dim.mkm.Plugins implements UserDataSou
         return profile;
     }
 
-    private byte[] sign(Profile profile) {
+    private byte[] sign(Document profile) {
         ID identifier = getID(profile.getIdentifier());
         SignKey key = getPrivateKeyForSignature(identifier);
         assert key != null : "failed to get private key for signature: " + identifier;
@@ -184,7 +184,7 @@ public final class Immortals extends chat.dim.mkm.Plugins implements UserDataSou
         return true;
     }
 
-    private boolean cache(Profile profile, ID identifier) {
+    private boolean cache(Document profile, ID identifier) {
         assert profile.isValid() : "profile not valid: " + profile;
         assert identifier.equals(profile.getIdentifier()) : "profile not match: " + identifier + ", " + profile;
         profileMap.put(identifier, profile);
@@ -232,7 +232,7 @@ public final class Immortals extends chat.dim.mkm.Plugins implements UserDataSou
     }
 
     @Override
-    public Profile getProfile(ID identifier, String type) {
+    public Document getDocument(ID identifier, String type) {
         return profileMap.get(identifier);
     }
 

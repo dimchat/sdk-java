@@ -108,7 +108,8 @@ public class CommandProcessor extends ContentProcessor {
         //  Register all processors with command name
         //
         register(Command.META, MetaCommandProcessor.class);
-        register(Command.PROFILE, ProfileCommandProcessor.class);
+        register(Command.PROFILE, DocumentCommandProcessor.class);
+        register(Command.DOCUMENT, DocumentCommandProcessor.class);
 
         // default
         register(UNKNOWN, DefaultCommandProcessor.class);

@@ -4,8 +4,8 @@ import org.junit.Test;
 import chat.dim.User;
 import chat.dim.Immortals;
 import chat.dim.mkm.BroadcastAddress;
+import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
-import chat.dim.protocol.Profile;
 
 public class ImmortalsTest {
 
@@ -19,14 +19,14 @@ public class ImmortalsTest {
         Log.info("hulk: " + hulk);
 
         Log.info("name: " + hulk.getName());
-        Log.info("profile: " + facebook.getProfile(hulk.identifier, Profile.ANY));
+        Log.info("profile: " + facebook.getDocument(hulk.identifier, Document.ANY));
 
         // Monkey King
         User moki = facebook.getUser(immortals.getID(Immortals.MOKI));
         Log.info("moki: " + moki);
 
         Log.info("name: " + moki.getName());
-        Log.info("profile: " + facebook.getProfile(moki.identifier, Profile.ANY));
+        Log.info("profile: " + facebook.getDocument(moki.identifier, Document.ANY));
 
         // Everyone
         User anyone = new User(ID.ANYONE);

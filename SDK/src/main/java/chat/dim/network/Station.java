@@ -31,9 +31,9 @@
 package chat.dim.network;
 
 import chat.dim.User;
+import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.NetworkType;
-import chat.dim.protocol.Profile;
 
 public class Station extends User {
 
@@ -58,9 +58,9 @@ public class Station extends User {
      */
     public String getHost() {
         if (host == null) {
-            Profile profile = getProfile(Profile.ANY);
-            if (profile != null) {
-                Object value = profile.getProperty("host");
+            Document doc = getDocument(Document.ANY);
+            if (doc != null) {
+                Object value = doc.getProperty("host");
                 if (value != null) {
                     host = (String) value;
                 }
@@ -79,9 +79,9 @@ public class Station extends User {
      */
     public int getPort() {
         if (port == 0) {
-            Profile profile = getProfile(Profile.ANY);
-            if (profile != null) {
-                Object value = profile.getProperty("port");
+            Document doc = getDocument(Document.ANY);
+            if (doc != null) {
+                Object value = doc.getProperty("port");
                 if (value != null) {
                     port = (int) value;
                 }

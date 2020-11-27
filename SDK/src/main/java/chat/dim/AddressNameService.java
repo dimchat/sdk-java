@@ -50,7 +50,7 @@ public abstract class AddressNameService {
             // --------------------------------
             "crypto", "key", "symmetric", "asymmetric",
             "public", "private", "secret", "password",
-            "id", "address", "meta", "profile",
+            "id", "address", "meta", "profile", "document",
             "entity", "user", "group", "contact",
             // --------------------------------
             "member", "admin", "administrator", "assistant",

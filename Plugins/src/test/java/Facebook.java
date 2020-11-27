@@ -12,9 +12,9 @@ import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
 import chat.dim.crypto.VerifyKey;
+import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
-import chat.dim.protocol.Profile;
 
 public class Facebook implements UserDataSource, GroupDataSource {
     private static Facebook ourInstance = new Facebook();
@@ -78,8 +78,8 @@ public class Facebook implements UserDataSource, GroupDataSource {
     }
 
     @Override
-    public Profile getProfile(ID entity, String type) {
-        return immortals.getProfile(entity, type);
+    public Document getDocument(ID entity, String type) {
+        return immortals.getDocument(entity, type);
     }
 
     //------- UserDataSource

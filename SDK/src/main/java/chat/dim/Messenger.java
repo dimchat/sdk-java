@@ -42,13 +42,13 @@ import chat.dim.crypto.SymmetricKey;
 import chat.dim.crypto.VerifyKey;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
+import chat.dim.protocol.Document;
 import chat.dim.protocol.Envelope;
 import chat.dim.protocol.FileContent;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.Meta;
 import chat.dim.protocol.NetworkType;
-import chat.dim.protocol.Profile;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 import chat.dim.protocol.Visa;
@@ -197,9 +197,9 @@ public abstract class Messenger extends Transceiver {
 
     private EncryptKey getPublicKeyForEncryption(ID receiver) {
         Facebook facebook = getFacebook();
-        Profile profile = facebook.getProfile(receiver, Profile.VISA);
-        if (profile instanceof Visa) {
-            EncryptKey key = ((Visa) profile).getKey();
+        Document doc = facebook.getDocument(receiver, Document.VISA);
+        if (doc instanceof Visa) {
+            EncryptKey key = ((Visa) doc).getKey();
             if (key != null) {
                 return key;
             }
@@ -219,7 +219,7 @@ public abstract class Messenger extends Transceiver {
     public byte[] encryptKey(byte[] data, ID receiver, InstantMessage iMsg) {
         EncryptKey key = getPublicKeyForEncryption(receiver);
         if (key == null) {
-            // save this message in a queue waiting receiver's meta/profile response
+            // save this message in a queue waiting receiver's meta/document response
             suspendMessage(iMsg);
             //throw new NullPointerException("failed to get encrypt key for receiver: " + receiver);
             return null;

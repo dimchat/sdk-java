@@ -44,11 +44,11 @@ import chat.dim.mkm.plugins.ETHAddress;
 import chat.dim.mkm.plugins.ETHMeta;
 import chat.dim.mkm.plugins.UserProfile;
 import chat.dim.protocol.Address;
+import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 import chat.dim.protocol.MetaType;
 import chat.dim.protocol.NetworkType;
-import chat.dim.protocol.Profile;
 
 public abstract class Plugins extends chat.dim.crypto.Plugins {
 
@@ -94,17 +94,17 @@ public abstract class Plugins extends chat.dim.crypto.Plugins {
             }
 
             @Override
-            protected Profile createProfile(Map<String, Object> profile) {
-                ID identifier = parseID(profile.get("ID"));
+            protected Document createDocument(Map<String, Object> doc) {
+                ID identifier = parseID(doc.get("ID"));
                 if (identifier == null) {
                     return null;
                 }
                 if (NetworkType.isUser(identifier.getType())) {
-                    return new UserProfile(profile);
+                    return new UserProfile(doc);
                 } else if (NetworkType.isGroup(identifier.getType())) {
-                    return new BaseBulletin(profile);
+                    return new BaseBulletin(doc);
                 }
-                return new BaseProfile(profile);
+                return new BaseDocument(doc);
             }
         };
     }

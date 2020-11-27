@@ -39,10 +39,10 @@ import chat.dim.mkm.BroadcastAddress;
 import chat.dim.network.Robot;
 import chat.dim.network.ServiceProvider;
 import chat.dim.network.Station;
+import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 import chat.dim.protocol.NetworkType;
-import chat.dim.protocol.Profile;
 
 public abstract class Facebook extends Barrack {
 
@@ -103,30 +103,30 @@ public abstract class Facebook extends Barrack {
     public abstract boolean saveMeta(Meta meta, ID identifier);
 
     //
-    //  Profile
+    //  Document
     //
-    public boolean isEmpty(Profile profile) {
-        if (profile == null) {
+    public boolean isEmpty(Document doc) {
+        if (doc == null) {
             return true;
         }
-        String json = (String) profile.get("data");
+        String json = (String) doc.get("data");
         return json == null || json.length() == 0;
     }
 
-    public boolean verify(Profile profile, ID identifier) {
+    public boolean verify(Document doc, ID identifier) {
         if (identifier != null) {
-            if (profile == null || !identifier.equals(profile.getIdentifier())) {
-                // profile ID not match
+            if (doc == null || !identifier.equals(doc.getIdentifier())) {
+                // document ID not match
                 return false;
             }
         }
-        return verify(profile);
+        return verify(doc);
     }
-    public boolean verify(Profile profile) {
-        assert profile != null : "profile should not be empty";
-        ID identifier = profile.getIdentifier();
+    public boolean verify(Document doc) {
+        assert doc != null : "document should not be empty";
+        ID identifier = doc.getIdentifier();
         if (identifier == null) {
-            throw new NullPointerException("profile ID error: " + profile);
+            throw new NullPointerException("document ID error: " + doc);
         }
         // NOTICE: if this is a group profile,
         //             verify it with each member's meta.key
@@ -143,7 +143,7 @@ public abstract class Facebook extends Barrack {
                         // FIXME: meta not found for this member
                         continue;
                     }
-                    if (profile.verify(meta.getKey())) {
+                    if (doc.verify(meta.getKey())) {
                         return true;
                     }
                 }
@@ -171,16 +171,16 @@ public abstract class Facebook extends Barrack {
         } else {
             meta = getMeta(identifier);
         }
-        return meta != null && profile.verify(meta.getKey());
+        return meta != null && doc.verify(meta.getKey());
     }
 
     /**
-     *  Save profile with entity ID (must verify first)
+     *  Save entity document with ID (must verify first)
      *
-     * @param profile - entity profile
+     * @param doc - entity document
      * @return true on success
      */
-    public abstract boolean saveProfile(Profile profile);
+    public abstract boolean saveDocument(Document doc);
 
     /**
      *  Save members of group

@@ -33,34 +33,34 @@ package chat.dim.cpu;
 import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.protocol.Content;
+import chat.dim.protocol.Document;
+import chat.dim.protocol.DocumentCommand;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
-import chat.dim.protocol.Profile;
-import chat.dim.protocol.ProfileCommand;
 import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.TextContent;
 
-public class ProfileCommandProcessor extends CommandProcessor {
+public class DocumentCommandProcessor extends CommandProcessor {
 
-    public ProfileCommandProcessor(Messenger messenger) {
+    public DocumentCommandProcessor(Messenger messenger) {
         super(messenger);
     }
 
-    private Content getProfile(ID identifier, String type) {
+    private Content getDocument(ID identifier, String type) {
         Facebook facebook = getFacebook();
-        // query profile for ID
-        Profile profile = facebook.getProfile(identifier, type);
-        if (facebook.isEmpty(profile)) {
-            // profile not found
-            String text = String.format("Sorry, profile not found for ID: %s", identifier);
+        // query entity document for ID
+        Document doc = facebook.getDocument(identifier, type);
+        if (facebook.isEmpty(doc)) {
+            // document not found
+            String text = String.format("Sorry, document not found for ID: %s", identifier);
             return new TextContent(text);
         }
         // response
-        return new ProfileCommand(identifier, profile);
+        return new DocumentCommand(identifier, doc);
     }
 
-    private Content putProfile(ID identifier, Meta meta, Profile profile) {
+    private Content putDocument(ID identifier, Meta meta, Document doc) {
         Facebook facebook = getFacebook();
         if (meta != null) {
             // received a meta for ID
@@ -75,38 +75,38 @@ public class ProfileCommandProcessor extends CommandProcessor {
                 return new TextContent(text);
             }
         }
-        // receive a profile for ID
-        if (!facebook.verify(profile, identifier)) {
-            // profile signature not match
-            String text = String.format("Profile not match ID: %s", identifier);
+        // receive a document for ID
+        if (!facebook.verify(doc, identifier)) {
+            // document signature not match
+            String text = String.format("document ID not match: %s", identifier);
             return new TextContent(text);
         }
-        if (!facebook.saveProfile(profile))  {
-            // save profile failed
-            String text = String.format("Profile not accept: %s", identifier);
+        if (!facebook.saveDocument(doc))  {
+            // save document failed
+            String text = String.format("document not accept: %s", identifier);
             return new TextContent(text);
         }
         // response
-        String text = String.format("Profile received: %s", identifier);
+        String text = String.format("document received: %s", identifier);
         return new ReceiptCommand(text);
     }
 
     @Override
     public Content process(Content content, ID sender, ReliableMessage rMsg) {
-        assert content instanceof ProfileCommand : "profile command error: " + content;
-        ProfileCommand cmd = (ProfileCommand) content;
-        Profile profile = cmd.getProfile();
+        assert content instanceof DocumentCommand : "document command error: " + content;
+        DocumentCommand cmd = (DocumentCommand) content;
+        Document doc = cmd.getDocument();
         ID identifier = cmd.getIdentifier();
-        if (profile == null) {
-            String type = (String) cmd.get("profile_type");
+        if (doc == null) {
+            String type = (String) cmd.get("doc_type");
             if (type == null) {
-                type = Profile.ANY;
+                type = Document.ANY;
             }
-            return getProfile(identifier, type);
+            return getDocument(identifier, type);
         } else {
             // check meta
             Meta meta = cmd.getMeta();
-            return putProfile(identifier, meta, profile);
+            return putDocument(identifier, meta, doc);
         }
     }
 }
