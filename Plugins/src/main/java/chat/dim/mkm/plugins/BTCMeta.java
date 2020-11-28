@@ -34,6 +34,7 @@ import java.util.Map;
 
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.VerifyKey;
+import chat.dim.crypto.plugins.ECCPublicKey;
 import chat.dim.format.UTF8;
 import chat.dim.mkm.BaseMeta;
 import chat.dim.mkm.Identifier;
@@ -96,6 +97,7 @@ public final class BTCMeta extends BaseMeta {
             throw new IllegalArgumentException("meta invalid: " + getMap());
         }
         VerifyKey key = getKey();
+        assert key instanceof ECCPublicKey : "BTC address should generate from ECC key";
         byte[] data = key.getData();
         return BTCAddress.generate(data, NetworkType.BTCMain.value);
     }
