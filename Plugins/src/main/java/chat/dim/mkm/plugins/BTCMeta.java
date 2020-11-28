@@ -30,7 +30,6 @@
  */
 package chat.dim.mkm.plugins;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.crypto.PrivateKey;
@@ -41,6 +40,7 @@ import chat.dim.mkm.Identifier;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.MetaType;
+import chat.dim.protocol.NetworkType;
 
 /**
  *  Meta to build BTC address for ID
@@ -56,7 +56,7 @@ import chat.dim.protocol.MetaType;
  *      address = base58_encode(network + hash + code);
  *      number  = uint(code);
  */
-public class BTCMeta extends BaseMeta {
+public final class BTCMeta extends BaseMeta {
 
     public BTCMeta(Map<String, Object> dictionary) {
         super(dictionary);
@@ -73,52 +73,31 @@ public class BTCMeta extends BaseMeta {
         }
         Address address = identifier.getAddress();
         if (address instanceof BTCAddress) {
-            byte network = address.getNetwork();
-            return identifier.equals(generateID(network));
+            return identifier.equals(generateID());
         }
         return false;
     }
 
-    // caches
-    private Map<Byte, ID> idMap = new HashMap<>();
-    private Map<Byte, Address> addressMap = new HashMap<>();
+    // cache
+    private ID cachedIdentifier = null;
 
-    public ID generateID(byte network) {
+    public ID generateID() {
         // check cache
-        ID identifier = idMap.get(network);
-        if (identifier == null) {
+        if (cachedIdentifier == null) {
             // generate and cache it
-            identifier = new Identifier(getSeed(), getAddress(network));
-            idMap.put(network, identifier);
+            cachedIdentifier = new Identifier(getSeed(), generateAddress());
         }
-        return identifier;
+        return cachedIdentifier;
     }
 
-    private Address getAddress(byte network) {
-        // check cache
-        ID identifier = idMap.get(network);
-        if (identifier != null) {
-            return identifier.getAddress();
-        }
-        Address address = addressMap.get(network);
-        if (address == null) {
-            // generate and cache it
-            address = generateAddress(network);
-            if (address != null) {
-                addressMap.put(network, address);
-            }
-        }
-        return address;
-    }
-
-    protected Address generateAddress(byte network) {
+    private Address generateAddress() {
         assert MetaType.BTC.equals(getType()) || MetaType.ExBTC.equals(getType()) : "meta version error";
         if (!isValid()) {
             throw new IllegalArgumentException("meta invalid: " + getMap());
         }
         VerifyKey key = getKey();
         byte[] data = key.getData();
-        return BTCAddress.generate(data, network);
+        return BTCAddress.generate(data, NetworkType.BTCMain.value);
     }
 
     /**

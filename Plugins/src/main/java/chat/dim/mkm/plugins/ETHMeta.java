@@ -49,9 +49,9 @@ import chat.dim.protocol.MetaType;
  *      0x05 - ExETH
  *
  *  algorithm:
- *      fingerprint = key.data;
- *      digest      = keccak256(fingerprint);
- *      address     = hex_encode(digest.suffix(20));
+ *      CT      = key.data;  // without prefix byte
+ *      digest  = keccak256(CT);
+ *      address = hex_encode(digest.suffix(20));
  */
 public final class ETHMeta extends BaseMeta {
 
@@ -75,17 +75,16 @@ public final class ETHMeta extends BaseMeta {
         return false;
     }
 
-    // caches
-    private ID cachedID = null;
-    private Address cachedAddress = null;
+    // cache
+    private ID cachedIdentifier = null;
 
     public ID generateID() {
         // check cache
-        if (cachedID == null) {
+        if (cachedIdentifier == null) {
             // generate and cache it
-            cachedID = new Identifier(getSeed(), generateAddress());
+            cachedIdentifier = new Identifier(getSeed(), generateAddress());
         }
-        return cachedID;
+        return cachedIdentifier;
     }
 
     private Address generateAddress() {
@@ -93,14 +92,9 @@ public final class ETHMeta extends BaseMeta {
         if (!isValid()) {
             throw new IllegalArgumentException("meta invalid: " + getMap());
         }
-        // check cache
-        if (cachedAddress == null) {
-            // generate and cache it
-            VerifyKey key = getKey();
-            byte[] data = key.getData();
-            cachedAddress = ETHAddress.generate(data);
-        }
-        return cachedAddress;
+        VerifyKey key = getKey();
+        byte[] data = key.getData();
+        return ETHAddress.generate(data);
     }
 
     /**

@@ -30,12 +30,16 @@
  */
 package chat.dim.mkm.plugins;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.VerifyKey;
 import chat.dim.format.UTF8;
+import chat.dim.mkm.BaseMeta;
+import chat.dim.mkm.Identifier;
 import chat.dim.protocol.Address;
+import chat.dim.protocol.ID;
 import chat.dim.protocol.MetaType;
 
 /**
@@ -45,13 +49,13 @@ import chat.dim.protocol.MetaType;
  *      0x01 - MKM
  *
  *  algorithm:
- *      CT      = fingerprint; // or key.data for BTC address
+ *      CT      = fingerprint = sKey.sign(seed);
  *      hash    = ripemd160(sha256(CT));
  *      code    = sha256(sha256(network + hash)).prefix(4);
  *      address = base58_encode(network + hash + code);
  *      number  = uint(code);
  */
-public final class DefaultMeta extends BTCMeta {
+public final class DefaultMeta extends BaseMeta {
 
     public DefaultMeta(Map<String, Object> dictionary) {
         super(dictionary);
@@ -62,12 +66,37 @@ public final class DefaultMeta extends BTCMeta {
     }
 
     @Override
-    protected Address generateAddress(byte network) {
+    public boolean matches(ID identifier) {
+        if (identifier == null) {
+            return false;
+        }
+        Address address = identifier.getAddress();
+        if (address instanceof BTCAddress) {
+            byte network = address.getNetwork();
+            return identifier.equals(generateID(network));
+        }
+        return false;
+    }
+
+    // cache
+    private Map<Byte, ID> cachedIdentifiers = new HashMap<>();
+
+    public ID generateID(byte network) {
+        // check cache
+        ID identifier = cachedIdentifiers.get(network);
+        if (identifier == null) {
+            // generate and cache it
+            identifier = new Identifier(getSeed(), generateAddress(network));
+            cachedIdentifiers.put(network, identifier);
+        }
+        return identifier;
+    }
+
+    private Address generateAddress(byte network) {
         assert MetaType.MKM.equals(getType()) : "meta version error";
         if (!isValid()) {
             throw new IllegalArgumentException("meta invalid: " + getMap());
         }
-        // generate
         return BTCAddress.generate(getFingerprint(), network);
     }
 
@@ -83,8 +112,7 @@ public final class DefaultMeta extends BTCMeta {
             throw new NullPointerException("default meta's seed should not be empty!");
         }
         int version = MetaType.MKM.value;
-        byte[] data = UTF8.encode(seed);
-        byte[] fingerprint = sKey.sign(data);
+        byte[] fingerprint = sKey.sign(UTF8.encode(seed));
         return new DefaultMeta(version, sKey.getPublicKey(), seed, fingerprint);
     }
 }

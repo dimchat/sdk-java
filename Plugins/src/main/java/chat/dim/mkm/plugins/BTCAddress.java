@@ -95,6 +95,10 @@ public final class BTCAddress extends chat.dim.type.String implements Address {
      * @return null on error
      */
     public static BTCAddress parse(String string) {
+        int len = string.length();
+        if (len < 26 || len > 34) {
+            return null;
+        }
         // decode
         byte[] data = Base58.decode(string);
         if (data.length != 25) {
