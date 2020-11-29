@@ -28,19 +28,122 @@ package chat.dim.crypto;
 import org.bouncycastle.crypto.digests.KeccakDigest;
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
 
-import chat.dim.crypto.plugins.KeyParser;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
+
+import chat.dim.crypto.plugins.AESKey;
+import chat.dim.crypto.plugins.ECCPrivateKey;
+import chat.dim.crypto.plugins.ECCPublicKey;
+import chat.dim.crypto.plugins.PlainKey;
+import chat.dim.crypto.plugins.RSAPrivateKey;
+import chat.dim.crypto.plugins.RSAPublicKey;
 import chat.dim.digest.Hash;
 import chat.dim.digest.Keccak256;
 import chat.dim.digest.RIPEMD160;
+
+import javax.crypto.NoSuchPaddingException;
 
 public abstract class Plugins extends chat.dim.format.Plugins {
 
     static {
 
         /*
-         *  Key Parser
+         *  Key Parsers
          */
-        KeyFactory.parser = new KeyParser();
+
+        Factories.symmetricKeyFactory = new SymmetricKey.Factory() {
+
+            @Override
+            public SymmetricKey generateSymmetricKey(String algorithm) {
+                // Plain key
+                if (PlainKey.PLAIN.equals(algorithm)) {
+                    return PlainKey.getInstance();
+                }
+                Map<String, Object> key = new HashMap<>();
+                key.put("algorithm", algorithm);
+                return parseSymmetricKey(key);
+            }
+
+            @Override
+            public SymmetricKey parseSymmetricKey(Map<String, Object> key) {
+                String algorithm = (String) key.get("algorithm");
+                // AES key
+                if (SymmetricKey.AES.equals(algorithm)) {
+                    try {
+                        return new AESKey(key);
+                    } catch (NoSuchPaddingException | NoSuchAlgorithmException e) {
+                        e.printStackTrace();
+                        return null;
+                    }
+                }
+                // Plain key
+                if (PlainKey.PLAIN.equals(algorithm)) {
+                    return PlainKey.getInstance();
+                }
+                return null;
+            }
+        };
+        Factories.publicKeyFactory = new PublicKey.Factory() {
+
+            @Override
+            public PublicKey parsePublicKey(Map<String, Object> key) {
+                String algorithm = (String) key.get("algorithm");
+                // RSA key
+                if (AsymmetricKey.RSA.equals(algorithm)) {
+                    try {
+                        return new RSAPublicKey(key);
+                    } catch (NoSuchFieldException e) {
+                        e.printStackTrace();
+                        return null;
+                    }
+                }
+                // ECC key
+                if (AsymmetricKey.ECC.equals(algorithm)) {
+                    try {
+                        return new ECCPublicKey(key);
+                    } catch (NoSuchFieldException e) {
+                        e.printStackTrace();
+                        return null;
+                    }
+                }
+                return null;
+            }
+        };
+        Factories.privateKeyFactory = new PrivateKey.Factory() {
+
+            @Override
+            public PrivateKey generatePrivateKey(String algorithm) {
+                Map<String, Object> key = new HashMap<>();
+                key.put("algorithm", algorithm);
+                return parsePrivateKey(key);
+            }
+
+            @Override
+            public PrivateKey parsePrivateKey(Map<String, Object> key) {
+                String algorithm = (String) key.get("algorithm");
+                // RSA key
+                if (AsymmetricKey.RSA.equals(algorithm)) {
+                    try {
+                        return new RSAPrivateKey(key);
+                    } catch (NoSuchAlgorithmException e) {
+                        e.printStackTrace();
+                        return null;
+                    }
+                }
+                // ECC key
+                if (AsymmetricKey.ECC.equals(algorithm)) {
+                    try {
+                        return new ECCPrivateKey(key);
+                    } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
+                        e.printStackTrace();
+                        return null;
+                    }
+                }
+                return null;
+            }
+        };
 
         /*
          *  Digest

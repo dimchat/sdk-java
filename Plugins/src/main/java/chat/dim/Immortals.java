@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 
 import chat.dim.crypto.DecryptKey;
-import chat.dim.crypto.KeyFactory;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
 import chat.dim.crypto.VerifyKey;
@@ -73,8 +72,8 @@ public final class Immortals extends chat.dim.mkm.Plugins implements UserDataSou
         super();
         try {
             // load built-in users
-            loadBuiltInAccount(Entity.parseID(MOKI));
-            loadBuiltInAccount(Entity.parseID(HULK));
+            loadBuiltInAccount(ID.parse(MOKI));
+            loadBuiltInAccount(ID.parse(HULK));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -113,19 +112,19 @@ public final class Immortals extends chat.dim.mkm.Plugins implements UserDataSou
     @SuppressWarnings("unchecked")
     private Meta loadMeta(String filename) throws IOException {
         Map dict = loadJSON(filename);
-        return Entity.parseMeta(dict);
+        return Meta.parse(dict);
     }
 
     @SuppressWarnings("unchecked")
     private PrivateKey loadPrivateKey(String filename) throws IOException {
         Map dict = loadJSON(filename);
-        return KeyFactory.getPrivateKey(dict);
+        return PrivateKey.parse(dict);
     }
 
     @SuppressWarnings("unchecked")
     private Document loadProfile(String filename) throws IOException {
         Map dict = loadJSON(filename);
-        Document profile = Entity.parseDocument(dict);
+        Document profile = Document.parse(dict);
         assert profile != null : "failed to load profile: " + filename + ", " + dict;
         // copy 'name'
         Object name = dict.get("name");

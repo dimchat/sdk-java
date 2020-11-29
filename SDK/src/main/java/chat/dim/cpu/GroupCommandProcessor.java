@@ -33,7 +33,6 @@ package chat.dim.cpu;
 import java.util.ArrayList;
 import java.util.List;
 
-import chat.dim.Entity;
 import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.protocol.Command;
@@ -67,7 +66,7 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
         List<ID> array = new ArrayList<>();
         ID identifier;
         for (Object item : members) {
-            identifier = Entity.parseID(item);
+            identifier = ID.parse(item);
             if (identifier == null) {
                 throw new NullPointerException("Member ID error: " + item);
             }
@@ -81,7 +80,7 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
         Facebook facebook = getFacebook();
         ID identifier;
         for (Object item : members) {
-            identifier = Entity.parseID(item);
+            identifier = ID.parse(item);
             if (facebook.isOwner(identifier, group)) {
                 return true;
             }

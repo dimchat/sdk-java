@@ -267,8 +267,8 @@ public abstract class Messenger extends Transceiver {
             }
         }
          */
-        Envelope env = MessageFactory.getEnvelope(user.identifier, receiver);
-        InstantMessage iMsg = MessageFactory.getInstantMessage(env, content);
+        Envelope env = Envelope.create(user.identifier, receiver, null);
+        InstantMessage iMsg = InstantMessage.create(env, content);
         return sendMessage(iMsg, callback, priority);
     }
 

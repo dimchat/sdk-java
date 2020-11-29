@@ -5,11 +5,9 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.Entity;
 import chat.dim.Immortals;
 import chat.dim.KeyCache;
 import chat.dim.KeyStore;
-import chat.dim.MessageFactory;
 import chat.dim.User;
 import chat.dim.core.Barrack;
 import chat.dim.core.Transceiver;
@@ -57,14 +55,14 @@ public class Tests extends TestCase {
     @Test
     public void testUser() {
 
-        ID identifier = Entity.parseID(Immortals.MOKI);
+        ID identifier = ID.parse(Immortals.MOKI);
         User user = barrack.getUser(identifier);
         Log.info("user: " + user);
     }
 
     @Test
     public void testGroupCommand() {
-        ID groupID = Entity.parseID("Group-1280719982@7oMeWadRw4qat2sL4mTdcQSDAqZSo7LH5G");
+        ID groupID = ID.parse("Group-1280719982@7oMeWadRw4qat2sL4mTdcQSDAqZSo7LH5G");
         JoinCommand join = new JoinCommand(groupID);
         Log.info("join: " + join);
         assertEquals(GroupCommand.JOIN, join.getCommand());
@@ -73,14 +71,14 @@ public class Tests extends TestCase {
     @Test
     public void testTransceiver() {
 
-        ID sender = Entity.parseID("moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
-        ID receiver = Entity.parseID("hulk@4YeVEN3aUnvC1DNUufCq1bs9zoBSJTzVEj");
+        ID sender = ID.parse("moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
+        ID receiver = ID.parse("hulk@4YeVEN3aUnvC1DNUufCq1bs9zoBSJTzVEj");
 
-        Envelope env = MessageFactory.getEnvelope(sender, receiver);
+        Envelope env = Envelope.create(sender, receiver, null);
 
         Content content = new TextContent("Hello");
 
-        InstantMessage iMsg = MessageFactory.getInstantMessage(env, content);
+        InstantMessage iMsg = InstantMessage.create(env, content);
         iMsg.setDelegate(transceiver);
         SecureMessage sMsg = transceiver.encryptMessage(iMsg);
         ReliableMessage rMsg = transceiver.signMessage(sMsg);
@@ -93,11 +91,11 @@ public class Tests extends TestCase {
 
     @Test
     public void testBarrack() {
-        ID identifier = Entity.parseID("moky@4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ");
+        ID identifier = ID.parse("moky@4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ");
         Meta meta = barrack.getMeta(identifier);
         Log.info("meta: " + meta);
 
-        identifier = Entity.parseID("moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
+        identifier = ID.parse("moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
         User user = barrack.getUser(identifier);
         Log.info("user: " + user);
 

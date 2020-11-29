@@ -33,9 +33,7 @@ package chat.dim.protocol;
 import java.util.Arrays;
 import java.util.Map;
 
-import chat.dim.Entity;
 import chat.dim.crypto.DecryptKey;
-import chat.dim.crypto.KeyFactory;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.format.Base64;
@@ -97,7 +95,7 @@ public class StorageCommand extends Command {
 
     // user ID
     public ID getIdentifier() {
-        return Entity.parseID(get("ID"));
+        return ID.parse(get("ID"));
     }
 
     public void setIdentifier(ID identifier) {
@@ -198,7 +196,7 @@ public class StorageCommand extends Command {
         }
         Object info = JSON.decode(key);
         if (info instanceof Map) {
-            return KeyFactory.getSymmetricKey((Map<String, Object>) info);
+            return SymmetricKey.parse((Map<String, Object>) info);
         }
         return null;
     }

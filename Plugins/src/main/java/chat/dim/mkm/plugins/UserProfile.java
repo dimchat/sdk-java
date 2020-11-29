@@ -42,12 +42,12 @@ public class UserProfile extends BaseVisa {
         super(dictionary);
     }
 
-    public UserProfile(ID identifier, String data, byte[] signature) {
+    public UserProfile(ID identifier, String data, String signature) {
         super(identifier, data, signature);
     }
 
     public UserProfile(ID identifier) {
-        this(identifier, null, null);
+        super(identifier);
     }
 
     /**

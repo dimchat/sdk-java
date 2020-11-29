@@ -30,7 +30,6 @@
  */
 package chat.dim.cpu;
 
-import chat.dim.MessageFactory;
 import chat.dim.Messenger;
 import chat.dim.MessengerDelegate;
 import chat.dim.crypto.SymmetricKey;
@@ -78,7 +77,7 @@ public class FileContentProcessor extends ContentProcessor {
             // download URL not found
             return false;
         }
-        InstantMessage iMsg = MessageFactory.getInstantMessage(sMsg.getEnvelope(), content);
+        InstantMessage iMsg = InstantMessage.create(sMsg.getEnvelope(), content);
         // download from CDN
         byte[] encrypted = getDelegate().downloadData(url, iMsg);
         if (encrypted == null || encrypted.length == 0) {

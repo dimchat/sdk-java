@@ -1,18 +1,17 @@
 
-import chat.dim.mkm.plugins.ETHAddress;
-import chat.dim.protocol.NetworkType;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.crypto.KeyFactory;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.PublicKey;
 import chat.dim.digest.RIPEMD160;
 import chat.dim.digest.SHA256;
 import chat.dim.mkm.plugins.BTCAddress;
+import chat.dim.mkm.plugins.ETHAddress;
+import chat.dim.protocol.NetworkType;
 import chat.dim.protocol.Address;
 import chat.dim.format.Hex;
 
@@ -22,14 +21,14 @@ public class CryptoECCTest {
         Map<String, Object> dictionary = new HashMap<>();
         dictionary.put("algorithm", "ECC");
         dictionary.put("data", pem);
-        return KeyFactory.getPublicKey(dictionary);
+        return PublicKey.parse(dictionary);
     }
 
     private static PrivateKey getPrivateKey(String pem) {
         Map<String, Object> dictionary = new HashMap<>();
         dictionary.put("algorithm", "ECC");
         dictionary.put("data", pem);
-        return KeyFactory.getPrivateKey(dictionary);
+        return PrivateKey.parse(dictionary);
     }
 
     private static PublicKey getPublicKey() {
@@ -131,7 +130,7 @@ public class CryptoECCTest {
     @Test
     public void testECCNewKeys() {
         Log.info("-------- test new keys --------");
-        PrivateKey sk = KeyFactory.getPrivateKey(PrivateKey.ECC);
+        PrivateKey sk = PrivateKey.generate(PrivateKey.ECC);
         PublicKey pk = sk.getPublicKey();
         testKeys(sk, pk);
 

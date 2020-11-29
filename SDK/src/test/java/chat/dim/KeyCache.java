@@ -34,7 +34,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.core.CipherKeyDelegate;
-import chat.dim.crypto.KeyFactory;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.crypto.plugins.PlainKey;
 import chat.dim.mkm.BroadcastAddress;
@@ -113,11 +112,11 @@ public abstract class KeyCache implements CipherKeyDelegate {
         boolean changed = false;
         Map<String, Map<String, Object>> map = (Map<String, Map<String, Object>>)keyMap;
         for (Map.Entry<String, Map<String, Object>> entry1 : map.entrySet()) {
-            ID from = Entity.parseID(entry1.getKey());
+            ID from = ID.parse(entry1.getKey());
             Map<String, Object> table = entry1.getValue();
             for (Map.Entry<String, Object> entity2 : table.entrySet()) {
-                ID to = Entity.parseID(entity2.getKey());
-                SymmetricKey newKey = KeyFactory.getSymmetricKey((Map<String, Object>) entity2.getValue());
+                ID to = ID.parse(entity2.getKey());
+                SymmetricKey newKey = SymmetricKey.parse((Map<String, Object>) entity2.getValue());
                 assert newKey != null : "key error(" + from + " -> " + to + "): " + entity2.getValue();
                 // check whether exists an old key
                 SymmetricKey oldKey = getKey(from, to);

@@ -10,7 +10,6 @@ import java.util.Map;
 import chat.dim.Group;
 import chat.dim.Immortals;
 import chat.dim.User;
-import chat.dim.Entity;
 import chat.dim.crypto.SignKey;
 import chat.dim.mkm.BroadcastAddress;
 import chat.dim.mkm.plugins.BTCAddress;
@@ -86,15 +85,15 @@ public class EntityTest {
     public void testID() {
         ID identifier;
 
-        identifier = Entity.parseID(Immortals.MOKI);
+        identifier = ID.parse(Immortals.MOKI);
         Log.info("ID: " + identifier + ", detail: " + getIDInfo(identifier));
 
-        identifier = Entity.parseID("moky@4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ");
+        identifier = ID.parse("moky@4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ");
         Log.info("ID: " + identifier + ", detail: " + getIDInfo(identifier));
 
         Log.info("is broadcast: " + (identifier.getAddress() instanceof BroadcastAddress));
 
-        Assert.assertEquals(identifier, Entity.parseID("moky@4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ/home"));
+        Assert.assertEquals(identifier, ID.parse("moky@4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ/home"));
 
         List<ID> array = new ArrayList<>();
         array.add(identifier);
@@ -136,10 +135,10 @@ public class EntityTest {
         dict.put("ID", "moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
         dict.put("data", "{\"name\":\"齐天大圣\"}");
         dict.put("signature", "oMdD4Ssop/gOpzwAYpt+Cp3tVJswm+u5i1bu1UlEzzFt+g3ohmE1z018WmSgsBpCls6vXwJEhKS1O5gN9N8XCYhnYx/Q56M0n2NOSifcbQuZciOfQU1c2RMXgUEizIwL2tiFoam22qxyScKIjXcu7rD4XhBC0Gn/EhQpJCqWTMo=");
-        Document profile = Entity.parseDocument(dict);
+        Document profile = Document.parse(dict);
         Log.info("profile: " + profile);
 
-        ID identifier = Entity.parseID("moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
+        ID identifier = ID.parse("moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
         Meta meta = facebook.getMeta(identifier);
         if (meta.isValid()) {
             profile.verify(meta.getKey());
@@ -156,13 +155,13 @@ public class EntityTest {
 
     @Test
     public void testEntity() {
-        ID identifier = Entity.parseID("moky@4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ");
+        ID identifier = ID.parse("moky@4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ");
         Log.info("ID: " + identifier + ", detail: " + getIDInfo(identifier));
 
         User account = facebook.getUser(identifier);
         Log.info("account: " + account);
 
-        identifier = Entity.parseID(Immortals.MOKI);
+        identifier = ID.parse(Immortals.MOKI);
         User user = facebook.getUser(identifier);
         Log.info("user: " + user);
 
@@ -182,7 +181,7 @@ public class EntityTest {
 
     @Test
     public void testGroup() {
-        ID identifier = Entity.parseID("Group-1280719982@7oMeWadRw4qat2sL4mTdcQSDAqZSo7LH5G");
+        ID identifier = ID.parse("Group-1280719982@7oMeWadRw4qat2sL4mTdcQSDAqZSo7LH5G");
         Group group = new Group(identifier);
         group.setDataSource(facebook);
 

@@ -35,8 +35,10 @@ import java.util.Map;
 import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.serializer.ToStringSerializer;
 
-import chat.dim.Entity;
-import chat.dim.EntityParser;
+import chat.dim.crypto.PrivateKey;
+import chat.dim.crypto.SignKey;
+import chat.dim.crypto.VerifyKey;
+import chat.dim.format.UTF8;
 import chat.dim.mkm.plugins.BTCAddress;
 import chat.dim.mkm.plugins.BTCMeta;
 import chat.dim.mkm.plugins.DefaultMeta;
@@ -48,7 +50,6 @@ import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 import chat.dim.protocol.MetaType;
-import chat.dim.protocol.NetworkType;
 
 public abstract class Plugins extends chat.dim.crypto.Plugins {
 
@@ -62,46 +63,98 @@ public abstract class Plugins extends chat.dim.crypto.Plugins {
         serializeConfig.put(Address.class, ToStringSerializer.instance);
         serializeConfig.put(ID.class, ToStringSerializer.instance);
 
-        Entity.parser = new EntityParser() {
+        Factories.addressFactory = new AddressFactory() {
 
             @Override
             protected Address createAddress(String string) {
-                if (string == null) {
-                    return null;
-                }
-                Address address = super.createAddress(string);
-                if (address != null) {
-                    return address;
-                }
                 int len = string.length();
                 if (len == 42) {
                     return ETHAddress.parse(string);
                 }
                 return BTCAddress.parse(string);
             }
+        };
+        Factories.metaFactory = new Meta.Factory() {
 
             @Override
-            protected Meta createMeta(Map<String, Object> meta) {
-                int version = (int) meta.get("version");
-                if (MetaType.Default.equals(version)) {
-                    return new DefaultMeta(meta);
-                } else if (MetaType.BTC.equals(version) || MetaType.ExBTC.equals(version)) {
-                    return new BTCMeta(meta);
-                } else if (MetaType.ETH.equals(version) || MetaType.ExETH.equals(version)) {
-                    return new ETHMeta(meta);
+            public Meta createMeta(int type, VerifyKey key, String seed, byte[] fingerprint) {
+                if (MetaType.Default.equals(type)) {
+                    return new DefaultMeta(type, key, seed, fingerprint);
+                } else if (MetaType.BTC.equals(type) || MetaType.ExBTC.equals(type)) {
+                    return new BTCMeta(type, key, seed, fingerprint);
+                } else if (MetaType.ETH.equals(type) || MetaType.ExETH.equals(type)) {
+                    return new ETHMeta(type, key, seed, fingerprint);
                 }
                 return null;
             }
 
             @Override
-            protected Document createDocument(Map<String, Object> doc) {
-                ID identifier = parseID(doc.get("ID"));
+            public Meta generateMeta(int type, SignKey sKey, String seed) {
+                byte[] fingerprint;
+                if (seed == null || seed.length() == 0) {
+                    fingerprint = null;
+                } else {
+                    fingerprint = sKey.sign(UTF8.encode(seed));
+                }
+                VerifyKey key = ((PrivateKey) sKey).getPublicKey();
+                return createMeta(type, key, seed, fingerprint);
+            }
+
+            @Override
+            public Meta parseMeta(Map<String, Object> meta) {
+                Object version = meta.get("version");
+                if (version == null) {
+                    version = meta.get("type");
+                }
+                int type = (int) version;
+                if (MetaType.Default.equals(type)) {
+                    return new DefaultMeta(meta);
+                } else if (MetaType.BTC.equals(type) || MetaType.ExBTC.equals(type)) {
+                    return new BTCMeta(meta);
+                } else if (MetaType.ETH.equals(type) || MetaType.ExETH.equals(type)) {
+                    return new ETHMeta(meta);
+                }
+                return null;
+            }
+        };
+        Factories.documentFactory = new Document.Factory() {
+
+            @Override
+            public Document createDocument(ID identifier, String type, String data, String signature) {
+                if (ID.isUser(identifier)) {
+                    if (type == null || Document.VISA.equals(type)) {
+                        return new UserProfile(identifier, data, signature);
+                    }
+                } else if (ID.isGroup(identifier)) {
+                    return new BaseBulletin(identifier, data, signature);
+                }
+                return new BaseDocument(identifier, data, signature);
+            }
+
+            @Override
+            public Document generateDocument(ID identifier, String type) {
+                if (ID.isUser(identifier)) {
+                    if (type == null || Document.VISA.equals(type)) {
+                        return new UserProfile(identifier);
+                    }
+                } else if (ID.isGroup(identifier)) {
+                    return new BaseBulletin(identifier);
+                }
+                return new BaseDocument(identifier, type);
+            }
+
+            @Override
+            public Document parseDocument(Map<String, Object> doc) {
+                ID identifier = ID.parse(doc.get("ID"));
                 if (identifier == null) {
                     return null;
                 }
-                if (NetworkType.isUser(identifier.getType())) {
-                    return new UserProfile(doc);
-                } else if (NetworkType.isGroup(identifier.getType())) {
+                if (ID.isUser(identifier)) {
+                    String type = (String) doc.get("type");
+                    if (type == null || Document.VISA.equals(type)) {
+                        return new UserProfile(doc);
+                    }
+                } else if (ID.isGroup(identifier)) {
                     return new BaseBulletin(doc);
                 }
                 return new BaseDocument(doc);

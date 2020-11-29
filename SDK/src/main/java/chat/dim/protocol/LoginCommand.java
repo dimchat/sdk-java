@@ -33,7 +33,6 @@ package chat.dim.protocol;
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.Entity;
 import chat.dim.network.ServiceProvider;
 import chat.dim.network.Station;
 
@@ -76,7 +75,7 @@ public class LoginCommand extends Command {
 
     // user ID
     public ID getIdentifier() {
-        return Entity.parseID(get("ID"));
+        return ID.parse(get("ID"));
     }
 
     // device ID

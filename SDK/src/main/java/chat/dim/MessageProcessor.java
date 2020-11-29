@@ -128,8 +128,8 @@ public class MessageProcessor {
         assert user != null : "receiver error: " + receiver;
 
         // pack message
-        Envelope env = MessageFactory.getEnvelope(user.identifier, sender);
-        return MessageFactory.getInstantMessage(env, response);
+        Envelope env = Envelope.create(user.identifier, sender, null);
+        return InstantMessage.create(env, response);
     }
 
     // TODO: override to check group
