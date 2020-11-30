@@ -96,7 +96,7 @@ public final class BTCAddress extends chat.dim.type.String implements Address {
      */
     public static BTCAddress parse(String string) {
         int len = string.length();
-        if (len < 26 || len > 34) {
+        if (len < 26/* || len > 34*/) {
             return null;
         }
         // decode
