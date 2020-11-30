@@ -23,7 +23,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.crypto.plugins;
+package chat.dim.crypto;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -37,8 +37,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.Random;
 
-import chat.dim.crypto.CryptoUtils;
-import chat.dim.crypto.SymmetricKey;
 import chat.dim.format.Base64;
 import chat.dim.type.Dictionary;
 
@@ -52,14 +50,14 @@ import chat.dim.type.Dictionary;
  *          iv       : "{BASE64_ENCODE}", // initialization vector
  *      }
  */
-public final class AESKey extends Dictionary implements SymmetricKey {
+final class AESKey extends Dictionary implements SymmetricKey {
 
     private final Cipher cipher;
 
     private final SecretKeySpec keySpec;
     private final IvParameterSpec ivSpec;
 
-    public AESKey(Map<String, Object> dictionary) throws NoSuchPaddingException, NoSuchAlgorithmException {
+    AESKey(Map<String, Object> dictionary) throws NoSuchPaddingException, NoSuchAlgorithmException {
         super(dictionary);
         // TODO: check algorithm parameters
         // 1. check mode = 'CBC'
@@ -67,6 +65,11 @@ public final class AESKey extends Dictionary implements SymmetricKey {
         cipher = CryptoUtils.getCipher("AES/CBC/PKCS7Padding");
         keySpec = new SecretKeySpec(getData(), "AES");
         ivSpec = new IvParameterSpec(getInitVector());
+    }
+
+    @Override
+    public String getAlgorithm() {
+        return (String) get("algorithm");
     }
 
     private int getKeySize() {

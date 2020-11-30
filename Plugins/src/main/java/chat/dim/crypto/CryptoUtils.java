@@ -33,7 +33,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.Signature;
 
-public class CryptoUtils {
+public final class CryptoUtils {
 
     //
     //  Factories

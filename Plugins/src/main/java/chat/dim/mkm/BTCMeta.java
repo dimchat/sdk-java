@@ -2,12 +2,12 @@
  *
  *  Ming-Ke-Ming : Decentralized User Identity Authentication
  *
- *                                Written in 2019 by Moky <albert.moky@gmail.com>
+ *                                Written in 2020 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Albert Moky
+ * Copyright (c) 2020 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,40 +28,39 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.mkm.plugins;
+package chat.dim.mkm;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.VerifyKey;
 import chat.dim.format.UTF8;
-import chat.dim.mkm.BaseMeta;
-import chat.dim.mkm.Identifier;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.MetaType;
+import chat.dim.protocol.NetworkType;
 
 /**
- *  Default Meta to build ID with 'name@address'
+ *  Meta to build BTC address for ID
  *
  *  version:
- *      0x01 - MKM
+ *      0x02 - BTC
+ *      0x03 - ExBTC
  *
  *  algorithm:
- *      CT      = fingerprint = sKey.sign(seed);
+ *      CT      = key.data;
  *      hash    = ripemd160(sha256(CT));
  *      code    = sha256(sha256(network + hash)).prefix(4);
  *      address = base58_encode(network + hash + code);
  *      number  = uint(code);
  */
-public final class DefaultMeta extends BaseMeta {
+public final class BTCMeta extends BaseMeta {
 
-    public DefaultMeta(Map<String, Object> dictionary) {
+    BTCMeta(Map<String, Object> dictionary) {
         super(dictionary);
     }
 
-    public DefaultMeta(int version, VerifyKey key, String seed, byte[] fingerprint) {
+    BTCMeta(int version, VerifyKey key, String seed, byte[] fingerprint) {
         super(version, key, seed, fingerprint);
     }
 
@@ -72,32 +71,31 @@ public final class DefaultMeta extends BaseMeta {
         }
         Address address = identifier.getAddress();
         if (address instanceof BTCAddress) {
-            byte network = address.getNetwork();
-            return identifier.equals(generateID(network));
+            return identifier.equals(generateID());
         }
         return false;
     }
 
     // cache
-    private Map<Byte, ID> cachedIdentifiers = new HashMap<>();
+    private ID cachedIdentifier = null;
 
-    public ID generateID(byte network) {
+    public ID generateID() {
         // check cache
-        ID identifier = cachedIdentifiers.get(network);
-        if (identifier == null) {
+        if (cachedIdentifier == null) {
             // generate and cache it
-            identifier = new Identifier(getSeed(), generateAddress(network));
-            cachedIdentifiers.put(network, identifier);
+            cachedIdentifier = ID.create(getSeed(), generateAddress(), null);
         }
-        return identifier;
+        return cachedIdentifier;
     }
 
-    private Address generateAddress(byte network) {
-        assert MetaType.MKM.equals(getType()) : "meta version error";
+    private Address generateAddress() {
+        assert MetaType.BTC.equals(getType()) || MetaType.ExBTC.equals(getType()) : "meta version error";
         if (!isValid()) {
             throw new IllegalArgumentException("meta invalid: " + getMap());
         }
-        return BTCAddress.generate(getFingerprint(), network);
+        VerifyKey key = getKey();
+        byte[] data = key.getData();
+        return BTCAddress.generate(data, NetworkType.BTCMain.value);
     }
 
     /**
@@ -107,12 +105,16 @@ public final class DefaultMeta extends BaseMeta {
      * @param seed - ID.name
      * @return Meta
      */
-    public static DefaultMeta generate(PrivateKey sKey, String seed) {
+    public static BTCMeta generate(PrivateKey sKey, String seed) {
+        int version;
+        byte[] fingerprint;
         if (seed == null || seed.length() == 0) {
-            throw new NullPointerException("default meta's seed should not be empty!");
+            version = MetaType.BTC.value;
+            fingerprint = null;
+        } else {
+            version = MetaType.ExBTC.value;
+            fingerprint = sKey.sign(UTF8.encode(seed));
         }
-        int version = MetaType.MKM.value;
-        byte[] fingerprint = sKey.sign(UTF8.encode(seed));
-        return new DefaultMeta(version, sKey.getPublicKey(), seed, fingerprint);
+        return new BTCMeta(version, sKey.getPublicKey(), seed, fingerprint);
     }
 }

@@ -35,13 +35,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import chat.dim.mkm.Identifier;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.ID;
 
 public abstract class AddressNameService {
 
-    public static final ID FOUNDER = new Identifier("moky", Address.ANYWHERE);
+    public static final ID FOUNDER = ID.create("moky", Address.ANYWHERE, null);
     public static final String[] KEYWORDS = {
             "all", "everyone", "anyone", "owner", "founder",
             // --------------------------------

@@ -28,12 +28,11 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.mkm.plugins;
+package chat.dim.mkm;
 
 import java.util.List;
 import java.util.Map;
 
-import chat.dim.mkm.BaseVisa;
 import chat.dim.protocol.ID;
 
 public class UserProfile extends BaseVisa {

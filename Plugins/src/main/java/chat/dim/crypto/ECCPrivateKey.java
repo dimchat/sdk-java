@@ -23,7 +23,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.crypto.plugins;
+package chat.dim.crypto;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -39,9 +39,6 @@ import java.security.spec.ECGenParameterSpec;
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.crypto.CryptoUtils;
-import chat.dim.crypto.PrivateKey;
-import chat.dim.crypto.PublicKey;
 import chat.dim.format.ECCKeys;
 import chat.dim.type.Dictionary;
 
@@ -54,16 +51,21 @@ import chat.dim.type.Dictionary;
  *          data         : "..." // base64_encode()
  *      }
  */
-public final class ECCPrivateKey extends Dictionary implements PrivateKey {
+final class ECCPrivateKey extends Dictionary implements PrivateKey {
 
     private ECPrivateKey privateKey;
     private ECPublicKey publicKey;
 
-    public ECCPrivateKey(Map<String, Object> dictionary) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
+    ECCPrivateKey(Map<String, Object> dictionary) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
         super(dictionary);
         KeyPair keyPair = getKeyPair();
         privateKey = (ECPrivateKey) keyPair.getPrivate();
         publicKey = (ECPublicKey) keyPair.getPublic();
+    }
+
+    @Override
+    public String getAlgorithm() {
+        return (String) get("algorithm");
     }
 
     private String getCurveName() {

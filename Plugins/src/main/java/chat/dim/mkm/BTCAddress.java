@@ -28,7 +28,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.mkm.plugins;
+package chat.dim.mkm;
 
 import java.util.Arrays;
 
@@ -55,7 +55,7 @@ public final class BTCAddress extends chat.dim.type.String implements Address {
 
     private final byte network;
 
-    public BTCAddress(String string, byte network) {
+    private BTCAddress(String string, byte network) {
         super(string);
         this.network = network;
     }

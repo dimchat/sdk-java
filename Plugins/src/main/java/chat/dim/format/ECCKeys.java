@@ -43,7 +43,7 @@ import org.bouncycastle.math.ec.ECPoint;
 
 import chat.dim.crypto.CryptoUtils;
 
-public class ECCKeys {
+public final class ECCKeys {
 
     private static byte[] privatePrefix = Hex.decode("303E020100301006072A8648CE3D020106052B8104000A042730250201010420");
 

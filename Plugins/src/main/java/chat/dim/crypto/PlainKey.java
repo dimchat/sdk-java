@@ -23,12 +23,11 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.crypto.plugins;
+package chat.dim.crypto;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.crypto.SymmetricKey;
 import chat.dim.type.Dictionary;
 
 /**
@@ -37,10 +36,15 @@ import chat.dim.type.Dictionary;
  */
 public final class PlainKey extends Dictionary implements SymmetricKey {
 
-    public final static String PLAIN = "PLAIN";
+    final static String PLAIN = "PLAIN";
 
-    public PlainKey(Map<String, Object> dictionary) {
+    private PlainKey(Map<String, Object> dictionary) {
         super(dictionary);
+    }
+
+    @Override
+    public String getAlgorithm() {
+        return (String) get("algorithm");
     }
 
     @Override

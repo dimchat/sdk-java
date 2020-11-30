@@ -39,7 +39,7 @@ import java.security.spec.ECPoint;
 import java.security.spec.ECPublicKeySpec;
 import java.security.spec.EllipticCurve;
 
-class ECCGenerator {
+final class ECCGenerator {
 
     public static ECPublicKey getPublicKey(ECPrivateKey pk) throws GeneralSecurityException {
         ECParameterSpec params = pk.getParams();

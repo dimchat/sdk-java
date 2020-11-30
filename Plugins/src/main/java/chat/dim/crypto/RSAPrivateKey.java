@@ -23,7 +23,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.crypto.plugins;
+package chat.dim.crypto;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -39,10 +39,6 @@ import java.security.SignatureException;
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.crypto.CryptoUtils;
-import chat.dim.crypto.DecryptKey;
-import chat.dim.crypto.PrivateKey;
-import chat.dim.crypto.PublicKey;
 import chat.dim.format.RSAKeys;
 import chat.dim.type.Dictionary;
 
@@ -54,16 +50,21 @@ import chat.dim.type.Dictionary;
  *          data      : "..." // base64_encode()
  *      }
  */
-public final class RSAPrivateKey extends Dictionary implements PrivateKey, DecryptKey {
+final class RSAPrivateKey extends Dictionary implements PrivateKey, DecryptKey {
 
     private java.security.interfaces.RSAPrivateKey privateKey;
     private java.security.interfaces.RSAPublicKey publicKey;
 
-    public RSAPrivateKey(Map<String, Object> dictionary) throws NoSuchAlgorithmException {
+    RSAPrivateKey(Map<String, Object> dictionary) throws NoSuchAlgorithmException {
         super(dictionary);
         KeyPair keyPair = getKeyPair();
         privateKey = (java.security.interfaces.RSAPrivateKey) keyPair.getPrivate();
         publicKey = (java.security.interfaces.RSAPublicKey) keyPair.getPublic();
+    }
+
+    @Override
+    public String getAlgorithm() {
+        return (String) get("algorithm");
     }
 
     private int keySize() {

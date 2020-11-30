@@ -2,12 +2,12 @@
  *
  *  Ming-Ke-Ming : Decentralized User Identity Authentication
  *
- *                                Written in 2020 by Moky <albert.moky@gmail.com>
+ *                                Written in 2019 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Albert Moky
+ * Copyright (c) 2019 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,39 +28,38 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.mkm.plugins;
+package chat.dim.mkm;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.VerifyKey;
-import chat.dim.crypto.plugins.ECCPublicKey;
 import chat.dim.format.UTF8;
-import chat.dim.mkm.BaseMeta;
-import chat.dim.mkm.Identifier;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.MetaType;
 
 /**
- *  Meta to build ETH address for ID
+ *  Default Meta to build ID with 'name@address'
  *
  *  version:
- *      0x04 - ETH
- *      0x05 - ExETH
+ *      0x01 - MKM
  *
  *  algorithm:
- *      CT      = key.data;  // without prefix byte
- *      digest  = keccak256(CT);
- *      address = hex_encode(digest.suffix(20));
+ *      CT      = fingerprint = sKey.sign(seed);
+ *      hash    = ripemd160(sha256(CT));
+ *      code    = sha256(sha256(network + hash)).prefix(4);
+ *      address = base58_encode(network + hash + code);
+ *      number  = uint(code);
  */
-public final class ETHMeta extends BaseMeta {
+public final class DefaultMeta extends BaseMeta {
 
-    public ETHMeta(Map<String, Object> dictionary) {
+    DefaultMeta(Map<String, Object> dictionary) {
         super(dictionary);
     }
 
-    public ETHMeta(int version, VerifyKey key, String seed, byte[] fingerprint) {
+    DefaultMeta(int version, VerifyKey key, String seed, byte[] fingerprint) {
         super(version, key, seed, fingerprint);
     }
 
@@ -70,33 +69,33 @@ public final class ETHMeta extends BaseMeta {
             return false;
         }
         Address address = identifier.getAddress();
-        if (address instanceof ETHAddress) {
-            return identifier.equals(generateID());
+        if (address instanceof BTCAddress) {
+            byte network = address.getNetwork();
+            return identifier.equals(generateID(network));
         }
         return false;
     }
 
     // cache
-    private ID cachedIdentifier = null;
+    private Map<Byte, ID> cachedIdentifiers = new HashMap<>();
 
-    public ID generateID() {
+    public ID generateID(byte network) {
         // check cache
-        if (cachedIdentifier == null) {
+        ID identifier = cachedIdentifiers.get(network);
+        if (identifier == null) {
             // generate and cache it
-            cachedIdentifier = new Identifier(getSeed(), generateAddress());
+            identifier = ID.create(getSeed(), generateAddress(network), null);
+            cachedIdentifiers.put(network, identifier);
         }
-        return cachedIdentifier;
+        return identifier;
     }
 
-    private Address generateAddress() {
-        assert MetaType.ETH.equals(getType()) || MetaType.ExETH.equals(getType()) : "meta version error";
+    private Address generateAddress(byte network) {
+        assert MetaType.MKM.equals(getType()) : "meta version error";
         if (!isValid()) {
             throw new IllegalArgumentException("meta invalid: " + getMap());
         }
-        VerifyKey key = getKey();
-        assert key instanceof ECCPublicKey : "ETH address should generate from ECC key";
-        byte[] data = key.getData();
-        return ETHAddress.generate(data);
+        return BTCAddress.generate(getFingerprint(), network);
     }
 
     /**
@@ -106,16 +105,12 @@ public final class ETHMeta extends BaseMeta {
      * @param seed - ID.name
      * @return Meta
      */
-    public static ETHMeta generate(PrivateKey sKey, String seed) {
-        int version;
-        byte[] fingerprint;
+    public static DefaultMeta generate(PrivateKey sKey, String seed) {
         if (seed == null || seed.length() == 0) {
-            version = MetaType.ETH.value;
-            fingerprint = null;
-        } else {
-            version = MetaType.ExETH.value;
-            fingerprint = sKey.sign(UTF8.encode(seed));
+            throw new NullPointerException("default meta's seed should not be empty!");
         }
-        return new ETHMeta(version, sKey.getPublicKey(), seed, fingerprint);
+        int version = MetaType.MKM.value;
+        byte[] fingerprint = sKey.sign(UTF8.encode(seed));
+        return new DefaultMeta(version, sKey.getPublicKey(), seed, fingerprint);
     }
 }

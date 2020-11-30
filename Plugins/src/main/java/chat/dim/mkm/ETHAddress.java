@@ -28,7 +28,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.mkm.plugins;
+package chat.dim.mkm;
 
 import chat.dim.digest.Keccak256;
 import chat.dim.format.Hex;
@@ -47,7 +47,7 @@ import chat.dim.protocol.NetworkType;
  */
 public final class ETHAddress extends chat.dim.type.String implements Address {
 
-    public ETHAddress(String string) {
+    private ETHAddress(String string) {
         super(string);
     }
 

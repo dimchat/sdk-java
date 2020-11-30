@@ -28,7 +28,7 @@ package chat.dim.format;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
-public class RSAKeys {
+public final class RSAKeys {
 
     public static String encodePublicKey(PublicKey key) {
         return publicKeyParser.encode(key);

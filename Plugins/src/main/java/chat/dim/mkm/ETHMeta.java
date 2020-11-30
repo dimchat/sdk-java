@@ -28,42 +28,36 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.mkm.plugins;
+package chat.dim.mkm;
 
 import java.util.Map;
 
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.VerifyKey;
-import chat.dim.crypto.plugins.ECCPublicKey;
 import chat.dim.format.UTF8;
-import chat.dim.mkm.BaseMeta;
-import chat.dim.mkm.Identifier;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.MetaType;
-import chat.dim.protocol.NetworkType;
 
 /**
- *  Meta to build BTC address for ID
+ *  Meta to build ETH address for ID
  *
  *  version:
- *      0x02 - BTC
- *      0x03 - ExBTC
+ *      0x04 - ETH
+ *      0x05 - ExETH
  *
  *  algorithm:
- *      CT      = key.data;
- *      hash    = ripemd160(sha256(CT));
- *      code    = sha256(sha256(network + hash)).prefix(4);
- *      address = base58_encode(network + hash + code);
- *      number  = uint(code);
+ *      CT      = key.data;  // without prefix byte
+ *      digest  = keccak256(CT);
+ *      address = hex_encode(digest.suffix(20));
  */
-public final class BTCMeta extends BaseMeta {
+public final class ETHMeta extends BaseMeta {
 
-    public BTCMeta(Map<String, Object> dictionary) {
+    ETHMeta(Map<String, Object> dictionary) {
         super(dictionary);
     }
 
-    public BTCMeta(int version, VerifyKey key, String seed, byte[] fingerprint) {
+    ETHMeta(int version, VerifyKey key, String seed, byte[] fingerprint) {
         super(version, key, seed, fingerprint);
     }
 
@@ -73,7 +67,7 @@ public final class BTCMeta extends BaseMeta {
             return false;
         }
         Address address = identifier.getAddress();
-        if (address instanceof BTCAddress) {
+        if (address instanceof ETHAddress) {
             return identifier.equals(generateID());
         }
         return false;
@@ -86,20 +80,19 @@ public final class BTCMeta extends BaseMeta {
         // check cache
         if (cachedIdentifier == null) {
             // generate and cache it
-            cachedIdentifier = new Identifier(getSeed(), generateAddress());
+            cachedIdentifier = ID.create(getSeed(), generateAddress(), null);
         }
         return cachedIdentifier;
     }
 
     private Address generateAddress() {
-        assert MetaType.BTC.equals(getType()) || MetaType.ExBTC.equals(getType()) : "meta version error";
+        assert MetaType.ETH.equals(getType()) || MetaType.ExETH.equals(getType()) : "meta version error";
         if (!isValid()) {
             throw new IllegalArgumentException("meta invalid: " + getMap());
         }
         VerifyKey key = getKey();
-        assert key instanceof ECCPublicKey : "BTC address should generate from ECC key";
         byte[] data = key.getData();
-        return BTCAddress.generate(data, NetworkType.BTCMain.value);
+        return ETHAddress.generate(data);
     }
 
     /**
@@ -109,16 +102,16 @@ public final class BTCMeta extends BaseMeta {
      * @param seed - ID.name
      * @return Meta
      */
-    public static BTCMeta generate(PrivateKey sKey, String seed) {
+    public static ETHMeta generate(PrivateKey sKey, String seed) {
         int version;
         byte[] fingerprint;
         if (seed == null || seed.length() == 0) {
-            version = MetaType.BTC.value;
+            version = MetaType.ETH.value;
             fingerprint = null;
         } else {
-            version = MetaType.ExBTC.value;
+            version = MetaType.ExETH.value;
             fingerprint = sKey.sign(UTF8.encode(seed));
         }
-        return new BTCMeta(version, sKey.getPublicKey(), seed, fingerprint);
+        return new ETHMeta(version, sKey.getPublicKey(), seed, fingerprint);
     }
 }
