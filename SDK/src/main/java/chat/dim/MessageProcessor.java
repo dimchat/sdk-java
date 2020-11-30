@@ -32,15 +32,22 @@ package chat.dim;
 
 import java.lang.ref.WeakReference;
 
+import chat.dim.core.CommandFactory;
 import chat.dim.cpu.ContentProcessor;
+import chat.dim.protocol.BlockCommand;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
 import chat.dim.protocol.Envelope;
+import chat.dim.protocol.HandshakeCommand;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
+import chat.dim.protocol.LoginCommand;
+import chat.dim.protocol.MuteCommand;
+import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
+import chat.dim.protocol.StorageCommand;
 
 public class MessageProcessor {
 
@@ -144,7 +151,17 @@ public class MessageProcessor {
     }
 
     static {
-        // replace command parser
-        Command.parser = new CommandParser();
+        // register command parsers
+        CommandFactory.register(Command.RECEIPT, ReceiptCommand::new);
+        CommandFactory.register(Command.HANDSHAKE, HandshakeCommand::new);
+        CommandFactory.register(Command.LOGIN, LoginCommand::new);
+
+        CommandFactory.register(MuteCommand.MUTE, MuteCommand::new);
+        CommandFactory.register(BlockCommand.BLOCK, BlockCommand::new);
+
+        // storage (contacts, private_key)
+        CommandFactory.register(StorageCommand.STORAGE, StorageCommand::new);
+        CommandFactory.register(StorageCommand.CONTACTS, StorageCommand::new);
+        CommandFactory.register(StorageCommand.PRIVATE_KEY, StorageCommand::new);
     }
 }
