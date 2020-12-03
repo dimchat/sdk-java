@@ -114,7 +114,7 @@ public abstract class Plugins extends chat.dim.crypto.Plugins {
         Factories.documentFactory = new Document.Factory() {
 
             @Override
-            public Document createDocument(ID identifier, String type, String data, String signature) {
+            public Document createDocument(ID identifier, String type, byte[] data, byte[] signature) {
                 if (ID.isUser(identifier)) {
                     if (type == null || Document.VISA.equals(type)) {
                         return new UserProfile(identifier, data, signature);
@@ -126,7 +126,7 @@ public abstract class Plugins extends chat.dim.crypto.Plugins {
             }
 
             @Override
-            public Document generateDocument(ID identifier, String type) {
+            public Document createDocument(ID identifier, String type) {
                 if (ID.isUser(identifier)) {
                     if (type == null || Document.VISA.equals(type)) {
                         return new UserProfile(identifier);

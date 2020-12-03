@@ -18,14 +18,12 @@ public class ImmortalsTest {
         User hulk = facebook.getUser(immortals.getID(Immortals.HULK));
         Log.info("hulk: " + hulk);
 
-        Log.info("name: " + hulk.getName());
         Log.info("profile: " + facebook.getDocument(hulk.identifier, Document.ANY));
 
         // Monkey King
         User moki = facebook.getUser(immortals.getID(Immortals.MOKI));
         Log.info("moki: " + moki);
 
-        Log.info("name: " + moki.getName());
         Log.info("profile: " + facebook.getDocument(moki.identifier, Document.ANY));
 
         // Everyone

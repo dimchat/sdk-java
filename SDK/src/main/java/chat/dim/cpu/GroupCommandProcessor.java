@@ -49,30 +49,16 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
 
     @SuppressWarnings("unchecked")
     protected List<ID> getMembers(GroupCommand cmd) {
-        List members = cmd.getMembers();
+        List<ID> members = cmd.getMembers();
         if (members == null) {
-            Object member = cmd.getMember();
+            ID member = cmd.getMember();
             if (member == null) {
                 return null;
             }
             members = new ArrayList();
             members.add(member);
         }
-        return convertMembers(members);
-    }
-
-    // convert String list to ID list
-    private List<ID> convertMembers(List members) {
-        List<ID> array = new ArrayList<>();
-        ID identifier;
-        for (Object item : members) {
-            identifier = ID.parse(item);
-            if (identifier == null) {
-                throw new NullPointerException("Member ID error: " + item);
-            }
-            array.add(identifier);
-        }
-        return array;
+        return members;
     }
 
     // check whether the list contains owner

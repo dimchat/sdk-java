@@ -77,7 +77,7 @@ public class MuteCommand extends Command {
         if (muteList == null) {
             Object list = get("list");
             if (list != null) {
-                muteList = GroupCommand.convertList((List<String>) list);
+                muteList = ID.convert((List<String>) list);
             }
         }
         return muteList;
@@ -87,7 +87,7 @@ public class MuteCommand extends Command {
         if (list == null) {
             remove("list");
         } else {
-            put("list", GroupCommand.revertList(list));
+            put("list", ID.revert(list));
         }
         muteList = list;
     }

@@ -77,7 +77,7 @@ public class BlockCommand extends Command {
         if (blockList == null) {
             Object list = get("list");
             if (list != null) {
-                blockList = GroupCommand.convertList((List<String>) list);
+                blockList = ID.convert((List<String>) list);
             }
         }
         return blockList;
@@ -87,7 +87,7 @@ public class BlockCommand extends Command {
         if (list == null) {
             remove("list");
         } else {
-            put("list", GroupCommand.revertList(list));
+            put("list", ID.revert(list));
         }
         blockList = list;
     }

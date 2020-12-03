@@ -33,7 +33,7 @@ public abstract class Plugins {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 
         // Base58 coding
-        Base58.coder = new BaseCoder() {
+        Base58.coder = new DataCoder() {
             @Override
             public String encode(byte[] data) {
                 return chat.dim.bitcoinj.Base58.encode(data);
@@ -46,7 +46,7 @@ public abstract class Plugins {
         };
 
         // HEX coding
-        Hex.coder = new BaseCoder() {
+        Hex.coder = new DataCoder() {
             @Override
             public String encode(byte[] data) {
                 return org.bouncycastle.util.encoders.Hex.toHexString(data);

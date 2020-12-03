@@ -25,6 +25,7 @@
  */
 package chat.dim.crypto;
 
+import chat.dim.digest.DataDigester;
 import org.bouncycastle.crypto.digests.KeccakDigest;
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
 
@@ -33,7 +34,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.digest.Hash;
 import chat.dim.digest.Keccak256;
 import chat.dim.digest.RIPEMD160;
 
@@ -144,7 +144,7 @@ public abstract class Plugins extends chat.dim.format.Plugins {
          */
 
         // RIPEMD160
-        RIPEMD160.hash = new Hash() {
+        RIPEMD160.digester = new DataDigester() {
             @Override
             public byte[] digest(byte[] data) {
                 RIPEMD160Digest digest = new RIPEMD160Digest();
@@ -156,7 +156,7 @@ public abstract class Plugins extends chat.dim.format.Plugins {
         };
 
         // Keccak256
-        Keccak256.hash = new Hash() {
+        Keccak256.digester = new DataDigester() {
             @Override
             public byte[] digest(byte[] data) {
                 KeccakDigest digest = new KeccakDigest(256);

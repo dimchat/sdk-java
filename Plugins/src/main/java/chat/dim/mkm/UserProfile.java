@@ -41,7 +41,7 @@ public class UserProfile extends BaseVisa {
         super(dictionary);
     }
 
-    public UserProfile(ID identifier, String data, String signature) {
+    public UserProfile(ID identifier, byte[] data, byte[] signature) {
         super(identifier, data, signature);
     }
 
@@ -72,6 +72,7 @@ public class UserProfile extends BaseVisa {
     }
 
     @SuppressWarnings("unchecked")
+    @Override
     public String getAvatar() {
         String url = (String) getProperty("avatar");
         if (url == null) {
@@ -85,9 +86,5 @@ public class UserProfile extends BaseVisa {
             }
         }
         return url;
-    }
-
-    public void setAvatar(String url) {
-        setProperty("avatar", url);
     }
 }
