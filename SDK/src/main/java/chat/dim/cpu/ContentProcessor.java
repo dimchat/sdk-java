@@ -31,8 +31,6 @@
 package chat.dim.cpu;
 
 import java.lang.ref.WeakReference;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -42,13 +40,15 @@ import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.ReliableMessage;
+import chat.dim.protocol.TextContent;
 
 /**
- *  Content/Command Processing Units
+ *  Base Content Processor
  */
-public class ContentProcessor {
+public class ContentProcessor implements Content.Processor<Content> {
 
-    private final Map<Integer, ContentProcessor> contentProcessors = new HashMap<>();
+    private static final Map<Integer, Content.Processor<Content>> processors = new HashMap<>();
+
     private final WeakReference<Messenger> messengerRef;
 
     public ContentProcessor(Messenger messenger) {
@@ -72,90 +72,68 @@ public class ContentProcessor {
         getMessenger().setContext(key, value);
     }
 
-    //-------- Runtime --------
-
-    @SuppressWarnings("unchecked")
-    protected ContentProcessor createProcessor(Class clazz) {
-        // try 'new Clazz(dict)'
-        try {
-            Constructor constructor = clazz.getConstructor(Messenger.class);
-            return (ContentProcessor) constructor.newInstance(getMessenger());
-        } catch (NoSuchMethodException | IllegalAccessException | InstantiationException | InvocationTargetException e) {
-            e.printStackTrace();
-            return null;
-        }
+    //
+    //  CPU
+    //
+    protected Content.Processor<Content> getContentProcessor(Content content) {
+        // get CPU by content type
+        return getContentProcessor(content.getType());
     }
-
-    private static Map<Integer, Class> contentProcessorClasses = new HashMap<>();
-
-    public static void register(ContentType type, Class clazz) {
-        register(type.value, clazz);
-    }
-    public static void register(int type, Class clazz) {
-        if (clazz == null) {
-            contentProcessorClasses.remove(type);
-        } else if (clazz.equals(ContentProcessor.class)) {
-            throw new IllegalArgumentException("should not add ContentProcessor itself!");
-        } else {
-            assert ContentProcessor.class.isAssignableFrom(clazz) : "error: " + clazz;
-            contentProcessorClasses.put(type, clazz);
+    public Content.Processor<Content> getContentProcessor(int type) {
+        Content.Processor<Content> cpu = processors.get(type);
+        if (cpu == null) {
+            cpu = newContentProcessor(type);
+            processors.put(type, cpu);
         }
-    }
-
-    public ContentProcessor getCPU(ContentType type) {
-        return getCPU(type.value);
-    }
-    private ContentProcessor getCPU(int type) {
-        // 1. get from pool
-        ContentProcessor cpu = contentProcessors.get(type);
-        if (cpu != null) {
-            return cpu;
-        }
-        // 2. get CPU class by content type
-        Class clazz = contentProcessorClasses.get(type);
-        if (clazz == null) {
-            if (ContentType.UNKNOWN.equals(type)) {
-                throw new NullPointerException("default CPU not register yet");
-            }
-            // call default CPU
-            return getCPU(ContentType.UNKNOWN.value);
-        }
-        // 3. create CPU with messenger
-        cpu = createProcessor(clazz);
-        assert cpu != null : "failed to create CPU for content type: " + type;
-        contentProcessors.put(type, cpu);
         return cpu;
     }
+    protected Content.Processor<Content> newContentProcessor(int type) {
+        // TODO: override to extend CPUs
 
-    //-------- Main --------
+        if (ContentType.FORWARD.equals(type)) {
+            return new ForwardContentProcessor(getMessenger());
+        }
 
+        if (ContentType.FILE.equals(type)) {
+            return new FileContentProcessor(getMessenger());
+        }
+        if (ContentType.IMAGE.equals(type)) {
+            return new FileContentProcessor(getMessenger());
+        }
+        if (ContentType.AUDIO.equals(type)) {
+            return new FileContentProcessor(getMessenger());
+        }
+        if (ContentType.VIDEO.equals(type)) {
+            return new FileContentProcessor(getMessenger());
+        }
+
+        if (ContentType.COMMAND.equals(type)) {
+            return new CommandProcessor(getMessenger());
+        }
+        if (ContentType.HISTORY.equals(type)) {
+            return new HistoryCommandProcessor(getMessenger());
+        }
+
+        // UNKNOWN
+        return this;
+    }
+    protected Content unknown(Content content, ID sender, ReliableMessage rMsg) {
+        String text = String.format("Content (type: %d) not support yet!", content.getType());
+        TextContent res = new TextContent(text);
+        // check group message
+        ID group = content.getGroup();
+        if (group != null) {
+            res.setGroup(group);
+        }
+        return res;
+    }
+
+    @Override
     public Content process(Content content, ID sender, ReliableMessage rMsg) {
-        assert getClass() == ContentProcessor.class : "error!"; // override me!
-        // process content by type
-        ContentProcessor cpu = getCPU(content.getType());
-        assert cpu != this : "Dead cycle!";
+        Content.Processor<Content> cpu = getContentProcessor(content);
+        if (cpu == this) {
+            return unknown(content, sender, rMsg);
+        }
         return cpu.process(content, sender, rMsg);
     }
-
-    static {
-
-        //
-        //  Register content processor(s) with content type
-        //
-        register(ContentType.FORWARD, ForwardContentProcessor.class);
-        register(ContentType.FILE, FileContentProcessor.class);
-        register(ContentType.IMAGE, FileContentProcessor.class);
-        register(ContentType.AUDIO, FileContentProcessor.class);
-        register(ContentType.VIDEO, FileContentProcessor.class);
-
-        //
-        //  Register all processors with content types
-        //
-        register(ContentType.COMMAND, CommandProcessor.class);
-        register(ContentType.HISTORY, HistoryCommandProcessor.class);
-
-        // default
-        register(ContentType.UNKNOWN, DefaultContentProcessor.class);
-    }
 }
-

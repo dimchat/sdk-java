@@ -51,7 +51,10 @@ public class MyFacebook extends Facebook {
 
     @Override
     public List<User> getLocalUsers() {
-        return null;
+        List<User> users = new ArrayList<>();
+        users.add(immortals.getUser(ID.parse(Immortals.MOKI)));
+        users.add(immortals.getUser(ID.parse(Immortals.HULK)));
+        return users;
     }
 
     //---- Private Key

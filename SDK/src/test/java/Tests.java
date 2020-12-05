@@ -8,16 +8,11 @@ import java.util.Map;
 import chat.dim.Immortals;
 import chat.dim.KeyCache;
 import chat.dim.KeyStore;
+import chat.dim.MessageProcessor;
+import chat.dim.Messenger;
 import chat.dim.User;
 import chat.dim.core.Barrack;
-import chat.dim.core.Transceiver;
-import chat.dim.cpu.ContentProcessor;
-import chat.dim.cpu.CommandProcessor;
-import chat.dim.cpu.HandshakeCommandProcessor;
-import chat.dim.cpu.TextContentProcessor;
-import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
-import chat.dim.protocol.ContentType;
 import chat.dim.protocol.Envelope;
 import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.ID;
@@ -32,11 +27,10 @@ public class Tests extends TestCase {
 
     static Barrack barrack;
     static KeyCache keyStore;
-    static Transceiver transceiver;
+    static Messenger transceiver;
+    static MessageProcessor processor;
 
     static {
-        ContentProcessor.register(ContentType.TEXT, TextContentProcessor.class);
-        CommandProcessor.register(Command.HANDSHAKE, HandshakeCommandProcessor.class);
 
         barrack = MyFacebook.getInstance();
 
@@ -47,9 +41,26 @@ public class Tests extends TestCase {
         keyStore.flush();
 
         // transceiver
-        transceiver = new Transceiver();
+        transceiver = new Messenger() {
+            @Override
+            public boolean saveMessage(InstantMessage msg) {
+                return false;
+            }
+
+            @Override
+            public void suspendMessage(ReliableMessage msg) {
+
+            }
+
+            @Override
+            public void suspendMessage(InstantMessage msg) {
+
+            }
+        };
         transceiver.setEntityDelegate(barrack);
         transceiver.setCipherKeyDelegate(keyStore);
+
+        processor = transceiver.getMessageProcessor();
     }
 
     @Test
@@ -80,11 +91,11 @@ public class Tests extends TestCase {
 
         InstantMessage iMsg = InstantMessage.create(env, content);
         iMsg.setDelegate(transceiver);
-        SecureMessage sMsg = transceiver.encryptMessage(iMsg);
-        ReliableMessage rMsg = transceiver.signMessage(sMsg);
+        SecureMessage sMsg = processor.encryptMessage(iMsg);
+        ReliableMessage rMsg = processor.signMessage(sMsg);
 
-        SecureMessage sMsg2 = transceiver.verifyMessage(rMsg);
-        InstantMessage iMsg2 = transceiver.decryptMessage(sMsg2);
+        SecureMessage sMsg2 = processor.verifyMessage(rMsg);
+        InstantMessage iMsg2 = processor.decryptMessage(sMsg2);
 
         Log.info("send message: " + iMsg2);
     }

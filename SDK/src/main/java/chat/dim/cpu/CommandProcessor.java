@@ -34,91 +34,91 @@ import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.Messenger;
-import chat.dim.cpu.group.ExpelCommandProcessor;
-import chat.dim.cpu.group.InviteCommandProcessor;
-import chat.dim.cpu.group.QueryCommandProcessor;
-import chat.dim.cpu.group.QuitCommandProcessor;
-import chat.dim.cpu.group.ResetCommandProcessor;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.ReliableMessage;
+import chat.dim.protocol.TextContent;
 
+/**
+ *  Base Command Processor
+ */
 public class CommandProcessor extends ContentProcessor {
 
-    public static final String UNKNOWN = "unknown";
-
-    private final Map<String, CommandProcessor> commandProcessors = new HashMap<>();
+    private static final Map<String, CommandProcessor> processors = new HashMap<>();
+    private static GroupCommandProcessor gpu = null;
 
     public CommandProcessor(Messenger messenger) {
         super(messenger);
     }
 
-    //-------- Runtime --------
-
-    private static Map<String, Class> commandProcessorClasses = new HashMap<>();
-
-    public static void register(String command, Class clazz) {
-        if (clazz == null) {
-            commandProcessorClasses.remove(command);
-        } else if (clazz.equals(CommandProcessor.class)) {
-            throw new IllegalArgumentException("should not add CommandProcessor itself!");
-        } else {
-            assert CommandProcessor.class.isAssignableFrom(clazz) : "error: " + clazz;
-            commandProcessorClasses.put(command, clazz);
+    //
+    //  CPU
+    //
+    protected CommandProcessor getCommandProcessor(Command cmd) {
+        // get CPU by command name
+        CommandProcessor cpu = getCommandProcessor(cmd.getCommand());
+        if (cpu == this && cmd instanceof GroupCommand) {
+            // check for GPU
+            cpu = getGroupCommandProcessor((GroupCommand) cmd);
+            processors.put(cmd.getCommand(), cpu);
         }
+        return cpu;
+    }
+    protected CommandProcessor getCommandProcessor(String command) {
+        CommandProcessor cpu = processors.get(command);
+        if (cpu == null) {
+            cpu = newCommandProcessor(command);
+            processors.put(command, cpu);
+        }
+        return cpu;
+    }
+    protected CommandProcessor newCommandProcessor(String command) {
+        if (Command.META.equalsIgnoreCase(command)) {
+            return new MetaCommandProcessor(getMessenger());
+        }
+        if (Command.PROFILE.equalsIgnoreCase(command)) {
+            return new DocumentCommandProcessor(getMessenger());
+        }
+        if (Command.DOCUMENT.equalsIgnoreCase(command)) {
+            return new DocumentCommandProcessor(getMessenger());
+        }
+
+        // UNKNOWN
+        return this;
     }
 
-    protected CommandProcessor getCPU(String command) {
-        // 1. get from pool
-        CommandProcessor cpu = commandProcessors.get(command);
-        if (cpu != null) {
-            return cpu;
+    protected GroupCommandProcessor getGroupCommandProcessor() {
+        if (gpu == null) {
+            gpu = new GroupCommandProcessor(getMessenger());
         }
-        // 2. get CPU class by command name
-        Class clazz = commandProcessorClasses.get(command);
-        if (clazz == null) {
-            if (command.equals(UNKNOWN)) {
-                throw new NullPointerException("default CPU not register yet");
-            }
-            return getCPU(UNKNOWN);
+        return gpu;
+    }
+    protected GroupCommandProcessor getGroupCommandProcessor(GroupCommand cmd) {
+        GroupCommandProcessor cpu = getGroupCommandProcessor();
+        return cpu.getGroupCommandProcessor(cmd);
+    }
+
+    protected Content unknown(Command cmd, ID sender, ReliableMessage rMsg) {
+        String text = String.format("Command (name: %s) not support yet!", cmd.getCommand());
+        TextContent res = new TextContent(text);
+        // check group message
+        ID group = cmd.getGroup();
+        if (group != null) {
+            res.setGroup(group);
         }
-        // 3. create CPU with messenger
-        cpu = (CommandProcessor) createProcessor(clazz);
-        assert cpu != null : "failed to create CPU for command: " + command;
-        commandProcessors.put(command, cpu);
-        return cpu;
+        return res;
     }
 
     @Override
     public Content process(Content content, ID sender, ReliableMessage rMsg) {
-        assert getClass() == CommandProcessor.class : "error!"; // override me!
         assert content instanceof Command : "command error: " + content;
         Command cmd = (Command) content;
-        // process command content by name
-        CommandProcessor cpu = getCPU(cmd.getCommand());
-        assert cpu != this : "Dead cycle!";
+        CommandProcessor cpu = getCommandProcessor(cmd);
+        if (cpu == this) {
+            return unknown(cmd, sender, rMsg);
+        }
         return cpu.process(content, sender, rMsg);
-    }
-
-    static {
-
-        //
-        //  Register all processors with command name
-        //
-        register(Command.META, MetaCommandProcessor.class);
-        register(Command.PROFILE, DocumentCommandProcessor.class);
-        register(Command.DOCUMENT, DocumentCommandProcessor.class);
-
-        // default
-        register(UNKNOWN, DefaultCommandProcessor.class);
-
-        // group
-        register(GroupCommand.INVITE, InviteCommandProcessor.class);
-        register(GroupCommand.EXPEL, ExpelCommandProcessor.class);
-        register(GroupCommand.QUIT, QuitCommandProcessor.class);
-        register(GroupCommand.RESET, ResetCommandProcessor.class);
-        register(GroupCommand.QUERY, QueryCommandProcessor.class);
     }
 }

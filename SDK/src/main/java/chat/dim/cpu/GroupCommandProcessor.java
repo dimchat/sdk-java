@@ -31,20 +31,70 @@
 package chat.dim.cpu;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
-import chat.dim.protocol.Command;
+import chat.dim.cpu.group.ExpelCommandProcessor;
+import chat.dim.cpu.group.InviteCommandProcessor;
+import chat.dim.cpu.group.QueryCommandProcessor;
+import chat.dim.cpu.group.QuitCommandProcessor;
+import chat.dim.cpu.group.ResetCommandProcessor;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.ReliableMessage;
+import chat.dim.protocol.TextContent;
 
 public class GroupCommandProcessor extends HistoryCommandProcessor {
 
+    private static final Map<String, GroupCommandProcessor> processors = new HashMap<>();
+
     public GroupCommandProcessor(Messenger messenger) {
         super(messenger);
+    }
+
+    @Override
+    protected GroupCommandProcessor getGroupCommandProcessor(GroupCommand cmd) {
+        // get GPU by command name
+        return getGroupCommandProcessor(cmd.getCommand());
+    }
+    protected GroupCommandProcessor getGroupCommandProcessor(String command) {
+        GroupCommandProcessor gpu = processors.get(command);
+        if (gpu == null) {
+            gpu = newGroupCommandProcessor(command);
+            processors.put(command, gpu);
+        }
+        return gpu;
+    }
+    protected GroupCommandProcessor newGroupCommandProcessor(String command) {
+        if (GroupCommand.INVITE.equalsIgnoreCase(command)) {
+            return new InviteCommandProcessor(getMessenger());
+        }
+        if (GroupCommand.EXPEL.equalsIgnoreCase(command)) {
+            return new ExpelCommandProcessor(getMessenger());
+        }
+        if (GroupCommand.QUIT.equalsIgnoreCase(command)) {
+            return new QuitCommandProcessor(getMessenger());
+        }
+        if (GroupCommand.QUERY.equalsIgnoreCase(command)) {
+            return new QueryCommandProcessor(getMessenger());
+        }
+        if (GroupCommand.RESET.equalsIgnoreCase(command)) {
+            return new ResetCommandProcessor(getMessenger());
+        }
+
+        // UNKNOWN
+        return this;
+    }
+
+    protected Content unknown(GroupCommand cmd, ID sender, ReliableMessage rMsg) {
+        String text = String.format("Group Command (name: %s) not support yet!", cmd.getCommand());
+        TextContent res = new TextContent(text);
+        res.setGroup(cmd.getGroup());
+        return res;
     }
 
     @SuppressWarnings("unchecked")
@@ -87,20 +137,12 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
 
     @Override
     public Content process(Content content, ID sender, ReliableMessage rMsg) {
-        assert getClass() == GroupCommandProcessor.class : "error!"; // override me!
-        assert content instanceof Command : "group command error: " + content;
-        // process command content by name
-        String command = ((Command) content).getCommand();
-        CommandProcessor cpu = getCPU(command);
-        /*
-        if (cpu == null) {
-            String text = String.format("Group command (%s) not support yet!", command);
-            Content res = new TextContent(text);
-            res.setGroup(content.getGroup());
-            return res;
+        assert content instanceof GroupCommand : "group command error: " + content;
+        GroupCommand cmd = (GroupCommand) content;
+        GroupCommandProcessor gpu = getGroupCommandProcessor(cmd);
+        if (gpu == this) {
+            return unknown(cmd, sender, rMsg);
         }
-         */
-        assert cpu != this : "Dead cycle!";
-        return cpu.process(content, sender, rMsg);
+        return gpu.process(content, sender, rMsg);
     }
 }

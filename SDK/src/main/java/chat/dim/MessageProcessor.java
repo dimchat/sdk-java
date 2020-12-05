@@ -30,124 +30,152 @@
  */
 package chat.dim;
 
-import java.lang.ref.WeakReference;
+import java.util.List;
 
+import chat.dim.core.CipherKeyDelegate;
 import chat.dim.core.CommandFactory;
+import chat.dim.core.Processor;
 import chat.dim.cpu.ContentProcessor;
+import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.BlockCommand;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
-import chat.dim.protocol.ContentType;
-import chat.dim.protocol.Envelope;
 import chat.dim.protocol.HandshakeCommand;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.LoginCommand;
+import chat.dim.protocol.Meta;
 import chat.dim.protocol.MuteCommand;
+import chat.dim.protocol.NetworkType;
 import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 import chat.dim.protocol.StorageCommand;
 
-public class MessageProcessor {
+public class MessageProcessor extends Processor {
 
-    protected final WeakReference<Messenger> messengerRef;
-
-    protected final ContentProcessor cpu;
+    private final ContentProcessor cpu;
 
     public MessageProcessor(Messenger messenger) {
-        super();
-        this.messengerRef = new WeakReference<>(messenger);
-        this.cpu = new ContentProcessor(messenger);
+        super(messenger);
+        cpu = newContentProcessor(messenger);
+    }
+
+    protected ContentProcessor newContentProcessor(Messenger messenger) {
+        return new ContentProcessor(messenger);
     }
 
     protected Messenger getMessenger() {
-        return messengerRef.get();
+        return (Messenger) getDelegate();
     }
 
     protected Facebook getFacebook() {
         return getMessenger().getFacebook();
     }
 
-    public ContentProcessor getCPU(ContentType type) {
-        return cpu.getCPU(type);
+    @Override
+    protected User getLocalUser(ID receiver) {
+        return getFacebook().select(receiver);
     }
 
-    // TODO: override to check broadcast message before calling it
-    // TODO: override to deliver to the receiver when catch exception "receiver error ..."
-    public ReliableMessage process(ReliableMessage rMsg) {
-        // 1. verify message
-        SecureMessage sMsg = getMessenger().verifyMessage(rMsg);
-        if (sMsg == null) {
-            // waiting for sender's meta if not exists
-            return null;
-        }
-        // 2. process message
-        sMsg = process(sMsg, rMsg);
-        if (sMsg == null) {
-            // nothing to respond
-            return null;
-        }
-        // 3. sign message
-        return getMessenger().signMessage(sMsg);
+    @Override
+    protected List<ID> getMembers(ID group) {
+        return getFacebook().getMembers(group);
     }
 
-    private SecureMessage process(SecureMessage sMsg, ReliableMessage rMsg) {
-        // 1. decrypt message
-        InstantMessage iMsg = getMessenger().decryptMessage(sMsg);
-        if (iMsg == null) {
-            // cannot decrypt this message, not for you?
-            // delivering message to other receiver?
-            return null;
+    @Override
+    protected SymmetricKey getSymmetricKey(ID from, ID to) {
+        CipherKeyDelegate keyCache = getMessenger().getCipherKeyDelegate();
+        // get old key from cache
+        SymmetricKey key = keyCache.getCipherKey(from, to);
+        if (key == null) {
+            // create new key and cache it
+            key = SymmetricKey.generate(SymmetricKey.AES);
+            assert key != null : "failed to generate AES key";
+            keyCache.cacheCipherKey(from, to, key);
         }
-        // 2. process message
-        iMsg = process(iMsg, rMsg);
-        if (iMsg == null) {
-            // nothing to respond
-            return null;
-        }
-        // 3. encrypt message
-        return getMessenger().encryptMessage(iMsg);
+        return key;
     }
 
-    private InstantMessage process(InstantMessage iMsg, ReliableMessage rMsg) {
+    @Override
+    public SecureMessage verifyMessage(ReliableMessage rMsg) {
         // check message delegate
-        if (iMsg.getDelegate() == null) {
-            iMsg.setDelegate(getMessenger());
+        if (rMsg.getDelegate() == null) {
+            rMsg.setDelegate(getDelegate());
         }
-        Content content = iMsg.getContent();
-        ID sender = iMsg.getSender();
-        ID receiver = iMsg.getReceiver();
+        // Notice: check meta before calling me
+        Meta meta = rMsg.getMeta();
+        ID sender = rMsg.getSender();
+        if (meta == null) {
+            meta = getFacebook().getMeta(sender);
+            if (meta == null) {
+                // NOTICE: the application will query meta automatically
+                // save this message in a queue waiting sender's meta response
+                getMessenger().suspendMessage(rMsg);
+                //throw new NullPointerException("failed to get meta for sender: " + sender);
+                return null;
+            }
+        } else {
+            // [Meta Protocol]
+            // save meta for sender
+            if (!getFacebook().saveMeta(meta, sender)) {
+                throw new RuntimeException("save meta error: " + sender + ", " + meta);
+            }
+        }
 
-        // process content from sender
-        Content response = process(content, sender, rMsg);
-        if (!getMessenger().saveMessage(iMsg)) {
+        return super.verifyMessage(rMsg);
+    }
+
+    private SecureMessage trim(SecureMessage sMsg) {
+        // check message delegate
+        if (sMsg.getDelegate() == null) {
+            sMsg.setDelegate(getDelegate());
+        }
+        ID receiver = sMsg.getReceiver();
+        User user = getFacebook().select(receiver);
+        if (user == null) {
+            // current users not match
+            sMsg = null;
+        } else if (NetworkType.isGroup(receiver.getType())) {
+            // trim group message
+            sMsg = sMsg.trim(user.identifier);
+        }
+        return sMsg;
+    }
+
+    @Override
+    public InstantMessage decryptMessage(SecureMessage sMsg) {
+        // trim message
+        SecureMessage msg = trim(sMsg);
+        if (msg == null) {
+            // not for you?
+            throw new NullPointerException("receiver error: " + sMsg);
+        }
+        // decrypt message
+        return super.decryptMessage(msg);
+    }
+
+    @Override
+    protected InstantMessage process(InstantMessage iMsg, ReliableMessage rMsg) {
+        InstantMessage msg = super.process(iMsg, rMsg);
+        if (!saveMessage(iMsg)) {
             // error
             return null;
         }
-        if (response == null) {
-            // nothing to respond
-            return null;
-        }
-
-        // check receiver
-        User user = getFacebook().select(receiver);
-        assert user != null : "receiver error: " + receiver;
-
-        // pack message
-        Envelope env = Envelope.create(user.identifier, sender, null);
-        return InstantMessage.create(env, response);
+        return msg;
     }
 
-    // TODO: override to check group
-    // TODO: override to filter the response
-    protected Content process(Content content, ID sender, ReliableMessage rMsg) {
-        // check message delegate
-        if (rMsg.getDelegate() == null) {
-            rMsg.setDelegate(getMessenger());
-        }
-        // call CPU to process it
-        return cpu.process(content, sender, rMsg);
+    protected boolean saveMessage(InstantMessage msg) {
+        return getMessenger().saveMessage(msg);
+    }
+
+    @Override
+    protected Content.Processor<Content> getContentProcessor(Content content) {
+        // get CPU by content type
+        return getContentProcessor(content.getType());
+    }
+    protected Content.Processor<Content> getContentProcessor(int type) {
+        return cpu.getContentProcessor(type);
     }
 
     static {

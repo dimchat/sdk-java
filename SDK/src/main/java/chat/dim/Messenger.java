@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.core.Transceiver;
-import chat.dim.cpu.ContentProcessor;
 import chat.dim.cpu.FileContentProcessor;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.SymmetricKey;
@@ -48,7 +47,6 @@ import chat.dim.protocol.FileContent;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.Meta;
-import chat.dim.protocol.NetworkType;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 import chat.dim.protocol.Visa;
@@ -70,11 +68,14 @@ public abstract class Messenger extends Transceiver {
     }
 
     public MessageProcessor getMessageProcessor() {
+        if (messageProcessor == null) {
+            messageProcessor = new MessageProcessor(this);
+        }
         return messageProcessor;
     }
 
-    public ContentProcessor getCPU(ContentType type) {
-        return messageProcessor.getCPU(type);
+    protected Content.Processor<Content> getContentProcessor(ContentType type) {
+        return messageProcessor.getContentProcessor(type.value);
     }
 
     //
@@ -123,73 +124,13 @@ public abstract class Messenger extends Transceiver {
         return (Facebook) facebook;
     }
 
-    private SecureMessage trim(SecureMessage sMsg) {
-        // check message delegate
-        if (sMsg.getDelegate() == null) {
-            sMsg.setDelegate(this);
-        }
-        ID receiver = sMsg.getReceiver();
-        User user = getFacebook().select(receiver);
-        if (user == null) {
-            // current users not match
-            sMsg = null;
-        } else if (NetworkType.isGroup(receiver.getType())) {
-            // trim group message
-            sMsg = sMsg.trim(user.identifier);
-        }
-        return sMsg;
-    }
-
-    //-------- Transform
-
-    @Override
-    public SecureMessage verifyMessage(ReliableMessage rMsg) {
-        // check message delegate
-        if (rMsg.getDelegate() == null) {
-            rMsg.setDelegate(this);
-        }
-        // Notice: check meta before calling me
-        Meta meta = rMsg.getMeta();
-        ID sender = rMsg.getSender();
-        if (meta == null) {
-            meta = getFacebook().getMeta(sender);
-            if (meta == null) {
-                // NOTICE: the application will query meta automatically
-                // save this message in a queue waiting sender's meta response
-                suspendMessage(rMsg);
-                //throw new NullPointerException("failed to get meta for sender: " + sender);
-                return null;
-            }
-        } else {
-            // [Meta Protocol]
-            // save meta for sender
-            if (!getFacebook().saveMeta(meta, sender)) {
-                throw new RuntimeException("save meta error: " + sender + ", " + meta);
-            }
-        }
-
-        return super.verifyMessage(rMsg);
-    }
-
-    @Override
-    public InstantMessage decryptMessage(SecureMessage sMsg) {
-        // trim message
-        SecureMessage msg = trim(sMsg);
-        if (msg == null) {
-            // not for you?
-            throw new NullPointerException("receiver error: " + sMsg);
-        }
-        // decrypt message
-        return super.decryptMessage(msg);
-    }
-
     //-------- InstantMessageDelegate
 
     @Override
     public byte[] serializeContent(Content content, SymmetricKey password, InstantMessage iMsg) {
         // check attachment for File/Image/Audio/Video message content
         if (content instanceof FileContent) {
-            FileContentProcessor fpu = (FileContentProcessor) getCPU(ContentType.FILE);
+            FileContentProcessor fpu = (FileContentProcessor) getContentProcessor(ContentType.FILE);
             fpu.uploadFileContent((FileContent) content, password, iMsg);
         }
         return super.serializeContent(content, password, iMsg);
@@ -237,7 +178,7 @@ public abstract class Messenger extends Transceiver {
         }
         // check attachment for File/Image/Audio/Video message content
         if (content instanceof FileContent) {
-            FileContentProcessor fpu = (FileContentProcessor) getCPU(ContentType.FILE);
+            FileContentProcessor fpu = (FileContentProcessor) getContentProcessor(ContentType.FILE);
             fpu.downloadFileContent((FileContent) content, password, sMsg);
         }
         return content;
@@ -281,13 +222,13 @@ public abstract class Messenger extends Transceiver {
      */
     public boolean sendMessage(InstantMessage iMsg, Callback callback, int priority) {
         // Send message (secured + certified) to target station
-        SecureMessage sMsg = encryptMessage(iMsg);
+        SecureMessage sMsg = messageProcessor.encryptMessage(iMsg);
         if (sMsg == null) {
             // public key not found?
             return false;
             //throw new NullPointerException("failed to encrypt message: " + iMsg);
         }
-        ReliableMessage rMsg = signMessage(sMsg);
+        ReliableMessage rMsg = messageProcessor.signMessage(sMsg);
         if (rMsg == null) {
             // TODO: set iMsg.state = error
             throw new NullPointerException("failed to sign message: " + sMsg);
@@ -318,7 +259,7 @@ public abstract class Messenger extends Transceiver {
                 }
             }
         };
-        byte[] data = serializeMessage(rMsg);
+        byte[] data = messageProcessor.serializeMessage(rMsg);
         return getDelegate().sendPackage(data, handler, priority);
     }
 
@@ -331,20 +272,7 @@ public abstract class Messenger extends Transceiver {
      * @return response to sender
      */
     public byte[] processPackage(byte[] data) {
-        // 1. deserialize message
-        ReliableMessage rMsg = deserializeMessage(data);
-        if (rMsg == null) {
-            // no message received
-            return null;
-        }
-        // 2. process message
-        rMsg = messageProcessor.process(rMsg);
-        if (rMsg == null) {
-            // nothing to respond
-            return null;
-        }
-        // 3. serialize message
-        return serializeMessage(rMsg);
+        return messageProcessor.process(data);
     }
 
     //-------- Saving Message

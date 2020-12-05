@@ -30,48 +30,69 @@
  */
 package chat.dim.cpu;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import chat.dim.Messenger;
-import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
+import chat.dim.protocol.GroupCommand;
+import chat.dim.protocol.HistoryCommand;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.ReliableMessage;
+import chat.dim.protocol.TextContent;
 
 public class HistoryCommandProcessor extends CommandProcessor {
 
-    private GroupCommandProcessor gpu = null;
+    private static final Map<String, HistoryCommandProcessor> processors = new HashMap<>();
 
     public HistoryCommandProcessor(Messenger messenger) {
         super(messenger);
     }
 
-    private GroupCommandProcessor getGPU() {
-        if (gpu == null) {
-            gpu = (GroupCommandProcessor) createProcessor(GroupCommandProcessor.class);
+    //
+    //  CPU
+    //
+    protected HistoryCommandProcessor getHistoryProcessor(HistoryCommand cmd) {
+        HistoryCommandProcessor cpu = getHistoryProcessor(cmd.getCommand());
+        if (cpu == this && cmd instanceof GroupCommand) {
+            // check for GPU
+            cpu = getGroupCommandProcessor((GroupCommand) cmd);
         }
-        return gpu;
+        return cpu;
+    }
+    protected HistoryCommandProcessor getHistoryProcessor(String command) {
+        HistoryCommandProcessor cpu = processors.get(command);
+        if (cpu == null) {
+            cpu = newHistoryProcessor(command);
+            processors.put(command, cpu);
+        }
+        return cpu;
+    }
+    protected HistoryCommandProcessor newHistoryProcessor(String command) {
+        // TODO: override to extend History Command Processor
+
+        return this;
+    }
+
+    protected Content unknown(HistoryCommand cmd, ID sender, ReliableMessage rMsg) {
+        String text = String.format("History Command (name: %s) not support yet!", cmd.getCommand());
+        TextContent res = new TextContent(text);
+        // check group message
+        ID group = cmd.getGroup();
+        if (group != null) {
+            res.setGroup(group);
+        }
+        return res;
     }
 
     @Override
     public Content process(Content content, ID sender, ReliableMessage rMsg) {
-        assert getClass() == HistoryCommandProcessor.class : "error!"; // override me!
-        assert content instanceof Command : "history command error: " + content;
-
-        CommandProcessor cpu;
-        if (content.getGroup() == null) {
-            // process command content by name
-            String command = ((Command) content).getCommand();
-            cpu = getCPU(command);
-            /*
-            if (cpu == null) {
-                String text = String.format("History command (%s) not support yet!", command);
-                return new TextContent(text);
-            }
-             */
-        } else {
-            // call group command processor
-            cpu = getGPU();
+        assert content instanceof HistoryCommand : "history command error: " + content;
+        HistoryCommand cmd = (HistoryCommand) content;
+        HistoryCommandProcessor cpu = getHistoryProcessor(cmd);
+        if (cpu == this) {
+            return unknown(cmd, sender, rMsg);
         }
-        assert cpu != this : "Dead cycle!";
         return cpu.process(content, sender, rMsg);
     }
 }
