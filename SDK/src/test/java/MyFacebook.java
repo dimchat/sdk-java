@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import chat.dim.Facebook;
-import chat.dim.Group;
 import chat.dim.Immortals;
 import chat.dim.User;
 import chat.dim.crypto.DecryptKey;
@@ -72,29 +71,6 @@ public class MyFacebook extends Facebook {
         return true;
     }
 
-    //-------- SocialNetworkDataSource
-
-    @Override
-    public User getUser(ID identifier) {
-        User user = super.getUser(identifier);
-        if (user != null) {
-            return user;
-        }
-        user = new User(identifier);
-        cache(user);
-        return user;
-    }
-
-    @Override
-    public Group getGroup(ID identifier) {
-        Group group = super.getGroup(identifier);
-        if (group == null) {
-            group = new Group(identifier);
-            cache(group);
-        }
-        return group;
-    }
-
     //---- EntityDataSource
 
     @Override
@@ -152,16 +128,6 @@ public class MyFacebook extends Facebook {
     }
 
     //---- GroupDataSource
-
-    @Override
-    public ID getFounder(ID group) {
-        return null;
-    }
-
-    @Override
-    public ID getOwner(ID group) {
-        return null;
-    }
 
     @Override
     public List<ID> getMembers(ID group) {

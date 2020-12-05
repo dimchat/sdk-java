@@ -33,6 +33,7 @@ package chat.dim;
 import java.util.List;
 
 import chat.dim.core.Barrack;
+import chat.dim.crypto.VerifyKey;
 import chat.dim.group.Chatroom;
 import chat.dim.group.Polylogue;
 import chat.dim.mkm.BroadcastAddress;
@@ -259,14 +260,18 @@ public abstract class Facebook extends Barrack {
         throw new TypeNotPresentException("Unsupported group type: " + type, null);
     }
 
+    //-------- UserDataSource
+
+    @Override
+    public List<VerifyKey> getPublicKeysForVerification(ID user) {
+        // TODO: load visa.keys & meta.key from database
+        return null;
+    }
+
     //-------- GroupDataSource
 
     @Override
     public ID getFounder(ID group) {
-        ID founder = super.getFounder(group);
-        if (founder != null) {
-            return founder;
-        }
         // check each member's public key with group meta
         List<ID> members = getMembers(group);
         if (members != null) {
@@ -293,10 +298,6 @@ public abstract class Facebook extends Barrack {
 
     @Override
     public ID getOwner(ID group) {
-        ID owner = super.getOwner(group);
-        if (owner != null) {
-            return owner;
-        }
         // check group type
         if (NetworkType.Polylogue.equals(group.getType())) {
             // Polylogue's owner is its founder
