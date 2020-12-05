@@ -31,8 +31,6 @@
 package chat.dim;
 
 import java.lang.ref.WeakReference;
-import java.util.HashMap;
-import java.util.Map;
 
 import chat.dim.core.Transceiver;
 import chat.dim.cpu.FileContentProcessor;
@@ -53,8 +51,6 @@ import chat.dim.protocol.Visa;
 
 public abstract class Messenger extends Transceiver {
 
-    private final Map<String, Object> context = new HashMap<>();
-
     private WeakReference<MessengerDelegate> delegateRef = null;
 
     private MessageProcessor messageProcessor = null;
@@ -74,10 +70,6 @@ public abstract class Messenger extends Transceiver {
         return messageProcessor;
     }
 
-    protected Content.Processor<Content> getContentProcessor(ContentType type) {
-        return messageProcessor.getContentProcessor(type.value);
-    }
-
     //
     //  Delegate for sending data
     //
@@ -94,34 +86,14 @@ public abstract class Messenger extends Transceiver {
     }
 
     //
-    //  Environment variables as context
-    //
-    public Map<String, Object> getContext() {
-        return context;
-    }
-
-    public Object getContext(String key) {
-        return context.get(key);
-    }
-
-    public void setContext(String key, Object value) {
-        if (value == null) {
-            context.remove(key);
-        } else {
-            context.put(key, value);
-        }
-    }
-
-    //
     //  Data source for getting entity info
     //
     public Facebook getFacebook() {
-        Object facebook = context.get("facebook");
-        if (facebook == null) {
-            facebook = getEntityDelegate();
-            assert facebook instanceof Facebook : "facebook error: " + facebook;
-        }
-        return (Facebook) facebook;
+        return (Facebook) getEntityDelegate();
+    }
+
+    private FileContentProcessor getFileContentProcessor() {
+        return (FileContentProcessor) messageProcessor.getContentProcessor(ContentType.FILE.value);
     }
 
     //-------- InstantMessageDelegate
@@ -130,7 +102,7 @@ public abstract class Messenger extends Transceiver {
     public byte[] serializeContent(Content content, SymmetricKey password, InstantMessage iMsg) {
         // check attachment for File/Image/Audio/Video message content
         if (content instanceof FileContent) {
-            FileContentProcessor fpu = (FileContentProcessor) getContentProcessor(ContentType.FILE);
+            FileContentProcessor fpu = getFileContentProcessor();
             fpu.uploadFileContent((FileContent) content, password, iMsg);
         }
         return super.serializeContent(content, password, iMsg);
@@ -178,7 +150,7 @@ public abstract class Messenger extends Transceiver {
         }
         // check attachment for File/Image/Audio/Video message content
         if (content instanceof FileContent) {
-            FileContentProcessor fpu = (FileContentProcessor) getContentProcessor(ContentType.FILE);
+            FileContentProcessor fpu = getFileContentProcessor();
             fpu.downloadFileContent((FileContent) content, password, sMsg);
         }
         return content;

@@ -64,14 +64,6 @@ public class ContentProcessor implements Content.Processor<Content> {
         return getMessenger().getFacebook();
     }
 
-    protected Object getContext(String key) {
-        return getMessenger().getContext(key);
-    }
-
-    protected void setContext(String key, Object value) {
-        getMessenger().setContext(key, value);
-    }
-
     //
     //  CPU
     //

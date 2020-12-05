@@ -60,7 +60,8 @@ public class Tests extends TestCase {
         transceiver.setEntityDelegate(barrack);
         transceiver.setCipherKeyDelegate(keyStore);
 
-        processor = transceiver.getMessageProcessor();
+        processor = new MessageProcessor(transceiver);
+        transceiver.setMessageProcessor(processor);
     }
 
     @Test
