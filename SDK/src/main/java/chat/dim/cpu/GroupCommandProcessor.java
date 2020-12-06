@@ -90,7 +90,7 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
         return this;
     }
 
-    protected Content unknown(GroupCommand cmd, ID sender, ReliableMessage rMsg) {
+    protected Content unknown(GroupCommand cmd, ReliableMessage rMsg) {
         String text = String.format("Group Command (name: %s) not support yet!", cmd.getCommand());
         TextContent res = new TextContent(text);
         res.setGroup(cmd.getGroup());
@@ -136,13 +136,13 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage rMsg) {
+    public Content process(Content content, ReliableMessage rMsg) {
         assert content instanceof GroupCommand : "group command error: " + content;
         GroupCommand cmd = (GroupCommand) content;
         GroupCommandProcessor gpu = getGroupCommandProcessor(cmd);
         if (gpu == this) {
-            return unknown(cmd, sender, rMsg);
+            return unknown(cmd, rMsg);
         }
-        return gpu.process(content, sender, rMsg);
+        return gpu.process(content, rMsg);
     }
 }

@@ -109,7 +109,7 @@ public class ContentProcessor implements Content.Processor<Content> {
         // UNKNOWN
         return this;
     }
-    protected Content unknown(Content content, ID sender, ReliableMessage rMsg) {
+    protected Content unknown(Content content, ReliableMessage rMsg) {
         String text = String.format("Content (type: %d) not support yet!", content.getType());
         TextContent res = new TextContent(text);
         // check group message
@@ -121,11 +121,11 @@ public class ContentProcessor implements Content.Processor<Content> {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage rMsg) {
+    public Content process(Content content, ReliableMessage rMsg) {
         Content.Processor<Content> cpu = getContentProcessor(content);
         if (cpu == this) {
-            return unknown(content, sender, rMsg);
+            return unknown(content, rMsg);
         }
-        return cpu.process(content, sender, rMsg);
+        return cpu.process(content, rMsg);
     }
 }

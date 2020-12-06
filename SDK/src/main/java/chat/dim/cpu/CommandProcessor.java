@@ -100,7 +100,7 @@ public class CommandProcessor extends ContentProcessor {
         return cpu.getGroupCommandProcessor(cmd);
     }
 
-    protected Content unknown(Command cmd, ID sender, ReliableMessage rMsg) {
+    protected Content unknown(Command cmd, ReliableMessage rMsg) {
         String text = String.format("Command (name: %s) not support yet!", cmd.getCommand());
         TextContent res = new TextContent(text);
         // check group message
@@ -112,13 +112,13 @@ public class CommandProcessor extends ContentProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage rMsg) {
+    public Content process(Content content, ReliableMessage rMsg) {
         assert content instanceof Command : "command error: " + content;
         Command cmd = (Command) content;
         CommandProcessor cpu = getCommandProcessor(cmd);
         if (cpu == this) {
-            return unknown(cmd, sender, rMsg);
+            return unknown(cmd, rMsg);
         }
-        return cpu.process(content, sender, rMsg);
+        return cpu.process(content, rMsg);
     }
 }

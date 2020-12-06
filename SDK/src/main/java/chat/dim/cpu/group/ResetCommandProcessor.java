@@ -116,7 +116,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage rMsg) {
+    public Content process(Content content, ReliableMessage rMsg) {
         assert content instanceof ResetCommand || content instanceof InviteCommand : "reset command error: " + content;
         ID group = content.getGroup();
         // new members
@@ -125,6 +125,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
             throw new NullPointerException("reset group command error: " + content);
         }
         // 0. check whether group info empty
+        ID sender = rMsg.getSender();
         if (isEmpty(group)) {
             // FIXME: group info lost?
             // FIXME: how to avoid strangers impersonating group member?

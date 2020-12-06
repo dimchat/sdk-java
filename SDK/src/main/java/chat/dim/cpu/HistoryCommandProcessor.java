@@ -74,7 +74,7 @@ public class HistoryCommandProcessor extends CommandProcessor {
         return this;
     }
 
-    protected Content unknown(HistoryCommand cmd, ID sender, ReliableMessage rMsg) {
+    protected Content unknown(HistoryCommand cmd, ReliableMessage rMsg) {
         String text = String.format("History Command (name: %s) not support yet!", cmd.getCommand());
         TextContent res = new TextContent(text);
         // check group message
@@ -86,13 +86,13 @@ public class HistoryCommandProcessor extends CommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage rMsg) {
+    public Content process(Content content, ReliableMessage rMsg) {
         assert content instanceof HistoryCommand : "history command error: " + content;
         HistoryCommand cmd = (HistoryCommand) content;
         HistoryCommandProcessor cpu = getHistoryProcessor(cmd);
         if (cpu == this) {
-            return unknown(cmd, sender, rMsg);
+            return unknown(cmd, rMsg);
         }
-        return cpu.process(content, sender, rMsg);
+        return cpu.process(content, rMsg);
     }
 }

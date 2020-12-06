@@ -35,7 +35,6 @@ import chat.dim.MessengerDelegate;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.FileContent;
-import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
@@ -97,7 +96,7 @@ public class FileContentProcessor extends ContentProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage rMsg) {
+    public Content process(Content content, ReliableMessage rMsg) {
         assert content instanceof FileContent : "file content error: " + content;
         // TODO: process file content
 

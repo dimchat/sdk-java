@@ -92,7 +92,7 @@ public class DocumentCommandProcessor extends CommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ID sender, ReliableMessage rMsg) {
+    public Content process(Content content, ReliableMessage rMsg) {
         assert content instanceof DocumentCommand : "document command error: " + content;
         DocumentCommand cmd = (DocumentCommand) content;
         Document doc = cmd.getDocument();

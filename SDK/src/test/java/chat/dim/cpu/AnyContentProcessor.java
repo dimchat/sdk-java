@@ -34,7 +34,7 @@ public class AnyContentProcessor extends ContentProcessor {
     }
 
     @Override
-    protected Content unknown(Content content, ID sender, ReliableMessage rMsg) {
+    protected Content unknown(Content content, ReliableMessage rMsg) {
         String text;
 
         // File: Image, Audio, Video

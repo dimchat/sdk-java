@@ -170,10 +170,14 @@ public class MessageProcessor extends Processor {
     }
 
     @Override
-    protected Content.Processor<Content> getContentProcessor(Content content) {
-        // get CPU by content type
-        return getContentProcessor(content.getType());
+    protected Content process(Content content, ReliableMessage rMsg) {
+        Content.Processor<Content> cpu = getContentProcessor(content.getType());
+        if (cpu == null) {
+            throw new NullPointerException("failed to get processor for content: " + content);
+        }
+        return cpu.process(content, rMsg);
     }
+
     protected Content.Processor<Content> getContentProcessor(int type) {
         return cpu.getContentProcessor(type);
     }
