@@ -36,7 +36,6 @@ import chat.dim.core.Barrack;
 import chat.dim.crypto.VerifyKey;
 import chat.dim.group.Chatroom;
 import chat.dim.group.Polylogue;
-import chat.dim.mkm.BroadcastAddress;
 import chat.dim.network.Robot;
 import chat.dim.network.ServiceProvider;
 import chat.dim.network.Station;
@@ -61,7 +60,7 @@ public abstract class Facebook extends Barrack {
         List<User> users = getLocalUsers();
         if (users == null || users.size() == 0) {
             throw new NullPointerException("local users should not be empty");
-        } else if (receiver.getAddress() instanceof BroadcastAddress) {
+        } else if (ID.isBroadcast(receiver)) {
             // broadcast message can decrypt by anyone, so just return current user
             return users.get(0);
         }
@@ -218,7 +217,7 @@ public abstract class Facebook extends Barrack {
 
     @Override
     protected User createUser(ID identifier) {
-        if (identifier.getAddress() instanceof BroadcastAddress) {
+        if (ID.isBroadcast(identifier)) {
             // create user 'anyone@anywhere'
             return new User(identifier);
         }
@@ -240,7 +239,7 @@ public abstract class Facebook extends Barrack {
 
     @Override
     protected Group createGroup(ID identifier) {
-        if (identifier.getAddress() instanceof BroadcastAddress) {
+        if (ID.isBroadcast(identifier)) {
             // create group 'everyone@everywhere'
             return new Group(identifier);
         }

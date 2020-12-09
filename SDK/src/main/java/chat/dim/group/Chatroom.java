@@ -47,12 +47,27 @@ public class Chatroom extends Group {
     }
 
     @Override
-    public ChatroomDataSource getDataSource() {
-        return (ChatroomDataSource) super.getDataSource();
+    public DataSource getDataSource() {
+        return (DataSource) super.getDataSource();
     }
 
     public List<ID> getAdmins() {
-        ChatroomDataSource dataSource = getDataSource();
+        DataSource dataSource = getDataSource();
         return dataSource.getAdmins(identifier);
+    }
+
+    /**
+     *  This interface is for getting information for chatroom
+     *  Chatroom admins should be set complying with the consensus algorithm
+     */
+    public interface DataSource extends Group.DataSource {
+
+        /**
+         *  Get all admins in the chatroom
+         *
+         * @param chatroom - chatroom ID
+         * @return admin ID list
+         */
+        List<ID> getAdmins(ID chatroom);
     }
 }

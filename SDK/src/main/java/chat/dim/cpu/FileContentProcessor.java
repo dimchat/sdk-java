@@ -31,7 +31,6 @@
 package chat.dim.cpu;
 
 import chat.dim.Messenger;
-import chat.dim.MessengerDelegate;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.FileContent;
@@ -45,7 +44,7 @@ public class FileContentProcessor extends ContentProcessor {
         super(messenger);
     }
 
-    private MessengerDelegate getDelegate() {
+    private Messenger.Delegate getDelegate() {
         return getMessenger().getDelegate();
     }
 

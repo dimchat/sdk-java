@@ -51,7 +51,7 @@ import chat.dim.protocol.Visa;
 
 public abstract class Messenger extends Transceiver {
 
-    private WeakReference<MessengerDelegate> delegateRef = null;
+    private WeakReference<Delegate> delegateRef = null;
 
     private MessageProcessor messageProcessor = null;
 
@@ -64,23 +64,20 @@ public abstract class Messenger extends Transceiver {
     }
 
     public MessageProcessor getMessageProcessor() {
-        if (messageProcessor == null) {
-            messageProcessor = new MessageProcessor(this);
-        }
         return messageProcessor;
     }
 
     //
     //  Delegate for sending data
     //
-    public MessengerDelegate getDelegate() {
+    public Delegate getDelegate() {
         if (delegateRef == null) {
             return null;
         }
         return delegateRef.get();
     }
 
-    public void setDelegate(MessengerDelegate delegate) {
+    public void setDelegate(Delegate delegate) {
         assert delegate != null : "Messenger delegate should not be empty";
         delegateRef = new WeakReference<>(delegate);
     }
@@ -271,4 +268,58 @@ public abstract class Messenger extends Transceiver {
      * @param msg - instant message to be sent
      */
     public abstract void suspendMessage(InstantMessage msg);
+
+    /**
+     *  Messenger Delegate
+     *  ~~~~~~~~~~~~~~~~~~
+     */
+    public interface Delegate {
+
+        /**
+         *  Upload encrypted data to CDN
+         *
+         * @param data - encrypted file data
+         * @param iMsg - instant message
+         * @return download URL
+         */
+        String uploadData(byte[] data, InstantMessage iMsg);
+
+        /**
+         *  Download encrypted data from CDN
+         *
+         * @param url - download URL
+         * @param iMsg - instant message
+         * @return encrypted file data
+         */
+        byte[] downloadData(String url, InstantMessage iMsg);
+
+        /**
+         *  Send out a data package onto network
+         *
+         * @param data - package data
+         * @param handler - completion handler
+         * @return true on success
+         */
+        boolean sendPackage(byte[] data, CompletionHandler handler, int priority);
+    }
+
+    /**
+     *  Messenger Callback
+     *  ~~~~~~~~~~~~~~~~~~
+     */
+    public interface Callback {
+
+        void onFinished(Object result, Error error);
+    }
+
+    /**
+     *  Messenger Completion Handler
+     *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+     */
+    public interface CompletionHandler {
+
+        void onSuccess();
+
+        void onFailed(Error error);
+    }
 }

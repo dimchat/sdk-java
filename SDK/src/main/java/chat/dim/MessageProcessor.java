@@ -32,7 +32,6 @@ package chat.dim;
 
 import java.util.List;
 
-import chat.dim.core.CipherKeyDelegate;
 import chat.dim.core.CommandFactory;
 import chat.dim.core.Processor;
 import chat.dim.cpu.ContentProcessor;
@@ -171,11 +170,13 @@ public class MessageProcessor extends Processor {
 
     @Override
     protected Content process(Content content, ReliableMessage rMsg) {
+        // TODO: override to check group
         Content.Processor<Content> cpu = getContentProcessor(content.getType());
         if (cpu == null) {
             throw new NullPointerException("failed to get processor for content: " + content);
         }
         return cpu.process(content, rMsg);
+        // TODO: override to filter the response
     }
 
     protected Content.Processor<Content> getContentProcessor(int type) {

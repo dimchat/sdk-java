@@ -54,7 +54,7 @@ import chat.dim.protocol.Meta;
  *      1. Immortal Hulk - hulk@4YeVEN3aUnvC1DNUufCq1bs9zoBSJTzVEj
  *      2. Monkey King   - moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk
  */
-public final class Immortals extends chat.dim.mkm.Plugins implements UserDataSource {
+public final class Immortals extends chat.dim.mkm.Plugins implements User.DataSource {
 
     // Immortal Hulk (195-183-9394)
     public static final String HULK = "hulk@4YeVEN3aUnvC1DNUufCq1bs9zoBSJTzVEj";
