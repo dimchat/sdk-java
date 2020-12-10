@@ -37,9 +37,7 @@ import chat.dim.Messenger;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
-import chat.dim.protocol.ID;
 import chat.dim.protocol.ReliableMessage;
-import chat.dim.protocol.TextContent;
 
 /**
  *  Base Command Processor
@@ -56,23 +54,27 @@ public class CommandProcessor extends ContentProcessor {
     //
     //  CPU
     //
-    protected CommandProcessor getCommandProcessor(Command cmd) {
+    public CommandProcessor getCommandProcessor(Command cmd) {
+        // check for GPU
+        if (cmd instanceof GroupCommand) {
+            return getGroupCommandProcessor((GroupCommand) cmd);
+        }
         // get CPU by command name
-        CommandProcessor cpu = getCommandProcessor(cmd.getCommand());
-        if (cpu == this && cmd instanceof GroupCommand) {
-            // check for GPU
-            cpu = getGroupCommandProcessor((GroupCommand) cmd);
-            processors.put(cmd.getCommand(), cpu);
+        return getCommandProcessor(cmd.getCommand());
+    }
+    public CommandProcessor getCommandProcessor(String command) {
+        CommandProcessor cpu = processors.get(command);
+        if (cpu != null) {
+            return cpu;
+        }
+        cpu = newCommandProcessor(command);
+        if (cpu != null) {
+            registerCommandProcessor(command, cpu);
         }
         return cpu;
     }
-    protected CommandProcessor getCommandProcessor(String command) {
-        CommandProcessor cpu = processors.get(command);
-        if (cpu == null) {
-            cpu = newCommandProcessor(command);
-            processors.put(command, cpu);
-        }
-        return cpu;
+    public void registerCommandProcessor(String name, CommandProcessor cpu) {
+        processors.put(name, cpu);
     }
     protected CommandProcessor newCommandProcessor(String command) {
         if (Command.META.equalsIgnoreCase(command)) {
@@ -86,10 +88,10 @@ public class CommandProcessor extends ContentProcessor {
         }
 
         // UNKNOWN
-        return this;
+        return null;
     }
 
-    protected GroupCommandProcessor getGroupCommandProcessor() {
+    private GroupCommandProcessor getGroupCommandProcessor() {
         if (gpu == null) {
             gpu = new GroupCommandProcessor(getMessenger());
         }
@@ -100,24 +102,12 @@ public class CommandProcessor extends ContentProcessor {
         return cpu.getGroupCommandProcessor(cmd);
     }
 
-    protected Content unknown(Command cmd, ReliableMessage rMsg) {
-        String text = String.format("Command (name: %s) not support yet!", cmd.getCommand());
-        TextContent res = new TextContent(text);
-        // check group message
-        ID group = cmd.getGroup();
-        if (group != null) {
-            res.setGroup(group);
-        }
-        return res;
-    }
-
     @Override
     public Content process(Content content, ReliableMessage rMsg) {
         assert content instanceof Command : "command error: " + content;
-        Command cmd = (Command) content;
-        CommandProcessor cpu = getCommandProcessor(cmd);
-        if (cpu == this) {
-            return unknown(cmd, rMsg);
+        CommandProcessor cpu = getCommandProcessor((Command) content);
+        if (cpu == null) {
+            return null;
         }
         return cpu.process(content, rMsg);
     }

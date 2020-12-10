@@ -38,9 +38,7 @@ import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
-import chat.dim.protocol.ID;
 import chat.dim.protocol.ReliableMessage;
-import chat.dim.protocol.TextContent;
 
 /**
  *  Base Content Processor
@@ -67,17 +65,23 @@ public class ContentProcessor implements Content.Processor<Content> {
     //
     //  CPU
     //
-    protected Content.Processor<Content> getContentProcessor(Content content) {
+    public Content.Processor<Content> getContentProcessor(Content content) {
         // get CPU by content type
         return getContentProcessor(content.getType());
     }
     public Content.Processor<Content> getContentProcessor(int type) {
         Content.Processor<Content> cpu = processors.get(type);
-        if (cpu == null) {
-            cpu = newContentProcessor(type);
-            processors.put(type, cpu);
+        if (cpu != null) {
+            return cpu;
+        }
+        cpu = newContentProcessor(type);
+        if (cpu != null) {
+            registerContentProcessor(type, cpu);
         }
         return cpu;
+    }
+    public void registerContentProcessor(int type, Content.Processor<Content> cpu) {
+        processors.put(type, cpu);
     }
     protected Content.Processor<Content> newContentProcessor(int type) {
         // TODO: override to extend CPUs
@@ -107,24 +111,14 @@ public class ContentProcessor implements Content.Processor<Content> {
         }
 
         // UNKNOWN
-        return this;
-    }
-    protected Content unknown(Content content, ReliableMessage rMsg) {
-        String text = String.format("Content (type: %d) not support yet!", content.getType());
-        TextContent res = new TextContent(text);
-        // check group message
-        ID group = content.getGroup();
-        if (group != null) {
-            res.setGroup(group);
-        }
-        return res;
+        return null;
     }
 
     @Override
     public Content process(Content content, ReliableMessage rMsg) {
         Content.Processor<Content> cpu = getContentProcessor(content);
-        if (cpu == this) {
-            return unknown(content, rMsg);
+        if (cpu == null) {
+            return null;
         }
         return cpu.process(content, rMsg);
     }

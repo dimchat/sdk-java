@@ -30,6 +30,8 @@
  */
 package chat.dim.protocol;
 
+import chat.dim.format.Base64;
+
 import java.util.Date;
 import java.util.Map;
 
@@ -38,12 +40,13 @@ import java.util.Map;
  *      type : 0x88,
  *      sn   : 123,  // the same serial number with the original message
  *
- *      command  : "receipt",
- *      message  : "...",
+ *      command   : "receipt",
+ *      message   : "...",
  *      // -- extra info
- *      sender   : "...",
- *      receiver : "...",
- *      time     : 0
+ *      sender    : "...",
+ *      receiver  : "...",
+ *      time      : 0,
+ *      signature : "..." // the same signature with the original message
  *  }
  */
 public class ReceiptCommand extends Command {
@@ -68,12 +71,7 @@ public class ReceiptCommand extends Command {
         }
         // envelope of the message responding to
         if (env != null) {
-            put("sender", env.getSender().toString());
-            put("receiver", env.getReceiver().toString());
-            Date time = env.getTime();
-            if (time != null) {
-                put("time", time.getTime() / 1000);
-            }
+            setEnvelope(env);
         }
         envelope = env;
     }
@@ -105,5 +103,36 @@ public class ReceiptCommand extends Command {
             }
         }
         return envelope;
+    }
+
+    public void setEnvelope(Envelope env) {
+        if (env == null) {
+            remove("sender");
+            remove("receiver");
+            //remove("time");
+        } else {
+            put("sender", env.getSender().toString());
+            put("receiver", env.getReceiver().toString());
+            Date time = env.getTime();
+            if (time != null) {
+                put("time", time.getTime() / 1000);
+            }
+        }
+    }
+
+    public byte[] getSignature() {
+        String signature = (String) get("signature");
+        if (signature == null) {
+            return null;
+        }
+        return Base64.decode(signature);
+    }
+
+    public void setSignature(byte[] signature) {
+        if (signature == null) {
+            remove("signature");
+        } else {
+            put("signature", Base64.encode(signature));
+        }
     }
 }

@@ -63,34 +63,31 @@ public class StorageCommand extends Command {
     public static final String PRIVATE_KEY = "private_key";
     //...
 
-    public final String title;
+    private String title;
 
-    private byte[] data = null;
-    private byte[] key = null;
+    private byte[] data;
+    private byte[] key;
 
-    private byte[] plaintext = null;
-    private SymmetricKey password = null;
+    private byte[] plaintext;
+    private SymmetricKey password;
 
     public StorageCommand(Map<String, Object> dictionary) {
         super(dictionary);
-        Object value = dictionary.get("title");
-        if (value == null) {
-            // (compatible with v1.0)
-            //  contacts command: {
-            //      command : 'contacts',
-            //      data    : '...',
-            //      key     : '...'
-            //  }
-            title = (String) dictionary.get("command");
-            assert !title.equalsIgnoreCase(STORAGE) : "title error: " + title;
-        } else {
-            title = (String) value;
-        }
+        // lazy
+        title = null;
+        data = null;
+        key = null;
+        plaintext = null;
+        password = null;
     }
 
     public StorageCommand(String name) {
         super(STORAGE);
         title = name;
+        data = null;
+        key = null;
+        plaintext = null;
+        password = null;
     }
 
     // user ID
@@ -104,6 +101,23 @@ public class StorageCommand extends Command {
         } else {
             put("ID", identifier.toString());
         }
+    }
+
+    public String getTitle() {
+        if (title == null) {
+            title = (String) get("title");
+            if (title == null) {
+                // (compatible with v1.0)
+                //  contacts command: {
+                //      command : 'contacts',
+                //      data    : '...',
+                //      key     : '...'
+                //  }
+                title = (String) get("command");
+                assert !title.equalsIgnoreCase(STORAGE) : "title error: " + title;
+            }
+        }
+        return title;
     }
 
     //
