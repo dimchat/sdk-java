@@ -90,7 +90,7 @@ public abstract class Messenger extends Transceiver {
     }
 
     private FileContentProcessor getFileContentProcessor() {
-        return (FileContentProcessor) messageProcessor.getContentProcessor(ContentType.FILE.value);
+        return (FileContentProcessor) messageProcessor.getProcessor(ContentType.FILE.value);
     }
 
     //-------- InstantMessageDelegate

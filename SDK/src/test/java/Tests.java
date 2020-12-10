@@ -12,7 +12,13 @@ import chat.dim.MessageProcessor;
 import chat.dim.Messenger;
 import chat.dim.User;
 import chat.dim.core.Barrack;
+import chat.dim.cpu.CommandProcessor;
+import chat.dim.cpu.ContentProcessor;
+import chat.dim.cpu.HandshakeCommandProcessor;
+import chat.dim.cpu.TextContentProcessor;
+import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
+import chat.dim.protocol.ContentType;
 import chat.dim.protocol.Envelope;
 import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.ID;
@@ -31,6 +37,8 @@ public class Tests extends TestCase {
     static MessageProcessor processor;
 
     static {
+        ContentProcessor.register(ContentType.TEXT, new TextContentProcessor(null));
+        CommandProcessor.register(Command.HANDSHAKE, new HandshakeCommandProcessor(null));
 
         barrack = MyFacebook.getInstance();
 

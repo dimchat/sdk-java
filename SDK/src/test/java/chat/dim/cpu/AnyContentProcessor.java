@@ -4,7 +4,6 @@ package chat.dim.cpu;
 import chat.dim.Messenger;
 import chat.dim.protocol.AudioContent;
 import chat.dim.protocol.Content;
-import chat.dim.protocol.ContentType;
 import chat.dim.protocol.FileContent;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.ImageContent;
@@ -18,19 +17,6 @@ public class AnyContentProcessor extends ContentProcessor {
 
     public AnyContentProcessor(Messenger messenger) {
         super(messenger);
-    }
-
-    @Override
-    protected Content.Processor<Content> newContentProcessor(int type) {
-        if (ContentType.COMMAND.equals(type)) {
-            return new AnyCommandProcessor(getMessenger());
-        }
-
-        if (ContentType.TEXT.equals(type)) {
-            return new TextContentProcessor(getMessenger());
-        }
-
-        return super.newContentProcessor(type);
     }
 
     protected Content unknown(Content content, ReliableMessage rMsg) {

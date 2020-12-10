@@ -34,11 +34,25 @@ import java.util.List;
 
 import chat.dim.core.CommandFactory;
 import chat.dim.core.Processor;
+import chat.dim.cpu.CommandProcessor;
 import chat.dim.cpu.ContentProcessor;
+import chat.dim.cpu.DocumentCommandProcessor;
+import chat.dim.cpu.FileContentProcessor;
+import chat.dim.cpu.ForwardContentProcessor;
+import chat.dim.cpu.GroupCommandProcessor;
+import chat.dim.cpu.HistoryCommandProcessor;
+import chat.dim.cpu.MetaCommandProcessor;
+import chat.dim.cpu.group.ExpelCommandProcessor;
+import chat.dim.cpu.group.InviteCommandProcessor;
+import chat.dim.cpu.group.QueryCommandProcessor;
+import chat.dim.cpu.group.QuitCommandProcessor;
+import chat.dim.cpu.group.ResetCommandProcessor;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.BlockCommand;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
+import chat.dim.protocol.ContentType;
+import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.HandshakeCommand;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
@@ -171,20 +185,28 @@ public class MessageProcessor extends Processor {
     @Override
     protected Content process(Content content, ReliableMessage rMsg) {
         // TODO: override to check group
-        Content.Processor<Content> cpu = getContentProcessor(content.getType());
+        Content.Processor<Content> cpu = getProcessor(content.getType());
         if (cpu == null) {
             throw new NullPointerException("failed to get processor for content: " + content);
         }
-        return cpu.process(content, rMsg);
         // TODO: override to filter the response
+        return cpu.process(content, rMsg);
     }
 
-    protected Content.Processor<Content> getContentProcessor(int type) {
-        return cpu.getContentProcessor(type);
+    protected Content.Processor<Content> getProcessor(int type) {
+        return cpu.getProcessor(type);
     }
 
-    static {
-        // register command parsers
+    public static void registerParsers() {
+
+        //
+        //  Register core parsers
+        //
+        CommandFactory.registerCoreParsers();
+
+        //
+        //  Register command parsers
+        //
         CommandFactory.register(Command.RECEIPT, ReceiptCommand::new);
         CommandFactory.register(Command.HANDSHAKE, HandshakeCommand::new);
         CommandFactory.register(Command.LOGIN, LoginCommand::new);
@@ -196,5 +218,42 @@ public class MessageProcessor extends Processor {
         CommandFactory.register(StorageCommand.STORAGE, StorageCommand::new);
         CommandFactory.register(StorageCommand.CONTACTS, StorageCommand::new);
         CommandFactory.register(StorageCommand.PRIVATE_KEY, StorageCommand::new);
+    }
+
+    public static void registerProcessors() {
+        //
+        //  Register content processors
+        //
+        ContentProcessor.register(ContentType.FORWARD, new ForwardContentProcessor(null));
+
+        FileContentProcessor fileProcessor = new FileContentProcessor(null);
+        ContentProcessor.register(ContentType.FILE, fileProcessor);
+        ContentProcessor.register(ContentType.IMAGE, fileProcessor);
+        ContentProcessor.register(ContentType.AUDIO, fileProcessor);
+        ContentProcessor.register(ContentType.VIDEO, fileProcessor);
+
+        ContentProcessor.register(ContentType.COMMAND, new CommandProcessor(null));
+        ContentProcessor.register(ContentType.HISTORY, new HistoryCommandProcessor(null));
+
+        //
+        //  Register command processors
+        //
+        CommandProcessor.register(Command.META, new MetaCommandProcessor(null));
+
+        CommandProcessor docProcessor = new DocumentCommandProcessor(null);
+        CommandProcessor.register(Command.PROFILE, docProcessor);
+        CommandProcessor.register(Command.DOCUMENT, docProcessor);
+
+        CommandProcessor.register("group", new GroupCommandProcessor(null));
+        CommandProcessor.register(GroupCommand.INVITE, new InviteCommandProcessor(null));
+        CommandProcessor.register(GroupCommand.EXPEL, new ExpelCommandProcessor(null));
+        CommandProcessor.register(GroupCommand.QUIT, new QuitCommandProcessor(null));
+        CommandProcessor.register(GroupCommand.QUERY, new QueryCommandProcessor(null));
+        CommandProcessor.register(GroupCommand.RESET, new ResetCommandProcessor(null));
+    }
+
+    static {
+        registerParsers();
+        registerProcessors();
     }
 }

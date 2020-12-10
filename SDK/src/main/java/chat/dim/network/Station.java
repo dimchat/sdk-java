@@ -30,12 +30,12 @@
  */
 package chat.dim.network;
 
+import java.lang.ref.WeakReference;
+
 import chat.dim.User;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.NetworkType;
-
-import java.lang.ref.WeakReference;
 
 public class Station extends User {
 

@@ -37,78 +37,68 @@ import chat.dim.Messenger;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
+import chat.dim.protocol.ID;
 import chat.dim.protocol.ReliableMessage;
+import chat.dim.protocol.TextContent;
 
 /**
  *  Base Command Processor
  */
 public class CommandProcessor extends ContentProcessor {
 
-    private static final Map<String, CommandProcessor> processors = new HashMap<>();
-    private static GroupCommandProcessor gpu = null;
-
     public CommandProcessor(Messenger messenger) {
         super(messenger);
     }
 
-    //
-    //  CPU
-    //
-    public CommandProcessor getCommandProcessor(Command cmd) {
-        // check for GPU
-        if (cmd instanceof GroupCommand) {
-            return getGroupCommandProcessor((GroupCommand) cmd);
+    protected Content unknown(Command cmd, ReliableMessage rMsg) {
+        String text = String.format("Command (name: %s) not support yet!", cmd.getCommand());
+        TextContent res = new TextContent(text);
+        // check group message
+        ID group = cmd.getGroup();
+        if (group != null) {
+            res.setGroup(group);
         }
-        // get CPU by command name
-        return getCommandProcessor(cmd.getCommand());
-    }
-    public CommandProcessor getCommandProcessor(String command) {
-        CommandProcessor cpu = processors.get(command);
-        if (cpu != null) {
-            return cpu;
-        }
-        cpu = newCommandProcessor(command);
-        if (cpu != null) {
-            registerCommandProcessor(command, cpu);
-        }
-        return cpu;
-    }
-    public void registerCommandProcessor(String name, CommandProcessor cpu) {
-        processors.put(name, cpu);
-    }
-    protected CommandProcessor newCommandProcessor(String command) {
-        if (Command.META.equalsIgnoreCase(command)) {
-            return new MetaCommandProcessor(getMessenger());
-        }
-        if (Command.PROFILE.equalsIgnoreCase(command)) {
-            return new DocumentCommandProcessor(getMessenger());
-        }
-        if (Command.DOCUMENT.equalsIgnoreCase(command)) {
-            return new DocumentCommandProcessor(getMessenger());
-        }
-
-        // UNKNOWN
-        return null;
-    }
-
-    private GroupCommandProcessor getGroupCommandProcessor() {
-        if (gpu == null) {
-            gpu = new GroupCommandProcessor(getMessenger());
-        }
-        return gpu;
-    }
-    protected GroupCommandProcessor getGroupCommandProcessor(GroupCommand cmd) {
-        GroupCommandProcessor cpu = getGroupCommandProcessor();
-        return cpu.getGroupCommandProcessor(cmd);
+        return res;
     }
 
     @Override
     public Content process(Content content, ReliableMessage rMsg) {
         assert content instanceof Command : "command error: " + content;
-        CommandProcessor cpu = getCommandProcessor((Command) content);
+        Command cmd = (Command) content;
+        CommandProcessor cpu = getProcessor(cmd);
+        if (cpu == null) {
+            if (cmd instanceof GroupCommand) {
+                cpu = getProcessor("group");
+            }
+            if (cpu == null) {
+                cpu = getProcessor(Command.UNKNOWN);
+            }
+        }
+        if (cpu == null || cpu == this) {
+            return unknown(cmd, rMsg);
+        }
+        return cpu.process(cmd, rMsg);
+    }
+
+    //
+    //  CPU factory
+    //
+    private static final Map<String, CommandProcessor> processors = new HashMap<>();
+    private static GroupCommandProcessor gpu = null;
+
+    public static void register(String command, CommandProcessor cpu) {
+        processors.put(command, cpu);
+    }
+
+    public CommandProcessor getProcessor(String command) {
+        CommandProcessor cpu = processors.get(command);
         if (cpu == null) {
             return null;
         }
-        return cpu.process(content, rMsg);
+        cpu.setMessenger(getMessenger());
+        return cpu;
+    }
+    public CommandProcessor getProcessor(Command cmd) {
+        return getProcessor(cmd.getCommand());
     }
 }

@@ -38,22 +38,29 @@ import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
+import chat.dim.protocol.ID;
 import chat.dim.protocol.ReliableMessage;
+import chat.dim.protocol.TextContent;
 
 /**
  *  Base Content Processor
  */
 public class ContentProcessor implements Content.Processor<Content> {
 
-    private static final Map<Integer, Content.Processor<Content>> processors = new HashMap<>();
-
-    private final WeakReference<Messenger> messengerRef;
+    private WeakReference<Messenger> messengerRef;
 
     public ContentProcessor(Messenger messenger) {
         super();
-        messengerRef = new WeakReference<>(messenger);
+        if (messenger == null) {
+            messengerRef = null;
+        } else {
+            setMessenger(messenger);
+        }
     }
 
+    public void setMessenger(Messenger messenger) {
+        messengerRef = new WeakReference<>(messenger);
+    }
     protected Messenger getMessenger() {
         return messengerRef.get();
     }
@@ -62,64 +69,53 @@ public class ContentProcessor implements Content.Processor<Content> {
         return getMessenger().getFacebook();
     }
 
-    //
-    //  CPU
-    //
-    public Content.Processor<Content> getContentProcessor(Content content) {
-        // get CPU by content type
-        return getContentProcessor(content.getType());
-    }
-    public Content.Processor<Content> getContentProcessor(int type) {
-        Content.Processor<Content> cpu = processors.get(type);
-        if (cpu != null) {
-            return cpu;
+    protected Content unknown(Content content, ReliableMessage rMsg) {
+        String text = String.format("Content (type: %d) not support yet!", content.getType());
+        TextContent res = new TextContent(text);
+        // check group message
+        ID group = content.getGroup();
+        if (group != null) {
+            res.setGroup(group);
         }
-        cpu = newContentProcessor(type);
-        if (cpu != null) {
-            registerContentProcessor(type, cpu);
-        }
-        return cpu;
-    }
-    public void registerContentProcessor(int type, Content.Processor<Content> cpu) {
-        processors.put(type, cpu);
-    }
-    protected Content.Processor<Content> newContentProcessor(int type) {
-        // TODO: override to extend CPUs
-
-        if (ContentType.FORWARD.equals(type)) {
-            return new ForwardContentProcessor(getMessenger());
-        }
-
-        if (ContentType.FILE.equals(type)) {
-            return new FileContentProcessor(getMessenger());
-        }
-        if (ContentType.IMAGE.equals(type)) {
-            return new FileContentProcessor(getMessenger());
-        }
-        if (ContentType.AUDIO.equals(type)) {
-            return new FileContentProcessor(getMessenger());
-        }
-        if (ContentType.VIDEO.equals(type)) {
-            return new FileContentProcessor(getMessenger());
-        }
-
-        if (ContentType.COMMAND.equals(type)) {
-            return new CommandProcessor(getMessenger());
-        }
-        if (ContentType.HISTORY.equals(type)) {
-            return new HistoryCommandProcessor(getMessenger());
-        }
-
-        // UNKNOWN
-        return null;
+        return res;
     }
 
     @Override
     public Content process(Content content, ReliableMessage rMsg) {
-        Content.Processor<Content> cpu = getContentProcessor(content);
+        ContentProcessor cpu = getProcessor(content);
+        if (cpu == null) {
+            cpu = getProcessor(ContentType.UNKNOWN);
+        }
+        if (cpu == null || cpu == this) {
+            return unknown(content, rMsg);
+        }
+        return cpu.process(content, rMsg);
+    }
+
+    //
+    //  CPU factory
+    //
+    private static final Map<Integer, ContentProcessor> processors = new HashMap<>();
+
+    public static void register(int type, ContentProcessor cpu) {
+        processors.put(type, cpu);
+    }
+    public static void register(ContentType type, ContentProcessor cpu) {
+        processors.put(type.value, cpu);
+    }
+
+    public ContentProcessor getProcessor(int type) {
+        ContentProcessor cpu = processors.get(type);
         if (cpu == null) {
             return null;
         }
-        return cpu.process(content, rMsg);
+        cpu.setMessenger(getMessenger());
+        return cpu;
+    }
+    public ContentProcessor getProcessor(ContentType type) {
+        return getProcessor(type.value);
+    }
+    public ContentProcessor getProcessor(Content content) {
+        return getProcessor(content.getType());
     }
 }

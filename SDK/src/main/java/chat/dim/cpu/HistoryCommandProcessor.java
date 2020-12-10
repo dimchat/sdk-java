@@ -31,6 +31,11 @@
 package chat.dim.cpu;
 
 import chat.dim.Messenger;
+import chat.dim.protocol.Command;
+import chat.dim.protocol.Content;
+import chat.dim.protocol.ID;
+import chat.dim.protocol.ReliableMessage;
+import chat.dim.protocol.TextContent;
 
 public class HistoryCommandProcessor extends CommandProcessor {
 
@@ -39,9 +44,14 @@ public class HistoryCommandProcessor extends CommandProcessor {
     }
 
     @Override
-    protected CommandProcessor newCommandProcessor(String command) {
-
-        // UNKNOWN
-        return null;
+    protected Content unknown(Command cmd, ReliableMessage rMsg) {
+        String text = String.format("History command (name: %s) not support yet!", cmd.getCommand());
+        TextContent res = new TextContent(text);
+        // check group message
+        ID group = cmd.getGroup();
+        if (group != null) {
+            res.setGroup(group);
+        }
+        return res;
     }
 }

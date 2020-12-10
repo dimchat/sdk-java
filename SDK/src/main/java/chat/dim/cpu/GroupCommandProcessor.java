@@ -35,13 +35,12 @@ import java.util.List;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
-import chat.dim.cpu.group.ExpelCommandProcessor;
-import chat.dim.cpu.group.InviteCommandProcessor;
-import chat.dim.cpu.group.QueryCommandProcessor;
-import chat.dim.cpu.group.QuitCommandProcessor;
-import chat.dim.cpu.group.ResetCommandProcessor;
+import chat.dim.protocol.Command;
+import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.ID;
+import chat.dim.protocol.ReliableMessage;
+import chat.dim.protocol.TextContent;
 
 public class GroupCommandProcessor extends HistoryCommandProcessor {
 
@@ -87,34 +86,26 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
         return owner == null;
     }
 
-    //
-    //  CPU
-    //
-
     @Override
-    protected GroupCommandProcessor getGroupCommandProcessor(GroupCommand cmd) {
-        return (GroupCommandProcessor) getCommandProcessor(cmd.getCommand());
+    protected Content unknown(Command cmd, ReliableMessage rMsg) {
+        String text = String.format("Group command (name: %s) not support yet!", cmd.getCommand());
+        TextContent res = new TextContent(text);
+        res.setGroup(cmd.getGroup());
+        return res;
     }
 
     @Override
-    protected GroupCommandProcessor newCommandProcessor(String command) {
-        if (GroupCommand.INVITE.equalsIgnoreCase(command)) {
-            return new InviteCommandProcessor(getMessenger());
+    public Content process(Content content, ReliableMessage rMsg) {
+        assert content instanceof GroupCommand : "group command error: " + content;
+        GroupCommand cmd = (GroupCommand) content;
+        CommandProcessor cpu = getProcessor(cmd);
+        if (cpu == null) {
+            cpu = getProcessor(Command.UNKNOWN);
         }
-        if (GroupCommand.EXPEL.equalsIgnoreCase(command)) {
-            return new ExpelCommandProcessor(getMessenger());
+        if (cpu == null || cpu == this) {
+            return unknown(cmd, rMsg);
         }
-        if (GroupCommand.QUIT.equalsIgnoreCase(command)) {
-            return new QuitCommandProcessor(getMessenger());
-        }
-        if (GroupCommand.QUERY.equalsIgnoreCase(command)) {
-            return new QueryCommandProcessor(getMessenger());
-        }
-        if (GroupCommand.RESET.equalsIgnoreCase(command)) {
-            return new ResetCommandProcessor(getMessenger());
-        }
-
-        // UNKNOWN
-        return null;
+        cpu.setMessenger(getMessenger());
+        return cpu.process(cmd, rMsg);
     }
 }

@@ -30,10 +30,10 @@
  */
 package chat.dim.protocol;
 
-import chat.dim.format.Base64;
-
 import java.util.Date;
 import java.util.Map;
+
+import chat.dim.format.Base64;
 
 /**
  *  Command message: {
