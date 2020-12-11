@@ -33,7 +33,6 @@ package chat.dim;
 import java.util.List;
 
 import chat.dim.core.Barrack;
-import chat.dim.crypto.VerifyKey;
 import chat.dim.group.Chatroom;
 import chat.dim.group.Polylogue;
 import chat.dim.network.Robot;
@@ -48,49 +47,6 @@ public abstract class Facebook extends Barrack {
 
     protected Facebook() {
         super();
-    }
-
-    /**
-     *  Select receiver account from local users
-     *
-     * @param receiver - user ID
-     * @return local user
-     */
-    public User select(ID receiver) {
-        List<User> users = getLocalUsers();
-        if (users == null || users.size() == 0) {
-            throw new NullPointerException("local users should not be empty");
-        } else if (ID.isBroadcast(receiver)) {
-            // broadcast message can decrypt by anyone, so just return current user
-            return users.get(0);
-        }
-        if (NetworkType.isGroup(receiver.getType())) {
-            // group message (recipient not designated)
-            for (User item : users) {
-                if (existsMember(item.identifier, receiver)) {
-                    // set this item to be current user?
-                    return item;
-                }
-            }
-        } else {
-            // 1. personal message
-            // 2. split group message
-            for (User item : users) {
-                if (receiver.equals(item.identifier)) {
-                    // set this item to be current user?
-                    return item;
-                }
-            }
-        }
-        return null;
-    }
-
-    //
-    //  Meta
-    //
-    public boolean verify(Meta meta, ID identifier) {
-        assert meta != null && meta.isValid() : "meta error: " + meta;
-        return meta.matches(identifier);
     }
 
     /**
@@ -191,28 +147,6 @@ public abstract class Facebook extends Barrack {
      */
     public abstract boolean saveMembers(List<ID> members, ID group);
 
-    //-------- Local Users
-
-    /**
-     *  Get all local users (for decrypting received message)
-     *
-     * @return user list
-     */
-    public abstract List<User> getLocalUsers();
-
-    /**
-     *  Get current user (for signing and sending message)
-     *
-     * @return user object
-     */
-    public User getCurrentUser() {
-        List<User> users = getLocalUsers();
-        if (users == null || users.size() == 0) {
-            return null;
-        }
-        return users.get(0);
-    }
-
     //--------
 
     @Override
@@ -257,101 +191,5 @@ public abstract class Facebook extends Barrack {
             return new ServiceProvider(identifier);
         }
         throw new TypeNotPresentException("Unsupported group type: " + type, null);
-    }
-
-    //-------- UserDataSource
-
-    @Override
-    public List<VerifyKey> getPublicKeysForVerification(ID user) {
-        // TODO: load visa.keys & meta.key from database
-        return null;
-    }
-
-    //-------- GroupDataSource
-
-    @Override
-    public ID getFounder(ID group) {
-        // check each member's public key with group meta
-        List<ID> members = getMembers(group);
-        if (members != null) {
-            Meta meta = getMeta(group);
-            if (meta != null) {
-                // if the member's public key matches with the group's meta,
-                // it means this meta was generate by the member's private key
-                Meta m;
-                for (ID item : members) {
-                    m = getMeta(item);
-                    if (m == null) {
-                        continue;
-                    }
-                    if (meta.matches(m.getKey())) {
-                        // got it
-                        return item;
-                    }
-                }
-            }
-        }
-        // TODO: load founder from database
-        return null;
-    }
-
-    @Override
-    public ID getOwner(ID group) {
-        // check group type
-        if (NetworkType.Polylogue.equals(group.getType())) {
-            // Polylogue's owner is its founder
-            return getFounder(group);
-        }
-        // TODO: load owner from database
-        return null;
-    }
-
-    public boolean isFounder(ID member, ID group) {
-        // check member's public key with group's meta.key
-        Meta gMeta = getMeta(group);
-        if (gMeta == null) {
-            throw new NullPointerException("failed to get meta for group: " + group);
-        }
-        Meta meta = getMeta(member);
-        if (meta == null) {
-            throw new NullPointerException("failed to get meta for member: " + member);
-        }
-        return gMeta.matches(meta.getKey());
-    }
-
-    public boolean isOwner(ID member, ID group) {
-        if (NetworkType.Polylogue.equals(group.getType())) {
-            return isFounder(member, group);
-        }
-        throw new UnsupportedOperationException("only Polylogue so far");
-    }
-
-    public boolean existsMember(ID member, ID group) {
-        List<ID> members = getMembers(group);
-        if (members != null && members.contains(member)) {
-            return true;
-        }
-        ID owner = getOwner(group);
-        return owner != null && owner.equals(member);
-    }
-
-    //
-    //  Group Assistants
-    //
-
-    /**
-     *  Get assistants for this group
-     *
-     * @param group - group ID
-     * @return robot ID list
-     */
-    public abstract List<ID> getAssistants(ID group);
-
-    public boolean existsAssistant(ID user, ID group) {
-        List<ID> assistants = getAssistants(group);
-        if (assistants == null) {
-            return false;
-        }
-        return assistants.contains(user);
     }
 }

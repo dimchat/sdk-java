@@ -30,8 +30,6 @@
  */
 package chat.dim;
 
-import java.util.List;
-
 import chat.dim.core.CommandFactory;
 import chat.dim.core.Processor;
 import chat.dim.cpu.CommandProcessor;
@@ -47,7 +45,6 @@ import chat.dim.cpu.group.InviteCommandProcessor;
 import chat.dim.cpu.group.QueryCommandProcessor;
 import chat.dim.cpu.group.QuitCommandProcessor;
 import chat.dim.cpu.group.ResetCommandProcessor;
-import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.BlockCommand;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
@@ -70,7 +67,7 @@ public class MessageProcessor extends Processor {
     private final ContentProcessor cpu;
 
     public MessageProcessor(Messenger messenger) {
-        super(messenger);
+        super(messenger, messenger.getEntityDelegate(), messenger.getCipherKeyDelegate());
         cpu = newContentProcessor(messenger);
     }
 
@@ -79,7 +76,7 @@ public class MessageProcessor extends Processor {
     }
 
     protected Messenger getMessenger() {
-        return (Messenger) getDelegate();
+        return (Messenger) getMessageDelegate();
     }
 
     protected Facebook getFacebook() {
@@ -87,34 +84,10 @@ public class MessageProcessor extends Processor {
     }
 
     @Override
-    protected User getLocalUser(ID receiver) {
-        return getFacebook().select(receiver);
-    }
-
-    @Override
-    protected List<ID> getMembers(ID group) {
-        return getFacebook().getMembers(group);
-    }
-
-    @Override
-    protected SymmetricKey getSymmetricKey(ID from, ID to) {
-        CipherKeyDelegate keyCache = getMessenger().getCipherKeyDelegate();
-        // get old key from cache
-        SymmetricKey key = keyCache.getCipherKey(from, to);
-        if (key == null) {
-            // create new key and cache it
-            key = SymmetricKey.generate(SymmetricKey.AES);
-            assert key != null : "failed to generate AES key";
-            keyCache.cacheCipherKey(from, to, key);
-        }
-        return key;
-    }
-
-    @Override
     public SecureMessage verifyMessage(ReliableMessage rMsg) {
         // check message delegate
         if (rMsg.getDelegate() == null) {
-            rMsg.setDelegate(getDelegate());
+            rMsg.setDelegate(getMessageDelegate());
         }
         // Notice: check meta before calling me
         Meta meta = rMsg.getMeta();
@@ -142,10 +115,10 @@ public class MessageProcessor extends Processor {
     private SecureMessage trim(SecureMessage sMsg) {
         // check message delegate
         if (sMsg.getDelegate() == null) {
-            sMsg.setDelegate(getDelegate());
+            sMsg.setDelegate(getMessageDelegate());
         }
         ID receiver = sMsg.getReceiver();
-        User user = getFacebook().select(receiver);
+        User user = getFacebook().getLocalUser(receiver);
         if (user == null) {
             // current users not match
             sMsg = null;
@@ -185,7 +158,7 @@ public class MessageProcessor extends Processor {
     @Override
     protected Content process(Content content, ReliableMessage rMsg) {
         // TODO: override to check group
-        Content.Processor<Content> cpu = getProcessor(content.getType());
+        ContentProcessor cpu = getProcessor(content.getType());
         if (cpu == null) {
             throw new NullPointerException("failed to get processor for content: " + content);
         }
@@ -193,7 +166,7 @@ public class MessageProcessor extends Processor {
         return cpu.process(content, rMsg);
     }
 
-    protected Content.Processor<Content> getProcessor(int type) {
+    protected ContentProcessor getProcessor(int type) {
         return cpu.getProcessor(type);
     }
 

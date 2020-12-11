@@ -64,7 +64,7 @@ public class DocumentCommandProcessor extends CommandProcessor {
         Facebook facebook = getFacebook();
         if (meta != null) {
             // received a meta for ID
-            if (!facebook.verify(meta, identifier)) {
+            if (!meta.matches(identifier)) {
                 // meta not match
                 String text = String.format("Meta not match ID: %s", identifier);
                 return new TextContent(text);

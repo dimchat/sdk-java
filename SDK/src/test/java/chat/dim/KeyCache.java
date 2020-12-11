@@ -173,14 +173,20 @@ public abstract class KeyCache implements CipherKeyDelegate {
     //-------- CipherKeyDelegate
 
     @Override
-    public SymmetricKey getCipherKey(ID sender, ID receiver) {
+    public SymmetricKey getCipherKey(ID sender, ID receiver, boolean generate) {
         if (ID.isBroadcast(receiver)) {
             return PlainKey.getInstance();
         }
         // get key from cache
-        return getKey(sender, receiver);
+        SymmetricKey key = getKey(sender, receiver);
+        if (key == null && generate) {
+            // generate new key and cache it
+            key = SymmetricKey.generate(SymmetricKey.AES);
+            cacheCipherKey(sender, receiver, key);
+        }
 
         // TODO: override to check whether key expired for sending message
+        return key;
     }
 
     @Override

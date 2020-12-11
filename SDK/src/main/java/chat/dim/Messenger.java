@@ -76,7 +76,6 @@ public abstract class Messenger extends Transceiver {
         }
         return delegateRef.get();
     }
-
     public void setDelegate(Delegate delegate) {
         assert delegate != null : "Messenger delegate should not be empty";
         delegateRef = new WeakReference<>(delegate);

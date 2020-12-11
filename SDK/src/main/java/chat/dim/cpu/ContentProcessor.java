@@ -45,7 +45,7 @@ import chat.dim.protocol.TextContent;
 /**
  *  Base Content Processor
  */
-public class ContentProcessor implements Content.Processor<Content> {
+public class ContentProcessor {
 
     private WeakReference<Messenger> messengerRef;
 
@@ -80,7 +80,6 @@ public class ContentProcessor implements Content.Processor<Content> {
         return res;
     }
 
-    @Override
     public Content process(Content content, ReliableMessage rMsg) {
         ContentProcessor cpu = getProcessor(content);
         if (cpu == null) {
