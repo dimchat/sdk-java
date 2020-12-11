@@ -105,8 +105,8 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
         // 1. check permission
         ID sender = rMsg.getSender();
         Facebook facebook = getFacebook();
-        if (!facebook.existsMember(sender, group)) {
-            if (!facebook.existsAssistant(sender, group)) {
+        if (!facebook.containsMember(sender, group)) {
+            if (!facebook.containsAssistant(sender, group)) {
                 if (!facebook.isOwner(sender, group)) {
                     String text = sender + " is not a member/assistant of group " + group + ", cannot invite member.";
                     throw new UnsupportedOperationException(text);

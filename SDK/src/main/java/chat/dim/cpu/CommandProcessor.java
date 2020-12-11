@@ -34,6 +34,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.Messenger;
+import chat.dim.cpu.group.ExpelCommandProcessor;
+import chat.dim.cpu.group.InviteCommandProcessor;
+import chat.dim.cpu.group.QueryCommandProcessor;
+import chat.dim.cpu.group.QuitCommandProcessor;
+import chat.dim.cpu.group.ResetCommandProcessor;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
@@ -100,5 +105,23 @@ public class CommandProcessor extends ContentProcessor {
     }
     public CommandProcessor getProcessor(Command cmd) {
         return getProcessor(cmd.getCommand());
+    }
+
+    public static void registerAllProcessors() {
+        //
+        //  Register command processors
+        //
+        register(Command.META, new MetaCommandProcessor(null));
+
+        CommandProcessor docProcessor = new DocumentCommandProcessor(null);
+        register(Command.PROFILE, docProcessor);
+        register(Command.DOCUMENT, docProcessor);
+
+        register("group", new GroupCommandProcessor(null));
+        register(GroupCommand.INVITE, new InviteCommandProcessor(null));
+        register(GroupCommand.EXPEL, new ExpelCommandProcessor(null));
+        register(GroupCommand.QUIT, new QuitCommandProcessor(null));
+        register(GroupCommand.QUERY, new QueryCommandProcessor(null));
+        register(GroupCommand.RESET, new ResetCommandProcessor(null));
     }
 }

@@ -50,6 +50,19 @@ public abstract class Facebook extends Barrack {
     }
 
     /**
+     *  Get current user (for signing and sending message)
+     *
+     * @return user object
+     */
+    public User getCurrentUser() {
+        List<User> users = getLocalUsers();
+        if (users == null || users.size() == 0) {
+            return null;
+        }
+        return users.get(0);
+    }
+
+    /**
      *  Save meta for entity ID (must verify first)
      *
      * @param meta - entity meta
@@ -89,7 +102,7 @@ public abstract class Facebook extends Barrack {
         //         else (this is a user profile)
         //             verify it with the user's meta.key
         Meta meta;
-        if (NetworkType.isGroup(identifier.getType())) {
+        if (ID.isGroup(identifier)) {
             // check by each member
             List<ID> members = getMembers(identifier);
             if (members != null) {

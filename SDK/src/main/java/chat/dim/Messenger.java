@@ -59,14 +59,6 @@ public abstract class Messenger extends Transceiver {
         super();
     }
 
-    public void setMessageProcessor(MessageProcessor processor) {
-        messageProcessor = processor;
-    }
-
-    public MessageProcessor getMessageProcessor() {
-        return messageProcessor;
-    }
-
     //
     //  Delegate for sending data
     //
@@ -81,6 +73,13 @@ public abstract class Messenger extends Transceiver {
         delegateRef = new WeakReference<>(delegate);
     }
 
+    public MessageProcessor getMessageProcessor() {
+        return messageProcessor;
+    }
+    public void setMessageProcessor(MessageProcessor processor) {
+        messageProcessor = processor;
+    }
+
     //
     //  Data source for getting entity info
     //
@@ -89,7 +88,7 @@ public abstract class Messenger extends Transceiver {
     }
 
     private FileContentProcessor getFileContentProcessor() {
-        return (FileContentProcessor) messageProcessor.getProcessor(ContentType.FILE.value);
+        return (FileContentProcessor) messageProcessor.getContentProcessor(ContentType.FILE);
     }
 
     //-------- InstantMessageDelegate
@@ -239,7 +238,7 @@ public abstract class Messenger extends Transceiver {
      * @param data - package from network connection
      * @return response to sender
      */
-    public byte[] processPackage(byte[] data) {
+    public byte[] process(byte[] data) {
         return messageProcessor.process(data);
     }
 

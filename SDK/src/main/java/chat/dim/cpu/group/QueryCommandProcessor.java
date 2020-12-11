@@ -57,8 +57,8 @@ public class QueryCommandProcessor extends GroupCommandProcessor {
         ID group = content.getGroup();
         // 1. check permission
         Facebook facebook = getFacebook();
-        if (!facebook.existsMember(sender, group)) {
-            if (!facebook.existsAssistant(sender, group)) {
+        if (!facebook.containsMember(sender, group)) {
+            if (!facebook.containsAssistant(sender, group)) {
                 if (!facebook.isOwner(sender, group)) {
                     String text = sender + " is not a member/assistant of group " + group + ", cannot query.";
                     throw new UnsupportedOperationException(text);

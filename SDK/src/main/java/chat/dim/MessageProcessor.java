@@ -32,35 +32,24 @@ package chat.dim;
 
 import chat.dim.core.CommandFactory;
 import chat.dim.core.Processor;
-import chat.dim.cpu.CommandProcessor;
 import chat.dim.cpu.ContentProcessor;
-import chat.dim.cpu.DocumentCommandProcessor;
-import chat.dim.cpu.FileContentProcessor;
-import chat.dim.cpu.ForwardContentProcessor;
-import chat.dim.cpu.GroupCommandProcessor;
-import chat.dim.cpu.HistoryCommandProcessor;
-import chat.dim.cpu.MetaCommandProcessor;
-import chat.dim.cpu.group.ExpelCommandProcessor;
-import chat.dim.cpu.group.InviteCommandProcessor;
-import chat.dim.cpu.group.QueryCommandProcessor;
-import chat.dim.cpu.group.QuitCommandProcessor;
-import chat.dim.cpu.group.ResetCommandProcessor;
+import chat.dim.crypto.EncryptKey;
 import chat.dim.protocol.BlockCommand;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
-import chat.dim.protocol.GroupCommand;
+import chat.dim.protocol.Document;
 import chat.dim.protocol.HandshakeCommand;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.LoginCommand;
 import chat.dim.protocol.Meta;
 import chat.dim.protocol.MuteCommand;
-import chat.dim.protocol.NetworkType;
 import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 import chat.dim.protocol.StorageCommand;
+import chat.dim.protocol.Visa;
 
 public class MessageProcessor extends Processor {
 
@@ -68,11 +57,21 @@ public class MessageProcessor extends Processor {
 
     public MessageProcessor(Messenger messenger) {
         super(messenger, messenger.getEntityDelegate(), messenger.getCipherKeyDelegate());
-        cpu = newContentProcessor(messenger);
+        cpu = getContentProcessor();
     }
 
-    protected ContentProcessor newContentProcessor(Messenger messenger) {
-        return new ContentProcessor(messenger);
+    protected ContentProcessor getContentProcessor() {
+        return new ContentProcessor(getMessenger());
+    }
+
+    protected ContentProcessor getContentProcessor(Content content) {
+        return cpu.getProcessor(content);
+    }
+    protected ContentProcessor getContentProcessor(ContentType type) {
+        return cpu.getProcessor(type);
+    }
+    protected ContentProcessor getContentProcessor(int type) {
+        return cpu.getProcessor(type);
     }
 
     protected Messenger getMessenger() {
@@ -83,33 +82,57 @@ public class MessageProcessor extends Processor {
         return getMessenger().getFacebook();
     }
 
-    @Override
-    public SecureMessage verifyMessage(ReliableMessage rMsg) {
+    // [VISA Protocol]
+    private boolean checkVisa(ReliableMessage rMsg) {
         // check message delegate
         if (rMsg.getDelegate() == null) {
             rMsg.setDelegate(getMessageDelegate());
         }
-        // Notice: check meta before calling me
-        Meta meta = rMsg.getMeta();
+        Facebook facebook = getFacebook();
         ID sender = rMsg.getSender();
-        if (meta == null) {
-            meta = getFacebook().getMeta(sender);
-            if (meta == null) {
-                // NOTICE: the application will query meta automatically
-                // save this message in a queue waiting sender's meta response
-                getMessenger().suspendMessage(rMsg);
-                //throw new NullPointerException("failed to get meta for sender: " + sender);
-                return null;
-            }
-        } else {
+        // check meta
+        Meta meta = rMsg.getMeta();
+        if (meta != null) {
             // [Meta Protocol]
             // save meta for sender
-            if (!getFacebook().saveMeta(meta, sender)) {
-                throw new RuntimeException("save meta error: " + sender + ", " + meta);
+            if (!facebook.saveMeta(meta, sender)) {
+                return false;
             }
         }
+        // check visa
+        Visa visa = rMsg.getVisa();
+        if (visa != null) {
+            // [Visa Protocol]
+            // save visa for sender
+            return facebook.saveDocument(visa);
+        }
+        // check local storage
+        Document doc = facebook.getDocument(sender, Document.VISA);
+        if (doc instanceof Visa) {
+            return true;
+        }
+        if (meta == null) {
+            meta = facebook.getMeta(sender);
+            if (meta == null) {
+                return false;
+            }
+        }
+        // if meta.key can be used to encrypt message,
+        // then visa is not necessary
+        return meta.getKey() instanceof EncryptKey;
+    }
 
-        return super.verifyMessage(rMsg);
+    @Override
+    public SecureMessage verifyMessage(ReliableMessage rMsg) {
+        // Notice: check meta before calling me
+        if (checkVisa(rMsg)) {
+            return super.verifyMessage(rMsg);
+        }
+        // NOTICE: the application will query meta automatically
+        // save this message in a queue waiting sender's meta response
+        getMessenger().suspendMessage(rMsg);
+        //throw new NullPointerException("failed to get meta for sender: " + sender);
+        return null;
     }
 
     private SecureMessage trim(SecureMessage sMsg) {
@@ -118,11 +141,11 @@ public class MessageProcessor extends Processor {
             sMsg.setDelegate(getMessageDelegate());
         }
         ID receiver = sMsg.getReceiver();
-        User user = getFacebook().getLocalUser(receiver);
+        User user = getFacebook().selectLocalUser(receiver);
         if (user == null) {
             // current users not match
             sMsg = null;
-        } else if (NetworkType.isGroup(receiver.getType())) {
+        } else if (ID.isGroup(receiver)) {
             // trim group message
             sMsg = sMsg.trim(user.identifier);
         }
@@ -143,22 +166,18 @@ public class MessageProcessor extends Processor {
 
     @Override
     protected InstantMessage process(InstantMessage iMsg, ReliableMessage rMsg) {
-        InstantMessage msg = super.process(iMsg, rMsg);
-        if (!saveMessage(iMsg)) {
+        InstantMessage res = super.process(iMsg, rMsg);
+        if (!getMessenger().saveMessage(iMsg)) {
             // error
             return null;
         }
-        return msg;
-    }
-
-    protected boolean saveMessage(InstantMessage msg) {
-        return getMessenger().saveMessage(msg);
+        return res;
     }
 
     @Override
     protected Content process(Content content, ReliableMessage rMsg) {
         // TODO: override to check group
-        ContentProcessor cpu = getProcessor(content.getType());
+        ContentProcessor cpu = getContentProcessor(content);
         if (cpu == null) {
             throw new NullPointerException("failed to get processor for content: " + content);
         }
@@ -166,11 +185,7 @@ public class MessageProcessor extends Processor {
         return cpu.process(content, rMsg);
     }
 
-    protected ContentProcessor getProcessor(int type) {
-        return cpu.getProcessor(type);
-    }
-
-    public static void registerParsers() {
+    public static void registerAllParsers() {
 
         //
         //  Register core parsers
@@ -191,42 +206,23 @@ public class MessageProcessor extends Processor {
         CommandFactory.register(StorageCommand.STORAGE, StorageCommand::new);
         CommandFactory.register(StorageCommand.CONTACTS, StorageCommand::new);
         CommandFactory.register(StorageCommand.PRIVATE_KEY, StorageCommand::new);
+
     }
 
-    public static void registerProcessors() {
+    static {
+        //
+        //  Register content/command parsers
+        //
+        registerAllParsers();
+
         //
         //  Register content processors
         //
-        ContentProcessor.register(ContentType.FORWARD, new ForwardContentProcessor(null));
-
-        FileContentProcessor fileProcessor = new FileContentProcessor(null);
-        ContentProcessor.register(ContentType.FILE, fileProcessor);
-        ContentProcessor.register(ContentType.IMAGE, fileProcessor);
-        ContentProcessor.register(ContentType.AUDIO, fileProcessor);
-        ContentProcessor.register(ContentType.VIDEO, fileProcessor);
-
-        ContentProcessor.register(ContentType.COMMAND, new CommandProcessor(null));
-        ContentProcessor.register(ContentType.HISTORY, new HistoryCommandProcessor(null));
+        ContentProcessor.registerAllProcessors();
 
         //
         //  Register command processors
         //
-        CommandProcessor.register(Command.META, new MetaCommandProcessor(null));
-
-        CommandProcessor docProcessor = new DocumentCommandProcessor(null);
-        CommandProcessor.register(Command.PROFILE, docProcessor);
-        CommandProcessor.register(Command.DOCUMENT, docProcessor);
-
-        CommandProcessor.register("group", new GroupCommandProcessor(null));
-        CommandProcessor.register(GroupCommand.INVITE, new InviteCommandProcessor(null));
-        CommandProcessor.register(GroupCommand.EXPEL, new ExpelCommandProcessor(null));
-        CommandProcessor.register(GroupCommand.QUIT, new QuitCommandProcessor(null));
-        CommandProcessor.register(GroupCommand.QUERY, new QueryCommandProcessor(null));
-        CommandProcessor.register(GroupCommand.RESET, new ResetCommandProcessor(null));
-    }
-
-    static {
-        registerParsers();
-        registerProcessors();
+        ContentProcessor.registerAllProcessors();
     }
 }

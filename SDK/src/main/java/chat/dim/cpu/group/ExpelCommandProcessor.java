@@ -81,7 +81,7 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
         // 1. check permission
         Facebook facebook = getFacebook();
         if (!facebook.isOwner(sender, group)) {
-            if (!facebook.existsAssistant(sender, group)) {
+            if (!facebook.containsAssistant(sender, group)) {
                 String text = sender + " is not the owner/assistant of group " + group + ", cannot expel member.";
                 throw new UnsupportedOperationException(text);
             }

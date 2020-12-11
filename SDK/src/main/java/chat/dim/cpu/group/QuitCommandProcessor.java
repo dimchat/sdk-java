@@ -71,7 +71,7 @@ public class QuitCommandProcessor extends GroupCommandProcessor {
             String text = "owner cannot quit: " + sender + " -> " + group;
             throw new UnsupportedOperationException(text);
         }
-        if (facebook.existsAssistant(sender, group)) {
+        if (facebook.containsAssistant(sender, group)) {
             String text = "assistant cannot quit: " + sender + " -> " + group;
             throw new UnsupportedOperationException(text);
         }

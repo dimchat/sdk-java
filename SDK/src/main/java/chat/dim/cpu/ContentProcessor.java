@@ -117,4 +117,20 @@ public class ContentProcessor {
     public ContentProcessor getProcessor(Content content) {
         return getProcessor(content.getType());
     }
+
+    public static void registerAllProcessors() {
+        //
+        //  Register content processors
+        //
+        register(ContentType.FORWARD, new ForwardContentProcessor(null));
+
+        FileContentProcessor fileProcessor = new FileContentProcessor(null);
+        register(ContentType.FILE, fileProcessor);
+        register(ContentType.IMAGE, fileProcessor);
+        register(ContentType.AUDIO, fileProcessor);
+        register(ContentType.VIDEO, fileProcessor);
+
+        register(ContentType.COMMAND, new CommandProcessor(null));
+        register(ContentType.HISTORY, new HistoryCommandProcessor(null));
+    }
 }

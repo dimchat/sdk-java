@@ -79,7 +79,7 @@ public class FileContentProcessor extends ContentProcessor {
         // download from CDN
         byte[] encrypted = getDelegate().downloadData(url, iMsg);
         if (encrypted == null || encrypted.length == 0) {
-            // save symmetric key for decrypted file data after download from CDN
+            // save symmetric key for decrypting file data after download from CDN
             content.setPassword(password);
             return false;
         } else {
