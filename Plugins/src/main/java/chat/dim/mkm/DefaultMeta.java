@@ -33,9 +33,7 @@ package chat.dim.mkm;
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.VerifyKey;
-import chat.dim.format.UTF8;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.MetaType;
@@ -96,21 +94,5 @@ public final class DefaultMeta extends BaseMeta {
             throw new IllegalArgumentException("meta invalid: " + getMap());
         }
         return BTCAddress.generate(getFingerprint(), network);
-    }
-
-    /**
-     *  Generate meta with private key
-     *
-     * @param sKey - private key
-     * @param seed - ID.name
-     * @return Meta
-     */
-    public static DefaultMeta generate(PrivateKey sKey, String seed) {
-        if (seed == null || seed.length() == 0) {
-            throw new NullPointerException("default meta's seed should not be empty!");
-        }
-        int version = MetaType.MKM.value;
-        byte[] fingerprint = sKey.sign(UTF8.encode(seed));
-        return new DefaultMeta(version, sKey.getPublicKey(), seed, fingerprint);
     }
 }

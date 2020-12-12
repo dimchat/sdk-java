@@ -96,9 +96,9 @@ public abstract class Plugins extends chat.dim.crypto.Plugins {
 
             @Override
             public Meta parseMeta(Map<String, Object> meta) {
-                Object version = meta.get("version");
+                Object version = meta.get("type");
                 if (version == null) {
-                    version = meta.get("type");
+                    version = meta.get("version");
                 }
                 int type = (int) version;
                 if (MetaType.Default.equals(type)) {
@@ -117,7 +117,7 @@ public abstract class Plugins extends chat.dim.crypto.Plugins {
             public Document createDocument(ID identifier, String type, byte[] data, byte[] signature) {
                 if (ID.isUser(identifier)) {
                     if (type == null || Document.VISA.equals(type)) {
-                        return new UserProfile(identifier, data, signature);
+                        return new BaseVisa(identifier, data, signature);
                     }
                 } else if (ID.isGroup(identifier)) {
                     return new BaseBulletin(identifier, data, signature);
@@ -129,7 +129,7 @@ public abstract class Plugins extends chat.dim.crypto.Plugins {
             public Document createDocument(ID identifier, String type) {
                 if (ID.isUser(identifier)) {
                     if (type == null || Document.VISA.equals(type)) {
-                        return new UserProfile(identifier);
+                        return new BaseVisa(identifier);
                     }
                 } else if (ID.isGroup(identifier)) {
                     return new BaseBulletin(identifier);
@@ -146,7 +146,7 @@ public abstract class Plugins extends chat.dim.crypto.Plugins {
                 if (ID.isUser(identifier)) {
                     String type = (String) doc.get("type");
                     if (type == null || Document.VISA.equals(type)) {
-                        return new UserProfile(doc);
+                        return new BaseVisa(doc);
                     }
                 } else if (ID.isGroup(identifier)) {
                     return new BaseBulletin(doc);

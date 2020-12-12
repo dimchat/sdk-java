@@ -110,10 +110,11 @@ public final class BTCAddress extends chat.dim.type.String implements Address {
         System.arraycopy(data, 0, prefix, 0, 21);
         System.arraycopy(data, 21, suffix, 0, 4);
         byte[] cc = checkCode(prefix);
-        if (!Arrays.equals(cc, suffix)) {
+        if (Arrays.equals(cc, suffix)) {
+            return new BTCAddress(string, data[0]);
+        } else {
             return null;
         }
-        return new BTCAddress(string, data[0]);
     }
 
     private static byte[] checkCode(byte[] data) {

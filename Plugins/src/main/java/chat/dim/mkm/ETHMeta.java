@@ -32,9 +32,7 @@ package chat.dim.mkm;
 
 import java.util.Map;
 
-import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.VerifyKey;
-import chat.dim.format.UTF8;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.MetaType;
@@ -93,25 +91,5 @@ public final class ETHMeta extends BaseMeta {
         VerifyKey key = getKey();
         byte[] data = key.getData();
         return ETHAddress.generate(data);
-    }
-
-    /**
-     *  Generate meta with private key
-     *
-     * @param sKey - private key
-     * @param seed - ID.name
-     * @return Meta
-     */
-    public static ETHMeta generate(PrivateKey sKey, String seed) {
-        int version;
-        byte[] fingerprint;
-        if (seed == null || seed.length() == 0) {
-            version = MetaType.ETH.value;
-            fingerprint = null;
-        } else {
-            version = MetaType.ExETH.value;
-            fingerprint = sKey.sign(UTF8.encode(seed));
-        }
-        return new ETHMeta(version, sKey.getPublicKey(), seed, fingerprint);
     }
 }

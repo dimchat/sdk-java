@@ -206,7 +206,6 @@ public class MessageProcessor extends Processor {
         CommandFactory.register(StorageCommand.STORAGE, StorageCommand::new);
         CommandFactory.register(StorageCommand.CONTACTS, StorageCommand::new);
         CommandFactory.register(StorageCommand.PRIVATE_KEY, StorageCommand::new);
-
     }
 
     static {
