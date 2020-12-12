@@ -77,7 +77,7 @@ public abstract class AddressNameService {
     };
 
     private final Map<String, Boolean> reserved = new HashMap<>();
-    protected final Map<String, ID> caches = new HashMap<>();
+    private final Map<String, ID> caches = new HashMap<>();
 
     protected AddressNameService() {
         super();
@@ -93,7 +93,7 @@ public abstract class AddressNameService {
         }
     }
 
-    public boolean isReserved(String name) {
+    protected boolean isReserved(String name) {
         Boolean value = reserved.get(name);
         if (value == null) {
             return false;
@@ -101,7 +101,7 @@ public abstract class AddressNameService {
         return value;
     }
 
-    public boolean cache(String name, ID identifier) {
+    protected boolean cache(String name, ID identifier) {
         if (isReserved(name)) {
             // this name is reserved, cannot register
             return false;
@@ -147,5 +147,7 @@ public abstract class AddressNameService {
      * @param identifier - user ID; if empty, means delete this name
      * @return true on success
      */
-    public abstract boolean save(String name, ID identifier);
+    public boolean save(String name, ID identifier) {
+        return cache(name, identifier);
+    }
 }
