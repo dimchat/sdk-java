@@ -142,9 +142,8 @@ public class Station extends User {
         /**
          *  Callback for handshake accepted
          *
-         * @param session - new session key
          * @param server - current station
          */
-        void onHandshakeAccepted(String session, Station server);
+        void onHandshakeAccepted(Station server);
     }
 }
