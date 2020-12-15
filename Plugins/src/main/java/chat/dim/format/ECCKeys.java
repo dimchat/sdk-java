@@ -184,14 +184,6 @@ public final class ECCKeys {
             if (len == 66 || len == 130) {
                 // Hex format
                 return createPublicKey(Hex.decode(pem));
-            } else if (len == 44 || len == 88) {
-                // Base64 format
-                byte[] data = Base64.decode(pem);
-                if (data.length == 32) {
-                    // private key data
-                    return null;
-                }
-                return createPublicKey(Base64.decode(pem));
             }
             return PEM.decodePublicKey(pem, "EC");
         }
@@ -215,14 +207,6 @@ public final class ECCKeys {
             if (len == 64) {
                 // Hex format
                 return createPrivateKey(Hex.decode(pem));
-            } else if (len == 44) {
-                // Base64 format
-                byte[] data = Base64.decode(pem);
-                if (data.length == 33) {
-                    // public key data
-                    return null;
-                }
-                return createPrivateKey(Base64.decode(pem));
             }
             return PEM.decodePrivateKey(pem, "EC");
         }

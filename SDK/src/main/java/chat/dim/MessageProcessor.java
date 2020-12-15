@@ -109,7 +109,10 @@ public class MessageProcessor extends Processor {
         // check local storage
         Document doc = facebook.getDocument(sender, Document.VISA);
         if (doc instanceof Visa) {
-            return true;
+            if (((Visa) doc).getKey() != null) {
+                // visa.key exists
+                return true;
+            }
         }
         if (meta == null) {
             meta = facebook.getMeta(sender);
@@ -118,7 +121,7 @@ public class MessageProcessor extends Processor {
             }
         }
         // if meta.key can be used to encrypt message,
-        // then visa is not necessary
+        // then visa.key is not necessary
         return meta.getKey() instanceof EncryptKey;
     }
 
