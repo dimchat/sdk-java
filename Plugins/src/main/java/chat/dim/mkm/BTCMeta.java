@@ -52,7 +52,7 @@ import chat.dim.protocol.NetworkType;
  *      address = base58_encode(network + hash + code);
  *      number  = uint(code);
  */
-public final class BTCMeta extends BaseMeta {
+final class BTCMeta extends BaseMeta {
 
     BTCMeta(Map<String, Object> dictionary) {
         super(dictionary);
@@ -62,37 +62,31 @@ public final class BTCMeta extends BaseMeta {
         super(version, key, seed, fingerprint);
     }
 
-    @Override
-    public boolean matches(ID identifier) {
-        if (identifier == null) {
-            return false;
-        }
-        Address address = identifier.getAddress();
-        if (address instanceof BTCAddress) {
-            return identifier.equals(generateID());
-        }
-        return false;
-    }
-
     // cache
-    private ID cachedIdentifier = null;
-
-    public ID generateID() {
-        // check cache
-        if (cachedIdentifier == null) {
-            // generate and cache it
-            cachedIdentifier = ID.create(getSeed(), generateAddress(), null);
-        }
-        return cachedIdentifier;
-    }
+    private Address cachedAddress = null;
 
     private Address generateAddress() {
-        assert MetaType.BTC.equals(getType()) || MetaType.ExBTC.equals(getType()) : "meta version error";
-        if (!isValid()) {
-            throw new IllegalArgumentException("meta invalid: " + getMap());
+        if (cachedAddress == null && isValid()) {
+            // generate and cache it
+            VerifyKey key = getKey();
+            byte[] data = key.getData();
+            cachedAddress = BTCAddress.generate(data, NetworkType.BTCMain.value);
         }
-        VerifyKey key = getKey();
-        byte[] data = key.getData();
-        return BTCAddress.generate(data, NetworkType.BTCMain.value);
+        return cachedAddress;
+    }
+
+    @Override
+    public Address generateAddress(byte type) {
+        assert NetworkType.BTCMain.equals(type) : "BTC address type error: " + type;
+        assert MetaType.BTC.equals(getType()) || MetaType.ExBTC.equals(getType()) : "meta version error";
+        return generateAddress();
+    }
+
+    @Override
+    public boolean matches(ID identifier) {
+        if (identifier.getAddress() instanceof BTCAddress) {
+            return super.matches(identifier);
+        }
+        return false;
     }
 }

@@ -51,7 +51,7 @@ import chat.dim.protocol.MetaType;
  *      address = base58_encode(network + hash + code);
  *      number  = uint(code);
  */
-public final class DefaultMeta extends BaseMeta {
+final class DefaultMeta extends BaseMeta {
 
     DefaultMeta(Map<String, Object> dictionary) {
         super(dictionary);
@@ -61,38 +61,28 @@ public final class DefaultMeta extends BaseMeta {
         super(version, key, seed, fingerprint);
     }
 
+    // caches
+    private Map<Byte, Address> cachedAddresses = new HashMap<>();
+
+    @Override
+    public Address generateAddress(byte type) {
+        assert MetaType.MKM.equals(getType()) : "meta version error: " + getType();
+        // check caches
+        Address address = cachedAddresses.get(type);
+        if (address == null && isValid()) {
+            // generate and cache it
+            address = BTCAddress.generate(getFingerprint(), type);
+            cachedAddresses.put(type, address);
+        }
+        return address;
+    }
+
+
     @Override
     public boolean matches(ID identifier) {
-        if (identifier == null) {
-            return false;
-        }
-        Address address = identifier.getAddress();
-        if (address instanceof BTCAddress) {
-            byte network = address.getNetwork();
-            return identifier.equals(generateID(network));
+        if (identifier.getAddress() instanceof BTCAddress) {
+            return super.matches(identifier);
         }
         return false;
-    }
-
-    // cache
-    private Map<Byte, ID> cachedIdentifiers = new HashMap<>();
-
-    public ID generateID(byte network) {
-        // check cache
-        ID identifier = cachedIdentifiers.get(network);
-        if (identifier == null) {
-            // generate and cache it
-            identifier = ID.create(getSeed(), generateAddress(network), null);
-            cachedIdentifiers.put(network, identifier);
-        }
-        return identifier;
-    }
-
-    private Address generateAddress(byte network) {
-        assert MetaType.MKM.equals(getType()) : "meta version error";
-        if (!isValid()) {
-            throw new IllegalArgumentException("meta invalid: " + getMap());
-        }
-        return BTCAddress.generate(getFingerprint(), network);
     }
 }

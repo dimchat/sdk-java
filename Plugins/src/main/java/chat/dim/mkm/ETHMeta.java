@@ -36,6 +36,7 @@ import chat.dim.crypto.VerifyKey;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.MetaType;
+import chat.dim.protocol.NetworkType;
 
 /**
  *  Meta to build ETH address for ID
@@ -49,7 +50,7 @@ import chat.dim.protocol.MetaType;
  *      digest  = keccak256(CT);
  *      address = hex_encode(digest.suffix(20));
  */
-public final class ETHMeta extends BaseMeta {
+final class ETHMeta extends BaseMeta {
 
     ETHMeta(Map<String, Object> dictionary) {
         super(dictionary);
@@ -59,37 +60,31 @@ public final class ETHMeta extends BaseMeta {
         super(version, key, seed, fingerprint);
     }
 
-    @Override
-    public boolean matches(ID identifier) {
-        if (identifier == null) {
-            return false;
-        }
-        Address address = identifier.getAddress();
-        if (address instanceof ETHAddress) {
-            return identifier.equals(generateID());
-        }
-        return false;
-    }
-
     // cache
-    private ID cachedIdentifier = null;
-
-    public ID generateID() {
-        // check cache
-        if (cachedIdentifier == null) {
-            // generate and cache it
-            cachedIdentifier = ID.create(getSeed(), generateAddress(), null);
-        }
-        return cachedIdentifier;
-    }
+    private Address cachedAddress = null;
 
     private Address generateAddress() {
-        assert MetaType.ETH.equals(getType()) || MetaType.ExETH.equals(getType()) : "meta version error";
-        if (!isValid()) {
-            throw new IllegalArgumentException("meta invalid: " + getMap());
+        if (cachedAddress == null && isValid()) {
+            // generate and cache it
+            VerifyKey key = getKey();
+            byte[] data = key.getData();
+            cachedAddress = ETHAddress.generate(data);
         }
-        VerifyKey key = getKey();
-        byte[] data = key.getData();
-        return ETHAddress.generate(data);
+        return cachedAddress;
+    }
+
+    @Override
+    public Address generateAddress(byte type) {
+        assert NetworkType.Main.equals(type) : "ETH address type error: " + type;
+        assert MetaType.ETH.equals(getType()) || MetaType.ExETH.equals(getType()) : "meta version error";
+        return generateAddress();
+    }
+
+    @Override
+    public boolean matches(ID identifier) {
+        if (identifier.getAddress() instanceof ETHAddress) {
+            return super.matches(identifier);
+        }
+        return false;
     }
 }
