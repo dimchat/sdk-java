@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import chat.dim.Facebook;
-import chat.dim.Messenger;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
@@ -44,8 +43,8 @@ import chat.dim.protocol.TextContent;
 
 public class GroupCommandProcessor extends HistoryCommandProcessor {
 
-    public GroupCommandProcessor(Messenger messenger) {
-        super(messenger);
+    public GroupCommandProcessor() {
+        super();
     }
 
     @SuppressWarnings("unchecked")
@@ -97,15 +96,11 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
     @Override
     public Content process(Content content, ReliableMessage rMsg) {
         assert content instanceof GroupCommand : "group command error: " + content;
-        GroupCommand cmd = (GroupCommand) content;
+        Command cmd = (Command) content;
         CommandProcessor cpu = getProcessor(cmd);
-        if (cpu == null) {
-            cpu = getProcessor(Command.UNKNOWN);
-        }
         if (cpu == null || cpu == this) {
             return unknown(cmd, rMsg);
         }
-        cpu.setMessenger(getMessenger());
         return cpu.process(cmd, rMsg);
     }
 }

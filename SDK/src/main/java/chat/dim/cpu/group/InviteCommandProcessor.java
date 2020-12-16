@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import chat.dim.Facebook;
-import chat.dim.Messenger;
 import chat.dim.cpu.CommandProcessor;
 import chat.dim.cpu.GroupCommandProcessor;
 import chat.dim.protocol.Content;
@@ -45,8 +44,8 @@ import chat.dim.protocol.group.InviteCommand;
 
 public class InviteCommandProcessor extends GroupCommandProcessor {
 
-    public InviteCommandProcessor(Messenger messenger) {
-        super(messenger);
+    public InviteCommandProcessor() {
+        super();
     }
 
     // check whether this is a Reset command

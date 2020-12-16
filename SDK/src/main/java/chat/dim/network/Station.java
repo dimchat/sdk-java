@@ -73,7 +73,7 @@ public class Station extends User {
      */
     public String getHost() {
         if (host == null) {
-            Document doc = getDocument(Document.ANY);
+            Document doc = getDocument("*");
             if (doc != null) {
                 Object value = doc.getProperty("host");
                 if (value != null) {
@@ -94,7 +94,7 @@ public class Station extends User {
      */
     public int getPort() {
         if (port == 0) {
-            Document doc = getDocument(Document.ANY);
+            Document doc = getDocument("*");
             if (doc != null) {
                 Object value = doc.getProperty("port");
                 if (value != null) {

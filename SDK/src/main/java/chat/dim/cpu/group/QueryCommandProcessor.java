@@ -33,7 +33,6 @@ package chat.dim.cpu.group;
 import java.util.List;
 
 import chat.dim.Facebook;
-import chat.dim.Messenger;
 import chat.dim.User;
 import chat.dim.cpu.GroupCommandProcessor;
 import chat.dim.protocol.Content;
@@ -46,8 +45,8 @@ import chat.dim.protocol.group.ResetCommand;
 
 public class QueryCommandProcessor extends GroupCommandProcessor {
 
-    public QueryCommandProcessor(Messenger messenger) {
-        super(messenger);
+    public QueryCommandProcessor() {
+        super();
     }
 
     @Override

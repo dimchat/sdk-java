@@ -40,8 +40,8 @@ import chat.dim.protocol.SecureMessage;
 
 public class FileContentProcessor extends ContentProcessor {
 
-    public FileContentProcessor(Messenger messenger) {
-        super(messenger);
+    public FileContentProcessor() {
+        super();
     }
 
     private Messenger.Delegate getDelegate() {

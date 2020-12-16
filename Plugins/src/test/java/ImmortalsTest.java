@@ -4,7 +4,6 @@ import org.junit.Test;
 import chat.dim.User;
 import chat.dim.Immortals;
 import chat.dim.mkm.BroadcastAddress;
-import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 
 public class ImmortalsTest {
@@ -18,13 +17,13 @@ public class ImmortalsTest {
         User hulk = facebook.getUser(immortals.getID(Immortals.HULK));
         Log.info("hulk: " + hulk);
 
-        Log.info("profile: " + facebook.getDocument(hulk.identifier, Document.ANY));
+        Log.info("profile: " + facebook.getDocument(hulk.identifier, "*"));
 
         // Monkey King
         User moki = facebook.getUser(immortals.getID(Immortals.MOKI));
         Log.info("moki: " + moki);
 
-        Log.info("profile: " + facebook.getDocument(moki.identifier, Document.ANY));
+        Log.info("profile: " + facebook.getDocument(moki.identifier, "*"));
 
         // Everyone
         User anyone = new User(ID.ANYONE);

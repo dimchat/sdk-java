@@ -30,17 +30,18 @@
  */
 package chat.dim.cpu;
 
-import chat.dim.Messenger;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
+import chat.dim.protocol.GroupCommand;
+import chat.dim.protocol.HistoryCommand;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.TextContent;
 
 public class HistoryCommandProcessor extends CommandProcessor {
 
-    public HistoryCommandProcessor(Messenger messenger) {
-        super(messenger);
+    public HistoryCommandProcessor() {
+        super();
     }
 
     @Override
@@ -53,5 +54,27 @@ public class HistoryCommandProcessor extends CommandProcessor {
             res.setGroup(group);
         }
         return res;
+    }
+
+    @Override
+    public Content process(Content content, ReliableMessage rMsg) {
+        assert content instanceof HistoryCommand : "History command error: " + content;
+        Command cmd = (Command) content;
+        // get CPU by command name
+        CommandProcessor cpu = getProcessor(cmd);
+        if (cpu == null) {
+            // check for group command
+            if (cmd instanceof GroupCommand) {
+                cpu = getProcessor("group");
+            }
+            if (cpu == null) {
+                // unknown command
+                cpu = getProcessor("*");
+            }
+        }
+        if (cpu == null || cpu == this) {
+            return unknown(cmd, rMsg);
+        }
+        return cpu.process(cmd, rMsg);
     }
 }

@@ -31,7 +31,6 @@
 package chat.dim.cpu;
 
 import chat.dim.Facebook;
-import chat.dim.Messenger;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.DocumentCommand;
@@ -43,8 +42,8 @@ import chat.dim.protocol.TextContent;
 
 public class DocumentCommandProcessor extends CommandProcessor {
 
-    public DocumentCommandProcessor(Messenger messenger) {
-        super(messenger);
+    public DocumentCommandProcessor() {
+        super();
     }
 
     private Content getDocument(ID identifier, String type) {
@@ -100,7 +99,7 @@ public class DocumentCommandProcessor extends CommandProcessor {
         if (doc == null) {
             String type = (String) cmd.get("doc_type");
             if (type == null) {
-                type = Document.ANY;
+                type = "*";  // ANY
             }
             return getDocument(identifier, type);
         } else {

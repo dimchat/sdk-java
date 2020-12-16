@@ -1,7 +1,6 @@
 
 package chat.dim.cpu;
 
-import chat.dim.Messenger;
 import chat.dim.protocol.AudioContent;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.FileContent;
@@ -15,8 +14,8 @@ import chat.dim.protocol.VideoContent;
 
 public class AnyContentProcessor extends ContentProcessor {
 
-    public AnyContentProcessor(Messenger messenger) {
-        super(messenger);
+    public AnyContentProcessor() {
+        super();
     }
 
     protected Content unknown(Content content, ReliableMessage rMsg) {

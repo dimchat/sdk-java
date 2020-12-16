@@ -33,7 +33,6 @@ package chat.dim.cpu.group;
 import java.util.List;
 
 import chat.dim.Facebook;
-import chat.dim.Messenger;
 import chat.dim.cpu.GroupCommandProcessor;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
@@ -42,8 +41,8 @@ import chat.dim.protocol.group.QuitCommand;
 
 public class QuitCommandProcessor extends GroupCommandProcessor {
 
-    public QuitCommandProcessor(Messenger messenger) {
-        super(messenger);
+    public QuitCommandProcessor() {
+        super();
     }
 
     private void doQuit(ID sender, ID group) {

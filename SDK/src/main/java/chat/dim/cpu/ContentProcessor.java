@@ -31,8 +31,6 @@
 package chat.dim.cpu;
 
 import java.lang.ref.WeakReference;
-import java.util.HashMap;
-import java.util.Map;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
@@ -47,15 +45,10 @@ import chat.dim.protocol.TextContent;
  */
 public class ContentProcessor {
 
-    private WeakReference<Messenger> messengerRef;
+    private WeakReference<Messenger> messengerRef = null;
 
-    public ContentProcessor(Messenger messenger) {
+    public ContentProcessor() {
         super();
-        if (messenger == null) {
-            messengerRef = null;
-        } else {
-            setMessenger(messenger);
-        }
     }
 
     public void setMessenger(Messenger messenger) {
@@ -69,7 +62,7 @@ public class ContentProcessor {
         return getMessenger().getFacebook();
     }
 
-    protected Content unknown(Content content, ReliableMessage rMsg) {
+    public Content process(Content content, ReliableMessage rMsg) {
         String text = String.format("Content (type: %d) not support yet!", content.getType());
         TextContent res = new TextContent(text);
         // check group message
@@ -80,57 +73,46 @@ public class ContentProcessor {
         return res;
     }
 
-    public Content process(Content content, ReliableMessage rMsg) {
-        ContentProcessor cpu = getProcessor(content);
-        if (cpu == null) {
-            cpu = getProcessor(ContentType.UNKNOWN);
-        }
-        if (cpu == null || cpu == this) {
-            return unknown(content, rMsg);
-        }
-        return cpu.process(content, rMsg);
-    }
-
     //
     //  CPU factory
     //
-    private static final Map<Integer, ContentProcessor> processors = new HashMap<>();
 
-    public static void register(int type, ContentProcessor cpu) {
-        processors.put(type, cpu);
+    public static ContentProcessor getProcessor(Content content) {
+        return getProcessor(content.getType());
     }
-    public static void register(ContentType type, ContentProcessor cpu) {
-        processors.put(type.value, cpu);
+    public static ContentProcessor getProcessor(ContentType type) {
+        return getProcessor(type.value);
     }
-
-    public ContentProcessor getProcessor(int type) {
-        ContentProcessor cpu = processors.get(type);
+    public static ContentProcessor getProcessor(int type) {
+        ContentProcessor cpu = Processors.contentProcessors.get(type);
         if (cpu == null) {
             return null;
         }
-        cpu.setMessenger(getMessenger());
         return cpu;
     }
-    public ContentProcessor getProcessor(ContentType type) {
-        return getProcessor(type.value);
+
+    public static void register(int type, ContentProcessor cpu) {
+        Processors.contentProcessors.put(type, cpu);
     }
-    public ContentProcessor getProcessor(Content content) {
-        return getProcessor(content.getType());
+    public static void register(ContentType type, ContentProcessor cpu) {
+        Processors.contentProcessors.put(type.value, cpu);
     }
 
     public static void registerAllProcessors() {
         //
         //  Register content processors
         //
-        register(ContentType.FORWARD, new ForwardContentProcessor(null));
+        register(ContentType.FORWARD, new ForwardContentProcessor());
 
-        FileContentProcessor fileProcessor = new FileContentProcessor(null);
+        FileContentProcessor fileProcessor = new FileContentProcessor();
         register(ContentType.FILE, fileProcessor);
         register(ContentType.IMAGE, fileProcessor);
         register(ContentType.AUDIO, fileProcessor);
         register(ContentType.VIDEO, fileProcessor);
 
-        register(ContentType.COMMAND, new CommandProcessor(null));
-        register(ContentType.HISTORY, new HistoryCommandProcessor(null));
+        register(ContentType.COMMAND, new CommandProcessor());
+        register(ContentType.HISTORY, new HistoryCommandProcessor());
+
+        register(0, new ContentProcessor());
     }
 }

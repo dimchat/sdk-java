@@ -25,7 +25,6 @@
  */
 package chat.dim.crypto;
 
-import chat.dim.digest.DataDigester;
 import org.bouncycastle.crypto.digests.KeccakDigest;
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
 
@@ -34,116 +33,123 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.crypto.NoSuchPaddingException;
+
+import chat.dim.digest.DataDigester;
 import chat.dim.digest.Keccak256;
 import chat.dim.digest.RIPEMD160;
-
-import javax.crypto.NoSuchPaddingException;
 
 public abstract class Plugins extends chat.dim.format.Plugins {
 
     static {
 
         /*
-         *  Key Parsers
+         *  Symmetric Key Parsers
          */
-
-        Factories.symmetricKeyFactory = new SymmetricKey.Factory() {
+        SymmetricKey.register(SymmetricKey.AES, new SymmetricKey.Factory() {
 
             @Override
-            public SymmetricKey generateSymmetricKey(String algorithm) {
-                // Plain key
-                if (PlainKey.PLAIN.equals(algorithm)) {
-                    return PlainKey.getInstance();
-                }
+            public SymmetricKey generateSymmetricKey() {
                 Map<String, Object> key = new HashMap<>();
-                key.put("algorithm", algorithm);
+                key.put("algorithm", SymmetricKey.AES);
                 return parseSymmetricKey(key);
             }
 
             @Override
             public SymmetricKey parseSymmetricKey(Map<String, Object> key) {
-                String algorithm = (String) key.get("algorithm");
-                // AES key
-                if (SymmetricKey.AES.equals(algorithm)) {
-                    try {
-                        return new AESKey(key);
-                    } catch (NoSuchPaddingException | NoSuchAlgorithmException e) {
-                        e.printStackTrace();
-                        return null;
-                    }
+                try {
+                    return new AESKey(key);
+                } catch (NoSuchPaddingException | NoSuchAlgorithmException e) {
+                    e.printStackTrace();
+                    return null;
                 }
-                // Plain key
-                if (PlainKey.PLAIN.equals(algorithm)) {
-                    return PlainKey.getInstance();
-                }
-                return null;
             }
-        };
-        Factories.publicKeyFactory = new PublicKey.Factory() {
+        });
+        SymmetricKey.register(PlainKey.PLAIN, new SymmetricKey.Factory() {
 
             @Override
-            public PublicKey parsePublicKey(Map<String, Object> key) {
-                String algorithm = (String) key.get("algorithm");
-                // RSA key
-                if (AsymmetricKey.RSA.equals(algorithm)) {
-                    try {
-                        return new RSAPublicKey(key);
-                    } catch (NoSuchFieldException e) {
-                        e.printStackTrace();
-                        return null;
-                    }
-                }
-                // ECC key
-                if (AsymmetricKey.ECC.equals(algorithm)) {
-                    try {
-                        return new ECCPublicKey(key);
-                    } catch (NoSuchFieldException e) {
-                        e.printStackTrace();
-                        return null;
-                    }
-                }
-                return null;
+            public SymmetricKey generateSymmetricKey() {
+                return PlainKey.getInstance();
             }
-        };
-        Factories.privateKeyFactory = new PrivateKey.Factory() {
 
             @Override
-            public PrivateKey generatePrivateKey(String algorithm) {
+            public SymmetricKey parseSymmetricKey(Map<String, Object> key) {
+                return PlainKey.getInstance();
+            }
+        });
+
+        /*
+         *  Private Key Parsers
+         */
+        PrivateKey.register(AsymmetricKey.RSA, new PrivateKey.Factory() {
+
+            @Override
+            public PrivateKey generatePrivateKey() {
                 Map<String, Object> key = new HashMap<>();
-                key.put("algorithm", algorithm);
+                key.put("algorithm", AsymmetricKey.RSA);
                 return parsePrivateKey(key);
             }
 
             @Override
             public PrivateKey parsePrivateKey(Map<String, Object> key) {
-                String algorithm = (String) key.get("algorithm");
-                // RSA key
-                if (AsymmetricKey.RSA.equals(algorithm)) {
-                    try {
-                        return new RSAPrivateKey(key);
-                    } catch (NoSuchAlgorithmException e) {
-                        e.printStackTrace();
-                        return null;
-                    }
+                try {
+                    return new RSAPrivateKey(key);
+                } catch (NoSuchAlgorithmException e) {
+                    e.printStackTrace();
+                    return null;
                 }
-                // ECC key
-                if (AsymmetricKey.ECC.equals(algorithm)) {
-                    try {
-                        return new ECCPrivateKey(key);
-                    } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
-                        e.printStackTrace();
-                        return null;
-                    }
-                }
-                return null;
             }
-        };
+        });
+        PrivateKey.register(AsymmetricKey.ECC, new PrivateKey.Factory() {
+
+            @Override
+            public PrivateKey generatePrivateKey() {
+                Map<String, Object> key = new HashMap<>();
+                key.put("algorithm", AsymmetricKey.ECC);
+                return parsePrivateKey(key);
+            }
+
+            @Override
+            public PrivateKey parsePrivateKey(Map<String, Object> key) {
+                try {
+                    return new ECCPrivateKey(key);
+                } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+        });
+
+        /*
+         *  Public Key Parsers
+         */
+        PublicKey.register(AsymmetricKey.RSA, new PublicKey.Factory() {
+
+            @Override
+            public PublicKey parsePublicKey(Map<String, Object> key) {
+                try {
+                    return new RSAPublicKey(key);
+                } catch (NoSuchFieldException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+        });
+        PublicKey.register(AsymmetricKey.ECC, new PublicKey.Factory() {
+            @Override
+            public PublicKey parsePublicKey(Map<String, Object> key) {
+                try {
+                    return new ECCPublicKey(key);
+                } catch (NoSuchFieldException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+        });
 
         /*
          *  Digest
          */
-
-        // RIPEMD160
         RIPEMD160.digester = new DataDigester() {
             @Override
             public byte[] digest(byte[] data) {
@@ -154,8 +160,6 @@ public abstract class Plugins extends chat.dim.format.Plugins {
                 return out;
             }
         };
-
-        // Keccak256
         Keccak256.digester = new DataDigester() {
             @Override
             public byte[] digest(byte[] data) {

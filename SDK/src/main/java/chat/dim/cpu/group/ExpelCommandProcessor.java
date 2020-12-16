@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import chat.dim.Facebook;
-import chat.dim.Messenger;
 import chat.dim.cpu.GroupCommandProcessor;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
@@ -44,8 +43,8 @@ import chat.dim.protocol.group.ExpelCommand;
 
 public class ExpelCommandProcessor extends GroupCommandProcessor {
 
-    public ExpelCommandProcessor(Messenger messenger) {
-        super(messenger);
+    public ExpelCommandProcessor() {
+        super();
     }
 
     private List<String> doExpel(List<ID> expelList, ID group) {

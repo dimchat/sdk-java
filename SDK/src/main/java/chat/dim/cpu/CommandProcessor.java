@@ -30,10 +30,6 @@
  */
 package chat.dim.cpu;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import chat.dim.Messenger;
 import chat.dim.cpu.group.ExpelCommandProcessor;
 import chat.dim.cpu.group.InviteCommandProcessor;
 import chat.dim.cpu.group.QueryCommandProcessor;
@@ -51,8 +47,8 @@ import chat.dim.protocol.TextContent;
  */
 public class CommandProcessor extends ContentProcessor {
 
-    public CommandProcessor(Messenger messenger) {
-        super(messenger);
+    public CommandProcessor() {
+        super();
     }
 
     protected Content unknown(Command cmd, ReliableMessage rMsg) {
@@ -70,13 +66,16 @@ public class CommandProcessor extends ContentProcessor {
     public Content process(Content content, ReliableMessage rMsg) {
         assert content instanceof Command : "command error: " + content;
         Command cmd = (Command) content;
+        // get CPU by command name
         CommandProcessor cpu = getProcessor(cmd);
         if (cpu == null) {
+            // check for group command
             if (cmd instanceof GroupCommand) {
                 cpu = getProcessor("group");
             }
             if (cpu == null) {
-                cpu = getProcessor(Command.UNKNOWN);
+                // unknown command
+                cpu = getProcessor("*");
             }
         }
         if (cpu == null || cpu == this) {
@@ -88,40 +87,38 @@ public class CommandProcessor extends ContentProcessor {
     //
     //  CPU factory
     //
-    private static final Map<String, CommandProcessor> processors = new HashMap<>();
-    private static GroupCommandProcessor gpu = null;
 
-    public static void register(String command, CommandProcessor cpu) {
-        processors.put(command, cpu);
+    public CommandProcessor getProcessor(Command cmd) {
+        return getProcessor(cmd.getCommand());
     }
-
     public CommandProcessor getProcessor(String command) {
-        CommandProcessor cpu = processors.get(command);
+        CommandProcessor cpu = Processors.commandProcessors.get(command);
         if (cpu == null) {
             return null;
         }
         cpu.setMessenger(getMessenger());
         return cpu;
     }
-    public CommandProcessor getProcessor(Command cmd) {
-        return getProcessor(cmd.getCommand());
+
+    public static void register(String command, CommandProcessor cpu) {
+        Processors.commandProcessors.put(command, cpu);
     }
 
     public static void registerAllProcessors() {
         //
         //  Register command processors
         //
-        register(Command.META, new MetaCommandProcessor(null));
+        register(Command.META, new MetaCommandProcessor());
 
-        CommandProcessor docProcessor = new DocumentCommandProcessor(null);
+        CommandProcessor docProcessor = new DocumentCommandProcessor();
         register(Command.PROFILE, docProcessor);
         register(Command.DOCUMENT, docProcessor);
 
-        register("group", new GroupCommandProcessor(null));
-        register(GroupCommand.INVITE, new InviteCommandProcessor(null));
-        register(GroupCommand.EXPEL, new ExpelCommandProcessor(null));
-        register(GroupCommand.QUIT, new QuitCommandProcessor(null));
-        register(GroupCommand.QUERY, new QueryCommandProcessor(null));
-        register(GroupCommand.RESET, new ResetCommandProcessor(null));
+        register("group", new GroupCommandProcessor());
+        register(GroupCommand.INVITE, new InviteCommandProcessor());
+        register(GroupCommand.EXPEL, new ExpelCommandProcessor());
+        register(GroupCommand.QUIT, new QuitCommandProcessor());
+        register(GroupCommand.QUERY, new QueryCommandProcessor());
+        register(GroupCommand.RESET, new ResetCommandProcessor());
     }
 }

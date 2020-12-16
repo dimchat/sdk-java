@@ -30,8 +30,8 @@
  */
 package chat.dim;
 
-import chat.dim.core.CommandFactory;
 import chat.dim.core.Processor;
+import chat.dim.cpu.CommandProcessor;
 import chat.dim.cpu.ContentProcessor;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.protocol.BlockCommand;
@@ -53,25 +53,24 @@ import chat.dim.protocol.Visa;
 
 public class MessageProcessor extends Processor {
 
-    private final ContentProcessor cpu;
-
     public MessageProcessor(Messenger messenger) {
         super(messenger, messenger.getEntityDelegate(), messenger.getCipherKeyDelegate());
-        cpu = getContentProcessor();
-    }
-
-    protected ContentProcessor getContentProcessor() {
-        return new ContentProcessor(getMessenger());
     }
 
     protected ContentProcessor getContentProcessor(Content content) {
-        return cpu.getProcessor(content);
+        return getContentProcessor(content.getType());
     }
     protected ContentProcessor getContentProcessor(ContentType type) {
-        return cpu.getProcessor(type);
+        return getContentProcessor(type.value);
     }
     protected ContentProcessor getContentProcessor(int type) {
-        return cpu.getProcessor(type);
+        ContentProcessor cpu = ContentProcessor.getProcessor(type);
+        if (cpu == null) {
+            cpu = ContentProcessor.getProcessor(0);  // unknown
+            assert cpu != null : "failed to get CPU for type: " + type;
+        }
+        cpu.setMessenger(getMessenger());
+        return cpu;
     }
 
     protected Messenger getMessenger() {
@@ -188,34 +187,22 @@ public class MessageProcessor extends Processor {
         return cpu.process(content, rMsg);
     }
 
-    public static void registerAllParsers() {
+    static {
 
         //
-        //  Register core parsers
+        //  Register command factories
         //
-        CommandFactory.registerCoreParsers();
+        Command.register(Command.RECEIPT, ReceiptCommand::new);
+        Command.register(Command.HANDSHAKE, HandshakeCommand::new);
+        Command.register(Command.LOGIN, LoginCommand::new);
 
-        //
-        //  Register command parsers
-        //
-        CommandFactory.register(Command.RECEIPT, ReceiptCommand::new);
-        CommandFactory.register(Command.HANDSHAKE, HandshakeCommand::new);
-        CommandFactory.register(Command.LOGIN, LoginCommand::new);
-
-        CommandFactory.register(MuteCommand.MUTE, MuteCommand::new);
-        CommandFactory.register(BlockCommand.BLOCK, BlockCommand::new);
+        Command.register(MuteCommand.MUTE, MuteCommand::new);
+        Command.register(BlockCommand.BLOCK, BlockCommand::new);
 
         // storage (contacts, private_key)
-        CommandFactory.register(StorageCommand.STORAGE, StorageCommand::new);
-        CommandFactory.register(StorageCommand.CONTACTS, StorageCommand::new);
-        CommandFactory.register(StorageCommand.PRIVATE_KEY, StorageCommand::new);
-    }
-
-    static {
-        //
-        //  Register content/command parsers
-        //
-        registerAllParsers();
+        Command.register(StorageCommand.STORAGE, StorageCommand::new);
+        Command.register(StorageCommand.CONTACTS, StorageCommand::new);
+        Command.register(StorageCommand.PRIVATE_KEY, StorageCommand::new);
 
         //
         //  Register content processors
@@ -225,6 +212,6 @@ public class MessageProcessor extends Processor {
         //
         //  Register command processors
         //
-        ContentProcessor.registerAllProcessors();
+        CommandProcessor.registerAllProcessors();
     }
 }

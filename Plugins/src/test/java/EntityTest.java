@@ -11,8 +11,6 @@ import chat.dim.Group;
 import chat.dim.Immortals;
 import chat.dim.User;
 import chat.dim.crypto.SignKey;
-//import chat.dim.mkm.BTCAddress;
-import chat.dim.mkm.BroadcastAddress;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
@@ -91,7 +89,7 @@ public class EntityTest {
         identifier = ID.parse("moky@4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ");
         Log.info("ID: " + identifier + ", detail: " + getIDInfo(identifier));
 
-        Log.info("is broadcast: " + (identifier.getAddress() instanceof BroadcastAddress));
+        Log.info("is broadcast: " + ID.isBroadcast(identifier));
 
         Assert.assertEquals(identifier, ID.parse("moky@4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ/home"));
 
@@ -170,7 +168,7 @@ public class EntityTest {
         }
         Assert.assertEquals(account.getType(), user.getType());
 
-        Document profile = user.getDocument(Document.ANY);
+        Document profile = user.getDocument("*");
         if (profile != null) {
             Log.info("profile: " + getProfileInfo(profile));
         }

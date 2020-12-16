@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 
 import chat.dim.Facebook;
-import chat.dim.Messenger;
 import chat.dim.cpu.GroupCommandProcessor;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
@@ -48,8 +47,8 @@ import chat.dim.protocol.group.ResetCommand;
 
 public class ResetCommandProcessor extends GroupCommandProcessor {
 
-    public ResetCommandProcessor(Messenger messenger) {
-        super(messenger);
+    public ResetCommandProcessor() {
+        super();
     }
 
     private Content temporarySave(List<ID> newMembers, ID sender, ID group) {

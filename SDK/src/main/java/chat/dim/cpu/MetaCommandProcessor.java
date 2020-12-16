@@ -31,7 +31,6 @@
 package chat.dim.cpu;
 
 import chat.dim.Facebook;
-import chat.dim.Messenger;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
@@ -42,8 +41,8 @@ import chat.dim.protocol.TextContent;
 
 public class MetaCommandProcessor extends CommandProcessor {
 
-    public MetaCommandProcessor(Messenger messenger) {
-        super(messenger);
+    public MetaCommandProcessor() {
+        super();
     }
 
     private Content getMeta(ID identifier) {

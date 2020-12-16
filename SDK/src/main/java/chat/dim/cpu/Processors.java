@@ -2,12 +2,12 @@
  *
  *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
- *                                Written in 2019 by Moky <albert.moky@gmail.com>
+ *                                Written in 2020 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Albert Moky
+ * Copyright (c) 2020 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,35 +30,11 @@
  */
 package chat.dim.cpu;
 
-import chat.dim.protocol.Content;
-import chat.dim.protocol.ForwardContent;
-import chat.dim.protocol.ReliableMessage;
+import java.util.HashMap;
+import java.util.Map;
 
-public class ForwardContentProcessor extends ContentProcessor {
+class Processors {
 
-    public ForwardContentProcessor() {
-        super();
-    }
-
-    @Override
-    public Content process(Content content, ReliableMessage rMsg) {
-        assert content instanceof ForwardContent : "forward content error: " + content;
-        ForwardContent forward = (ForwardContent) content;
-        ReliableMessage secret = forward.getMessage();
-        // call messenger to process it
-        secret = getMessenger().getMessageProcessor().process(secret);
-        // check response
-        if (secret != null) {
-            // Over The Top
-            return new ForwardContent(secret);
-        }/* else {
-            Object receiver = forward.forwardMessage.getReceiver();
-            String text = String.format("Message forwarded: %s", receiver);
-            return new ReceiptCommand(text);
-        }*/
-
-        // NOTICE: decrypt failed, not for you?
-        //         it means you are asked to re-pack and forward this message
-        return null;
-    }
+    static final Map<Integer, ContentProcessor> contentProcessors = new HashMap<>();
+    static final Map<String, CommandProcessor> commandProcessors = new HashMap<>();
 }
