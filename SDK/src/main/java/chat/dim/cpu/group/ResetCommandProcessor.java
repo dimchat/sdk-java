@@ -37,6 +37,7 @@ import java.util.Map;
 
 import chat.dim.Facebook;
 import chat.dim.cpu.GroupCommandProcessor;
+import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.ID;
@@ -115,13 +116,13 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ReliableMessage rMsg) {
-        assert content instanceof ResetCommand || content instanceof InviteCommand : "reset command error: " + content;
-        ID group = content.getGroup();
+    public Content execute(Command cmd, ReliableMessage rMsg) {
+        assert cmd instanceof ResetCommand || cmd instanceof InviteCommand : "reset command error: " + cmd;
+        ID group = cmd.getGroup();
         // new members
-        List<ID> newMembers = getMembers((GroupCommand) content);
+        List<ID> newMembers = getMembers((GroupCommand) cmd);
         if (newMembers == null || newMembers.size() == 0) {
-            throw new NullPointerException("reset group command error: " + content);
+            throw new NullPointerException("reset group command error: " + cmd);
         }
         // 0. check whether group info empty
         ID sender = rMsg.getSender();
@@ -142,11 +143,11 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
         Map<String, Object> result = doReset(newMembers, group);
         Object added = result.get("added");
         if (added != null) {
-            content.put("added", added);
+            cmd.put("added", added);
         }
         Object removed = result.get("removed");
         if (removed != null) {
-            content.put("removed", removed);
+            cmd.put("removed", removed);
         }
         // 3. response (no need to response this group command)
         return null;

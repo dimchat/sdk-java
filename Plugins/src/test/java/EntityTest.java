@@ -146,7 +146,7 @@ public class EntityTest {
         profile.setProperty("age", 18);
         Log.info("profile: " + profile);
 
-        SignKey key = facebook.getPrivateKeyForSignature(identifier);
+        SignKey key = facebook.getPrivateKeyForVisaSignature(identifier);
         profile.sign(key);
         Log.info("profile: " + profile);
     }

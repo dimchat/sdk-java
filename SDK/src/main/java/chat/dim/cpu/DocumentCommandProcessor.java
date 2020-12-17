@@ -31,6 +31,7 @@
 package chat.dim.cpu;
 
 import chat.dim.Facebook;
+import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.DocumentCommand;
@@ -91,11 +92,11 @@ public class DocumentCommandProcessor extends CommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ReliableMessage rMsg) {
-        assert content instanceof DocumentCommand : "document command error: " + content;
-        DocumentCommand cmd = (DocumentCommand) content;
-        Document doc = cmd.getDocument();
-        ID identifier = cmd.getIdentifier();
+    public Content execute(Command cmd, ReliableMessage rMsg) {
+        assert cmd instanceof DocumentCommand : "document command error: " + cmd;
+        DocumentCommand dCmd = (DocumentCommand) cmd;
+        Document doc = dCmd.getDocument();
+        ID identifier = dCmd.getIdentifier();
         if (doc == null) {
             String type = (String) cmd.get("doc_type");
             if (type == null) {
@@ -104,7 +105,7 @@ public class DocumentCommandProcessor extends CommandProcessor {
             return getDocument(identifier, type);
         } else {
             // check meta
-            Meta meta = cmd.getMeta();
+            Meta meta = dCmd.getMeta();
             return putDocument(identifier, meta, doc);
         }
     }

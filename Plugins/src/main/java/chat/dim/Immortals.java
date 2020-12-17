@@ -160,7 +160,7 @@ public final class Immortals extends chat.dim.mkm.Plugins implements User.DataSo
 
     private byte[] sign(Document profile) {
         ID identifier = getID(profile.getIdentifier());
-        SignKey key = getPrivateKeyForSignature(identifier);
+        SignKey key = getPrivateKeyForVisaSignature(identifier);
         assert key != null : "failed to get private key for signature: " + identifier;
         return profile.sign(key);
     }

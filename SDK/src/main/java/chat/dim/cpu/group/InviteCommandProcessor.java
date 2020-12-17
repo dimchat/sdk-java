@@ -36,6 +36,7 @@ import java.util.List;
 import chat.dim.Facebook;
 import chat.dim.cpu.CommandProcessor;
 import chat.dim.cpu.GroupCommandProcessor;
+import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.ID;
@@ -91,15 +92,15 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ReliableMessage rMsg) {
-        assert content instanceof InviteCommand : "invite command error: " + content;
-        ID group = content.getGroup();
+    public Content execute(Command cmd, ReliableMessage rMsg) {
+        assert cmd instanceof InviteCommand : "invite command error: " + cmd;
+        ID group = cmd.getGroup();
         // 0. check whether group info empty
         if (isEmpty(group)) {
             // NOTICE:
             //     group membership lost?
             //     reset group members
-            return callReset(content, rMsg);
+            return callReset(cmd, rMsg);
         }
         // 1. check permission
         ID sender = rMsg.getSender();
@@ -113,20 +114,20 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
             }
         }
         // 2. get inviting members
-        List<ID> inviteList = getMembers((GroupCommand) content);
+        List<ID> inviteList = getMembers((GroupCommand) cmd);
         if (inviteList == null || inviteList.size() == 0) {
-            throw new NullPointerException("invite command error: " + content);
+            throw new NullPointerException("invite command error: " + cmd);
         }
         // 2.1. check for reset
         if (isReset(inviteList, sender, group)) {
             // NOTICE: owner invites owner?
             //         it means this should be a 'reset' command
-            return callReset(content, rMsg);
+            return callReset(cmd, rMsg);
         }
         // 2.2. get invited-list
         List<String> added = doInvite(inviteList, group);
         if (added != null) {
-            content.put("added", added);
+            cmd.put("added", added);
         }
         // 3. response (no need to response this group command)
         return null;

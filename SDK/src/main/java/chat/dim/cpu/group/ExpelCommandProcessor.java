@@ -35,6 +35,7 @@ import java.util.List;
 
 import chat.dim.Facebook;
 import chat.dim.cpu.GroupCommandProcessor;
+import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.ID;
@@ -73,10 +74,10 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ReliableMessage rMsg) {
-        assert content instanceof ExpelCommand : "expel command error: " + content;
+    public Content execute(Command cmd, ReliableMessage rMsg) {
+        assert cmd instanceof ExpelCommand : "expel command error: " + cmd;
         ID sender = rMsg.getSender();
-        ID group = content.getGroup();
+        ID group = cmd.getGroup();
         // 1. check permission
         Facebook facebook = getFacebook();
         if (!facebook.isOwner(sender, group)) {
@@ -86,14 +87,14 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
             }
         }
         // 2. get expelling members
-        List<ID> expelList = getMembers((GroupCommand) content);
+        List<ID> expelList = getMembers((GroupCommand) cmd);
         if (expelList == null || expelList.size() == 0) {
-            throw new NullPointerException("expel command error: " + content);
+            throw new NullPointerException("expel command error: " + cmd);
         }
         // 2.1. get removed-list
         List<String> removed = doExpel(expelList, group);
         if (removed != null) {
-            content.put("removed", removed);
+            cmd.put("removed", removed);
         }
         // 3. response (no need to response this group command)
         return null;

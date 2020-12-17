@@ -86,7 +86,7 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
     }
 
     @Override
-    protected Content unknown(Command cmd, ReliableMessage rMsg) {
+    public Content execute(Command cmd, ReliableMessage rMsg) {
         String text = String.format("Group command (name: %s) not support yet!", cmd.getCommand());
         TextContent res = new TextContent(text);
         res.setGroup(cmd.getGroup());
@@ -97,10 +97,11 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
     public Content process(Content content, ReliableMessage rMsg) {
         assert content instanceof GroupCommand : "group command error: " + content;
         Command cmd = (Command) content;
+        // get CPU by command name
         CommandProcessor cpu = getProcessor(cmd);
-        if (cpu == null || cpu == this) {
-            return unknown(cmd, rMsg);
+        if (cpu == null) {
+            cpu = this;
         }
-        return cpu.process(cmd, rMsg);
+        return cpu.execute(cmd, rMsg);
     }
 }

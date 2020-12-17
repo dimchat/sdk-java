@@ -34,6 +34,7 @@ import java.util.List;
 
 import chat.dim.Facebook;
 import chat.dim.cpu.GroupCommandProcessor;
+import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.ReliableMessage;
@@ -60,10 +61,10 @@ public class QuitCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ReliableMessage rMsg) {
-        assert content instanceof QuitCommand : "quit command error: " + content;
+    public Content execute(Command cmd, ReliableMessage rMsg) {
+        assert cmd instanceof QuitCommand : "quit command error: " + cmd;
         ID sender = rMsg.getSender();
-        ID group = content.getGroup();
+        ID group = cmd.getGroup();
         // 1. check permission
         Facebook facebook = getFacebook();
         if (facebook.isOwner(sender, group)) {

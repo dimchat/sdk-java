@@ -51,7 +51,7 @@ public class CommandProcessor extends ContentProcessor {
         super();
     }
 
-    protected Content unknown(Command cmd, ReliableMessage rMsg) {
+    protected Content execute(Command cmd, ReliableMessage rMsg) {
         String text = String.format("Command (name: %s) not support yet!", cmd.getCommand());
         TextContent res = new TextContent(text);
         // check group message
@@ -74,14 +74,10 @@ public class CommandProcessor extends ContentProcessor {
                 cpu = getProcessor("group");
             }
             if (cpu == null) {
-                // unknown command
-                cpu = getProcessor("*");
+                cpu = this;
             }
         }
-        if (cpu == null || cpu == this) {
-            return unknown(cmd, rMsg);
-        }
-        return cpu.process(cmd, rMsg);
+        return cpu.execute(cmd, rMsg);
     }
 
     //

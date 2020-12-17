@@ -84,11 +84,7 @@ public class ContentProcessor {
         return getProcessor(type.value);
     }
     public static ContentProcessor getProcessor(int type) {
-        ContentProcessor cpu = Processors.contentProcessors.get(type);
-        if (cpu == null) {
-            return null;
-        }
-        return cpu;
+        return Processors.contentProcessors.get(type);
     }
 
     public static void register(int type, ContentProcessor cpu) {

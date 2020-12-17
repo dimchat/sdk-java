@@ -31,6 +31,7 @@
 package chat.dim.cpu;
 
 import chat.dim.Facebook;
+import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
@@ -76,11 +77,11 @@ public class MetaCommandProcessor extends CommandProcessor {
     }
 
     @Override
-    public Content process(Content content, ReliableMessage rMsg) {
-        assert content instanceof MetaCommand : "meta command error: " + content;
-        MetaCommand cmd = (MetaCommand) content;
-        Meta meta = cmd.getMeta();
-        ID identifier = cmd.getIdentifier();
+    public Content execute(Command cmd, ReliableMessage rMsg) {
+        assert cmd instanceof MetaCommand : "meta command error: " + cmd;
+        MetaCommand mCmd = (MetaCommand) cmd;
+        Meta meta = mCmd.getMeta();
+        ID identifier = mCmd.getIdentifier();
         if (meta == null) {
             return getMeta(identifier);
         } else {
