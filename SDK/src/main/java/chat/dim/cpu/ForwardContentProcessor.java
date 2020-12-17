@@ -30,6 +30,8 @@
  */
 package chat.dim.cpu;
 
+import chat.dim.MessageProcessor;
+import chat.dim.Messenger;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ForwardContent;
 import chat.dim.protocol.ReliableMessage;
@@ -40,13 +42,25 @@ public class ForwardContentProcessor extends ContentProcessor {
         super();
     }
 
+    private ReliableMessage process(ReliableMessage rMsg) {
+        Messenger messenger = getMessenger();
+        if (messenger == null) {
+            return null;
+        }
+        MessageProcessor processor = messenger.getMessageProcessor();
+        if (processor == null) {
+            return null;
+        }
+        return processor.process(rMsg);
+    }
+
     @Override
     public Content process(Content content, ReliableMessage rMsg) {
         assert content instanceof ForwardContent : "forward content error: " + content;
         ForwardContent forward = (ForwardContent) content;
         ReliableMessage secret = forward.getMessage();
         // call messenger to process it
-        secret = getMessenger().getMessageProcessor().process(secret);
+        secret = process(secret);
         // check response
         if (secret != null) {
             // Over The Top

@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.Map;
 
 import chat.dim.Facebook;
+import chat.dim.MessageTransmitter;
+import chat.dim.Messenger;
 import chat.dim.cpu.GroupCommandProcessor;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
@@ -52,6 +54,18 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
         super();
     }
 
+    private void sendContent(Content content, ID receiver) {
+        Messenger messenger = getMessenger();
+        if (messenger == null) {
+            return;
+        }
+        MessageTransmitter transmitter = messenger.getMessageTransmitter();
+        if (transmitter == null) {
+            return;
+        }
+        transmitter.sendContent(content, receiver, null, 1);
+    }
+
     private Content temporarySave(List<ID> newMembers, ID sender, ID group) {
         if (containsOwner(newMembers, group)) {
             // it's a full list, save it now
@@ -61,8 +75,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
                 if (owner != null && !owner.equals(sender)) {
                     // NOTICE: to prevent counterfeit,
                     //         query the owner for newest member-list
-                    QueryCommand cmd = new QueryCommand(group);
-                    getMessenger().sendContent(cmd, owner, null, 1);
+                    sendContent(new QueryCommand(group), owner);
                 }
             }
             // response (no need to response this group command)

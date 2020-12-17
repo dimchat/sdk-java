@@ -32,7 +32,9 @@ package chat.dim;
 
 import java.lang.ref.WeakReference;
 
+import chat.dim.core.Packer;
 import chat.dim.core.Transceiver;
+import chat.dim.cpu.ContentProcessor;
 import chat.dim.cpu.FileContentProcessor;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.SymmetricKey;
@@ -40,7 +42,6 @@ import chat.dim.crypto.VerifyKey;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
 import chat.dim.protocol.Document;
-import chat.dim.protocol.Envelope;
 import chat.dim.protocol.FileContent;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
@@ -49,46 +50,89 @@ import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 import chat.dim.protocol.Visa;
 
-public abstract class Messenger extends Transceiver {
+public class Messenger extends Transceiver {
 
     private WeakReference<Delegate> delegateRef = null;
+    private WeakReference<DataSource> dataSourceRef = null;
 
+    private Packer messagePacker = null;
     private MessageProcessor messageProcessor = null;
+    private MessageTransmitter messageTransmitter = null;
 
     public Messenger() {
         super();
     }
 
-    //
-    //  Delegate for sending data
-    //
-    public Delegate getDelegate() {
-        if (delegateRef == null) {
-            return null;
-        }
-        return delegateRef.get();
-    }
+    /**
+     *  Delegate for sending data
+     *
+     * @param delegate - message delegate
+     */
     public void setDelegate(Delegate delegate) {
-        assert delegate != null : "Messenger delegate should not be empty";
         delegateRef = new WeakReference<>(delegate);
     }
-
-    public MessageProcessor getMessageProcessor() {
-        return messageProcessor;
-    }
-    public void setMessageProcessor(MessageProcessor processor) {
-        messageProcessor = processor;
+    public Delegate getDelegate() {
+        return delegateRef.get();
     }
 
-    //
-    //  Data source for getting entity info
-    //
+    /**
+     *  Delegate for saving message
+     *
+     * @param delegate - message data source
+     */
+    public void setDataSource(DataSource delegate) {
+        dataSourceRef = new WeakReference<>(delegate);
+    }
+    public DataSource getDataSource() {
+        return dataSourceRef.get();
+    }
+
+    /**
+     *  Delegate for getting entity info
+     *
+     * @param delegate - entity data source
+     */
+    public void setFacebook(Facebook delegate) {
+        setEntityDelegate(delegate);
+    }
     public Facebook getFacebook() {
         return (Facebook) getEntityDelegate();
     }
 
+    //
+    //  Message Packer
+    //
+    public void setMessagePacker(Packer packer) {
+        messagePacker = packer;
+    }
+    public Packer getMessagePacker() {
+        return messagePacker;
+    }
+
+    //
+    //  Message Processor
+    //
+    public void setMessageProcessor(MessageProcessor processor) {
+        messageProcessor = processor;
+    }
+    public MessageProcessor getMessageProcessor() {
+        return messageProcessor;
+    }
+
+    //
+    //  Message Transmitter
+    //
+    public void setMessageTransmitter(MessageTransmitter transmitter) {
+        messageTransmitter = transmitter;
+    }
+    public MessageTransmitter getMessageTransmitter() {
+        return messageTransmitter;
+    }
+
     private FileContentProcessor getFileContentProcessor() {
-        return (FileContentProcessor) messageProcessor.getContentProcessor(ContentType.FILE);
+        ContentProcessor cpu = ContentProcessor.getProcessor(ContentType.FILE);
+        cpu.setMessenger(this);
+        return (FileContentProcessor) cpu;
     }
 
     //-------- InstantMessageDelegate
@@ -128,7 +172,7 @@ public abstract class Messenger extends Transceiver {
         EncryptKey key = getPublicKeyForEncryption(receiver);
         if (key == null) {
             // save this message in a queue waiting receiver's meta/document response
-            suspendMessage(iMsg);
+            getDataSource().suspendMessage(iMsg);
             //throw new NullPointerException("failed to get encrypt key for receiver: " + receiver);
             return null;
         }
@@ -150,122 +194,6 @@ public abstract class Messenger extends Transceiver {
         }
         return content;
     }
-
-    //-------- Send message
-
-    /**
-     *  Send message content to receiver
-     *
-     * @param content - message content
-     * @param receiver - receiver ID
-     * @param callback - if needs callback, set it here
-     * @return true on success
-     */
-    public boolean sendContent(Content content, ID receiver, Callback callback, int priority) {
-        // Application Layer should make sure user is already login before it send message to server.
-        // Application layer should put message into queue so that it will send automatically after user login
-        User user = getFacebook().getCurrentUser();
-        assert user != null : "current user not found";
-        /*
-        if (receiver.isGroup()) {
-            if (content.getGroup() == null) {
-                content.setGroup(receiver);
-            } else {
-                assert receiver.equals(content.getGroup()) : "group ID not match: " + receiver + ", " + content;
-            }
-        }
-         */
-        Envelope env = Envelope.create(user.identifier, receiver, null);
-        InstantMessage iMsg = InstantMessage.create(env, content);
-        return sendMessage(iMsg, callback, priority);
-    }
-
-    /**
-     *  Send instant message (encrypt and sign) onto DIM network
-     *
-     * @param iMsg - instant message
-     * @param callback - if needs callback, set it here
-     * @return true on success
-     */
-    public boolean sendMessage(InstantMessage iMsg, Callback callback, int priority) {
-        // Send message (secured + certified) to target station
-        SecureMessage sMsg = messageProcessor.encryptMessage(iMsg);
-        if (sMsg == null) {
-            // public key not found?
-            return false;
-            //throw new NullPointerException("failed to encrypt message: " + iMsg);
-        }
-        ReliableMessage rMsg = messageProcessor.signMessage(sMsg);
-        if (rMsg == null) {
-            // TODO: set iMsg.state = error
-            throw new NullPointerException("failed to sign message: " + sMsg);
-        }
-
-        boolean OK = sendMessage(rMsg, callback, priority);
-        // TODO: if OK, set iMsg.state = sending; else set iMsg.state = waiting
-
-        if (!saveMessage(iMsg)) {
-            return false;
-        }
-        return OK;
-    }
-
-    public boolean sendMessage(ReliableMessage rMsg, Callback callback, int priority) {
-        CompletionHandler handler = new CompletionHandler() {
-            @Override
-            public void onSuccess() {
-                if (callback != null) {
-                    callback.onFinished(rMsg, null);
-                }
-            }
-
-            @Override
-            public void onFailed(Error error) {
-                if (callback != null) {
-                    callback.onFinished(rMsg, error);
-                }
-            }
-        };
-        byte[] data = messageProcessor.serializeMessage(rMsg);
-        return getDelegate().sendPackage(data, handler, priority);
-    }
-
-    //-------- Processing Message
-
-    /**
-     *  Process received data package
-     *
-     * @param data - package from network connection
-     * @return response to sender
-     */
-    public byte[] process(byte[] data) {
-        return messageProcessor.process(data);
-    }
-
-    //-------- Saving Message
-
-    /**
-     * Save the message into local storage
-     *
-     * @param msg - instant message
-     * @return true on success
-     */
-    public abstract boolean saveMessage(InstantMessage msg);
-
-    /**
-     *  Suspend the received message for the sender's meta
-     *
-     * @param msg - message received from network
-     */
-    public abstract void suspendMessage(ReliableMessage msg);
-
-    /**
-     *  Suspend the sending message for the receiver's meta,
-     *  or group meta when received new message
-     *
-     * @param msg - instant message to be sent
-     */
-    public abstract void suspendMessage(InstantMessage msg);
 
     /**
      *  Messenger Delegate
@@ -299,6 +227,36 @@ public abstract class Messenger extends Transceiver {
          * @return true on success
          */
         boolean sendPackage(byte[] data, CompletionHandler handler, int priority);
+    }
+
+    /**
+     *  Messenger DataSource
+     *  ~~~~~~~~~~~~~~~~~~~~
+     */
+    public interface DataSource {
+
+        /**
+         * Save the message into local storage
+         *
+         * @param iMsg - instant message
+         * @return true on success
+         */
+        boolean saveMessage(InstantMessage iMsg);
+
+        /**
+         *  Suspend the received message for the sender's meta
+         *
+         * @param rMsg - message received from network
+         */
+        void suspendMessage(ReliableMessage rMsg);
+
+        /**
+         *  Suspend the sending message for the receiver's meta,
+         *  or group meta when received new message
+         *
+         * @param iMsg - instant message to be sent
+         */
+        void suspendMessage(InstantMessage iMsg);
     }
 
     /**
