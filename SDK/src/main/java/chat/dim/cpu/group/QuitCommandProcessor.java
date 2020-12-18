@@ -46,37 +46,37 @@ public class QuitCommandProcessor extends GroupCommandProcessor {
         super();
     }
 
-    private void doQuit(ID sender, ID group) {
-        Facebook facebook = getFacebook();
-        // existed members
-        List<ID> members = facebook.getMembers(group);
-        if (members == null || members.size() == 0) {
-            throw new NullPointerException("Group members not found: " + group);
-        }
-        if (!members.contains(sender)) {
-            return;
-        }
-        members.remove(sender);
-        facebook.saveMembers(members, group);
-    }
-
     @Override
     public Content execute(Command cmd, ReliableMessage rMsg) {
         assert cmd instanceof QuitCommand : "quit command error: " + cmd;
-        ID sender = rMsg.getSender();
-        ID group = cmd.getGroup();
-        // 1. check permission
         Facebook facebook = getFacebook();
-        if (facebook.isOwner(sender, group)) {
+
+        // 0. check group
+        ID group = cmd.getGroup();
+        ID owner = facebook.getOwner(group);
+        List<ID> members = facebook.getMembers(group);
+        if (owner == null || members == null || members.size() == 0) {
+            throw new NullPointerException("Group not ready: " + group);
+        }
+
+        // 1. check permission
+        ID sender = rMsg.getSender();
+        if (owner.equals(sender)) {
             String text = "owner cannot quit: " + sender + " -> " + group;
             throw new UnsupportedOperationException(text);
         }
-        if (facebook.containsAssistant(sender, group)) {
+        List<ID> assistants = facebook.getAssistants(group);
+        if (assistants != null && assistants.contains(sender)) {
             String text = "assistant cannot quit: " + sender + " -> " + group;
             throw new UnsupportedOperationException(text);
         }
+
         // 2. remove the sender from group members
-        doQuit(sender, group);
+        if (members.contains(sender)) {
+            members.remove(sender);
+            facebook.saveMembers(members, group);
+        }
+
         // 3. response (no need to response this group command)
         return null;
     }

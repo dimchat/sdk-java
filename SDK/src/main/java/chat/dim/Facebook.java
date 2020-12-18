@@ -71,8 +71,25 @@ public abstract class Facebook extends Barrack {
      */
     public abstract boolean saveMeta(Meta meta, ID identifier);
 
+    /**
+     *  Save entity document with ID (must verify first)
+     *
+     * @param doc - entity document
+     * @return true on success
+     */
+    public abstract boolean saveDocument(Document doc);
+
+    /**
+     *  Save members of group
+     *
+     * @param members - member ID list
+     * @param group - group ID
+     * @return true on success
+     */
+    public abstract boolean saveMembers(List<ID> members, ID group);
+
     //
-    //  Document
+    //  Document checking
     //
     public boolean isEmpty(Document doc) {
         if (doc == null) {
@@ -82,20 +99,10 @@ public abstract class Facebook extends Barrack {
         return json == null || json.length() == 0;
     }
 
-    public boolean verify(Document doc, ID identifier) {
-        if (identifier != null) {
-            if (doc == null || !identifier.equals(doc.getIdentifier())) {
-                // document ID not match
-                return false;
-            }
-        }
-        return verify(doc);
-    }
-    public boolean verify(Document doc) {
-        assert doc != null : "document should not be empty";
+    public boolean isValid(Document doc) {
         ID identifier = doc.getIdentifier();
         if (identifier == null) {
-            throw new NullPointerException("document ID error: " + doc);
+            return false;
         }
         // NOTICE: if this is a group profile,
         //             verify it with each member's meta.key
@@ -142,25 +149,6 @@ public abstract class Facebook extends Barrack {
         }
         return meta != null && doc.verify(meta.getKey());
     }
-
-    /**
-     *  Save entity document with ID (must verify first)
-     *
-     * @param doc - entity document
-     * @return true on success
-     */
-    public abstract boolean saveDocument(Document doc);
-
-    /**
-     *  Save members of group
-     *
-     * @param members - member ID list
-     * @param group - group ID
-     * @return true on success
-     */
-    public abstract boolean saveMembers(List<ID> members, ID group);
-
-    //--------
 
     @Override
     protected User createUser(ID identifier) {

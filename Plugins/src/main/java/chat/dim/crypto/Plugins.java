@@ -41,11 +41,11 @@ import chat.dim.digest.RIPEMD160;
 
 public abstract class Plugins extends chat.dim.format.Plugins {
 
-    static {
+    /*
+     *  Symmetric Key Parsers
+     */
+    private static void registerSymmetricKeyFactories() {
 
-        /*
-         *  Symmetric Key Parsers
-         */
         SymmetricKey.register(SymmetricKey.AES, new SymmetricKey.Factory() {
 
             @Override
@@ -77,6 +77,12 @@ public abstract class Plugins extends chat.dim.format.Plugins {
                 return PlainKey.getInstance();
             }
         });
+    }
+
+    /*
+     *  Asymmetric Key Parsers
+     */
+    private static void registerAsymmetricKeyFactories() {
 
         /*
          *  Private Key Parsers
@@ -147,6 +153,13 @@ public abstract class Plugins extends chat.dim.format.Plugins {
             }
         });
 
+    }
+
+    /*
+     *  Private Key Parsers
+     */
+    private static void registerDataDigests() {
+
         /*
          *  Digest
          */
@@ -170,5 +183,11 @@ public abstract class Plugins extends chat.dim.format.Plugins {
                 return out;
             }
         };
+    }
+
+    static {
+        registerSymmetricKeyFactories();
+        registerAsymmetricKeyFactories();
+        registerDataDigests();
     }
 }

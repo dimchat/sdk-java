@@ -30,7 +30,6 @@
  */
 package chat.dim.cpu;
 
-import chat.dim.Messenger;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.FileContent;
@@ -44,10 +43,6 @@ public class FileContentProcessor extends ContentProcessor {
         super();
     }
 
-    private Messenger.Delegate getDelegate() {
-        return getMessenger().getDelegate();
-    }
-
     public boolean uploadFileContent(FileContent content, SymmetricKey password, InstantMessage iMsg) {
         byte[] data = content.getData();
         if (data == null || data.length == 0) {
@@ -58,7 +53,7 @@ public class FileContentProcessor extends ContentProcessor {
         if (encrypted == null || encrypted.length == 0) {
             throw new NullPointerException("failed to encrypt file data with key: " + password);
         }
-        String url = getDelegate().uploadData(encrypted, iMsg);
+        String url = getMessenger().uploadData(encrypted, iMsg);
         if (url == null) {
             return false;
         } else {
@@ -77,7 +72,7 @@ public class FileContentProcessor extends ContentProcessor {
         }
         InstantMessage iMsg = InstantMessage.create(sMsg.getEnvelope(), content);
         // download from CDN
-        byte[] encrypted = getDelegate().downloadData(url, iMsg);
+        byte[] encrypted = getMessenger().downloadData(url, iMsg);
         if (encrypted == null || encrypted.length == 0) {
             // save symmetric key for decrypting file data after download from CDN
             content.setPassword(password);

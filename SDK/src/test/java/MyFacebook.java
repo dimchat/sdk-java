@@ -10,7 +10,6 @@ import chat.dim.User;
 import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
-import chat.dim.crypto.VerifyKey;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
@@ -92,12 +91,6 @@ public class MyFacebook extends Facebook {
     @Override
     public List<ID> getContacts(ID user) {
         return immortals.getContacts(user);
-    }
-
-    @Override
-    public List<VerifyKey> getPublicKeysForVerification(ID user) {
-        // NOTICE: return nothing to use meta.key
-        return null;
     }
 
     @Override

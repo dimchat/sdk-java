@@ -29,7 +29,7 @@ repositories {
 }
 
 dependencies {
-    compile group: 'chat.dim', name: 'MingKeMing', version: '0.8.8'
+    compile group: 'chat.dim', name: 'MingKeMing', version: '0.8.9'
     compile group: 'chat.dim', name: 'DOS', version: '0.1.2'
 
     compile group: 'com.alibaba', name: 'fastjson', version: '1.2.47'

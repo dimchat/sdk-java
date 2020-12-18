@@ -33,7 +33,6 @@ package chat.dim.cpu;
 import java.util.ArrayList;
 import java.util.List;
 
-import chat.dim.Facebook;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
@@ -47,42 +46,18 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
         super();
     }
 
-    @SuppressWarnings("unchecked")
     protected List<ID> getMembers(GroupCommand cmd) {
+        // get from 'members'
         List<ID> members = cmd.getMembers();
         if (members == null) {
+            // get from 'member'
             ID member = cmd.getMember();
-            if (member == null) {
-                return null;
+            if (member != null) {
+                members = new ArrayList<>();
+                members.add(member);
             }
-            members = new ArrayList();
-            members.add(member);
         }
         return members;
-    }
-
-    // check whether the list contains owner
-    protected boolean containsOwner(List members, ID group) {
-        Facebook facebook = getFacebook();
-        ID identifier;
-        for (Object item : members) {
-            identifier = ID.parse(item);
-            if (facebook.isOwner(identifier, group)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // check whether the group info is empty(lost)
-    protected boolean isEmpty(ID group) {
-        Facebook facebook = getFacebook();
-        List<ID> members = facebook.getMembers(group);
-        if (members == null || members.size() == 0) {
-            return true;
-        }
-        ID owner = facebook.getOwner(group);
-        return owner == null;
     }
 
     @Override

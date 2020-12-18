@@ -132,7 +132,7 @@ public class MessageProcessor extends Processor {
         }
         // NOTICE: the application will query meta automatically
         // save this message in a queue waiting sender's meta response
-        getMessenger().getDataSource().suspendMessage(rMsg);
+        getMessenger().suspendMessage(rMsg);
         //throw new NullPointerException("failed to get meta for sender: " + sender);
         return null;
     }
@@ -150,7 +150,7 @@ public class MessageProcessor extends Processor {
     @Override
     protected InstantMessage process(InstantMessage iMsg, ReliableMessage rMsg) {
         InstantMessage res = super.process(iMsg, rMsg);
-        if (!getMessenger().getDataSource().saveMessage(iMsg)) {
+        if (!getMessenger().saveMessage(iMsg)) {
             // error
             return null;
         }

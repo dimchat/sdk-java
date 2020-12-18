@@ -29,8 +29,7 @@ import java.security.Security;
 
 public abstract class Plugins {
 
-    static {
-        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+    private static void registerDataCoders() {
 
         // Base58 coding
         Base58.coder = new DataCoder() {
@@ -74,5 +73,11 @@ public abstract class Plugins {
                 return com.alibaba.fastjson.JSON.parse(json);
             }
         };
+    }
+
+    static {
+        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+
+        registerDataCoders();
     }
 }

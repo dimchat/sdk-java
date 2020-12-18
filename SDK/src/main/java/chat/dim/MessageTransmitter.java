@@ -114,7 +114,7 @@ public class MessageTransmitter {
         boolean OK = sendMessage(rMsg, callback, priority);
         // TODO: if OK, set iMsg.state = sending; else set iMsg.state = waiting
 
-        if (!getMessenger().getDataSource().saveMessage(iMsg)) {
+        if (!getMessenger().saveMessage(iMsg)) {
             return false;
         }
         return OK;
@@ -137,6 +137,6 @@ public class MessageTransmitter {
             }
         };
         byte[] data = getPacker().serializeMessage(rMsg);
-        return getMessenger().getDelegate().sendPackage(data, handler, priority);
+        return getMessenger().sendPackage(data, handler, priority);
     }
 }

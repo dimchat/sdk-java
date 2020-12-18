@@ -71,7 +71,7 @@ public class Messenger extends Transceiver {
     public void setDelegate(Delegate delegate) {
         delegateRef = new WeakReference<>(delegate);
     }
-    public Delegate getDelegate() {
+    protected Delegate getDelegate() {
         return delegateRef.get();
     }
 
@@ -83,7 +83,7 @@ public class Messenger extends Transceiver {
     public void setDataSource(DataSource delegate) {
         dataSourceRef = new WeakReference<>(delegate);
     }
-    public DataSource getDataSource() {
+    protected DataSource getDataSource() {
         return dataSourceRef.get();
     }
 
@@ -102,31 +102,40 @@ public class Messenger extends Transceiver {
     //
     //  Message Packer
     //
-    public void setMessagePacker(Packer packer) {
-        messagePacker = packer;
-    }
-    public Packer getMessagePacker() {
+    protected Packer getMessagePacker() {
+        if (messagePacker == null) {
+            messagePacker = newMessagePacker();
+        }
         return messagePacker;
+    }
+    protected Packer newMessagePacker() {
+        return new Packer(getEntityDelegate(), this, getCipherKeyDelegate());
     }
 
     //
     //  Message Processor
     //
-    public void setMessageProcessor(MessageProcessor processor) {
-        messageProcessor = processor;
-    }
-    public MessageProcessor getMessageProcessor() {
+    protected MessageProcessor getMessageProcessor() {
+        if (messageProcessor == null) {
+            messageProcessor = newMessageProcessor();
+        }
         return messageProcessor;
+    }
+    protected MessageProcessor newMessageProcessor() {
+        return new MessageProcessor(getFacebook(), this, getMessagePacker());
     }
 
     //
     //  Message Transmitter
     //
-    public void setMessageTransmitter(MessageTransmitter transmitter) {
-        messageTransmitter = transmitter;
-    }
-    public MessageTransmitter getMessageTransmitter() {
+    protected MessageTransmitter getMessageTransmitter() {
+        if (messageTransmitter == null) {
+            messageTransmitter = newMessageTransmitter();
+        }
         return messageTransmitter;
+    }
+    protected MessageTransmitter newMessageTransmitter() {
+        return new MessageTransmitter(getFacebook(), this, getMessagePacker());
     }
 
     private FileContentProcessor getFileContentProcessor() {
@@ -193,6 +202,89 @@ public class Messenger extends Transceiver {
             fpu.downloadFileContent((FileContent) content, password, sMsg);
         }
         return content;
+    }
+
+    //
+    //  Interfaces for Processing Message
+    //
+    public byte[] process(byte[] data) {
+        return getMessageProcessor().process(data);
+    }
+
+    public ReliableMessage process(ReliableMessage rMsg) {
+        return getMessageProcessor().process(rMsg);
+    }
+
+    //
+    //  Interfaces for Sending Message
+    //
+    public boolean sendContent(Content content, ID receiver, Messenger.Callback callback, int priority) {
+        return getMessageTransmitter().sendContent(content, receiver, callback, priority);
+    }
+
+    public boolean sendMessage(InstantMessage iMsg, Messenger.Callback callback, int priority) {
+        return getMessageTransmitter().sendMessage(iMsg, callback, priority);
+    }
+
+    public boolean sendMessage(ReliableMessage rMsg, Messenger.Callback callback, int priority) {
+        return getMessageTransmitter().sendMessage(rMsg, callback, priority);
+    }
+
+    //
+    //  Interfaces for Packing Message
+    //
+    public SecureMessage encryptMessage(InstantMessage iMsg) {
+        return getMessagePacker().encryptMessage(iMsg);
+    }
+
+    public ReliableMessage signMessage(SecureMessage sMsg) {
+        return getMessagePacker().signMessage(sMsg);
+    }
+
+    public byte[] serializeMessage(ReliableMessage rMsg) {
+        return getMessagePacker().serializeMessage(rMsg);
+    }
+
+    public ReliableMessage deserializeMessage(byte[] data) {
+        return getMessagePacker().deserializeMessage(data);
+    }
+
+    public SecureMessage verifyMessage(ReliableMessage rMsg) {
+        return getMessagePacker().verifyMessage(rMsg);
+    }
+
+    public InstantMessage decryptMessage(SecureMessage sMsg) {
+        return getMessagePacker().decryptMessage(sMsg);
+    }
+
+    //
+    //  Interfaces for Station
+    //
+    public String uploadData(byte[] data, InstantMessage iMsg) {
+        return getDelegate().uploadData(data, iMsg);
+    }
+
+    public byte[] downloadData(String url, InstantMessage iMsg) {
+        return getDelegate().downloadData(url, iMsg);
+    }
+
+    public boolean sendPackage(byte[] data, CompletionHandler handler, int priority) {
+        return getDelegate().sendPackage(data, handler, priority);
+    }
+
+    //
+    //  Interfaces for Message Storage
+    //
+    public boolean saveMessage(InstantMessage iMsg) {
+        return getDataSource().saveMessage(iMsg);
+    }
+
+    public void suspendMessage(ReliableMessage rMsg) {
+        getDataSource().suspendMessage(rMsg);
+    }
+
+    public void suspendMessage(InstantMessage iMsg) {
+        getDataSource().suspendMessage(iMsg);
     }
 
     /**

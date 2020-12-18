@@ -48,14 +48,40 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
         super();
     }
 
-    private List<String> doExpel(List<ID> expelList, ID group) {
+    @Override
+    public Content execute(Command cmd, ReliableMessage rMsg) {
+        assert cmd instanceof ExpelCommand : "expel command error: " + cmd;
         Facebook facebook = getFacebook();
-        // existed members
+
+        // 0. check group
+        ID group = cmd.getGroup();
+        ID owner = facebook.getOwner(group);
         List<ID> members = facebook.getMembers(group);
-        if (members == null || members.size() == 0) {
-            throw new NullPointerException("Group members not found: " + group);
+        if (owner == null || members == null || members.size() == 0) {
+            throw new NullPointerException("Group not ready: " + group);
         }
-        // removed list
+
+        // 1. check permission
+        ID sender = rMsg.getSender();
+        if (!owner.equals(sender)) {
+            // not the owner? check assistants
+            List<ID> assistants = facebook.getAssistants(group);
+            if (assistants == null || !assistants.contains(sender)) {
+                String text = sender + " is not the owner/assistant of group " + group + ", cannot expel member.";
+                throw new UnsupportedOperationException(text);
+            }
+        }
+
+        // 2. expelling members
+        List<ID> expelList = getMembers((GroupCommand) cmd);
+        if (expelList == null || expelList.size() == 0) {
+            throw new NullPointerException("expel command error: " + cmd);
+        }
+        // 2.1. check owner
+        if (expelList.contains(owner)) {
+            throw new UnsupportedOperationException("cannot expel owner(" + owner + ") of group: " + group);
+        }
+        // 2.2. build expelled-list
         List<String> removedList = new ArrayList<>();
         for (ID item: expelList) {
             if (!members.contains(item)) {
@@ -65,37 +91,13 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
             removedList.add(item.toString());
             members.remove(item);
         }
+        // 2.3. do expel
         if (removedList.size() > 0) {
             if (facebook.saveMembers(members, group)) {
-                return removedList;
+                cmd.put("removed", removedList);
             }
         }
-        return null;
-    }
 
-    @Override
-    public Content execute(Command cmd, ReliableMessage rMsg) {
-        assert cmd instanceof ExpelCommand : "expel command error: " + cmd;
-        ID sender = rMsg.getSender();
-        ID group = cmd.getGroup();
-        // 1. check permission
-        Facebook facebook = getFacebook();
-        if (!facebook.isOwner(sender, group)) {
-            if (!facebook.containsAssistant(sender, group)) {
-                String text = sender + " is not the owner/assistant of group " + group + ", cannot expel member.";
-                throw new UnsupportedOperationException(text);
-            }
-        }
-        // 2. get expelling members
-        List<ID> expelList = getMembers((GroupCommand) cmd);
-        if (expelList == null || expelList.size() == 0) {
-            throw new NullPointerException("expel command error: " + cmd);
-        }
-        // 2.1. get removed-list
-        List<String> removed = doExpel(expelList, group);
-        if (removed != null) {
-            cmd.put("removed", removed);
-        }
         // 3. response (no need to response this group command)
         return null;
     }

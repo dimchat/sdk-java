@@ -31,12 +31,9 @@
 package chat.dim.cpu.group;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import chat.dim.Facebook;
-import chat.dim.MessageTransmitter;
 import chat.dim.Messenger;
 import chat.dim.cpu.GroupCommandProcessor;
 import chat.dim.protocol.Command;
@@ -54,47 +51,69 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
         super();
     }
 
-    private void sendContent(Content content, ID receiver) {
-        Messenger messenger = getMessenger();
-        if (messenger == null) {
-            return;
-        }
-        MessageTransmitter transmitter = messenger.getMessageTransmitter();
-        if (transmitter == null) {
-            return;
-        }
-        transmitter.sendContent(content, receiver, null, 1);
-    }
-
-    private Content temporarySave(List<ID> newMembers, ID sender, ID group) {
-        if (containsOwner(newMembers, group)) {
-            // it's a full list, save it now
-            Facebook facebook = getFacebook();
-            if (facebook.saveMembers(newMembers, group)) {
-                ID owner = facebook.getOwner(group);
-                if (owner != null && !owner.equals(sender)) {
-                    // NOTICE: to prevent counterfeit,
-                    //         query the owner for newest member-list
-                    sendContent(new QueryCommand(group), owner);
-                }
-            }
-            // response (no need to response this group command)
-            return null;
-        } else {
-            // NOTICE: this is a partial member-list
-            //         query the sender for full-list
-            return new QueryCommand(group);
-        }
-    }
-
-    private Map<String, Object> doReset(List<ID> newMembers, ID group) {
+    private Content temporarySave(GroupCommand cmd, ID sender) {
         Facebook facebook = getFacebook();
-        // existed members
-        List<ID> members = facebook.getMembers(group);
-        if (members == null) {
-            members = new ArrayList<>();
+        ID group = cmd.getGroup();
+        // check whether the owner contained in the new members
+        List<ID> newMembers = getMembers(cmd);
+        for (ID item : newMembers) {
+            if (facebook.isOwner(item, group)) {
+                // it's a full list, save it now
+                if (facebook.saveMembers(newMembers, group)) {
+                    ID owner = facebook.getOwner(group);
+                    if (owner != null && !owner.equals(sender)) {
+                        // NOTICE: to prevent counterfeit,
+                        //         query the owner for newest member-list
+                        cmd = new QueryCommand(group);
+                        Messenger messenger = getMessenger();
+                        messenger.sendContent(cmd, owner, null, 1);
+                    }
+                }
+                // response (no need to response this group command)
+                return null;
+            }
         }
-        // removed list
+        // NOTICE: this is a partial member-list
+        //         query the sender for full-list
+        return new QueryCommand(group);
+    }
+
+    @Override
+    public Content execute(Command cmd, ReliableMessage rMsg) {
+        assert cmd instanceof ResetCommand || cmd instanceof InviteCommand : "reset command error: " + cmd;
+        Facebook facebook = getFacebook();
+
+        // 0. check group
+        ID group = cmd.getGroup();
+        ID owner = facebook.getOwner(group);
+        List<ID> members = facebook.getMembers(group);
+        if (owner == null || members == null || members.size() == 0) {
+            // FIXME: group info lost?
+            // FIXME: how to avoid strangers impersonating group member?
+            return temporarySave((GroupCommand) cmd, rMsg.getSender());
+        }
+
+        // 1. check permission
+        ID sender = rMsg.getSender();
+        if (!owner.equals(sender)) {
+            // not the owner? check assistants
+            List<ID> assistants = facebook.getAssistants(group);
+            if (assistants == null || !assistants.contains(sender)) {
+                String text = sender + " is not the owner/assistant of group " + group + ", cannot reset members.";
+                throw new UnsupportedOperationException(text);
+            }
+        }
+
+        // 2. resetting members
+        List<ID> newMembers = getMembers((GroupCommand) cmd);
+        if (newMembers == null || newMembers.size() == 0) {
+            throw new NullPointerException("reset group command error: " + cmd);
+        }
+        // 2.1. check owner
+        if (!newMembers.contains(owner)) {
+            throw new UnsupportedOperationException("cannot expel owner(" + owner + ") of group: " + group);
+        }
+        // 2.2. build expelled-list
         List<String> removedList = new ArrayList<>();
         for (ID item : members) {
             if (newMembers.contains(item)) {
@@ -103,7 +122,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
             // removing member found
             removedList.add(item.toString());
         }
-        // added list
+        // 2.3. build invited-list
         List<String> addedList = new ArrayList<>();
         for (ID item : newMembers) {
             if (members.contains(item)) {
@@ -112,56 +131,18 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
             // adding member found
             addedList.add(item.toString());
         }
-        Map<String, Object> result = new HashMap<>();
+        // 2.4. do reset
         if (addedList.size() > 0 || removedList.size() > 0) {
-            if (!facebook.saveMembers(newMembers, group)) {
-                // failed to update members
-                return result;
-            }
-            if (addedList.size() > 0) {
-                result.put("added", addedList);
-            }
-            if (removedList.size() > 0) {
-                result.put("removed", removedList);
+            if (facebook.saveMembers(newMembers, group)) {
+                if (addedList.size() > 0) {
+                    cmd.put("added", addedList);
+                }
+                if (removedList.size() > 0) {
+                    cmd.put("removed", removedList);
+                }
             }
         }
-        return result;
-    }
 
-    @Override
-    public Content execute(Command cmd, ReliableMessage rMsg) {
-        assert cmd instanceof ResetCommand || cmd instanceof InviteCommand : "reset command error: " + cmd;
-        ID group = cmd.getGroup();
-        // new members
-        List<ID> newMembers = getMembers((GroupCommand) cmd);
-        if (newMembers == null || newMembers.size() == 0) {
-            throw new NullPointerException("reset group command error: " + cmd);
-        }
-        // 0. check whether group info empty
-        ID sender = rMsg.getSender();
-        if (isEmpty(group)) {
-            // FIXME: group info lost?
-            // FIXME: how to avoid strangers impersonating group member?
-            return temporarySave(newMembers, sender, group);
-        }
-        // 1. check permission
-        Facebook facebook = getFacebook();
-        if (!facebook.isOwner(sender, group)) {
-            if (!facebook.containsAssistant(sender, group)) {
-                String text = sender + " is not the owner/assistant of group " + group + ", cannot reset members.";
-                throw new UnsupportedOperationException(text);
-            }
-        }
-        // 2. reset
-        Map<String, Object> result = doReset(newMembers, group);
-        Object added = result.get("added");
-        if (added != null) {
-            cmd.put("added", added);
-        }
-        Object removed = result.get("removed");
-        if (removed != null) {
-            cmd.put("removed", removed);
-        }
         // 3. response (no need to response this group command)
         return null;
     }

@@ -9,11 +9,8 @@ import chat.dim.Facebook;
 import chat.dim.Immortals;
 import chat.dim.KeyCache;
 import chat.dim.KeyStore;
-import chat.dim.MessageProcessor;
-import chat.dim.MessageTransmitter;
 import chat.dim.Messenger;
 import chat.dim.User;
-import chat.dim.core.Packer;
 import chat.dim.cpu.AnyContentProcessor;
 import chat.dim.cpu.CommandProcessor;
 import chat.dim.cpu.ContentProcessor;
@@ -36,10 +33,6 @@ public class Tests extends TestCase {
     static KeyCache keyStore;
     static Messenger transceiver;
 
-    static Packer packer;
-    static MessageProcessor processor;
-    static MessageTransmitter transmitter;
-
     static {
         ContentProcessor.register(0, new AnyContentProcessor());
         CommandProcessor.register(Command.HANDSHAKE, new HandshakeCommandProcessor());
@@ -56,14 +49,6 @@ public class Tests extends TestCase {
         transceiver = new Messenger();
         transceiver.setEntityDelegate(barrack);
         transceiver.setCipherKeyDelegate(keyStore);
-
-        packer = new Packer(barrack, transceiver, keyStore);
-
-        processor = new MessageProcessor(barrack, transceiver, packer);
-        transmitter = new MessageTransmitter(barrack, transceiver, packer);
-
-        transceiver.setMessageProcessor(processor);
-        transceiver.setMessageTransmitter(transmitter);
     }
 
     @Test
@@ -94,11 +79,11 @@ public class Tests extends TestCase {
 
         InstantMessage iMsg = InstantMessage.create(env, content);
         iMsg.setDelegate(transceiver);
-        SecureMessage sMsg = packer.encryptMessage(iMsg);
-        ReliableMessage rMsg = packer.signMessage(sMsg);
+        SecureMessage sMsg = transceiver.encryptMessage(iMsg);
+        ReliableMessage rMsg = transceiver.signMessage(sMsg);
 
-        SecureMessage sMsg2 = packer.verifyMessage(rMsg);
-        InstantMessage iMsg2 = packer.decryptMessage(sMsg2);
+        SecureMessage sMsg2 = transceiver.verifyMessage(rMsg);
+        InstantMessage iMsg2 = transceiver.decryptMessage(sMsg2);
 
         Log.info("send message: " + iMsg2);
     }

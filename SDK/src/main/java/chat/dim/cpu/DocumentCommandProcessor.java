@@ -76,7 +76,7 @@ public class DocumentCommandProcessor extends CommandProcessor {
             }
         }
         // receive a document for ID
-        if (!facebook.verify(doc, identifier)) {
+        if (!facebook.isValid(doc)) {
             // document signature not match
             String text = String.format("document ID not match: %s", identifier);
             return new TextContent(text);
@@ -95,18 +95,22 @@ public class DocumentCommandProcessor extends CommandProcessor {
     public Content execute(Command cmd, ReliableMessage rMsg) {
         assert cmd instanceof DocumentCommand : "document command error: " + cmd;
         DocumentCommand dCmd = (DocumentCommand) cmd;
-        Document doc = dCmd.getDocument();
         ID identifier = dCmd.getIdentifier();
-        if (doc == null) {
-            String type = (String) cmd.get("doc_type");
-            if (type == null) {
-                type = "*";  // ANY
+        if (identifier != null) {
+            Document doc = dCmd.getDocument();
+            if (doc == null) {
+                String type = (String) cmd.get("doc_type");
+                if (type == null) {
+                    type = "*";  // ANY
+                }
+                return getDocument(identifier, type);
+            } else if (identifier.equals(doc.getIdentifier())) {
+                // check meta
+                Meta meta = dCmd.getMeta();
+                return putDocument(identifier, meta, doc);
             }
-            return getDocument(identifier, type);
-        } else {
-            // check meta
-            Meta meta = dCmd.getMeta();
-            return putDocument(identifier, meta, doc);
         }
+        // command error
+        return null;
     }
 }

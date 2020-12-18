@@ -53,30 +53,34 @@ public class QueryCommandProcessor extends GroupCommandProcessor {
     @Override
     public Content execute(Command cmd, ReliableMessage rMsg) {
         assert cmd instanceof QueryCommand : "query command error: " + cmd;
-        ID sender = rMsg.getSender();
-        ID group = cmd.getGroup();
-        // 1. check permission
         Facebook facebook = getFacebook();
-        if (!facebook.containsMember(sender, group)) {
-            if (!facebook.containsAssistant(sender, group)) {
-                if (!facebook.isOwner(sender, group)) {
-                    String text = sender + " is not a member/assistant of group " + group + ", cannot query.";
-                    throw new UnsupportedOperationException(text);
-                }
-            }
-        }
-        // 2. get members
+
+        // 0. check group
+        ID group = cmd.getGroup();
+        ID owner = facebook.getOwner(group);
         List<ID> members = facebook.getMembers(group);
-        if (members == null || members.size() == 0) {
+        if (owner == null || members == null || members.size() == 0) {
             String text = String.format("Sorry, members not found in group: %s", group);
             TextContent res = new TextContent(text);
             res.setGroup(group);
             return res;
         }
-        // 3. respond
+
+        // 1. check permission
+        ID sender = rMsg.getSender();
+        if (!members.contains(sender)) {
+            // not a member? check assistants
+            List<ID> assistants = facebook.getAssistants(group);
+            if (assistants == null || !assistants.contains(sender)) {
+                String text = sender + " is not a member/assistant of group " + group + ", cannot query.";
+                throw new UnsupportedOperationException(text);
+            }
+        }
+
+        // 2. respond
         User user = facebook.getCurrentUser();
         assert user != null : "current user not set yet";
-        if (facebook.isOwner(user.identifier, group)) {
+        if (user.identifier.equals(owner)) {
             return new ResetCommand(group, members);
         } else {
             return new InviteCommand(group, members);

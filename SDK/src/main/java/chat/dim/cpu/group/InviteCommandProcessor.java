@@ -49,31 +49,51 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
         super();
     }
 
-    // check whether this is a Reset command
-    private boolean isReset(List<ID> inviteList, ID sender, ID group) {
-        Facebook facebook = getFacebook();
-        // NOTICE: owner invite owner?
-        //         it's a Reset command!
-        if (containsOwner(inviteList, group)) {
-            return facebook.isOwner(sender, group);
-        }
-        return false;
-    }
-
     private Content callReset(Content content, ReliableMessage rMsg) {
         CommandProcessor cpu = getProcessor(GroupCommand.RESET);
         assert cpu != null : "reset CPU not register yet";
         return cpu.process(content, rMsg);
     }
 
-    private List<String> doInvite(List<ID> inviteList, ID group) {
+    @Override
+    public Content execute(Command cmd, ReliableMessage rMsg) {
+        assert cmd instanceof InviteCommand : "invite command error: " + cmd;
         Facebook facebook = getFacebook();
-        // existed members
+
+        // 0. check group
+        ID group = cmd.getGroup();
+        ID owner = facebook.getOwner(group);
         List<ID> members = facebook.getMembers(group);
-        if (members == null) {
-            members = new ArrayList<>();
+        if (owner == null || members == null || members.size() == 0) {
+            // NOTICE:
+            //     group membership lost?
+            //     reset group members
+            return callReset(cmd, rMsg);
         }
-        // added list
+
+        // 1. check permission
+        ID sender = rMsg.getSender();
+        if (!members.contains(sender)) {
+            // not a member? check assistants
+            List<ID> assistants = facebook.getAssistants(group);
+            if (assistants == null || !assistants.contains(sender)) {
+                String text = sender + " is not a member/assistant of group " + group + ", cannot invite member.";
+                throw new UnsupportedOperationException(text);
+            }
+        }
+
+        // 2. inviting members
+        List<ID> inviteList = getMembers((GroupCommand) cmd);
+        if (inviteList == null || inviteList.size() == 0) {
+            throw new NullPointerException("invite command error: " + cmd);
+        }
+        // 2.1. check for reset
+        if (sender.equals(owner) && inviteList.contains(owner)) {
+            // NOTICE: owner invites owner?
+            //         it means this should be a 'reset' command
+            return callReset(cmd, rMsg);
+        }
+        // 2.2. build invited-list
         List<String> addedList = new ArrayList<>();
         for (ID item: inviteList) {
             if (members.contains(item)) {
@@ -83,52 +103,13 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
             addedList.add(item.toString());
             members.add(item);
         }
+        // 2.3. do invite
         if (addedList.size() > 0) {
             if (facebook.saveMembers(members, group)) {
-                return addedList;
+                cmd.put("added", addedList);
             }
         }
-        return null;
-    }
 
-    @Override
-    public Content execute(Command cmd, ReliableMessage rMsg) {
-        assert cmd instanceof InviteCommand : "invite command error: " + cmd;
-        ID group = cmd.getGroup();
-        // 0. check whether group info empty
-        if (isEmpty(group)) {
-            // NOTICE:
-            //     group membership lost?
-            //     reset group members
-            return callReset(cmd, rMsg);
-        }
-        // 1. check permission
-        ID sender = rMsg.getSender();
-        Facebook facebook = getFacebook();
-        if (!facebook.containsMember(sender, group)) {
-            if (!facebook.containsAssistant(sender, group)) {
-                if (!facebook.isOwner(sender, group)) {
-                    String text = sender + " is not a member/assistant of group " + group + ", cannot invite member.";
-                    throw new UnsupportedOperationException(text);
-                }
-            }
-        }
-        // 2. get inviting members
-        List<ID> inviteList = getMembers((GroupCommand) cmd);
-        if (inviteList == null || inviteList.size() == 0) {
-            throw new NullPointerException("invite command error: " + cmd);
-        }
-        // 2.1. check for reset
-        if (isReset(inviteList, sender, group)) {
-            // NOTICE: owner invites owner?
-            //         it means this should be a 'reset' command
-            return callReset(cmd, rMsg);
-        }
-        // 2.2. get invited-list
-        List<String> added = doInvite(inviteList, group);
-        if (added != null) {
-            cmd.put("added", added);
-        }
         // 3. response (no need to response this group command)
         return null;
     }

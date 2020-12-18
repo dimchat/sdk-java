@@ -8,12 +8,15 @@ import chat.dim.Group;
 import chat.dim.Immortals;
 import chat.dim.User;
 import chat.dim.crypto.DecryptKey;
+import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
 import chat.dim.crypto.VerifyKey;
+import chat.dim.protocol.Bulletin;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
+import chat.dim.protocol.Visa;
 
 public class Facebook implements User.DataSource, Group.DataSource {
     private static Facebook ourInstance = new Facebook();
@@ -89,9 +92,47 @@ public class Facebook implements User.DataSource, Group.DataSource {
     }
 
     @Override
-    public List<VerifyKey> getPublicKeysForVerification(ID user) {
-        // NOTICE: return nothing to use meta.key
+    public EncryptKey getPublicKeyForEncryption(ID user) {
+        // 1. get key from visa
+        Document doc = getDocument(user, Document.VISA);
+        if (doc instanceof Visa) {
+            EncryptKey key = ((Visa) doc).getKey();
+            if (key != null) {
+                return key;
+            }
+        }
+        // 2. get key from meta
+        Meta meta = getMeta(user);
+        if (meta != null) {
+            Object key = meta.getKey();
+            if (key instanceof EncryptKey) {
+                return (EncryptKey) key;
+            }
+        }
         return null;
+    }
+
+    @Override
+    public List<VerifyKey> getPublicKeysForVerification(ID user) {
+        List<VerifyKey> keys = new ArrayList<>();
+        // 1. get key from visa
+        Document doc = getDocument(user, Document.VISA);
+        if (doc instanceof Visa) {
+            Object key = ((Visa) doc).getKey();
+            if (key instanceof VerifyKey) {
+                // the sender may use communication key to sign message.data,
+                // so try to verify it with visa.key here
+                keys.add((VerifyKey) key);
+            }
+        }
+        // 2. get key from meta
+        Meta meta = getMeta(user);
+        if (meta != null) {
+            // the sender may use identity key to sign message.data,
+            // try to verify it with meta.key
+            keys.add(meta.getKey());
+        }
+        return keys;
     }
 
     @Override
@@ -135,6 +176,16 @@ public class Facebook implements User.DataSource, Group.DataSource {
 
     @Override
     public List<ID> getMembers(ID group) {
+        return null;
+    }
+
+    @Override
+    public List<ID> getAssistants(ID group) {
+        Document doc = getDocument(group, Document.BULLETIN);
+        if (doc instanceof Bulletin) {
+            return ((Bulletin) doc).getAssistants();
+        }
+        // TODO: get group bots from SP configuration
         return null;
     }
 }

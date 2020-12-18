@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 
 import chat.dim.crypto.DecryptKey;
+import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
 import chat.dim.crypto.VerifyKey;
@@ -47,6 +48,7 @@ import chat.dim.format.JSON;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
+import chat.dim.protocol.Visa;
 
 /**
  *  Built-in accounts (for test)
@@ -253,9 +255,47 @@ public final class Immortals extends chat.dim.mkm.Plugins implements User.DataSo
     }
 
     @Override
-    public List<VerifyKey> getPublicKeysForVerification(ID user) {
-        // NOTICE: return nothing to use meta.key
+    public EncryptKey getPublicKeyForEncryption(ID user) {
+        // 1. get key from visa
+        Document doc = getDocument(user, Document.VISA);
+        if (doc instanceof Visa) {
+            EncryptKey key = ((Visa) doc).getKey();
+            if (key != null) {
+                return key;
+            }
+        }
+        // 2. get key from meta
+        Meta meta = getMeta(user);
+        if (meta != null) {
+            Object key = meta.getKey();
+            if (key instanceof EncryptKey) {
+                return (EncryptKey) key;
+            }
+        }
         return null;
+    }
+
+    @Override
+    public List<VerifyKey> getPublicKeysForVerification(ID user) {
+        List<VerifyKey> keys = new ArrayList<>();
+        // 1. get key from visa
+        Document doc = getDocument(user, Document.VISA);
+        if (doc instanceof Visa) {
+            Object key = ((Visa) doc).getKey();
+            if (key instanceof VerifyKey) {
+                // the sender may use communication key to sign message.data,
+                // so try to verify it with visa.key here
+                keys.add((VerifyKey) key);
+            }
+        }
+        // 2. get key from meta
+        Meta meta = getMeta(user);
+        if (meta != null) {
+            // the sender may use identity key to sign message.data,
+            // try to verify it with meta.key
+            keys.add(meta.getKey());
+        }
+        return keys;
     }
 
     @Override
