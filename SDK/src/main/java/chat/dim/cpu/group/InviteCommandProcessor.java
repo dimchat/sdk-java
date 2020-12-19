@@ -49,10 +49,10 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
         super();
     }
 
-    private Content callReset(Content content, ReliableMessage rMsg) {
+    private Content callReset(Command cmd, ReliableMessage rMsg) {
         CommandProcessor cpu = getProcessor(GroupCommand.RESET);
         assert cpu != null : "reset CPU not register yet";
-        return cpu.process(content, rMsg);
+        return cpu.execute(cmd, rMsg);
     }
 
     @Override

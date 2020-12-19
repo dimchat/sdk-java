@@ -140,6 +140,7 @@ public class Messenger extends Transceiver {
 
     private FileContentProcessor getFileContentProcessor() {
         ContentProcessor cpu = ContentProcessor.getProcessor(ContentType.FILE);
+        assert cpu instanceof FileContentProcessor : "failed to get file content processor";
         cpu.setMessenger(this);
         return (FileContentProcessor) cpu;
     }
@@ -156,29 +157,9 @@ public class Messenger extends Transceiver {
         return super.serializeContent(content, password, iMsg);
     }
 
-    private EncryptKey getPublicKeyForEncryption(ID receiver) {
-        Facebook facebook = getFacebook();
-        Document doc = facebook.getDocument(receiver, Document.VISA);
-        if (doc instanceof Visa) {
-            EncryptKey key = ((Visa) doc).getKey();
-            if (key != null) {
-                return key;
-            }
-        }
-        Meta meta = facebook.getMeta(receiver);
-        if (meta == null) {
-            return null;
-        }
-        VerifyKey key = meta.getKey();
-        if (key instanceof EncryptKey) {
-            return (EncryptKey) key;
-        }
-        return null;
-    }
-
     @Override
     public byte[] encryptKey(byte[] data, ID receiver, InstantMessage iMsg) {
-        EncryptKey key = getPublicKeyForEncryption(receiver);
+        EncryptKey key = getFacebook().getPublicKeyForEncryption(receiver);
         if (key == null) {
             // save this message in a queue waiting receiver's meta/document response
             getDataSource().suspendMessage(iMsg);
@@ -316,6 +297,7 @@ public class Messenger extends Transceiver {
          *
          * @param data - package data
          * @param handler - completion handler
+         * @param priority - task priority
          * @return true on success
          */
         boolean sendPackage(byte[] data, CompletionHandler handler, int priority);

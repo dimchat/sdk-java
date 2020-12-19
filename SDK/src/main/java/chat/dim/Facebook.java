@@ -158,6 +158,7 @@ public abstract class Facebook extends Barrack {
         }
         // make sure meta exists
         assert getMeta(identifier) != null : "meta not found for user: " + identifier;
+        // TODO: make sure visa key exists before calling this
         // check user type
         byte type = identifier.getType();
         if (NetworkType.Main.equals(type) || NetworkType.BTCMain.equals(type)) {

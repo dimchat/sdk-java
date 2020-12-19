@@ -128,6 +128,7 @@ public class MessageProcessor extends Processor {
     @Override
     public ReliableMessage process(ReliableMessage rMsg) {
         if (checkVisa(rMsg)) {
+            // visa key found
             return super.process(rMsg);
         }
         // NOTICE: the application will query meta automatically
@@ -150,11 +151,11 @@ public class MessageProcessor extends Processor {
     @Override
     protected InstantMessage process(InstantMessage iMsg, ReliableMessage rMsg) {
         InstantMessage res = super.process(iMsg, rMsg);
-        if (!getMessenger().saveMessage(iMsg)) {
-            // error
-            return null;
+        if (getMessenger().saveMessage(iMsg)) {
+            return res;
         }
-        return res;
+        // error
+        return null;
     }
 
     @Override

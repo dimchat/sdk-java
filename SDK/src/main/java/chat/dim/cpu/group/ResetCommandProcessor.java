@@ -69,7 +69,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
                         messenger.sendContent(cmd, owner, null, 1);
                     }
                 }
-                // response (no need to response this group command)
+                // response (no need to respond this group command)
                 return null;
             }
         }
@@ -107,7 +107,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
         // 2. resetting members
         List<ID> newMembers = getMembers((GroupCommand) cmd);
         if (newMembers == null || newMembers.size() == 0) {
-            throw new NullPointerException("reset group command error: " + cmd);
+            throw new NullPointerException("group command error: " + cmd);
         }
         // 2.1. check owner
         if (!newMembers.contains(owner)) {

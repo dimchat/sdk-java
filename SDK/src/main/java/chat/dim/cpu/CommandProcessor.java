@@ -51,7 +51,7 @@ public class CommandProcessor extends ContentProcessor {
         super();
     }
 
-    protected Content execute(Command cmd, ReliableMessage rMsg) {
+    public Content execute(Command cmd, ReliableMessage rMsg) {
         String text = String.format("Command (name: %s) not support yet!", cmd.getCommand());
         TextContent res = new TextContent(text);
         // check group message
