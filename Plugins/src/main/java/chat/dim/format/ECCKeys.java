@@ -25,6 +25,8 @@
  */
 package chat.dim.format;
 
+import java.math.BigInteger;
+import java.security.AlgorithmParameters;
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -32,14 +34,14 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
+import java.security.spec.ECGenParameterSpec;
+import java.security.spec.ECParameterSpec;
+import java.security.spec.ECPoint;
+import java.security.spec.ECPublicKeySpec;
 import java.security.spec.InvalidKeySpecException;
+import java.security.spec.InvalidParameterSpecException;
 import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
-
-import org.bouncycastle.jce.ECNamedCurveTable;
-import org.bouncycastle.jce.spec.ECParameterSpec;
-import org.bouncycastle.jce.spec.ECPublicKeySpec;
-import org.bouncycastle.math.ec.ECPoint;
 
 import chat.dim.crypto.CryptoUtils;
 
@@ -81,6 +83,45 @@ public final class ECCKeys {
      */
 
     private static PublicKey createPublicKey(byte[] publicKey) {
+        ECParameterSpec ecSpec;
+        try {
+            AlgorithmParameters parameters = CryptoUtils.getAlgorithmParameters("EC");
+            parameters.init(new ECGenParameterSpec("secp256k1"));
+            ecSpec = parameters.getParameterSpec(ECParameterSpec.class);
+        } catch (NoSuchAlgorithmException | InvalidParameterSpecException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return createPublicKey(publicKey, ecSpec);
+    }
+
+    private static PublicKey createPublicKey(byte[] publicKey, ECParameterSpec ecSpec) {
+        ECPublicKeySpec pubSpec = new ECPublicKeySpec(decodePoint(publicKey), ecSpec);
+        try {
+            KeyFactory keyFactory = CryptoUtils.getKeyFactory("EC");
+            return  keyFactory.generatePublic(pubSpec);
+        } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private static ECPoint decodePoint(byte[] encoded) {
+        byte[] x = new byte[32];
+        byte[] y = new byte[32];
+        if (encoded[0] == 4 && encoded.length == 65) {
+            // uncompressed
+            System.arraycopy(encoded, 1, x, 0, 32);
+            System.arraycopy(encoded, 33, y, 0, 32);
+        } else {
+            // TODO: support compressed points
+            throw new ArrayIndexOutOfBoundsException("public key data error: " + Hex.encode(encoded));
+        }
+        return new ECPoint(new BigInteger(1, x), new BigInteger(1, y));
+    }
+
+    /*
+    private static PublicKey createPublicKey(byte[] publicKey) {
         ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec("secp256k1");
         return createPublicKey(publicKey, ecSpec);
     }
@@ -96,6 +137,7 @@ public final class ECCKeys {
             return null;
         }
     }
+     */
 
     public static ECPublicKey generatePublicKey(ECPrivateKey privateKey) {
         try {

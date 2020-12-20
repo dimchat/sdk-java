@@ -27,6 +27,7 @@ package chat.dim.crypto;
 
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
+import java.security.AlgorithmParameters;
 import java.security.KeyFactory;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -38,6 +39,15 @@ public final class CryptoUtils {
     //
     //  Factories
     //
+
+    public static AlgorithmParameters getAlgorithmParameters(String algorithm) throws NoSuchAlgorithmException {
+        try {
+            return AlgorithmParameters.getInstance(algorithm, "BC");
+        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+            //e.printStackTrace();
+            return AlgorithmParameters.getInstance(algorithm);
+        }
+    }
 
     public static KeyFactory getKeyFactory(String algorithm) throws NoSuchAlgorithmException {
         try {
