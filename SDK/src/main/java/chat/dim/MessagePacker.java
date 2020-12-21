@@ -79,7 +79,11 @@ public class MessagePacker extends Packer {
         }
     }
 
-    private boolean checkVisaKey(ID receiver) {
+    private boolean checkReceiver(ID receiver) {
+        if (ID.isGroup(receiver)) {
+            // check group meta
+            return getFacebook().getMeta(receiver) != null;
+        }
         // 1. check key from visa
         // 2. check key from meta
         return getFacebook().getPublicKeyForEncryption(receiver) != null;
@@ -88,7 +92,7 @@ public class MessagePacker extends Packer {
     @Override
     public SecureMessage encryptMessage(InstantMessage iMsg) {
         // make sure visa.key before encrypting message
-        if (checkVisaKey(iMsg.getReceiver())) {
+        if (checkReceiver(iMsg.getReceiver())) {
             return super.encryptMessage(iMsg);
         }
         // NOTICE: the application will query visa automatically
