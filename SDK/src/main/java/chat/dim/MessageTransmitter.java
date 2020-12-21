@@ -42,50 +42,33 @@ import chat.dim.protocol.SecureMessage;
 
 public class MessageTransmitter {
 
-    private final WeakReference<Facebook> facebookRef;
     private final WeakReference<Messenger> messengerRef;
-    private final WeakReference<Packer> packerRef;
 
-    public MessageTransmitter(Facebook facebook, Messenger messenger, Packer packer) {
+    public MessageTransmitter(Messenger messenger) {
         super();
-        facebookRef = new WeakReference<>(facebook);
         messengerRef = new WeakReference<>(messenger);
-        packerRef = new WeakReference<>(packer);
     }
 
-    protected Facebook getFacebook() {
-        return facebookRef.get();
-    }
     protected Messenger getMessenger() {
         return messengerRef.get();
     }
-    protected Packer getPacker() {
-        return packerRef.get();
+    protected Packer getMessagePacker() {
+        return getMessenger().getMessagePacker();
     }
 
     /**
      *  Send message content to receiver
      *
-     * @param content - message content
+     * @param sender - sender ID
      * @param receiver - receiver ID
+     * @param content - message content
      * @param callback - if needs callback, set it here
      * @return true on success
      */
-    public boolean sendContent(Content content, ID receiver, Messenger.Callback callback, int priority) {
+    public boolean sendContent(ID sender, ID receiver, Content content, Messenger.Callback callback, int priority) {
         // Application Layer should make sure user is already login before it send message to server.
         // Application layer should put message into queue so that it will send automatically after user login
-        User user = getFacebook().getCurrentUser();
-        assert user != null : "current user not found";
-        /*
-        if (receiver.isGroup()) {
-            if (content.getGroup() == null) {
-                content.setGroup(receiver);
-            } else {
-                assert receiver.equals(content.getGroup()) : "group ID not match: " + receiver + ", " + content;
-            }
-        }
-         */
-        Envelope env = Envelope.create(user.identifier, receiver, null);
+        Envelope env = Envelope.create(sender, receiver, null);
         InstantMessage iMsg = InstantMessage.create(env, content);
         return sendMessage(iMsg, callback, priority);
     }
@@ -99,13 +82,13 @@ public class MessageTransmitter {
      */
     public boolean sendMessage(InstantMessage iMsg, Messenger.Callback callback, int priority) {
         // Send message (secured + certified) to target station
-        SecureMessage sMsg = getPacker().encryptMessage(iMsg);
+        SecureMessage sMsg = getMessagePacker().encryptMessage(iMsg);
         if (sMsg == null) {
             // public key not found?
             return false;
             //throw new NullPointerException("failed to encrypt message: " + iMsg);
         }
-        ReliableMessage rMsg = getPacker().signMessage(sMsg);
+        ReliableMessage rMsg = getMessagePacker().signMessage(sMsg);
         if (rMsg == null) {
             // TODO: set iMsg.state = error
             throw new NullPointerException("failed to sign message: " + sMsg);
@@ -136,7 +119,7 @@ public class MessageTransmitter {
                 }
             }
         };
-        byte[] data = getPacker().serializeMessage(rMsg);
+        byte[] data = getMessagePacker().serializeMessage(rMsg);
         return getMessenger().sendPackage(data, handler, priority);
     }
 }

@@ -33,22 +33,19 @@ package chat.dim;
 import java.lang.ref.WeakReference;
 
 import chat.dim.core.Packer;
+import chat.dim.core.Processor;
 import chat.dim.core.Transceiver;
 import chat.dim.cpu.ContentProcessor;
 import chat.dim.cpu.FileContentProcessor;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.SymmetricKey;
-import chat.dim.crypto.VerifyKey;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
-import chat.dim.protocol.Document;
 import chat.dim.protocol.FileContent;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
-import chat.dim.protocol.Meta;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
-import chat.dim.protocol.Visa;
 
 public class Messenger extends Transceiver {
 
@@ -56,7 +53,7 @@ public class Messenger extends Transceiver {
     private WeakReference<DataSource> dataSourceRef = null;
 
     private Packer messagePacker = null;
-    private MessageProcessor messageProcessor = null;
+    private Processor messageProcessor = null;
     private MessageTransmitter messageTransmitter = null;
 
     public Messenger() {
@@ -109,20 +106,20 @@ public class Messenger extends Transceiver {
         return messagePacker;
     }
     protected Packer newMessagePacker() {
-        return new Packer(getEntityDelegate(), this, getCipherKeyDelegate());
+        return new MessagePacker(this, getCipherKeyDelegate());
     }
 
     //
     //  Message Processor
     //
-    protected MessageProcessor getMessageProcessor() {
+    protected Processor getMessageProcessor() {
         if (messageProcessor == null) {
             messageProcessor = newMessageProcessor();
         }
         return messageProcessor;
     }
-    protected MessageProcessor newMessageProcessor() {
-        return new MessageProcessor(getFacebook(), this, getMessagePacker());
+    protected Processor newMessageProcessor() {
+        return new MessageProcessor(this);
     }
 
     //
@@ -135,7 +132,7 @@ public class Messenger extends Transceiver {
         return messageTransmitter;
     }
     protected MessageTransmitter newMessageTransmitter() {
-        return new MessageTransmitter(getFacebook(), this, getMessagePacker());
+        return new MessageTransmitter(this);
     }
 
     private FileContentProcessor getFileContentProcessor() {
@@ -199,8 +196,17 @@ public class Messenger extends Transceiver {
     //
     //  Interfaces for Sending Message
     //
-    public boolean sendContent(Content content, ID receiver, Messenger.Callback callback, int priority) {
-        return getMessageTransmitter().sendContent(content, receiver, callback, priority);
+    public boolean sendContent(ID sender, ID receiver, Content content, Messenger.Callback callback, int priority) {
+        if (sender == null) {
+            // Application Layer should make sure user is already login before it send message to server.
+            // Application layer should put message into queue so that it will send automatically after user login
+            User user = getFacebook().getCurrentUser();
+            if (user == null) {
+                throw new NullPointerException("current user not set");
+            }
+            sender = user.identifier;
+        }
+        return getMessageTransmitter().sendContent(sender, receiver, content, callback, priority);
     }
 
     public boolean sendMessage(InstantMessage iMsg, Messenger.Callback callback, int priority) {

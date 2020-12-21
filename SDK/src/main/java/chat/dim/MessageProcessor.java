@@ -30,122 +30,28 @@
  */
 package chat.dim;
 
-import chat.dim.core.Packer;
 import chat.dim.core.Processor;
 import chat.dim.cpu.CommandProcessor;
 import chat.dim.cpu.ContentProcessor;
-import chat.dim.crypto.EncryptKey;
 import chat.dim.protocol.BlockCommand;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
-import chat.dim.protocol.Document;
 import chat.dim.protocol.HandshakeCommand;
-import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.LoginCommand;
-import chat.dim.protocol.Meta;
 import chat.dim.protocol.MuteCommand;
 import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.ReliableMessage;
-import chat.dim.protocol.SecureMessage;
 import chat.dim.protocol.StorageCommand;
-import chat.dim.protocol.Visa;
 
 public class MessageProcessor extends Processor {
 
-    public MessageProcessor(Facebook facebook, Messenger messenger, Packer packer) {
-        super(facebook, messenger, packer);
-    }
-
-    protected Facebook getFacebook() {
-        return (Facebook) getEntityDelegate();
+    public MessageProcessor(Messenger transceiver) {
+        super(transceiver.getFacebook(), transceiver, transceiver.getMessagePacker());
     }
 
     protected Messenger getMessenger() {
         return (Messenger) getMessageDelegate();
-    }
-
-    // [VISA Protocol]
-    private boolean checkVisa(ReliableMessage rMsg) {
-        // check message delegate
-        if (rMsg.getDelegate() == null) {
-            rMsg.setDelegate(getMessenger());
-        }
-        Facebook facebook = getFacebook();
-        ID sender = rMsg.getSender();
-        // check meta
-        Meta meta = rMsg.getMeta();
-        if (meta != null) {
-            // [Meta Protocol]
-            // save meta for sender
-            if (!facebook.saveMeta(meta, sender)) {
-                return false;
-            }
-        }
-        // check visa
-        Visa visa = rMsg.getVisa();
-        if (visa != null) {
-            // [Visa Protocol]
-            // save visa for sender
-            return facebook.saveDocument(visa);
-        }
-        // check local storage
-        Document doc = facebook.getDocument(sender, Document.VISA);
-        if (doc instanceof Visa) {
-            if (((Visa) doc).getKey() != null) {
-                // visa.key exists
-                return true;
-            }
-        }
-        if (meta == null) {
-            meta = facebook.getMeta(sender);
-            if (meta == null) {
-                return false;
-            }
-        }
-        // if meta.key can be used to encrypt message,
-        // then visa.key is not necessary
-        return meta.getKey() instanceof EncryptKey;
-    }
-
-    private SecureMessage trim(SecureMessage sMsg) {
-        // check message delegate
-        if (sMsg.getDelegate() == null) {
-            sMsg.setDelegate(getMessenger());
-        }
-        ID receiver = sMsg.getReceiver();
-        User user = getFacebook().selectLocalUser(receiver);
-        if (user == null) {
-            // current users not match
-            sMsg = null;
-        } else if (ID.isGroup(receiver)) {
-            // trim group message
-            sMsg = sMsg.trim(user.identifier);
-        }
-        return sMsg;
-    }
-
-    @Override
-    public ReliableMessage process(ReliableMessage rMsg) {
-        if (checkVisa(rMsg)) {
-            // visa key found
-            return super.process(rMsg);
-        }
-        // NOTICE: the application will query meta automatically
-        // save this message in a queue waiting sender's meta response
-        getMessenger().suspendMessage(rMsg);
-        //throw new NullPointerException("failed to get meta for sender: " + sender);
-        return null;
-    }
-
-    @Override
-    protected SecureMessage process(SecureMessage sMsg, ReliableMessage rMsg) {
-        // try to trim message
-        if (trim(sMsg) == null) {
-            // not for you?
-            throw new NullPointerException("receiver error: " + sMsg);
-        }
-        return super.process(sMsg, rMsg);
     }
 
     @Override
