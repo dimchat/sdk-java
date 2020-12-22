@@ -52,95 +52,88 @@ public class MessagePacker extends Packer {
         return (Messenger) getMessageDelegate();
     }
 
-    // [Meta Protocol]
-    private boolean checkMeta(ReliableMessage rMsg) {
-        // check message delegate
-        if (rMsg.getDelegate() == null) {
-            rMsg.setDelegate(getMessenger());
+    private boolean isWaiting(ID identifier) {
+        if (ID.isBroadcast(identifier)) {
+            // broadcast ID doesn't contain meta or visa
+            return false;
         }
-        // check meta attached to message
-        Meta meta = rMsg.getMeta();
-        if (meta == null) {
-            return getFacebook().getMeta(rMsg.getSender()) != null;
+        if (ID.isGroup(identifier)) {
+            // if group is not broadcast ID, its meta should be exists
+            return getFacebook().getMeta(identifier) == null;
         }
-        // [Meta Protocol]
-        // save meta for sender
-        return getFacebook().saveMeta(meta, rMsg.getSender());
-    }
-
-    // [Visa Protocol]
-    private void checkVisa(ReliableMessage rMsg) {
-        // check visa attached to message
-        Visa visa = rMsg.getVisa();
-        if (visa != null) {
-            // [Visa Protocol]
-            // save visa for sender
-            getFacebook().saveDocument(visa);
-        }
-    }
-
-    private boolean checkReceiver(ID receiver) {
-        if (ID.isGroup(receiver)) {
-            // check group meta
-            return getFacebook().getMeta(receiver) != null;
-        }
-        // 1. check key from visa
-        // 2. check key from meta
-        return getFacebook().getPublicKeyForEncryption(receiver) != null;
+        // if receiver is not broadcast ID, its visa key should be exists
+        return getFacebook().getPublicKeyForEncryption(identifier) == null;
     }
 
     @Override
     public SecureMessage encryptMessage(InstantMessage iMsg) {
-        // make sure visa.key before encrypting message
-        if (checkReceiver(iMsg.getReceiver())) {
-            return super.encryptMessage(iMsg);
+        ID receiver = iMsg.getReceiver();
+        ID group = iMsg.getGroup();
+        if (isWaiting(receiver) || (group != null && isWaiting(group))) {
+            // NOTICE: the application will query visa automatically
+            // save this message in a queue waiting sender's visa response
+            getMessenger().suspendMessage(iMsg);
+            return null;
         }
-        // NOTICE: the application will query visa automatically
-        // save this message in a queue waiting sender's visa response
-        getMessenger().suspendMessage(iMsg);
-        //throw new NullPointerException("failed to get visa for receiver: " + iMsg.getReceiver());
-        return null;
+
+        // make sure visa.key exists before encrypting message
+        return super.encryptMessage(iMsg);
     }
 
     @Override
     public SecureMessage verifyMessage(ReliableMessage rMsg) {
-        // make sure meta.key exists before verifying message
-        if (checkMeta(rMsg)) {
-            checkVisa(rMsg);  // check and save visa attached to message
-            return super.verifyMessage(rMsg);
+        Facebook facebook = getFacebook();
+        ID sender = rMsg.getSender();
+        // [Meta Protocol]
+        Meta meta = rMsg.getMeta();
+        if (meta == null) {
+            // get from local storage
+            meta = facebook.getMeta(sender);
+        } else if (!facebook.saveMeta(meta, sender)) {
+            // failed to save meta attached to message
+            meta = null;
         }
-        // NOTICE: the application will query meta automatically
-        // save this message in a queue waiting sender's meta response
-        getMessenger().suspendMessage(rMsg);
-        //throw new NullPointerException("failed to get meta for sender: " + sender);
-        return null;
+        if (meta == null) {
+            // NOTICE: the application will query meta automatically
+            // save this message in a queue waiting sender's meta response
+            getMessenger().suspendMessage(rMsg);
+            return null;
+        }
+        // [Visa Protocol]
+        Visa visa = rMsg.getVisa();
+        if (visa != null) {
+            // check visa attached to message
+            facebook.saveDocument(visa);
+        }
+
+        // make sure meta exists before verifying message
+        return super.verifyMessage(rMsg);
     }
 
     @Override
     public InstantMessage decryptMessage(SecureMessage sMsg) {
-        // try to trim message
-        SecureMessage tMsg = trim(sMsg);
-        if (tMsg == null) {
-            // not for you?
-            throw new NullPointerException("receiver error: " + sMsg);
-        }
-        return super.decryptMessage(sMsg);
-    }
-
-    private SecureMessage trim(SecureMessage sMsg) {
         // check message delegate
         if (sMsg.getDelegate() == null) {
             sMsg.setDelegate(getMessenger());
         }
         ID receiver = sMsg.getReceiver();
         User user = getEntityDelegate().selectLocalUser(receiver);
+        SecureMessage trimmed;
         if (user == null) {
             // current users not match
-            sMsg = null;
+            trimmed = null;
         } else if (ID.isGroup(receiver)) {
             // trim group message
-            sMsg = sMsg.trim(user.identifier);
+            trimmed = sMsg.trim(user.identifier);
+        } else {
+            trimmed = sMsg;
         }
-        return sMsg;
+        if (trimmed == null) {
+            // not for you?
+            throw new NullPointerException("receiver error: " + sMsg);
+        }
+
+        // make sure private key (decrypt key) exists before decrypting message
+        return super.decryptMessage(sMsg);
     }
 }

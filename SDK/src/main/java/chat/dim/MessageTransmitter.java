@@ -104,21 +104,20 @@ public class MessageTransmitter {
     }
 
     public boolean sendMessage(ReliableMessage rMsg, Messenger.Callback callback, int priority) {
-        Messenger.CompletionHandler handler = new Messenger.CompletionHandler() {
-            @Override
-            public void onSuccess() {
-                if (callback != null) {
+        Messenger.CompletionHandler handler = null;
+        if (callback != null) {
+            handler = new Messenger.CompletionHandler() {
+                @Override
+                public void onSuccess() {
                     callback.onFinished(rMsg, null);
                 }
-            }
 
-            @Override
-            public void onFailed(Error error) {
-                if (callback != null) {
+                @Override
+                public void onFailed(Error error) {
                     callback.onFinished(rMsg, error);
                 }
-            }
-        };
+            };
+        }
         byte[] data = getMessagePacker().serializeMessage(rMsg);
         return getMessenger().sendPackage(data, handler, priority);
     }
