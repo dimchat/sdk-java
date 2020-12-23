@@ -40,8 +40,8 @@ import chat.dim.protocol.Visa;
 
 public class MessagePacker extends Packer {
 
-    public MessagePacker(Messenger transceiver, CipherKeyDelegate keyCache) {
-        super(transceiver.getFacebook(), transceiver, keyCache);
+    public MessagePacker(Messenger transceiver) {
+        super(transceiver.getFacebook(), transceiver, transceiver.getCipherKeyDelegate());
     }
 
     protected Facebook getFacebook() {

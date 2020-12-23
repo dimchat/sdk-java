@@ -84,6 +84,11 @@ public class Messenger extends Transceiver {
         return dataSourceRef.get();
     }
 
+    @Override
+    public CipherKeyDelegate getCipherKeyDelegate() {
+        return super.getCipherKeyDelegate();
+    }
+
     /**
      *  Delegate for getting entity info
      *
@@ -101,12 +106,12 @@ public class Messenger extends Transceiver {
     //
     protected Packer getMessagePacker() {
         if (messagePacker == null) {
-            messagePacker = newMessagePacker();
+            messagePacker = createMessagePacker();
         }
         return messagePacker;
     }
-    protected Packer newMessagePacker() {
-        return new MessagePacker(this, getCipherKeyDelegate());
+    protected Packer createMessagePacker() {
+        return new MessagePacker(this);
     }
 
     //
@@ -114,11 +119,11 @@ public class Messenger extends Transceiver {
     //
     protected Processor getMessageProcessor() {
         if (messageProcessor == null) {
-            messageProcessor = newMessageProcessor();
+            messageProcessor = createMessageProcessor();
         }
         return messageProcessor;
     }
-    protected Processor newMessageProcessor() {
+    protected Processor createMessageProcessor() {
         return new MessageProcessor(this);
     }
 
@@ -127,11 +132,11 @@ public class Messenger extends Transceiver {
     //
     protected MessageTransmitter getMessageTransmitter() {
         if (messageTransmitter == null) {
-            messageTransmitter = newMessageTransmitter();
+            messageTransmitter = createMessageTransmitter();
         }
         return messageTransmitter;
     }
-    protected MessageTransmitter newMessageTransmitter() {
+    protected MessageTransmitter createMessageTransmitter() {
         return new MessageTransmitter(this);
     }
 
