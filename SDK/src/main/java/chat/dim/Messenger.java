@@ -32,6 +32,7 @@ package chat.dim;
 
 import java.lang.ref.WeakReference;
 
+import chat.dim.core.CipherKeyDelegate;
 import chat.dim.core.Packer;
 import chat.dim.core.Processor;
 import chat.dim.core.Transceiver;
@@ -164,7 +165,7 @@ public class Messenger extends Transceiver {
         EncryptKey key = getFacebook().getPublicKeyForEncryption(receiver);
         if (key == null) {
             // save this message in a queue waiting receiver's meta/document response
-            getDataSource().suspendMessage(iMsg);
+            suspendMessage(iMsg);
             //throw new NullPointerException("failed to get encrypt key for receiver: " + receiver);
             return null;
         }
