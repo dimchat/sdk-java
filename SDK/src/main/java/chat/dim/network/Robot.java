@@ -41,6 +41,6 @@ public class Robot extends User {
 
     public Robot(ID identifier) {
         super(identifier);
-        assert NetworkType.Robot.equals(identifier.getType()) : "robot ID error: " + identifier;
+        assert NetworkType.ROBOT.equals(identifier.getType()) : "robot ID error: " + identifier;
     }
 }

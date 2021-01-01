@@ -63,7 +63,10 @@ final class ETHMeta extends BaseMeta {
     // cache
     private Address cachedAddress = null;
 
-    private Address generateAddress() {
+    @Override
+    public Address generateAddress(byte type) {
+        assert NetworkType.MAIN.equals(type) : "ETH address type error: " + type;
+        assert MetaType.ETH.equals(getType()) || MetaType.ExETH.equals(getType()) : "meta version error";
         if (cachedAddress == null && isValid()) {
             // generate and cache it
             VerifyKey key = getKey();
@@ -71,13 +74,6 @@ final class ETHMeta extends BaseMeta {
             cachedAddress = ETHAddress.generate(data);
         }
         return cachedAddress;
-    }
-
-    @Override
-    public Address generateAddress(byte type) {
-        assert NetworkType.Main.equals(type) : "ETH address type error: " + type;
-        assert MetaType.ETH.equals(getType()) || MetaType.ExETH.equals(getType()) : "meta version error";
-        return generateAddress();
     }
 
     @Override

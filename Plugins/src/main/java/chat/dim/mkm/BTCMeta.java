@@ -50,7 +50,6 @@ import chat.dim.protocol.NetworkType;
  *      hash    = ripemd160(sha256(CT));
  *      code    = sha256(sha256(network + hash)).prefix(4);
  *      address = base58_encode(network + hash + code);
- *      number  = uint(code);
  */
 final class BTCMeta extends BaseMeta {
 
@@ -65,21 +64,17 @@ final class BTCMeta extends BaseMeta {
     // cache
     private Address cachedAddress = null;
 
-    private Address generateAddress() {
+    @Override
+    public Address generateAddress(byte type) {
+        assert NetworkType.BTC_MAIN.equals(type) : "BTC address type error: " + type;
+        assert MetaType.BTC.equals(getType()) || MetaType.ExBTC.equals(getType()) : "meta version error";
         if (cachedAddress == null && isValid()) {
             // generate and cache it
             VerifyKey key = getKey();
             byte[] data = key.getData();
-            cachedAddress = BTCAddress.generate(data, NetworkType.BTCMain.value);
+            cachedAddress = BTCAddress.generate(data, NetworkType.BTC_MAIN.value);
         }
         return cachedAddress;
-    }
-
-    @Override
-    public Address generateAddress(byte type) {
-        assert NetworkType.BTCMain.equals(type) : "BTC address type error: " + type;
-        assert MetaType.BTC.equals(getType()) || MetaType.ExBTC.equals(getType()) : "meta version error";
-        return generateAddress();
     }
 
     @Override

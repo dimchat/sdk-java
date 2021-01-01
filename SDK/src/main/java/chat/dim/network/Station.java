@@ -50,7 +50,7 @@ public class Station extends User {
 
     public Station(ID identifier, String host, int port) {
         super(identifier);
-        assert NetworkType.Station.equals(identifier.getType()) : "station ID error: " + identifier;
+        assert NetworkType.STATION.equals(identifier.getType()) : "station ID error: " + identifier;
         this.host = host;
         this.port = port;
     }

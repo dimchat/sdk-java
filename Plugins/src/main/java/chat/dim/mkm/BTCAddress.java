@@ -43,10 +43,10 @@ import chat.dim.protocol.Address;
  *      data format: "network+digest+code"
  *          network    --  1 byte
  *          digest     -- 20 bytes
- *          code       --  4 bytes
+ *          check code --  4 bytes
  *
  *      algorithm:
- *          fingerprint = sign(seed, SK);  // public key data
+ *          fingerprint = PK.data
  *          digest      = ripemd160(sha256(fingerprint));
  *          code        = sha256(sha256(network + digest)).prefix(4);
  *          address     = base58_encode(network + digest + code);
@@ -66,9 +66,9 @@ public final class BTCAddress extends chat.dim.type.String implements Address {
     }
 
     /**
-     *  Generate address with fingerprint and network ID
+     *  Generate BTC address with fingerprint and network ID
      *
-     * @param fingerprint = meta.fingerprint or key.data
+     * @param fingerprint - meta.fingerprint or key.data
      * @param network - address type
      * @return Address object
      */

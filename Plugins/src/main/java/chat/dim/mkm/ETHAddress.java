@@ -53,7 +53,63 @@ public final class ETHAddress extends chat.dim.type.String implements Address {
 
     @Override
     public byte getNetwork() {
-        return NetworkType.Main.value;
+        return NetworkType.MAIN.value;
+    }
+
+    // https://eips.ethereum.org/EIPS/eip-55
+    private static String eip55(String hex) {
+        StringBuilder sb = new StringBuilder();
+        byte[] hash = Keccak256.digest(hex.getBytes());
+        char ch;
+        for (int i = 0; i < 40; ++i) {
+            ch = hex.charAt(i);
+            if (ch > '9') {
+                // check for each 4 bits in the hash table
+                // if the first bit is '1',
+                //     change the character to uppercase
+                ch -= (hash[i >> 1] << (i << 2 & 4) & 0x80) >> 2;
+            }
+            sb.append(ch);
+        }
+        return sb.toString();
+    }
+
+    private static boolean isETH(String address) {
+        if (address.length() != 42) {
+            return false;
+        }
+        if (address.charAt(0) != '0' || address.charAt(1) != 'x') {
+            return false;
+        }
+        char ch;
+        for (int i = 2; i < 42; ++i) {
+            ch = address.charAt(i);
+            if (ch >= '0' && ch <= '9') {
+                continue;
+            }
+            if (ch >= 'A' && ch <= 'Z') {
+                continue;
+            }
+            if (ch >= 'a' && ch <= 'z') {
+                continue;
+            }
+            // unexpected character
+            return false;
+        }
+        return true;
+    }
+
+    public static String getValidateAddress(String address) {
+        if (isETH(address)) {
+            String lower = address.substring(2).toLowerCase();
+            return "0x" + eip55(lower);
+        }
+        return null;
+    }
+
+    public static boolean isValidate(String address) {
+        String validate = getValidateAddress(address);
+        return validate != null && validate.equals(address);
     }
 
     /**
@@ -78,87 +134,16 @@ public final class ETHAddress extends chat.dim.type.String implements Address {
         return new ETHAddress(address);
     }
 
-    // https://eips.ethereum.org/EIPS/eip-55
-    private static String eip55(String hex) {
-        StringBuilder sb = new StringBuilder();
-        byte[] hash = Keccak256.digest(hex.getBytes());
-        char ch;
-        for (int i = 0; i < 40; ++i) {
-            ch = hex.charAt(i);
-            if (ch > '9') {
-                // check for each 4 bits in the hash table
-                // if the first bit is '1',
-                //     change the character to uppercase
-                ch -= (hash[i >> 1] << (i << 2 & 4) & 0x80) >> 2;
-            }
-            sb.append(ch);
-        }
-        return sb.toString();
-    }
-
-    public static String getValidateAddress(String address) {
-        address = address.toLowerCase();
-        if (address.startsWith("0x")) {
-            address = address.substring(2);
-        }
-        return "0x" + eip55(address);
-    }
-
-    public static boolean isValidate(String address) {
-        int len = address.length();
-        if (len != 42) {
-            return false;
-        }
-        if (address.charAt(0) != '0' || address.charAt(1) != 'x') {
-            return false;
-        }
-        char ch;
-        for (int i = 2; i < 42; ++i) {
-            ch = address.charAt(i);
-            if (ch >= '0' && ch <= '9') {
-                continue;
-            }
-            if (ch >= 'A' && ch <= 'Z') {
-                continue;
-            }
-            if (ch >= 'a' && ch <= 'z') {
-                continue;
-            }
-            // unexpected character
-            return false;
-        }
-        String hex = address.substring(2);
-        return eip55(hex.toLowerCase()).equals(hex);
-    }
-
     /**
      *  Parse a string for ETH address
      *
-     * @param string - address string
+     * @param address - address string
      * @return null on error
      */
-    public static ETHAddress parse(String string) {
-        int len = string.length();
-        if (len != 42) {
-            return null;
+    public static ETHAddress parse(String address) {
+        if (isETH(address)) {
+            return new ETHAddress(address);
         }
-        if (string.charAt(0) != '0' || string.charAt(1) != 'x') {
-            return null;
-        }
-        char ch;
-        for (int i = 2; i < len; ++i) {
-            ch = string.charAt(i);
-            if (ch >= '0' && ch <= '9') {
-                continue;
-            }
-            if (ch >= 'A' && ch <= 'F') {
-                continue;
-            }
-            if (ch >= 'a' && ch <= 'f') {
-                continue;
-            }
-            return null;
-        }
-        return new ETHAddress(string);
+        return null;
     }
 }

@@ -83,7 +83,7 @@ final class DocumentFactory implements Document.Factory {
 
     @Override
     public Document parseDocument(Map<String, Object> doc) {
-        ID identifier = ID.parse(doc.get("ID"));
+        ID identifier = Document.getIdentifier(doc);
         if (identifier == null) {
             return null;
         }

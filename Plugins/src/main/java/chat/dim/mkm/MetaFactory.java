@@ -50,7 +50,7 @@ final class MetaFactory implements Meta.Factory {
 
     @Override
     public Meta createMeta(VerifyKey key, String seed, byte[] fingerprint) {
-        if (MetaType.Default.equals(version)) {
+        if (MetaType.MKM.equals(version)) {
             // MKM
             return new DefaultMeta(version, key, seed, fingerprint);
         } else if (MetaType.BTC.equals(version) || MetaType.ExBTC.equals(version)) {
@@ -78,7 +78,7 @@ final class MetaFactory implements Meta.Factory {
     @Override
     public Meta parseMeta(Map<String, Object> meta) {
         int type = Meta.getType(meta);
-        if (MetaType.Default.equals(type)) {
+        if (MetaType.MKM.equals(type)) {
             // MKM
             return new DefaultMeta(meta);
         } else if (MetaType.BTC.equals(type) || MetaType.ExBTC.equals(type)) {

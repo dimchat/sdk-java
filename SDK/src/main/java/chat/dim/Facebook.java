@@ -129,7 +129,7 @@ public abstract class Facebook extends Barrack {
             // check by owner
             ID owner = getOwner(identifier);
             if (owner == null) {
-                if (NetworkType.Polylogue.equals(identifier.getType())) {
+                if (NetworkType.POLYLOGUE.equals(identifier.getType())) {
                     // NOTICE: if this is a polylogue profile
                     //             verify it with the founder's meta.key
                     //             (which equals to the group's meta.key)
@@ -161,13 +161,13 @@ public abstract class Facebook extends Barrack {
         // TODO: make sure visa key exists before calling this
         // check user type
         byte type = identifier.getType();
-        if (NetworkType.Main.equals(type) || NetworkType.BTCMain.equals(type)) {
+        if (NetworkType.MAIN.equals(type) || NetworkType.BTC_MAIN.equals(type)) {
             return new User(identifier);
         }
-        if (NetworkType.Robot.equals(type)) {
+        if (NetworkType.ROBOT.equals(type)) {
             return new Robot(identifier);
         }
-        if (NetworkType.Station.equals(type)) {
+        if (NetworkType.STATION.equals(type)) {
             return new Station(identifier);
         }
         throw new TypeNotPresentException("Unsupported user type: " + type, null);
@@ -183,13 +183,13 @@ public abstract class Facebook extends Barrack {
         assert getMeta(identifier) != null : "meta not found for group: " + identifier;
         // check group type
         byte type = identifier.getType();
-        if (NetworkType.Polylogue.equals(type)) {
+        if (NetworkType.POLYLOGUE.equals(type)) {
             return new Polylogue(identifier);
         }
-        if (NetworkType.Chatroom.equals(type)) {
+        if (NetworkType.CHATROOM.equals(type)) {
             return new Chatroom(identifier);
         }
-        if (NetworkType.Provider.equals(type)) {
+        if (NetworkType.PROVIDER.equals(type)) {
             return new ServiceProvider(identifier);
         }
         throw new TypeNotPresentException("Unsupported group type: " + type, null);

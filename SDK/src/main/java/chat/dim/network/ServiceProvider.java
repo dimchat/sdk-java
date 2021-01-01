@@ -40,7 +40,7 @@ public class ServiceProvider extends Group {
 
     public ServiceProvider(ID identifier) {
         super(identifier);
-        assert NetworkType.Provider.equals(identifier.getType()) : "SP ID error: " + identifier;
+        assert NetworkType.PROVIDER.equals(identifier.getType()) : "SP ID error: " + identifier;
     }
 
     public List<ID> getStations() {
