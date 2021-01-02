@@ -52,7 +52,7 @@ public abstract class Facebook extends Barrack {
     /**
      *  Get current user (for signing and sending message)
      *
-     * @return user object
+     * @return User
      */
     public User getCurrentUser() {
         List<User> users = getLocalUsers();

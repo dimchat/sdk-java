@@ -76,6 +76,8 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
         CommandProcessor cpu = getProcessor(cmd);
         if (cpu == null) {
             cpu = this;
+        } else {
+            cpu.setMessenger(getMessenger());
         }
         return cpu.execute(cmd, rMsg);
     }

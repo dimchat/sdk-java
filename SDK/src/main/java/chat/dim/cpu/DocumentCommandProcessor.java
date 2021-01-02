@@ -57,18 +57,14 @@ public class DocumentCommandProcessor extends CommandProcessor {
             return new TextContent(text);
         }
         // response
-        return new DocumentCommand(identifier, doc);
+        Meta meta = facebook.getMeta(identifier);
+        return new DocumentCommand(identifier, meta, doc);
     }
 
     private Content putDocument(ID identifier, Meta meta, Document doc) {
         Facebook facebook = getFacebook();
         if (meta != null) {
             // received a meta for ID
-            if (!meta.matches(identifier)) {
-                // meta not match
-                String text = String.format("Meta not match ID: %s", identifier);
-                return new TextContent(text);
-            }
             if (!facebook.saveMeta(meta, identifier)) {
                 // meta not match
                 String text = String.format("Meta not accept: %s", identifier);
@@ -76,18 +72,13 @@ public class DocumentCommandProcessor extends CommandProcessor {
             }
         }
         // receive a document for ID
-        if (!facebook.isValid(doc)) {
-            // document signature not match
-            String text = String.format("document ID not match: %s", identifier);
-            return new TextContent(text);
-        }
         if (!facebook.saveDocument(doc))  {
             // save document failed
-            String text = String.format("document not accept: %s", identifier);
+            String text = String.format("Document not accept: %s", identifier);
             return new TextContent(text);
         }
         // response
-        String text = String.format("document received: %s", identifier);
+        String text = String.format("Document received: %s", identifier);
         return new ReceiptCommand(text);
     }
 

@@ -61,7 +61,7 @@ public class MessagePacker extends Packer {
             // if group is not broadcast ID, its meta should be exists
             return getFacebook().getMeta(identifier) == null;
         }
-        // if receiver is not broadcast ID, its visa key should be exists
+        // if user is not broadcast ID, its visa key should be exists
         return getFacebook().getPublicKeyForEncryption(identifier) == null;
     }
 
@@ -70,8 +70,8 @@ public class MessagePacker extends Packer {
         ID receiver = iMsg.getReceiver();
         ID group = iMsg.getGroup();
         if (isWaiting(receiver) || (group != null && isWaiting(group))) {
-            // NOTICE: the application will query visa automatically
-            // save this message in a queue waiting sender's visa response
+            // NOTICE: the application will query visa automatically,
+            //         save this message in a queue waiting sender's visa response
             getMessenger().suspendMessage(iMsg);
             return null;
         }
@@ -94,8 +94,8 @@ public class MessagePacker extends Packer {
             meta = null;
         }
         if (meta == null) {
-            // NOTICE: the application will query meta automatically
-            // save this message in a queue waiting sender's meta response
+            // NOTICE: the application will query meta automatically,
+            //         save this message in a queue waiting sender's meta response
             getMessenger().suspendMessage(rMsg);
             return null;
         }
@@ -114,7 +114,7 @@ public class MessagePacker extends Packer {
     public InstantMessage decryptMessage(SecureMessage sMsg) {
         // check message delegate
         if (sMsg.getDelegate() == null) {
-            sMsg.setDelegate(getMessenger());
+            sMsg.setDelegate(getMessageDelegate());
         }
         ID receiver = sMsg.getReceiver();
         User user = getEntityDelegate().selectLocalUser(receiver);

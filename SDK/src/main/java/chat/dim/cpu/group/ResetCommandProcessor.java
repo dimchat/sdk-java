@@ -60,13 +60,12 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
             if (facebook.isOwner(item, group)) {
                 // it's a full list, save it now
                 if (facebook.saveMembers(newMembers, group)) {
-                    ID owner = facebook.getOwner(group);
-                    if (owner != null && !owner.equals(sender)) {
+                    if (!item.equals(sender)) {
                         // NOTICE: to prevent counterfeit,
                         //         query the owner for newest member-list
                         cmd = new QueryCommand(group);
                         Messenger messenger = getMessenger();
-                        messenger.sendContent(null, owner, cmd, null, 1);
+                        messenger.sendContent(null, item, cmd, null, 1);
                     }
                 }
                 // response (no need to respond this group command)

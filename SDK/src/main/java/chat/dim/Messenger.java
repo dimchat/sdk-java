@@ -92,12 +92,7 @@ public class Messenger extends Transceiver {
 
     /**
      *  Delegate for getting entity info
-     *
-     * @param delegate - entity data source
      */
-    public void setFacebook(Facebook delegate) {
-        setEntityDelegate(delegate);
-    }
     public Facebook getFacebook() {
         return (Facebook) getEntityDelegate();
     }
@@ -337,7 +332,7 @@ public class Messenger extends Transceiver {
         void suspendMessage(ReliableMessage rMsg);
 
         /**
-         *  Suspend the sending message for the receiver's meta,
+         *  Suspend the sending message for the receiver's meta & visa,
          *  or group meta when received new message
          *
          * @param iMsg - instant message to be sent

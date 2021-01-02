@@ -52,6 +52,7 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
     private Content callReset(Command cmd, ReliableMessage rMsg) {
         CommandProcessor cpu = getProcessor(GroupCommand.RESET);
         assert cpu != null : "reset CPU not register yet";
+        cpu.setMessenger(getMessenger());
         return cpu.execute(cmd, rMsg);
     }
 
@@ -65,9 +66,8 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
         ID owner = facebook.getOwner(group);
         List<ID> members = facebook.getMembers(group);
         if (owner == null || members == null || members.size() == 0) {
-            // NOTICE:
-            //     group membership lost?
-            //     reset group members
+            // NOTICE: group membership lost?
+            //         reset group members
             return callReset(cmd, rMsg);
         }
 
@@ -99,7 +99,7 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
             if (members.contains(item)) {
                 continue;
             }
-            // adding member found
+            // new member found
             addedList.add(item.toString());
             members.add(item);
         }

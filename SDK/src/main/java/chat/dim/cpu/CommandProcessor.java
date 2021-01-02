@@ -73,9 +73,11 @@ public class CommandProcessor extends ContentProcessor {
             if (cmd instanceof GroupCommand) {
                 cpu = getProcessor("group");
             }
-            if (cpu == null) {
-                cpu = this;
-            }
+        }
+        if (cpu == null) {
+            cpu = this;
+        } else {
+            cpu.setMessenger(getMessenger());
         }
         return cpu.execute(cmd, rMsg);
     }
@@ -84,16 +86,11 @@ public class CommandProcessor extends ContentProcessor {
     //  CPU factory
     //
 
-    public CommandProcessor getProcessor(Command cmd) {
+    static CommandProcessor getProcessor(Command cmd) {
         return getProcessor(cmd.getCommand());
     }
-    public CommandProcessor getProcessor(String command) {
-        CommandProcessor cpu = Processors.commandProcessors.get(command);
-        if (cpu == null) {
-            return null;
-        }
-        cpu.setMessenger(getMessenger());
-        return cpu;
+    protected static CommandProcessor getProcessor(String command) {
+        return Processors.commandProcessors.get(command);
     }
 
     public static void register(String command, CommandProcessor cpu) {

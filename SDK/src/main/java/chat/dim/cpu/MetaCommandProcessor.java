@@ -61,11 +61,6 @@ public class MetaCommandProcessor extends CommandProcessor {
 
     private Content putMeta(ID identifier, Meta meta) {
         // received a meta for ID
-        if (!meta.matches(identifier)) {
-            // meta not match
-            String text = String.format("Meta not match ID: %s", identifier);
-            return new TextContent(text);
-        }
         if (!getFacebook().saveMeta(meta, identifier)) {
             // save meta failed
             String text = String.format("Meta not accept: %s", identifier);
