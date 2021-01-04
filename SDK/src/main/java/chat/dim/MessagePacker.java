@@ -40,16 +40,15 @@ import chat.dim.protocol.Visa;
 
 public class MessagePacker extends Packer {
 
-    public MessagePacker(Messenger transceiver) {
-        super(transceiver.getFacebook(), transceiver, transceiver.getCipherKeyDelegate());
-    }
-
-    protected Facebook getFacebook() {
-        return getMessenger().getFacebook();
+    public MessagePacker(Messenger messenger) {
+        super(messenger);
     }
 
     protected Messenger getMessenger() {
-        return (Messenger) getMessageDelegate();
+        return (Messenger) getTransceiver();
+    }
+    protected Facebook getFacebook() {
+        return getMessenger().getFacebook();
     }
 
     private boolean isWaiting(ID identifier) {
@@ -114,7 +113,7 @@ public class MessagePacker extends Packer {
     public InstantMessage decryptMessage(SecureMessage sMsg) {
         // check message delegate
         if (sMsg.getDelegate() == null) {
-            sMsg.setDelegate(getMessageDelegate());
+            sMsg.setDelegate(getMessenger());
         }
         ID receiver = sMsg.getReceiver();
         User user = getEntityDelegate().selectLocalUser(receiver);

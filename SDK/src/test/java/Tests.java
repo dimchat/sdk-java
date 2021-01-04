@@ -46,8 +46,12 @@ public class Tests extends TestCase {
         keyStore.flush();
 
         // transceiver
-        transceiver = new Messenger();
-        transceiver.setEntityDelegate(barrack);
+        transceiver = new Messenger() {
+            @Override
+            protected Facebook createFacebook() {
+                return barrack;
+            }
+        };
         transceiver.setCipherKeyDelegate(keyStore);
     }
 
@@ -55,7 +59,7 @@ public class Tests extends TestCase {
     public void testUser() {
 
         ID identifier = ID.parse(Immortals.MOKI);
-        User user = barrack.getUser(identifier);
+        User user = transceiver.getFacebook().getUser(identifier);
         Log.info("user: " + user);
     }
 
@@ -91,11 +95,11 @@ public class Tests extends TestCase {
     @Test
     public void testBarrack() {
         ID identifier = ID.parse("moky@4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ");
-        Meta meta = barrack.getMeta(identifier);
+        Meta meta = transceiver.getFacebook().getMeta(identifier);
         Log.info("meta: " + meta);
 
         identifier = ID.parse("moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
-        User user = barrack.getUser(identifier);
+        User user = transceiver.getFacebook().getUser(identifier);
         Log.info("user: " + user);
 
 //        identifier = Entity.parseID("Group-1280719982@7oMeWadRw4qat2sL4mTdcQSDAqZSo7LH5G");

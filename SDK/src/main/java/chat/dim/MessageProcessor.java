@@ -46,16 +46,16 @@ import chat.dim.protocol.StorageCommand;
 
 public class MessageProcessor extends Processor {
 
-    public MessageProcessor(Messenger transceiver) {
-        super(transceiver.getFacebook(), transceiver, transceiver.getMessagePacker());
+    public MessageProcessor(Messenger messenger) {
+        super(messenger);
     }
 
     protected Messenger getMessenger() {
-        return (Messenger) getMessageDelegate();
+        return (Messenger) getTransceiver();
     }
 
     @Override
-    protected InstantMessage process(InstantMessage iMsg, ReliableMessage rMsg) {
+    public InstantMessage process(InstantMessage iMsg, ReliableMessage rMsg) {
         InstantMessage res = super.process(iMsg, rMsg);
         if (getMessenger().saveMessage(iMsg)) {
             return res;
@@ -65,7 +65,7 @@ public class MessageProcessor extends Processor {
     }
 
     @Override
-    protected Content process(Content content, ReliableMessage rMsg) {
+    public Content process(Content content, ReliableMessage rMsg) {
         // TODO: override to check group
         ContentProcessor cpu = ContentProcessor.getProcessor(content);
         if (cpu == null) {

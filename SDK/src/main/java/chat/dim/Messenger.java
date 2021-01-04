@@ -32,9 +32,7 @@ package chat.dim;
 
 import java.lang.ref.WeakReference;
 
-import chat.dim.core.CipherKeyDelegate;
-import chat.dim.core.Packer;
-import chat.dim.core.Processor;
+import chat.dim.core.EntityDelegate;
 import chat.dim.core.Transceiver;
 import chat.dim.cpu.ContentProcessor;
 import chat.dim.cpu.FileContentProcessor;
@@ -48,21 +46,22 @@ import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 
-public class Messenger extends Transceiver {
+public abstract class Messenger extends Transceiver {
 
     private WeakReference<Delegate> delegateRef = null;
     private WeakReference<DataSource> dataSourceRef = null;
 
-    private Packer messagePacker = null;
-    private Processor messageProcessor = null;
+    private Facebook facebook = null;
+    private MessagePacker messagePacker = null;
+    private MessageProcessor messageProcessor = null;
     private MessageTransmitter messageTransmitter = null;
 
-    public Messenger() {
+    protected Messenger() {
         super();
     }
 
     /**
-     *  Delegate for sending data
+     *  Delegate for Station
      *
      * @param delegate - message delegate
      */
@@ -74,7 +73,7 @@ public class Messenger extends Transceiver {
     }
 
     /**
-     *  Delegate for saving message
+     *  Delegate for Message Storage
      *
      * @param delegate - message data source
      */
@@ -85,47 +84,81 @@ public class Messenger extends Transceiver {
         return dataSourceRef.get();
     }
 
+    /**
+     *  Delegate for getting entity
+     *
+     * @param barrack - facebook
+     */
     @Override
-    public CipherKeyDelegate getCipherKeyDelegate() {
-        return super.getCipherKeyDelegate();
+    public void setEntityDelegate(EntityDelegate barrack) {
+        super.setEntityDelegate(barrack);
+        facebook = (Facebook) barrack;
     }
+    @Override
+    protected EntityDelegate getEntityDelegate() {
+        return getFacebook();
+    }
+    public Facebook getFacebook() {
+        if (facebook == null) {
+            facebook = createFacebook();
+            super.setEntityDelegate(facebook);
+        }
+        return facebook;
+    }
+    protected abstract Facebook createFacebook();
 
     /**
-     *  Delegate for getting entity info
+     *  Delegate for packing message
+     *
+     * @param packer - message packer
      */
-    public Facebook getFacebook() {
-        return (Facebook) getEntityDelegate();
+    @Override
+    public void setMessagePacker(chat.dim.core.MessagePacker packer) {
+        super.setMessagePacker(packer);
+        messagePacker = (MessagePacker) packer;
     }
-
-    //
-    //  Message Packer
-    //
-    protected Packer getMessagePacker() {
+    @Override
+    public MessagePacker getMessagePacker() {
         if (messagePacker == null) {
             messagePacker = createMessagePacker();
+            super.setMessagePacker(messagePacker);
         }
         return messagePacker;
     }
-    protected Packer createMessagePacker() {
+    protected MessagePacker createMessagePacker() {
         return new MessagePacker(this);
     }
 
-    //
-    //  Message Processor
-    //
-    protected Processor getMessageProcessor() {
+    /**
+     *  Delegate for processing message
+     *
+     * @param processor - message processor
+     */
+    @Override
+    public void setMessageProcessor(chat.dim.core.MessageProcessor processor) {
+        super.setMessageProcessor(processor);
+        messageProcessor = (MessageProcessor) processor;
+    }
+    @Override
+    public MessageProcessor getMessageProcessor() {
         if (messageProcessor == null) {
             messageProcessor = createMessageProcessor();
+            super.setMessageProcessor(messageProcessor);
         }
         return messageProcessor;
     }
-    protected Processor createMessageProcessor() {
+    protected MessageProcessor createMessageProcessor() {
         return new MessageProcessor(this);
     }
 
-    //
-    //  Message Transmitter
-    //
+    /**
+     *  Delegate for transmitting message
+     *
+     * @param transmitter - message transmitter
+     */
+    public void setMessageTransmitter(MessageTransmitter transmitter) {
+        messageTransmitter = transmitter;
+    }
     protected MessageTransmitter getMessageTransmitter() {
         if (messageTransmitter == null) {
             messageTransmitter = createMessageTransmitter();
@@ -184,18 +217,7 @@ public class Messenger extends Transceiver {
     }
 
     //
-    //  Interfaces for Processing Message
-    //
-    public byte[] process(byte[] data) {
-        return getMessageProcessor().process(data);
-    }
-
-    public ReliableMessage process(ReliableMessage rMsg) {
-        return getMessageProcessor().process(rMsg);
-    }
-
-    //
-    //  Interfaces for Sending Message
+    //  Interfaces for transmitting Message
     //
     public boolean sendContent(ID sender, ID receiver, Content content, Messenger.Callback callback, int priority) {
         if (sender == null) {
@@ -216,33 +238,6 @@ public class Messenger extends Transceiver {
 
     public boolean sendMessage(ReliableMessage rMsg, Messenger.Callback callback, int priority) {
         return getMessageTransmitter().sendMessage(rMsg, callback, priority);
-    }
-
-    //
-    //  Interfaces for Packing Message
-    //
-    public SecureMessage encryptMessage(InstantMessage iMsg) {
-        return getMessagePacker().encryptMessage(iMsg);
-    }
-
-    public ReliableMessage signMessage(SecureMessage sMsg) {
-        return getMessagePacker().signMessage(sMsg);
-    }
-
-    public byte[] serializeMessage(ReliableMessage rMsg) {
-        return getMessagePacker().serializeMessage(rMsg);
-    }
-
-    public ReliableMessage deserializeMessage(byte[] data) {
-        return getMessagePacker().deserializeMessage(data);
-    }
-
-    public SecureMessage verifyMessage(ReliableMessage rMsg) {
-        return getMessagePacker().verifyMessage(rMsg);
-    }
-
-    public InstantMessage decryptMessage(SecureMessage sMsg) {
-        return getMessagePacker().decryptMessage(sMsg);
     }
 
     //
