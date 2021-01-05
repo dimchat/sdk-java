@@ -46,10 +46,10 @@ final class DocumentFactory implements Document.Factory {
 
     private String getType(ID identifier) {
         if (version.equals("*")) {
-            if (ID.isGroup(identifier)) {
+            if (identifier.isGroup()) {
                 return Document.BULLETIN;
             }
-            if (ID.isUser(identifier)) {
+            if (identifier.isUser()) {
                 return Document.VISA;
             }
             return Document.PROFILE;
@@ -89,7 +89,7 @@ final class DocumentFactory implements Document.Factory {
         }
         String type = Document.getType(doc);
         if (type == null) {
-            if (ID.isGroup(identifier)) {
+            if (identifier.isGroup()) {
                 type = Document.BULLETIN;
             } else {
                 type = Document.VISA;

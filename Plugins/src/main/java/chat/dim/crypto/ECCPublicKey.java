@@ -86,4 +86,9 @@ final class ECCPublicKey extends Dictionary implements PublicKey {
             return false;
         }
     }
+
+    @Override
+    public boolean matches(SignKey sKey) {
+        return AsymmetricKey.matches(sKey, this);
+    }
 }

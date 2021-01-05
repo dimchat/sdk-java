@@ -48,6 +48,11 @@ public final class PlainKey extends Dictionary implements SymmetricKey {
     }
 
     @Override
+    public byte[] getData() {
+        return new byte[0];
+    }
+
+    @Override
     public byte[] encrypt(byte[] plaintext) {
         return plaintext;
     }
@@ -58,8 +63,8 @@ public final class PlainKey extends Dictionary implements SymmetricKey {
     }
 
     @Override
-    public byte[] getData() {
-        return new byte[0];
+    public boolean matches(EncryptKey pKey) {
+        return CryptographyKey.matches(pKey, this);
     }
 
     //-------- Runtime --------

@@ -118,7 +118,7 @@ public abstract class Messenger extends Transceiver {
         messagePacker = (MessagePacker) packer;
     }
     @Override
-    public MessagePacker getMessagePacker() {
+    protected MessagePacker getMessagePacker() {
         if (messagePacker == null) {
             messagePacker = createMessagePacker();
             super.setMessagePacker(messagePacker);
@@ -140,7 +140,7 @@ public abstract class Messenger extends Transceiver {
         messageProcessor = (MessageProcessor) processor;
     }
     @Override
-    public MessageProcessor getMessageProcessor() {
+    protected MessageProcessor getMessageProcessor() {
         if (messageProcessor == null) {
             messageProcessor = createMessageProcessor();
             super.setMessageProcessor(messageProcessor);
@@ -353,5 +353,10 @@ public abstract class Messenger extends Transceiver {
         void onSuccess();
 
         void onFailed(Error error);
+    }
+
+    static {
+        MessageProcessor.registerAllFactories();
+        MessageProcessor.registerAllProcessors();
     }
 }

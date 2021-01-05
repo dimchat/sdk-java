@@ -36,6 +36,7 @@ import chat.dim.digest.RIPEMD160;
 import chat.dim.digest.SHA256;
 import chat.dim.format.Base58;
 import chat.dim.protocol.Address;
+import chat.dim.protocol.NetworkType;
 
 /**
  *  Address like BitCoin
@@ -63,6 +64,21 @@ public final class BTCAddress extends chat.dim.type.String implements Address {
     @Override
     public byte getNetwork() {
         return network;
+    }
+
+    @Override
+    public boolean isBroadcast() {
+        return false;
+    }
+
+    @Override
+    public boolean isUser() {
+        return NetworkType.isUser(network);
+    }
+
+    @Override
+    public boolean isGroup() {
+        return NetworkType.isGroup(network);
     }
 
     /**

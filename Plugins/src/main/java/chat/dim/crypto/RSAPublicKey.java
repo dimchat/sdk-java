@@ -113,4 +113,9 @@ final class RSAPublicKey extends Dictionary implements PublicKey, EncryptKey {
             return false;
         }
     }
+
+    @Override
+    public boolean matches(SignKey sKey) {
+        return AsymmetricKey.matches(sKey, this);
+    }
 }

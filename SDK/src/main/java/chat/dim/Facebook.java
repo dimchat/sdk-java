@@ -109,7 +109,7 @@ public abstract class Facebook extends Barrack {
         //         else (this is a user profile)
         //             verify it with the user's meta.key
         Meta meta;
-        if (ID.isGroup(identifier)) {
+        if (identifier.isGroup()) {
             // check by each member
             List<ID> members = getMembers(identifier);
             if (members != null) {
@@ -152,7 +152,7 @@ public abstract class Facebook extends Barrack {
 
     @Override
     protected User createUser(ID identifier) {
-        if (ID.isBroadcast(identifier)) {
+        if (identifier.isBroadcast()) {
             // create user 'anyone@anywhere'
             return new User(identifier);
         }
@@ -175,7 +175,7 @@ public abstract class Facebook extends Barrack {
 
     @Override
     protected Group createGroup(ID identifier) {
-        if (ID.isBroadcast(identifier)) {
+        if (identifier.isBroadcast()) {
             // create group 'everyone@everywhere'
             return new Group(identifier);
         }

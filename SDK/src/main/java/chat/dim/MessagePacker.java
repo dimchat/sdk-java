@@ -52,11 +52,11 @@ public class MessagePacker extends Packer {
     }
 
     private boolean isWaiting(ID identifier) {
-        if (ID.isBroadcast(identifier)) {
+        if (identifier.isBroadcast()) {
             // broadcast ID doesn't contain meta or visa
             return false;
         }
-        if (ID.isGroup(identifier)) {
+        if (identifier.isGroup()) {
             // if group is not broadcast ID, its meta should be exists
             return getFacebook().getMeta(identifier) == null;
         }
@@ -121,7 +121,7 @@ public class MessagePacker extends Packer {
         if (user == null) {
             // current users not match
             trimmed = null;
-        } else if (ID.isGroup(receiver)) {
+        } else if (receiver.isGroup()) {
             // trim group message
             trimmed = sMsg.trim(user.identifier);
         } else {

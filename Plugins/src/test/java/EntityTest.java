@@ -89,7 +89,7 @@ public class EntityTest {
         identifier = ID.parse("moky@4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ");
         Log.info("ID: " + identifier + ", detail: " + getIDInfo(identifier));
 
-        Log.info("is broadcast: " + ID.isBroadcast(identifier));
+        Log.info("is broadcast: " + identifier.isBroadcast());
 
         Assert.assertEquals(identifier, ID.parse("moky@4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ/home"));
 

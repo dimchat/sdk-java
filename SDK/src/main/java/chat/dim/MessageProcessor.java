@@ -70,9 +70,7 @@ public class MessageProcessor extends Processor {
         ContentProcessor cpu = ContentProcessor.getProcessor(content);
         if (cpu == null) {
             cpu = ContentProcessor.getProcessor(0);  // unknown
-            if (cpu == null) {
-                throw new NullPointerException("cannot process content: " + content);
-            }
+            assert cpu != null : "cannot process content: " + content;
         }
         cpu.setMessenger(getMessenger());
         return cpu.process(content, rMsg);
@@ -82,7 +80,7 @@ public class MessageProcessor extends Processor {
     /**
      *  Register All Content/Command Factories
      */
-    private static void registerAllFactories() {
+    static void registerAllFactories() {
         //
         //  Register core factories
         //
@@ -107,7 +105,7 @@ public class MessageProcessor extends Processor {
     /**
      *  Register All Content/Command Processors
      */
-    private static void registerAllProcessors() {
+    static void registerAllProcessors() {
 
         //
         //  Register content processors
@@ -118,10 +116,5 @@ public class MessageProcessor extends Processor {
         //  Register command processors
         //
         CommandProcessor.registerAllProcessors();
-    }
-
-    static {
-        registerAllFactories();
-        registerAllProcessors();
     }
 }

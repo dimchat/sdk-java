@@ -167,4 +167,9 @@ final class RSAPrivateKey extends Dictionary implements PrivateKey, DecryptKey {
             return null;
         }
     }
+
+    @Override
+    public boolean matches(EncryptKey pKey) {
+        return CryptographyKey.matches(pKey, this);
+    }
 }
