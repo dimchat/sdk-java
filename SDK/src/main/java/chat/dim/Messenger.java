@@ -51,6 +51,8 @@ public abstract class Messenger extends Transceiver {
     private WeakReference<Delegate> delegateRef = null;
     private WeakReference<DataSource> dataSourceRef = null;
 
+    private WeakReference<Transmitter> transmitterRef = null;
+
     private Facebook facebook = null;
     private MessagePacker messagePacker = null;
     private MessageProcessor messageProcessor = null;
@@ -92,16 +94,22 @@ public abstract class Messenger extends Transceiver {
     @Override
     public void setEntityDelegate(EntityDelegate barrack) {
         super.setEntityDelegate(barrack);
-        facebook = (Facebook) barrack;
+        if (barrack instanceof Facebook) {
+            facebook = (Facebook) barrack;
+        }
     }
     @Override
     protected EntityDelegate getEntityDelegate() {
-        return getFacebook();
+        EntityDelegate delegate = super.getEntityDelegate();
+        if (delegate == null) {
+            delegate = getFacebook();
+            super.setEntityDelegate(delegate);
+        }
+        return delegate;
     }
     public Facebook getFacebook() {
         if (facebook == null) {
             facebook = createFacebook();
-            super.setEntityDelegate(facebook);
         }
         return facebook;
     }
@@ -113,15 +121,24 @@ public abstract class Messenger extends Transceiver {
      * @param packer - message packer
      */
     @Override
-    public void setMessagePacker(chat.dim.core.MessagePacker packer) {
-        super.setMessagePacker(packer);
-        messagePacker = (MessagePacker) packer;
+    public void setPacker(Packer packer) {
+        super.setPacker(packer);
+        if (packer instanceof MessagePacker) {
+            messagePacker = (MessagePacker) packer;
+        }
     }
     @Override
-    protected MessagePacker getMessagePacker() {
+    protected Packer getPacker() {
+        Packer packer = super.getPacker();
+        if (packer == null) {
+            packer = getMessagePacker();
+            super.setPacker(packer);
+        }
+        return packer;
+    }
+    private MessagePacker getMessagePacker() {
         if (messagePacker == null) {
             messagePacker = createMessagePacker();
-            super.setMessagePacker(messagePacker);
         }
         return messagePacker;
     }
@@ -135,15 +152,24 @@ public abstract class Messenger extends Transceiver {
      * @param processor - message processor
      */
     @Override
-    public void setMessageProcessor(chat.dim.core.MessageProcessor processor) {
-        super.setMessageProcessor(processor);
-        messageProcessor = (MessageProcessor) processor;
+    public void setProcessor(Processor processor) {
+        super.setProcessor(processor);
+        if (processor instanceof MessageProcessor) {
+            messageProcessor = (MessageProcessor) processor;
+        }
     }
     @Override
-    protected MessageProcessor getMessageProcessor() {
+    protected Processor getProcessor() {
+        Processor processor = super.getProcessor();
+        if (processor == null) {
+            processor = getMessageProcessor();
+            super.setProcessor(processor);
+        }
+        return processor;
+    }
+    private MessageProcessor getMessageProcessor() {
         if (messageProcessor == null) {
             messageProcessor = createMessageProcessor();
-            super.setMessageProcessor(messageProcessor);
         }
         return messageProcessor;
     }
@@ -156,10 +182,21 @@ public abstract class Messenger extends Transceiver {
      *
      * @param transmitter - message transmitter
      */
-    public void setMessageTransmitter(MessageTransmitter transmitter) {
-        messageTransmitter = transmitter;
+    public void setTransmitter(Transmitter transmitter) {
+        transmitterRef = new WeakReference<>(transmitter);
+        if (transmitter instanceof MessageTransmitter) {
+            messageTransmitter = (MessageTransmitter) transmitter;
+        }
     }
-    protected MessageTransmitter getMessageTransmitter() {
+    protected Transmitter getTransmitter() {
+        Transmitter transmitter = transmitterRef == null ? null : transmitterRef.get();
+        if (transmitter == null) {
+            transmitter = getMessageTransmitter();
+            transmitterRef = new WeakReference<>(transmitter);
+        }
+        return transmitter;
+    }
+    private MessageTransmitter getMessageTransmitter() {
         if (messageTransmitter == null) {
             messageTransmitter = createMessageTransmitter();
         }
@@ -229,15 +266,15 @@ public abstract class Messenger extends Transceiver {
             }
             sender = user.identifier;
         }
-        return getMessageTransmitter().sendContent(sender, receiver, content, callback, priority);
+        return getTransmitter().sendContent(sender, receiver, content, callback, priority);
     }
 
     public boolean sendMessage(InstantMessage iMsg, Messenger.Callback callback, int priority) {
-        return getMessageTransmitter().sendMessage(iMsg, callback, priority);
+        return getTransmitter().sendMessage(iMsg, callback, priority);
     }
 
     public boolean sendMessage(ReliableMessage rMsg, Messenger.Callback callback, int priority) {
-        return getMessageTransmitter().sendMessage(rMsg, callback, priority);
+        return getTransmitter().sendMessage(rMsg, callback, priority);
     }
 
     //
@@ -268,6 +305,31 @@ public abstract class Messenger extends Transceiver {
 
     public void suspendMessage(InstantMessage iMsg) {
         getDataSource().suspendMessage(iMsg);
+    }
+
+    public interface Transmitter {
+
+        /**
+         *  Send message content to receiver
+         *
+         * @param sender - sender ID
+         * @param receiver - receiver ID
+         * @param content - message content
+         * @param callback - if needs callback, set it here
+         * @return true on success
+         */
+        boolean sendContent(ID sender, ID receiver, Content content, Callback callback, int priority);
+
+        /**
+         *  Send instant message (encrypt and sign) onto DIM network
+         *
+         * @param iMsg - instant message
+         * @param callback - if needs callback, set it here
+         * @return true on success
+         */
+        boolean sendMessage(InstantMessage iMsg, Callback callback, int priority);
+
+        boolean sendMessage(ReliableMessage rMsg, Callback callback, int priority);
     }
 
     /**
