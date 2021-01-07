@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import chat.dim.Group;
-import chat.dim.Immortals;
 import chat.dim.User;
 import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.EncryptKey;
@@ -24,9 +23,6 @@ public class Facebook implements User.DataSource, Group.DataSource {
     private Facebook() {
         super();
     }
-
-    // immortals
-    private Immortals immortals = new Immortals();
 
     // memory caches
     private Map<ID, PrivateKey> privateKeyMap = new HashMap<>();
@@ -59,11 +55,8 @@ public class Facebook implements User.DataSource, Group.DataSource {
     public User getUser(ID identifier) {
         User user = userMap.get(identifier);
         if (user == null) {
-            user = immortals.getUser(identifier);
-            if (user == null) {
-                user = new User(identifier);
-                cache(user);
-            }
+            user = new User(identifier);
+            cache(user);
         }
         return user;
     }
@@ -72,23 +65,19 @@ public class Facebook implements User.DataSource, Group.DataSource {
 
     @Override
     public Meta getMeta(ID entity) {
-        Meta meta = metaMap.get(entity);
-        if (meta == null) {
-            meta = immortals.getMeta(entity);
-        }
-        return meta;
+        return metaMap.get(entity);
     }
 
     @Override
     public Document getDocument(ID entity, String type) {
-        return immortals.getDocument(entity, type);
+        return null;
     }
 
     //------- UserDataSource
 
     @Override
     public List<ID> getContacts(ID user) {
-        return immortals.getContacts(user);
+        return null;
     }
 
     @Override
@@ -137,19 +126,13 @@ public class Facebook implements User.DataSource, Group.DataSource {
 
     @Override
     public SignKey getPrivateKeyForSignature(ID user) {
-        SignKey key = privateKeyMap.get(user);
-        if (key == null) {
-            key = immortals.getPrivateKeyForSignature(user);
-        }
-        return key;
+        return privateKeyMap.get(user);
     }
 
     @Override
     public List<DecryptKey> getPrivateKeysForDecryption(ID user) {
         PrivateKey key = privateKeyMap.get(user);
-        if (key == null) {
-            return immortals.getPrivateKeysForDecryption(user);
-        } else if (key instanceof DecryptKey) {
+        if (key instanceof DecryptKey) {
             List<DecryptKey> keys = new ArrayList<>();
             keys.add((DecryptKey) key);
             return keys;
@@ -187,5 +170,9 @@ public class Facebook implements User.DataSource, Group.DataSource {
         }
         // TODO: get group bots from SP configuration
         return null;
+    }
+
+    static {
+        chat.dim.Plugins.registerAllPlugins();
     }
 }

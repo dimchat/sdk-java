@@ -30,6 +30,7 @@
  */
 package chat.dim;
 
+import chat.dim.core.Factories;
 import chat.dim.core.Processor;
 import chat.dim.cpu.CommandProcessor;
 import chat.dim.cpu.ContentProcessor;
@@ -80,11 +81,12 @@ public class MessageProcessor extends Processor {
     /**
      *  Register All Content/Command Factories
      */
-    static void registerAllFactories() {
+    public static void registerAllFactories() {
         //
         //  Register core factories
         //
-        registerCoreFactories();
+        Factories.registerContentFactories();
+        Factories.registerCommandFactories();
 
         //
         //  Register command factories
@@ -105,7 +107,7 @@ public class MessageProcessor extends Processor {
     /**
      *  Register All Content/Command Processors
      */
-    static void registerAllProcessors() {
+    public static void registerAllProcessors() {
 
         //
         //  Register content processors

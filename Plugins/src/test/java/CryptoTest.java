@@ -1,8 +1,8 @@
 
-import chat.dim.digest.Keccak256;
 import org.junit.Assert;
 import org.junit.Test;
 
+import chat.dim.digest.Keccak256;
 import chat.dim.digest.RIPEMD160;
 import chat.dim.digest.SHA256;
 import chat.dim.format.Base58;
@@ -11,6 +11,8 @@ import chat.dim.format.Hex;
 import chat.dim.format.UTF8;
 
 public class CryptoTest {
+
+    private static Facebook facebook = Facebook.getInstance();
 
     @Test
     public void testHash() {

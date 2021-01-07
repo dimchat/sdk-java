@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 import chat.dim.Group;
-import chat.dim.Immortals;
 import chat.dim.User;
 import chat.dim.crypto.SignKey;
 import chat.dim.protocol.Address;
@@ -83,9 +82,6 @@ public class EntityTest {
     public void testID() {
         ID identifier;
 
-        identifier = ID.parse(Immortals.MOKI);
-        Log.info("ID: " + identifier + ", detail: " + getIDInfo(identifier));
-
         identifier = ID.parse("moky@4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ");
         Log.info("ID: " + identifier + ", detail: " + getIDInfo(identifier));
 
@@ -138,7 +134,7 @@ public class EntityTest {
 
         ID identifier = ID.parse("moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
         Meta meta = facebook.getMeta(identifier);
-        if (meta.isValid()) {
+        if (meta != null && meta.isValid()) {
             profile.verify(meta.getKey());
         }
         Log.info("profile: " + profile);
@@ -147,7 +143,9 @@ public class EntityTest {
         Log.info("profile: " + profile);
 
         SignKey key = facebook.getPrivateKeyForVisaSignature(identifier);
-        profile.sign(key);
+        if (key != null) {
+            profile.sign(key);
+        }
         Log.info("profile: " + profile);
     }
 
@@ -156,17 +154,8 @@ public class EntityTest {
         ID identifier = ID.parse("moky@4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ");
         Log.info("ID: " + identifier + ", detail: " + getIDInfo(identifier));
 
-        User account = facebook.getUser(identifier);
-        Log.info("account: " + account);
-
-        identifier = ID.parse(Immortals.MOKI);
         User user = facebook.getUser(identifier);
         Log.info("user: " + user);
-
-        if (account.equals(user)) {
-            Log.info("same entity");
-        }
-        Assert.assertEquals(account.getType(), user.getType());
 
         Document profile = user.getDocument("*");
         if (profile != null) {

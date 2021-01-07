@@ -2,13 +2,9 @@
 import junit.framework.TestCase;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import chat.dim.Facebook;
-import chat.dim.Immortals;
-import chat.dim.KeyCache;
 import chat.dim.KeyStore;
+import chat.dim.MessageDataSource;
 import chat.dim.Messenger;
 import chat.dim.User;
 import chat.dim.cpu.AnyContentProcessor;
@@ -30,7 +26,6 @@ import chat.dim.protocol.group.JoinCommand;
 public class Tests extends TestCase {
 
     static Facebook barrack;
-    static KeyCache keyStore;
     static Messenger transceiver;
 
     static {
@@ -39,12 +34,6 @@ public class Tests extends TestCase {
 
         barrack = MyFacebook.getInstance();
 
-        // keystore
-        Map keys = new HashMap();
-        keyStore = KeyStore.getInstance();
-        keyStore.updateKeys(keys);
-        keyStore.flush();
-
         // transceiver
         transceiver = new Messenger() {
             @Override
@@ -52,15 +41,8 @@ public class Tests extends TestCase {
                 return barrack;
             }
         };
-        transceiver.setCipherKeyDelegate(keyStore);
-    }
-
-    @Test
-    public void testUser() {
-
-        ID identifier = ID.parse(Immortals.MOKI);
-        User user = transceiver.getFacebook().getUser(identifier);
-        Log.info("user: " + user);
+        transceiver.setCipherKeyDelegate(KeyStore.getInstance());
+        transceiver.setDataSource(MessageDataSource.getInstance());
     }
 
     @Test
@@ -84,10 +66,26 @@ public class Tests extends TestCase {
         InstantMessage iMsg = InstantMessage.create(env, content);
         iMsg.setDelegate(transceiver);
         SecureMessage sMsg = transceiver.encryptMessage(iMsg);
+        if (sMsg == null) {
+            Log.info("failed to encrypt message: " + iMsg);
+            return;
+        }
         ReliableMessage rMsg = transceiver.signMessage(sMsg);
+        if (rMsg == null) {
+            Log.info("failed to sing message: " + sMsg);
+            return;
+        }
 
         SecureMessage sMsg2 = transceiver.verifyMessage(rMsg);
+        if (sMsg2 == null) {
+            Log.info("failed to verify message: " + rMsg);
+            return;
+        }
         InstantMessage iMsg2 = transceiver.decryptMessage(sMsg2);
+        if (iMsg2 == null) {
+            Log.info("failed to decript message: " + sMsg2);
+            return;
+        }
 
         Log.info("send message: " + iMsg2);
     }
@@ -99,8 +97,11 @@ public class Tests extends TestCase {
         Log.info("meta: " + meta);
 
         identifier = ID.parse("moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
-        User user = transceiver.getFacebook().getUser(identifier);
-        Log.info("user: " + user);
+        meta = transceiver.getFacebook().getMeta(identifier);
+        if (meta != null) {
+            User user = transceiver.getFacebook().getUser(identifier);
+            Log.info("user: " + user);
+        }
 
 //        identifier = Entity.parseID("Group-1280719982@7oMeWadRw4qat2sL4mTdcQSDAqZSo7LH5G");
 //        Group group = barrack.getGroup(identifier);

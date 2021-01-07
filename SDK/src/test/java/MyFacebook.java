@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import chat.dim.Facebook;
-import chat.dim.Immortals;
+import chat.dim.MessageProcessor;
 import chat.dim.User;
 import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.PrivateKey;
@@ -20,9 +20,6 @@ public class MyFacebook extends Facebook {
     private MyFacebook() {
         super();
     }
-
-    // immortals
-    private Immortals immortals = new Immortals();
 
     // memory caches
     private Map<ID, PrivateKey> privateKeyMap = new HashMap<>();
@@ -49,10 +46,7 @@ public class MyFacebook extends Facebook {
 
     @Override
     public List<User> getLocalUsers() {
-        List<User> users = new ArrayList<>();
-        users.add(immortals.getUser(ID.parse(Immortals.MOKI)));
-        users.add(immortals.getUser(ID.parse(Immortals.HULK)));
-        return users;
+        return null;
     }
 
     //---- Private Key
@@ -74,11 +68,7 @@ public class MyFacebook extends Facebook {
 
     @Override
     public Meta getMeta(ID identifier) {
-        Meta meta = metaMap.get(identifier);
-        if (meta == null) {
-            meta = immortals.getMeta(identifier);
-        }
-        return meta;
+        return metaMap.get(identifier);
     }
 
     @Override
@@ -90,15 +80,13 @@ public class MyFacebook extends Facebook {
 
     @Override
     public List<ID> getContacts(ID user) {
-        return immortals.getContacts(user);
+        return null;
     }
 
     @Override
     public List<DecryptKey> getPrivateKeysForDecryption(ID user) {
         PrivateKey key = privateKeyMap.get(user);
-        if (key == null) {
-            return immortals.getPrivateKeysForDecryption(user);
-        } else if (key instanceof DecryptKey) {
+        if (key instanceof DecryptKey) {
             List<DecryptKey> keys = new ArrayList<>();
             keys.add((DecryptKey) key);
             return keys;
@@ -108,11 +96,7 @@ public class MyFacebook extends Facebook {
 
     @Override
     public SignKey getPrivateKeyForSignature(ID user) {
-        SignKey key = privateKeyMap.get(user);
-        if (key == null) {
-            key = immortals.getPrivateKeyForSignature(user);
-        }
-        return key;
+        return privateKeyMap.get(user);
     }
 
     @Override
@@ -130,5 +114,11 @@ public class MyFacebook extends Facebook {
     @Override
     public List<ID> getAssistants(ID group) {
         return null;
+    }
+
+    static {
+        chat.dim.Plugins.registerAllPlugins();
+        MessageProcessor.registerAllFactories();
+        MessageProcessor.registerAllProcessors();
     }
 }

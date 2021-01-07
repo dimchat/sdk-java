@@ -30,21 +30,17 @@
  */
 package chat.dim.mkm;
 
-import com.alibaba.fastjson.serializer.SerializeConfig;
-import com.alibaba.fastjson.serializer.ToStringSerializer;
-
 import chat.dim.protocol.Address;
 import chat.dim.protocol.Document;
-import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 import chat.dim.protocol.MetaType;
 
-public abstract class Plugins extends chat.dim.crypto.Plugins {
+public interface Plugins {
 
     /*
      *  Address factory
      */
-    private static void registerAddressFactory() {
+    static void registerAddressFactory() {
 
         Address.setFactory(new AddressFactory() {
             @Override
@@ -61,7 +57,7 @@ public abstract class Plugins extends chat.dim.crypto.Plugins {
     /*
      *  Meta factories
      */
-    private static void registerMetaFactories() {
+    static void registerMetaFactories() {
 
         Meta.register(MetaType.MKM, new MetaFactory(MetaType.MKM));
         Meta.register(MetaType.BTC, new MetaFactory(MetaType.BTC));
@@ -73,25 +69,11 @@ public abstract class Plugins extends chat.dim.crypto.Plugins {
     /*
      *  Document factories
      */
-    private static void registerDocumentFactories() {
+    static void registerDocumentFactories() {
 
         Document.register("*", new DocumentFactory("*"));
         Document.register(Document.VISA, new DocumentFactory(Document.VISA));
         Document.register(Document.PROFILE, new DocumentFactory(Document.PROFILE));
         Document.register(Document.BULLETIN, new DocumentFactory(Document.BULLETIN));
-    }
-
-    static {
-
-        /*
-         *  JsON
-         */
-        SerializeConfig serializeConfig = SerializeConfig.getGlobalInstance();
-        serializeConfig.put(Address.class, ToStringSerializer.instance);
-        serializeConfig.put(ID.class, ToStringSerializer.instance);
-
-        registerAddressFactory();
-        registerMetaFactories();
-        registerDocumentFactories();
     }
 }

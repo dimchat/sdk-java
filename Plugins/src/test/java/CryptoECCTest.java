@@ -9,10 +9,6 @@ import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.PublicKey;
 import chat.dim.digest.RIPEMD160;
 import chat.dim.digest.SHA256;
-//import chat.dim.mkm.BTCAddress;
-//import chat.dim.mkm.ETHAddress;
-import chat.dim.protocol.NetworkType;
-import chat.dim.protocol.Address;
 import chat.dim.format.Hex;
 
 public class CryptoECCTest {

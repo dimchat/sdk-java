@@ -2,7 +2,7 @@
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Albert Moky
+ * Copyright (c) 2020 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,54 +23,40 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.format;
+package chat.dim.digest;
+
+import org.bouncycastle.crypto.digests.KeccakDigest;
+import org.bouncycastle.crypto.digests.RIPEMD160Digest;
 
 public interface Plugins {
 
-    static void registerDataCoders() {
+    /*
+     *  Private Data Digesters
+     */
+    static void registerDataDigesters() {
 
-        // Base58 coding
-        Base58.coder = new DataCoder() {
+        /*
+         *  Digest
+         */
+        RIPEMD160.digester = new DataDigester() {
             @Override
-            public String encode(byte[] data) {
-                return chat.dim.bitcoinj.Base58.encode(data);
-            }
-
-            @Override
-            public byte[] decode(String string) {
-                return chat.dim.bitcoinj.Base58.decode(string);
-            }
-        };
-
-        // HEX coding
-        Hex.coder = new DataCoder() {
-            @Override
-            public String encode(byte[] data) {
-                return org.bouncycastle.util.encoders.Hex.toHexString(data);
-            }
-
-            @Override
-            public byte[] decode(String string) {
-                return org.bouncycastle.util.encoders.Hex.decode(string);
+            public byte[] digest(byte[] data) {
+                RIPEMD160Digest digest = new RIPEMD160Digest();
+                digest.update(data, 0, data.length);
+                byte[] out = new byte[20];
+                digest.doFinal(out, 0);
+                return out;
             }
         };
-
-        // JsON format
-        JSON.parser = new DataParser<Object>() {
+        Keccak256.digester = new DataDigester() {
             @Override
-            public byte[] encode(Object container) {
-                /*
-                String s = com.alibaba.fastjson.JSON.toJSONString(container);
-                return s.getBytes(Charset.forName("UTF-8"));
-                */
-                return com.alibaba.fastjson.JSON.toJSONBytes(container);
-            }
-
-            @Override
-            public Object decode(byte[] json) {
-                return com.alibaba.fastjson.JSON.parse(json);
+            public byte[] digest(byte[] data) {
+                KeccakDigest digest = new KeccakDigest(256);
+                digest.update(data, 0, data.length);
+                byte[] out = new byte[digest.getDigestSize()];
+                digest.doFinal(out, 0);
+                return out;
             }
         };
-
     }
 }

@@ -25,9 +25,6 @@
  */
 package chat.dim.crypto;
 
-import org.bouncycastle.crypto.digests.KeccakDigest;
-import org.bouncycastle.crypto.digests.RIPEMD160Digest;
-
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
@@ -35,16 +32,12 @@ import java.util.Map;
 
 import javax.crypto.NoSuchPaddingException;
 
-import chat.dim.digest.DataDigester;
-import chat.dim.digest.Keccak256;
-import chat.dim.digest.RIPEMD160;
-
-public abstract class Plugins extends chat.dim.format.Plugins {
+public interface Plugins {
 
     /*
      *  Symmetric Key Parsers
      */
-    private static void registerSymmetricKeyFactories() {
+    static void registerSymmetricKeyFactories() {
 
         SymmetricKey.register(SymmetricKey.AES, new SymmetricKey.Factory() {
 
@@ -82,7 +75,7 @@ public abstract class Plugins extends chat.dim.format.Plugins {
     /*
      *  Asymmetric Key Parsers
      */
-    private static void registerAsymmetricKeyFactories() {
+    static void registerAsymmetricKeyFactories() {
 
         /*
          *  Private Key Parsers
@@ -153,41 +146,5 @@ public abstract class Plugins extends chat.dim.format.Plugins {
             }
         });
 
-    }
-
-    /*
-     *  Private Key Parsers
-     */
-    private static void registerDataDigests() {
-
-        /*
-         *  Digest
-         */
-        RIPEMD160.digester = new DataDigester() {
-            @Override
-            public byte[] digest(byte[] data) {
-                RIPEMD160Digest digest = new RIPEMD160Digest();
-                digest.update(data, 0, data.length);
-                byte[] out = new byte[20];
-                digest.doFinal(out, 0);
-                return out;
-            }
-        };
-        Keccak256.digester = new DataDigester() {
-            @Override
-            public byte[] digest(byte[] data) {
-                KeccakDigest digest = new KeccakDigest(256);
-                digest.update(data, 0, data.length);
-                byte[] out = new byte[digest.getDigestSize()];
-                digest.doFinal(out, 0);
-                return out;
-            }
-        };
-    }
-
-    static {
-        registerSymmetricKeyFactories();
-        registerAsymmetricKeyFactories();
-        registerDataDigests();
     }
 }
