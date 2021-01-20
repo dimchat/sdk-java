@@ -15,6 +15,7 @@ import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 import chat.dim.protocol.NetworkType;
+import chat.dim.protocol.Visa;
 
 public class EntityTest {
 
@@ -48,14 +49,14 @@ public class EntityTest {
         return info.toString();
     }
 
-    private String getProfileInfo(Document profile) {
+    private String getDocumentInfo(Document doc) {
         Map<String, Object> info = new HashMap<>();
-        info.put("ID", profile.getIdentifier());
-        info.put("name", profile.getName());
-        info.put("key", profile.getProperty("key"));
-        info.put("avatar", profile.getProperty("avatar"));
-        info.put("properties", profile.getProperties());
-        info.put("valid", profile.isValid());
+        info.put("ID", doc.getIdentifier());
+        info.put("name", doc.getName());
+        info.put("key", doc.getProperty("key"));
+        info.put("avatar", doc.getProperty("avatar"));
+        info.put("properties", doc.getProperties());
+        info.put("valid", doc.isValid());
         return info.toString();
     }
 
@@ -129,24 +130,24 @@ public class EntityTest {
         dict.put("ID", "moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
         dict.put("data", "{\"name\":\"齐天大圣\"}");
         dict.put("signature", "oMdD4Ssop/gOpzwAYpt+Cp3tVJswm+u5i1bu1UlEzzFt+g3ohmE1z018WmSgsBpCls6vXwJEhKS1O5gN9N8XCYhnYx/Q56M0n2NOSifcbQuZciOfQU1c2RMXgUEizIwL2tiFoam22qxyScKIjXcu7rD4XhBC0Gn/EhQpJCqWTMo=");
-        Document profile = Document.parse(dict);
-        Log.info("profile: " + profile);
+        Document doc = Document.parse(dict);
+        Log.info("profile: " + doc);
 
         ID identifier = ID.parse("moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
         Meta meta = facebook.getMeta(identifier);
         if (meta != null && meta.isValid()) {
-            profile.verify(meta.getKey());
+            doc.verify(meta.getKey());
         }
-        Log.info("profile: " + profile);
+        Log.info("profile: " + doc);
 
-        profile.setProperty("age", 18);
-        Log.info("profile: " + profile);
+        doc.setProperty("age", 18);
+        Log.info("profile: " + doc);
 
         SignKey key = facebook.getPrivateKeyForVisaSignature(identifier);
         if (key != null) {
-            profile.sign(key);
+            doc.sign(key);
         }
-        Log.info("profile: " + profile);
+        Log.info("profile: " + doc);
     }
 
     @Test
@@ -157,9 +158,9 @@ public class EntityTest {
         User user = facebook.getUser(identifier);
         Log.info("user: " + user);
 
-        Document profile = user.getDocument("*");
-        if (profile != null) {
-            Log.info("profile: " + getProfileInfo(profile));
+        Visa visa = user.getVisa();
+        if (visa != null) {
+            Log.info("visa: " + getDocumentInfo(visa));
         }
 
         List<ID> contacts = user.getContacts();

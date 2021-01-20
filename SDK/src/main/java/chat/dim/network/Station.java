@@ -30,16 +30,12 @@
  */
 package chat.dim.network;
 
-import java.lang.ref.WeakReference;
-
 import chat.dim.User;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.NetworkType;
 
 public class Station extends User {
-
-    private WeakReference<Delegate> delegateRef = null;
 
     private String host;
     private int port;
@@ -53,17 +49,6 @@ public class Station extends User {
         assert NetworkType.STATION.equals(identifier.getType()) : "station ID error: " + identifier;
         this.host = host;
         this.port = port;
-    }
-
-    public Delegate getDelegate() {
-        if (delegateRef == null) {
-            return null;
-        }
-        return delegateRef.get();
-    }
-
-    public void setDelegate(Delegate delegate) {
-        delegateRef = new WeakReference<>(delegate);
     }
 
     /**
@@ -106,44 +91,5 @@ public class Station extends User {
             }
         }
         return port;
-    }
-
-    /**
-     *  Station Delegate
-     *  ~~~~~~~~~~~~~~~~
-     */
-    public interface Delegate {
-
-        /**
-         *  Received a new data package from the station
-         *
-         * @param data - data package received
-         * @param server - current station
-         */
-        void onReceivePackage(byte[] data, Station server);
-
-        /**
-         *  Send data package to station success
-         *
-         * @param data - data package sent
-         * @param server - current station
-         */
-        void didSendPackage(byte[] data, Station server);
-
-        /**
-         *  Failed to send data package to station
-         *
-         * @param error - error information
-         * @param data - data package to send
-         * @param server - current station
-         */
-        void didFailToSendPackage(Error error, byte[] data, Station server);
-
-        /**
-         *  Callback for handshake accepted
-         *
-         * @param server - current station
-         */
-        void onHandshakeAccepted(Station server);
     }
 }
