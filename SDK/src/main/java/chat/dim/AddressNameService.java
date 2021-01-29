@@ -35,12 +35,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import chat.dim.protocol.Address;
 import chat.dim.protocol.ID;
 
 public abstract class AddressNameService {
 
-    public static final ID FOUNDER = ID.create("moky", Address.ANYWHERE, null);
     public static final String[] KEYWORDS = {
             "all", "everyone", "anyone", "owner", "founder",
             // --------------------------------
@@ -86,7 +84,7 @@ public abstract class AddressNameService {
         caches.put("everyone", ID.EVERYONE);
         caches.put("anyone", ID.ANYONE);
         caches.put("owner", ID.ANYONE);
-        caches.put("founder", FOUNDER);
+        caches.put("founder", ID.FOUNDER);
         // reserved names
         for (String item : KEYWORDS) {
             reserved.put(item, true);
