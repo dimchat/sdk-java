@@ -71,10 +71,7 @@ public abstract class Messenger extends Transceiver {
         delegateRef = new WeakReference<>(delegate);
     }
     protected Delegate getDelegate() {
-        if (delegateRef == null) {
-            return null;
-        }
-        return delegateRef.get();
+        return delegateRef == null ? null : delegateRef.get();
     }
 
     /**
@@ -86,10 +83,7 @@ public abstract class Messenger extends Transceiver {
         dataSourceRef = new WeakReference<>(delegate);
     }
     protected DataSource getDataSource() {
-        if (dataSourceRef == null) {
-            return null;
-        }
-        return dataSourceRef.get();
+        return dataSourceRef == null ? null : dataSourceRef.get();
     }
 
     /**

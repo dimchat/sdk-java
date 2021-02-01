@@ -55,7 +55,7 @@ public class ContentProcessor {
         messengerRef = new WeakReference<>(messenger);
     }
     protected Messenger getMessenger() {
-        return messengerRef.get();
+        return messengerRef == null ? null : messengerRef.get();
     }
 
     protected Facebook getFacebook() {

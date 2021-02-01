@@ -116,7 +116,7 @@ public class MessagePacker extends Packer {
             sMsg.setDelegate(getMessenger());
         }
         ID receiver = sMsg.getReceiver();
-        User user = getEntityDelegate().selectLocalUser(receiver);
+        User user = getMessenger().selectLocalUser(receiver);
         SecureMessage trimmed;
         if (user == null) {
             // current users not match

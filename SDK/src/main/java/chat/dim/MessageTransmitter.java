@@ -32,7 +32,6 @@ package chat.dim;
 
 import java.lang.ref.WeakReference;
 
-import chat.dim.core.Transceiver;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.Envelope;
 import chat.dim.protocol.ID;
@@ -52,9 +51,6 @@ public class MessageTransmitter implements Messenger.Transmitter {
     protected Messenger getMessenger() {
         return messengerRef.get();
     }
-    protected Transceiver.Packer getPacker() {
-        return getMessenger().getPacker();
-    }
 
     @Override
     public boolean sendContent(ID sender, ID receiver, Content content, Messenger.Callback callback, int priority) {
@@ -68,13 +64,13 @@ public class MessageTransmitter implements Messenger.Transmitter {
     @Override
     public boolean sendMessage(InstantMessage iMsg, Messenger.Callback callback, int priority) {
         // Send message (secured + certified) to target station
-        SecureMessage sMsg = getPacker().encryptMessage(iMsg);
+        SecureMessage sMsg = getMessenger().encryptMessage(iMsg);
         if (sMsg == null) {
             // public key not found?
             return false;
             //throw new NullPointerException("failed to encrypt message: " + iMsg);
         }
-        ReliableMessage rMsg = getPacker().signMessage(sMsg);
+        ReliableMessage rMsg = getMessenger().signMessage(sMsg);
         if (rMsg == null) {
             // TODO: set iMsg.state = error
             throw new NullPointerException("failed to sign message: " + sMsg);
@@ -105,7 +101,7 @@ public class MessageTransmitter implements Messenger.Transmitter {
                 }
             };
         }
-        byte[] data = getPacker().serializeMessage(rMsg);
+        byte[] data = getMessenger().serializeMessage(rMsg);
         return getMessenger().sendPackage(data, handler, priority);
     }
 }
