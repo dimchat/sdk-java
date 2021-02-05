@@ -37,7 +37,7 @@ import java.util.Map;
 
 import chat.dim.protocol.ID;
 
-public abstract class AddressNameService {
+public class AddressNameService {
 
     public static final String[] KEYWORDS = {
             "all", "everyone", "anyone", "owner", "founder",
@@ -146,6 +146,7 @@ public abstract class AddressNameService {
      * @return true on success
      */
     public boolean save(String name, ID identifier) {
+        // override to save this record into local storage
         return cache(name, identifier);
     }
 }

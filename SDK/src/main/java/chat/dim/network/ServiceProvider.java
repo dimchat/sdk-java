@@ -36,6 +36,9 @@ import chat.dim.Group;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.NetworkType;
 
+/**
+ *  DIM Station Owner
+ */
 public class ServiceProvider extends Group {
 
     public ServiceProvider(ID identifier) {
@@ -44,6 +47,6 @@ public class ServiceProvider extends Group {
     }
 
     public List<ID> getStations() {
-        return getDataSource().getMembers(identifier);
+        return getMembers();
     }
 }

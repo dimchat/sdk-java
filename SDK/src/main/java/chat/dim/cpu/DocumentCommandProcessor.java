@@ -51,7 +51,7 @@ public class DocumentCommandProcessor extends CommandProcessor {
         Facebook facebook = getFacebook();
         // query entity document for ID
         Document doc = facebook.getDocument(identifier, type);
-        if (facebook.isEmpty(doc)) {
+        if (doc == null) {
             // document not found
             String text = String.format("Sorry, document not found for ID: %s", identifier);
             return new TextContent(text);

@@ -35,6 +35,9 @@ import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.NetworkType;
 
+/**
+ *  DIM Server
+ */
 public class Station extends User {
 
     private String host;

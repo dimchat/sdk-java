@@ -88,49 +88,28 @@ public abstract class Facebook extends Barrack {
      */
     public abstract boolean saveMembers(List<ID> members, ID group);
 
-    //
-    //  Document checking
-    //
-    public boolean isEmpty(Document doc) {
-        if (doc == null) {
-            return true;
-        }
-        String json = (String) doc.get("data");
-        return json == null || json.length() == 0;
-    }
-
-    public boolean isValid(Document doc) {
+    /**
+     *  Document checking
+     *
+     * @param doc - entity document
+     * @return true on accepted
+     */
+    public boolean checkDocument(Document doc) {
         ID identifier = doc.getIdentifier();
         if (identifier == null) {
             return false;
         }
-        // NOTICE: if this is a group profile,
-        //             verify it with each member's meta.key
-        //         else (this is a user profile)
+        // NOTICE: if this is a bulletin document for group,
+        //             verify it with the group owner's meta.key
+        //         else (this is a visa document for user)
         //             verify it with the user's meta.key
         Meta meta;
         if (identifier.isGroup()) {
-            // check by each member
-            List<ID> members = getMembers(identifier);
-            if (members != null) {
-                for (ID item : members) {
-                    meta = getMeta(item);
-                    if (meta == null) {
-                        // FIXME: meta not found for this member
-                        continue;
-                    }
-                    if (doc.verify(meta.getKey())) {
-                        return true;
-                    }
-                }
-            }
-            // DISCUSS: what to do about assistants?
-
             // check by owner
             ID owner = getOwner(identifier);
             if (owner == null) {
                 if (NetworkType.POLYLOGUE.equals(identifier.getType())) {
-                    // NOTICE: if this is a polylogue profile
+                    // NOTICE: if this is a polylogue document,
                     //             verify it with the founder's meta.key
                     //             (which equals to the group's meta.key)
                     meta = getMeta(identifier);
@@ -138,9 +117,6 @@ public abstract class Facebook extends Barrack {
                     // FIXME: owner not found for this group
                     return false;
                 }
-            } else if (members != null && members.contains(owner)) {
-                // already checked
-                return false;
             } else {
                 meta = getMeta(owner);
             }

@@ -31,7 +31,7 @@ import org.bouncycastle.crypto.digests.RIPEMD160Digest;
 public interface Plugins {
 
     /*
-     *  Private Data Digesters
+     *  Data Digesters
      */
     static void registerDataDigesters() {
 
