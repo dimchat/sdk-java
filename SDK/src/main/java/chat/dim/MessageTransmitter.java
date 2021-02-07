@@ -58,7 +58,7 @@ public class MessageTransmitter implements Messenger.Transmitter {
         // Application layer should put message into queue so that it will send automatically after user login
         Envelope env = Envelope.create(sender, receiver, null);
         InstantMessage iMsg = InstantMessage.create(env, content);
-        return sendMessage(iMsg, callback, priority);
+        return getMessenger().sendMessage(iMsg, callback, priority);
     }
 
     @Override
@@ -76,13 +76,10 @@ public class MessageTransmitter implements Messenger.Transmitter {
             throw new NullPointerException("failed to sign message: " + sMsg);
         }
 
-        boolean OK = sendMessage(rMsg, callback, priority);
+        boolean OK = getMessenger().sendMessage(rMsg, callback, priority);
         // TODO: if OK, set iMsg.state = sending; else set iMsg.state = waiting
 
-        if (!getMessenger().saveMessage(iMsg)) {
-            return false;
-        }
-        return OK;
+        return getMessenger().saveMessage(iMsg) && OK;
     }
 
     @Override
