@@ -32,7 +32,6 @@ package chat.dim;
 
 import java.lang.ref.WeakReference;
 
-import chat.dim.core.EntityDelegate;
 import chat.dim.core.Transceiver;
 import chat.dim.cpu.ContentProcessor;
 import chat.dim.cpu.FileContentProcessor;
@@ -92,15 +91,15 @@ public abstract class Messenger extends Transceiver {
      * @param barrack - facebook
      */
     @Override
-    public void setEntityDelegate(EntityDelegate barrack) {
+    public void setEntityDelegate(Entity.Delegate barrack) {
         super.setEntityDelegate(barrack);
         if (barrack instanceof Facebook) {
             facebook = (Facebook) barrack;
         }
     }
     @Override
-    protected EntityDelegate getEntityDelegate() {
-        EntityDelegate delegate = super.getEntityDelegate();
+    protected Entity.Delegate getEntityDelegate() {
+        Entity.Delegate delegate = super.getEntityDelegate();
         if (delegate == null) {
             delegate = getFacebook();
             super.setEntityDelegate(delegate);
