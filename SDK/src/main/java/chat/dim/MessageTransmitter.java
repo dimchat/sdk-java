@@ -41,21 +41,31 @@ import chat.dim.protocol.SecureMessage;
 
 public class MessageTransmitter implements Messenger.Transmitter {
 
-    private final WeakReference<Messenger> messengerRef;
+    private final WeakReference<Transceiver> messengerRef;
 
-    public MessageTransmitter(Messenger messenger) {
+    public MessageTransmitter(Transceiver messenger) {
         super();
         messengerRef = new WeakReference<>(messenger);
     }
 
     protected Messenger getMessenger() {
-        return messengerRef.get();
+        return (Messenger) messengerRef.get();
+    }
+    protected Facebook getFacebook() {
+        return getMessenger().getFacebook();
     }
 
     @Override
     public boolean sendContent(ID sender, ID receiver, Content content, Messenger.Callback callback, int priority) {
         // Application Layer should make sure user is already login before it send message to server.
         // Application layer should put message into queue so that it will send automatically after user login
+        if (sender == null) {
+            User user = getFacebook().getCurrentUser();
+            if (user == null) {
+                throw new NullPointerException("current user not set");
+            }
+            sender = user.identifier;
+        }
         Envelope env = Envelope.create(sender, receiver, null);
         InstantMessage iMsg = InstantMessage.create(env, content);
         return getMessenger().sendMessage(iMsg, callback, priority);

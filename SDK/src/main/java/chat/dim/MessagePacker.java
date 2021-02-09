@@ -40,7 +40,7 @@ import chat.dim.protocol.Visa;
 
 public class MessagePacker extends Packer {
 
-    public MessagePacker(Messenger messenger) {
+    public MessagePacker(Transceiver messenger) {
         super(messenger);
     }
 
@@ -113,10 +113,10 @@ public class MessagePacker extends Packer {
     public InstantMessage decryptMessage(SecureMessage sMsg) {
         // check message delegate
         if (sMsg.getDelegate() == null) {
-            sMsg.setDelegate(getMessenger());
+            sMsg.setDelegate(getTransceiver());
         }
         ID receiver = sMsg.getReceiver();
-        User user = getMessenger().selectLocalUser(receiver);
+        User user = getTransceiver().selectLocalUser(receiver);
         SecureMessage trimmed;
         if (user == null) {
             // current users not match

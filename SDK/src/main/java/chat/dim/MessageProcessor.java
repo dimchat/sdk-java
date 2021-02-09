@@ -47,7 +47,7 @@ import chat.dim.protocol.StorageCommand;
 
 public class MessageProcessor extends Processor {
 
-    public MessageProcessor(Messenger messenger) {
+    public MessageProcessor(Transceiver messenger) {
         super(messenger);
     }
 

@@ -256,15 +256,6 @@ public abstract class Messenger extends Transceiver {
     //  Interfaces for transmitting Message
     //
     public boolean sendContent(ID sender, ID receiver, Content content, Messenger.Callback callback, int priority) {
-        if (sender == null) {
-            // Application Layer should make sure user is already login before it send message to server.
-            // Application layer should put message into queue so that it will send automatically after user login
-            User user = getFacebook().getCurrentUser();
-            if (user == null) {
-                throw new NullPointerException("current user not set");
-            }
-            sender = user.identifier;
-        }
         return getTransmitter().sendContent(sender, receiver, content, callback, priority);
     }
 
