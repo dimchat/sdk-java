@@ -3,6 +3,7 @@ import junit.framework.TestCase;
 import org.junit.Test;
 
 import chat.dim.Facebook;
+import chat.dim.Group;
 import chat.dim.KeyStore;
 import chat.dim.MessageDataSource;
 import chat.dim.Messenger;
@@ -103,8 +104,11 @@ public class Tests extends TestCase {
             Log.info("user: " + user);
         }
 
-//        identifier = Entity.parseID("Group-1280719982@7oMeWadRw4qat2sL4mTdcQSDAqZSo7LH5G");
-//        Group group = barrack.getGroup(identifier);
-//        Log.info("group: " + group);
+        identifier = ID.parse("Group-1280719982@7oMeWadRw4qat2sL4mTdcQSDAqZSo7LH5G");
+        meta = transceiver.getFacebook().getMeta(identifier);
+        if (meta != null) {
+            Group group = barrack.getGroup(identifier);
+            Log.info("group: " + group);
+        }
     }
 }
