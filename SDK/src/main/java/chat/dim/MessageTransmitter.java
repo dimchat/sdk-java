@@ -39,7 +39,7 @@ import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 
-public class MessageTransmitter implements Messenger.Transmitter {
+public class MessageTransmitter implements Transmitter {
 
     private final WeakReference<Transceiver> messengerRef;
 

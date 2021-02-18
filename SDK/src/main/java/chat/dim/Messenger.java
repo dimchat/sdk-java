@@ -297,31 +297,6 @@ public abstract class Messenger extends Transceiver {
         getDataSource().suspendMessage(iMsg);
     }
 
-    public interface Transmitter {
-
-        /**
-         *  Send message content to receiver
-         *
-         * @param sender - sender ID
-         * @param receiver - receiver ID
-         * @param content - message content
-         * @param callback - if needs callback, set it here
-         * @return true on success
-         */
-        boolean sendContent(ID sender, ID receiver, Content content, Callback callback, int priority);
-
-        /**
-         *  Send instant message (encrypt and sign) onto DIM network
-         *
-         * @param iMsg - instant message
-         * @param callback - if needs callback, set it here
-         * @return true on success
-         */
-        boolean sendMessage(InstantMessage iMsg, Callback callback, int priority);
-
-        boolean sendMessage(ReliableMessage rMsg, Callback callback, int priority);
-    }
-
     /**
      *  Messenger Delegate
      *  ~~~~~~~~~~~~~~~~~~
