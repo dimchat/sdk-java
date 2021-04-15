@@ -52,27 +52,27 @@ public class MessagePacker extends Packer {
     }
 
     private boolean isWaiting(ID identifier) {
-        if (identifier.isBroadcast()) {
-            // broadcast ID doesn't contain meta or visa
-            return false;
-        }
         if (identifier.isGroup()) {
-            // if group is not broadcast ID, its meta should be exists
+            // checking group meta
             return getFacebook().getMeta(identifier) == null;
+        } else {
+            // checking visa key
+            return getFacebook().getPublicKeyForEncryption(identifier) == null;
         }
-        // if user is not broadcast ID, its visa key should be exists
-        return getFacebook().getPublicKeyForEncryption(identifier) == null;
     }
 
     @Override
     public SecureMessage encryptMessage(InstantMessage iMsg) {
         ID receiver = iMsg.getReceiver();
         ID group = iMsg.getGroup();
-        if (isWaiting(receiver) || (group != null && isWaiting(group))) {
-            // NOTICE: the application will query visa automatically,
-            //         save this message in a queue waiting sender's visa response
-            getMessenger().suspendMessage(iMsg);
-            return null;
+        if (!(receiver.isBroadcast() || (group != null  && group.isBroadcast()))) {
+            // this message is not a broadcast message
+            if (isWaiting(receiver) || (group != null && isWaiting(group))) {
+                // NOTICE: the application will query visa automatically,
+                //         save this message in a queue waiting sender's visa response
+                getMessenger().suspendMessage(iMsg);
+                return null;
+            }
         }
 
         // make sure visa.key exists before encrypting message
