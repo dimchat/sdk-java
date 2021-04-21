@@ -31,14 +31,19 @@
 package chat.dim.stargate;
 
 import java.lang.ref.WeakReference;
+import java.util.Date;
 
 import chat.dim.mtp.protocol.DataType;
 import chat.dim.mtp.protocol.Package;
 import chat.dim.mtp.protocol.TransactionID;
-import chat.dim.sg.Ship;
+import chat.dim.gate.Ship;
 import chat.dim.tlv.Data;
 
 public class StarShip implements Ship<Package, StarGate> {
+
+    // retry
+    public static int EXPIRES = 120 * 1000;  // 2 minutes
+    public static int RETRIES = 2;
 
     // priorities
     public static final int URGENT = -1;
@@ -46,6 +51,10 @@ public class StarShip implements Ship<Package, StarGate> {
     public static final int SLOWER = 1;
 
     final int priority;
+
+    // for retry
+    long timestamp = 0;  // last time
+    int retries = -1;
 
     private final Package pack;
     private final WeakReference<StarGate.Delegate> delegateRef;
@@ -63,6 +72,12 @@ public class StarShip implements Ship<Package, StarGate> {
 
     TransactionID getTransactionID() {
         return pack.head.sn;
+    }
+
+    StarShip update() {
+        timestamp = (new Date()).getTime();
+        retries += 1;
+        return this;
     }
 
     //

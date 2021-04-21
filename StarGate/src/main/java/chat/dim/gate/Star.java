@@ -28,44 +28,59 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.stargate;
+package chat.dim.gate;
 
-import chat.dim.tcp.Connection;
-import chat.dim.tcp.ConnectionStatus;
+import java.util.Map;
 
-public interface IWorker {
+public interface Star<S extends Ship> {
 
-    static StarGate.Status getStatus(ConnectionStatus status) {
-        switch (status) {
-            case Default: {
-                return StarGate.Status.Connecting;
-            }
-            case Connecting: {
-                return StarGate.Status.Connecting;
-            }
-            case Connected: {
-                return StarGate.Status.Connected;
-            }
-            case Expired: {
-                return StarGate.Status.Connected;
-            }
-            case Maintaining: {
-                return StarGate.Status.Connected;
-            }
-            case Error: {
-                return StarGate.Status.Error;
-            }
+    enum Status {
+
+        Error     (-1),
+        Init       (0),
+        Connecting (1),
+        Connected  (2);
+
+        public final int value;
+
+        Status(int v) {
+            value = v;
         }
-        return StarGate.Status.Init;
     }
-    StarGate.Status getStatus();
 
-    StarGate.Delegate getDelegate();
+    /**
+     *  Get connection status
+     *
+     * @return connection status
+     */
+    Status getStatus();
 
-    Connection connect(String host, int port);
-    void disconnect();
+    /**
+     *  Connect to a server
+     *
+     * @param options - launch options
+     */
+    void launch(Map<String, Object> options);
 
-    void addTask(StarShip ship);
+    /**
+     *  Disconnect from the server
+     */
+    void terminate();
 
-    int process(StarGate star, int count);
+    /**
+     *  Paused
+     */
+    void enterBackground();
+
+    /**
+     *  Resumed
+     */
+    void enterForeground();
+
+    /**
+     *  Send data package to the connected server
+     *
+     * @param ship - data container, with delegate maybe
+     */
+    void send(S ship);
 }

@@ -28,7 +28,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.sg;
+package chat.dim.gate;
 
 public interface Ship<P, G extends Star> {
 

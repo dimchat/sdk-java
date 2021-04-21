@@ -28,33 +28,38 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.sg;
+package chat.dim.stargate;
 
-public interface Delegate<P, G extends Star> {
+import chat.dim.tcp.Connection;
+import chat.dim.tcp.ConnectionStatus;
 
-    /**
-     *  Callback when connection status changed
-     *
-     * @param star      - remote
-     * @param oldStatus - last status
-     * @param newStatus - current status
-     */
-    void onStatusChanged(G star, Star.Status oldStatus, Star.Status newStatus);
+public interface Worker {
 
-    /**
-     *  Callback when new package received
-     *
-     * @param star     - remote
-     * @param response - data package
-     */
-    void onReceived(G star, P response);
+    static StarGate.Status getStatus(ConnectionStatus status) {
+        switch (status) {
+            case Default:
+            case Connecting: {
+                return StarGate.Status.Connecting;
+            }
+            case Connected:
+            case Expired:
+            case Maintaining: {
+                return StarGate.Status.Connected;
+            }
+            case Error: {
+                return StarGate.Status.Error;
+            }
+        }
+        return StarGate.Status.Init;
+    }
+    StarGate.Status getStatus();
 
-    /**
-     *  Callback when package sent
-     *
-     * @param star    - remote
-     * @param request - data package
-     * @param error   - null on success
-     */
-    void onSent(G star, P request, Error error);
+    StarGate.Delegate getDelegate();
+
+    Connection connect(String host, int port);
+    void disconnect();
+
+    void addTask(StarShip ship);
+
+    int process(StarGate star, int count);
 }

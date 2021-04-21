@@ -33,7 +33,7 @@ package chat.dim.stargate;
 import java.util.Map;
 
 import chat.dim.mtp.protocol.Package;
-import chat.dim.sg.Star;
+import chat.dim.gate.Star;
 import chat.dim.tcp.Connection;
 import chat.dim.tcp.ConnectionHandler;
 import chat.dim.tcp.ConnectionStatus;
@@ -48,17 +48,17 @@ public class StarGate extends Thread implements Star<StarShip>, ConnectionHandle
         }
     }
 
-    public interface Delegate extends chat.dim.sg.Delegate<Package, StarGate> {
+    public interface Delegate extends chat.dim.gate.Delegate<Package, StarGate> {
     }
 
-    private final IWorker worker;
+    private final Worker worker;
 
     public StarGate(Delegate delegate) {
         super();
         worker = getWorker(delegate);
     }
 
-    protected IWorker getWorker(Delegate delegate) {
+    protected Worker getWorker(Delegate delegate) {
         // override for customized worker
         return new Docker(delegate);
     }
@@ -146,7 +146,7 @@ public class StarGate extends Thread implements Star<StarShip>, ConnectionHandle
     public void onConnectionStatusChanged(Connection connection, ConnectionStatus oldStatus, ConnectionStatus newStatus) {
         Delegate delegate = worker.getDelegate();
         if (delegate != null) {
-            delegate.onStatusChanged(this, IWorker.getStatus(oldStatus), IWorker.getStatus(newStatus));
+            delegate.onStatusChanged(this, Worker.getStatus(oldStatus), Worker.getStatus(newStatus));
         }
     }
 

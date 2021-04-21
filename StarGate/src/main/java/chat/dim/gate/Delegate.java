@@ -28,59 +28,33 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.sg;
+package chat.dim.gate;
 
-import java.util.Map;
-
-public interface Star<S extends Ship> {
-
-    enum Status {
-
-        Error     (-1),
-        Init       (0),
-        Connecting (1),
-        Connected  (2);
-
-        public final int value;
-
-        Status(int v) {
-            value = v;
-        }
-    }
+public interface Delegate<P, G extends Star> {
 
     /**
-     *  Get connection status
+     *  Callback when connection status changed
      *
-     * @return connection status
+     * @param star      - remote
+     * @param oldStatus - last status
+     * @param newStatus - current status
      */
-    Status getStatus();
+    void onStatusChanged(G star, Star.Status oldStatus, Star.Status newStatus);
 
     /**
-     *  Connect to a server
+     *  Callback when new package received
      *
-     * @param options - launch options
+     * @param star      - remote
+     * @param pack      - data package
      */
-    void launch(Map<String, Object> options);
+    void onReceived(G star, P pack);
 
     /**
-     *  Disconnect from the server
-     */
-    void terminate();
-
-    /**
-     *  Paused
-     */
-    void enterBackground();
-
-    /**
-     *  Resumed
-     */
-    void enterForeground();
-
-    /**
-     *  Send data package to the connected server
+     *  Callback when package sent
      *
-     * @param ship - data container, with delegate maybe
+     * @param star      - remote
+     * @param pack      - data package
+     * @param error     - null on success
      */
-    void send(S ship);
+    void onSent(G star, P pack, Error error);
 }

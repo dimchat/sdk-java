@@ -34,7 +34,9 @@ import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import chat.dim.mtp.protocol.DataType;
 import chat.dim.mtp.protocol.Header;
@@ -44,7 +46,7 @@ import chat.dim.tcp.ClientConnection;
 import chat.dim.tcp.Connection;
 import chat.dim.tlv.Data;
 
-public class Docker implements IWorker {
+public class Docker implements Worker {
 
     // flow control
     public static int MAX_INCOMES_PER_OUTGO = 4;
@@ -54,18 +56,17 @@ public class Docker implements IWorker {
     public static int IDLE_INTERVAL = 256;
 
     private final WeakReference<StarGate.Delegate> delegateRef;
-    private final Map<TransactionID, WeakReference<StarGate.Delegate>> handlers;
 
-    private final Dock dock;
+    private final Set<TransactionID> waitingSet = new HashSet<>();
+    private final Map<TransactionID, StarShip> waitingTable = new HashMap<>();
 
-    private Connection connection;
+    private final Dock dock = new Dock();
+
+    private Connection connection = null;
 
     public Docker(StarGate.Delegate delegate) {
         super();
         delegateRef = new WeakReference<>(delegate);
-        handlers = new HashMap<>();
-        dock = new Dock();
-        connection = null;
     }
 
     @Override
@@ -73,15 +74,41 @@ public class Docker implements IWorker {
         return delegateRef.get();
     }
 
-    private StarGate.Delegate getHandler(TransactionID sn) {
-        WeakReference<StarGate.Delegate> ref = handlers.get(sn);
-        return ref == null ? null : ref.get();
+    private void pushWaiting(TransactionID sn, StarShip ship) {
+        waitingSet.add(sn);
+        waitingTable.put(sn, ship.update());
     }
-    private void setHandler(TransactionID sn, StarGate.Delegate delegate) {
-        handlers.put(sn, new WeakReference<>(delegate));
+    private StarShip popWaiting(TransactionID sn) {
+        waitingSet.remove(sn);
+        return waitingTable.remove(sn);
     }
-    private void removeHandler(TransactionID sn) {
-        handlers.remove(sn);
+    @SuppressWarnings("unchecked")
+    private StarShip anyWaiting() {
+        long expires = (new Date()).getTime() - StarShip.EXPIRES;
+        StarShip ship;
+        HashSet<TransactionID> waiting = (HashSet<TransactionID>)waitingSet;
+        Set<TransactionID> set = (Set<TransactionID>)waiting.clone();
+        for (TransactionID sn : set) {
+            ship = waitingTable.get(sn);
+            if (ship == null) {
+                waitingSet.remove(sn);  // should not happen
+                continue;
+            }
+            if (ship.timestamp > expires) {
+                // not expired yet
+                continue;
+            }
+            if (ship.retries < StarShip.RETRIES) {
+                // update timestamp and retries
+                return ship.update();
+            }
+            // retried too many times
+            if (ship.timestamp < (expires - StarShip.EXPIRES * StarShip.RETRIES * 4L)) {
+                // remove timeout task
+                popWaiting(sn);
+            }
+        }
+        return null;
     }
 
     @Override
@@ -113,7 +140,7 @@ public class Docker implements IWorker {
     @Override
     public StarGate.Status getStatus() {
         long now = (new Date()).getTime();
-        return IWorker.getStatus(connection.getStatus(now));
+        return Worker.getStatus(connection.getStatus(now));
     }
 
     @Override
@@ -204,38 +231,75 @@ public class Docker implements IWorker {
             // no more package now
             return false;
         }
+        Header head = income.head;
         byte[] body = income.body.getBytes();
-        if (body.length < 6) {
-            if (Arrays.equals(body, PING)) {
-                // respond command with 'PONG'
-                Package pack = Package.create(DataType.CommandRespond, income.head.sn, PONG.length, new Data(PONG));
-                connection.send(pack.getBytes());
-                return false;
+
+        StarGate.Delegate delegate = null;
+
+        // check data type
+        DataType type = head.type;
+        if (type.equals(DataType.Command)) {
+            // respond for Command
+            if (body.length == PING.length && Arrays.equals(body, PING)) {
+                // 'PING' -> 'PONG'
+                Package res = Package.create(DataType.CommandRespond, income.head.sn, PONG.length, new Data(PONG));
+                StarShip ship = new StarShip(StarShip.SLOWER, res, null);
+                addTask(ship);
             }
-            if (Arrays.equals(body, PONG)) {
+            return true;
+        } else if (type.equals(DataType.CommandRespond)) {
+            // process Command Respond
+            /*
+            byte[] body = income.body.getBytes();
+            if (body.length == PONG.length && Arrays.equals(body, PONG)) {
                 // just ignore
-                return false;
-            }
-            if (Arrays.equals(body, OK)) {
+                return true;
+            } else if (body.length == OK.length && Arrays.equals(body, OK)) {
                 // just ignore
-                return false;
+                return true;
             }
-            if (Arrays.equals(body, AGAIN)) {
+             */
+            return true;
+        } else if (type.equals(DataType.MessageFragment)) {
+            // respond for Message Fragment
+            /*
+            Package res = Package.create(DataType.MessageRespond, head.sn, head.pages, head.offset, OK.length, new Data(OK));
+            StarShip ship = new StarShip(StarShip.NORMAL, res, null);
+            addTask(ship);
+            // TODO: assemble for MessageFragment
+             */
+            return true;
+        } else if (type.equals(DataType.Message)) {
+            // respond for Message
+            Package res = Package.create(DataType.MessageRespond, head.sn, OK.length, new Data(OK));
+            StarShip ship = new StarShip(StarShip.NORMAL, res, null);
+            addTask(ship);
+        } else {
+            assert type.equals(DataType.MessageRespond) : "data type error: " + type;
+            // process Message Respond
+            StarShip ship = popWaiting(head.sn);
+            if (ship != null) {
+                delegate = ship.getDelegate();
+            }
+            if (body.length == OK.length && Arrays.equals(body, OK)) {
+                // just ignore
+                return true;
+            } else if (body.length == AGAIN.length && Arrays.equals(body, AGAIN)) {
                 // TODO: mission failed, send the message again
-                return false;
+                return true;
             }
         }
 
-        StarGate.Delegate delegate = getHandler(income.head.sn);
-        if (delegate == null) {
-            delegate = getDelegate();
+        if (body.length > 0) {
+            if (delegate == null) {
+                delegate = getDelegate();
+            }
+            if (delegate != null) {
+                // dispatch received package
+                delegate.onReceived(star, income);
+            }
         }
-        if (delegate != null) {
-            // dispatch received package
-            delegate.onReceived(star, income);
-            // remove handler
-            removeHandler(income.head.sn);
-        }
+
         // flow control
         if (INCOME_INTERVAL > 0) {
             _sleep(INCOME_INTERVAL);
@@ -247,28 +311,40 @@ public class Docker implements IWorker {
         StarShip outgo = dock.getShip();
         if (outgo == null) {
             // no more task now
-            return false;
+            outgo = anyWaiting();
+            if (outgo == null) {
+                // no task expired now
+                return false;
+            }
         }
-        // send out request data
         Package pack = outgo.getPackage();
+        Header head = pack.head;
+
+        // check data type
+        DataType type = head.type;
+        if (type.equals(DataType.Message)) {
+            // set for callback when received response
+            pushWaiting(outgo.getTransactionID(), outgo);
+        }
+
+        // send out request data
         int res = connection.send(pack.getBytes());
 
+        // callback
         StarGate.Delegate delegate = outgo.getDelegate();
         if (delegate == null) {
             delegate = getDelegate();
-        } else if (res == pack.getLength()) {
-            // set handler for callback when received response
-            setHandler(outgo.getTransactionID(), delegate);
         }
         if (delegate != null) {
             if (res == pack.getLength()) {
                 // callback for sent success
-                delegate.onSent(star, outgo.getPackage(), null);
+                delegate.onSent(star, pack, null);
             } else {
                 // callback for sent failed
-                delegate.onSent(star, outgo.getPackage(), new StarGate.Error(outgo));
+                delegate.onSent(star, pack, new StarGate.Error(outgo));
             }
         }
+
         // flow control
         if (OUTGO_INTERVAL > 0) {
             _sleep(OUTGO_INTERVAL);
@@ -281,7 +357,9 @@ public class Docker implements IWorker {
         long now = (new Date()).getTime();
         if (now > expired) {
             if (connection.isExpired(now)) {
-                connection.send(HEARTBEAT);
+                Package ping = Package.create(DataType.Command, PING.length, new Data(PING));
+                StarShip ship = new StarShip(StarShip.SLOWER, ping, null);
+                addTask(ship);
             }
             // try heartbeat next 2 seconds
             expired = now + 2000;
@@ -304,6 +382,4 @@ public class Docker implements IWorker {
     private static final byte[] PONG = {'P', 'O', 'N', 'G'};
     private static final byte[] AGAIN = {'A', 'G', 'A', 'I', 'N'};
     private static final byte[] OK = {'O', 'K'};
-
-    private static final byte[] HEARTBEAT = Package.create(DataType.Message, 4, new Data(PING)).getBytes();
 }
