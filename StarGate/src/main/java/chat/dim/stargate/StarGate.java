@@ -42,8 +42,8 @@ public class StarGate extends Thread implements Star<StarShip>, ConnectionHandle
 
     public static class Error extends java.lang.Error {
         public final StarShip ship;
-        Error(StarShip s) {
-            super();
+        Error(StarShip s, String message) {
+            super(message);
             ship = s;
         }
     }
@@ -71,7 +71,9 @@ public class StarGate extends Thread implements Star<StarShip>, ConnectionHandle
      * @return connection
      */
     public Connection connect(String host, int port) {
-        return worker.connect(host, port);
+        Connection conn = worker.connect(host, port);
+        conn.setDelegate(this);
+        return conn;
     }
 
     public void disconnect() {
@@ -152,9 +154,14 @@ public class StarGate extends Thread implements Star<StarShip>, ConnectionHandle
 
     @Override
     public void onConnectionReceivedData(Connection connection) {
+        // received data will be processed in run loop,
+        // do nothing here
     }
 
     @Override
     public void onConnectionOverflowed(Connection connection, byte[] ejected) {
+        // TODO: connection cache pool is full,
+        //       some received data will be ejected to here,
+        //       the application should try to process them.
     }
 }

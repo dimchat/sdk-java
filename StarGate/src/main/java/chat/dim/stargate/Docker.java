@@ -83,7 +83,7 @@ public class Docker implements Worker {
         return waitingTable.remove(sn);
     }
     @SuppressWarnings("unchecked")
-    private StarShip anyWaiting() {
+    private StarShip popWaiting() {
         long expires = (new Date()).getTime() - StarShip.EXPIRES;
         StarShip ship;
         HashSet<TransactionID> waiting = (HashSet<TransactionID>)waitingSet;
@@ -99,6 +99,8 @@ public class Docker implements Worker {
                 continue;
             }
             if (ship.retries < StarShip.RETRIES) {
+                // dequeue this ship
+                popWaiting(sn);
                 // update timestamp and retries
                 return ship.update();
             }
@@ -234,8 +236,6 @@ public class Docker implements Worker {
         Header head = income.head;
         byte[] body = income.body.getBytes();
 
-        StarGate.Delegate delegate = null;
-
         // check data type
         DataType type = head.type;
         if (type.equals(DataType.Command)) {
@@ -279,7 +279,14 @@ public class Docker implements Worker {
             // process Message Respond
             StarShip ship = popWaiting(head.sn);
             if (ship != null) {
-                delegate = ship.getDelegate();
+                StarGate.Delegate delegate = ship.getDelegate();
+                if (delegate != null) {
+                    if (body.length == AGAIN.length && Arrays.equals(body, AGAIN)) {
+                        delegate.onSent(star, ship.getPackage(), new StarGate.Error(ship,"Send the message again"));
+                    } else {
+                        delegate.onSent(star, ship.getPackage(), null);
+                    }
+                }
             }
             if (body.length == OK.length && Arrays.equals(body, OK)) {
                 // just ignore
@@ -291,9 +298,7 @@ public class Docker implements Worker {
         }
 
         if (body.length > 0) {
-            if (delegate == null) {
-                delegate = getDelegate();
-            }
+            StarGate.Delegate delegate = getDelegate();
             if (delegate != null) {
                 // dispatch received package
                 delegate.onReceived(star, income);
@@ -308,40 +313,32 @@ public class Docker implements Worker {
     }
 
     private boolean processOutgo(StarGate star) {
-        StarShip outgo = dock.getShip();
-        if (outgo == null) {
+        StarShip ship = dock.getShip();
+        if (ship == null) {
             // no more task now
-            outgo = anyWaiting();
-            if (outgo == null) {
+            ship = popWaiting();
+            if (ship == null) {
                 // no task expired now
                 return false;
             }
         }
-        Package pack = outgo.getPackage();
-        Header head = pack.head;
+        Package outgo = ship.getPackage();
+        Header head = outgo.head;
 
         // check data type
         DataType type = head.type;
         if (type.equals(DataType.Message)) {
             // set for callback when received response
-            pushWaiting(outgo.getTransactionID(), outgo);
+            pushWaiting(ship.getTransactionID(), ship);
         }
 
         // send out request data
-        int res = connection.send(pack.getBytes());
-
-        // callback
-        StarGate.Delegate delegate = outgo.getDelegate();
-        if (delegate == null) {
-            delegate = getDelegate();
-        }
-        if (delegate != null) {
-            if (res == pack.getLength()) {
-                // callback for sent success
-                delegate.onSent(star, pack, null);
-            } else {
-                // callback for sent failed
-                delegate.onSent(star, pack, new StarGate.Error(outgo));
+        int res = connection.send(outgo.getBytes());
+        if (res != outgo.getLength()) {
+            // callback for sent failed
+            StarGate.Delegate delegate = ship.getDelegate();
+            if (delegate != null) {
+                delegate.onSent(star, outgo, new StarGate.Error(ship, "Socket error"));
             }
         }
 
