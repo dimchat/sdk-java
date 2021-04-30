@@ -28,21 +28,32 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.gate;
+package chat.dim.stargate;
 
-public interface Ship<P, G extends Star> {
-
-    /**
-     *  Get request will be sent to remote star
-     *
-     * @return data package (with wrapper)
-     */
-    P getPackage();
+public interface Ship {
 
     /**
-     *  Get request handler
+     *  Get ID for this Ship
      *
-     * @return delegate
+     * @return SN
      */
-    Delegate<P, G> getDelegate();
+    byte[] getSN();
+
+    /**
+     *  Get data in this Ship
+     *
+     * @return payload
+     */
+    byte[] getPayload();
+
+    interface Delegate {
+
+        /**
+         *  Callback when package sent
+         *
+         * @param ship      - package container
+         * @param error     - null on success
+         */
+        void onSent(Ship ship, Error error);
+    }
 }

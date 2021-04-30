@@ -2,12 +2,12 @@
  *
  *  Star Gate: Interfaces for network connection
  *
- *                                Written in 2020 by Moky <albert.moky@gmail.com>
+ *                                Written in 2021 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Albert Moky
+ * Copyright (c) 2021 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,33 +28,39 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.gate;
+package chat.dim.stargate;
 
-public interface Delegate<P, G extends Star> {
+import chat.dim.mtp.protocol.Package;
 
-    /**
-     *  Callback when connection status changed
-     *
-     * @param star      - remote
-     * @param oldStatus - last status
-     * @param newStatus - current status
-     */
-    void onStatusChanged(G star, Star.Status oldStatus, Star.Status newStatus);
+/**
+ *  Star Ship with MTP Package
+ */
+public class MTPShip extends StarShip {
 
-    /**
-     *  Callback when new package received
-     *
-     * @param star      - remote
-     * @param pack      - data package
-     */
-    void onReceived(G star, P pack);
+    private final Package pack;
 
-    /**
-     *  Callback when package sent
-     *
-     * @param star      - remote
-     * @param pack      - data package
-     * @param error     - null on success
-     */
-    void onSent(G star, P pack, Error error);
+    public MTPShip(Package pack, int prior, Delegate delegate) {
+        super(prior, delegate);
+        this.pack = pack;
+    }
+    public MTPShip(Package pack, int prior) {
+        this(pack, prior, null);
+    }
+    public MTPShip(Package pack) {
+        this(pack, StarShip.NORMAL, null);
+    }
+
+    public Package getPackage() {
+        return pack;
+    }
+
+    @Override
+    public byte[] getSN() {
+        return pack.head.sn.getBytes();
+    }
+
+    @Override
+    public byte[] getPayload() {
+        return pack.body.getBytes();
+    }
 }

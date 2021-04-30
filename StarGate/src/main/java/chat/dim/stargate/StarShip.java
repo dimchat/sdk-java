@@ -33,13 +33,7 @@ package chat.dim.stargate;
 import java.lang.ref.WeakReference;
 import java.util.Date;
 
-import chat.dim.mtp.protocol.DataType;
-import chat.dim.mtp.protocol.Package;
-import chat.dim.mtp.protocol.TransactionID;
-import chat.dim.gate.Ship;
-import chat.dim.tlv.Data;
-
-public class StarShip implements Ship<Package, StarGate> {
+public abstract class StarShip implements Ship {
 
     // retry
     public static int EXPIRES = 120 * 1000;  // 2 minutes
@@ -50,47 +44,65 @@ public class StarShip implements Ship<Package, StarGate> {
     public static final int NORMAL = 0;
     public static final int SLOWER = 1;
 
-    final int priority;
+    public final int priority;
 
     // for retry
-    long timestamp = 0;  // last time
-    int retries = -1;
+    private long timestamp = 0;  // last time
+    private int retries = -1;
 
-    private final Package pack;
-    private final WeakReference<StarGate.Delegate> delegateRef;
+    private final WeakReference<Ship.Delegate> delegateRef;
 
-    public StarShip(int priority, Package pack, StarGate.Delegate delegate) {
+    public StarShip(int prior, Ship.Delegate delegate) {
         super();
-        this.priority = priority;
-        this.pack = pack;
+        priority = prior;
         delegateRef = new WeakReference<>(delegate);
     }
 
-    public StarShip(int priority, byte[] payload, StarGate.Delegate delegate) {
-        this(priority, Package.create(DataType.Message, payload.length, new Data(payload)), delegate);
+    /**
+     *  Get handler for this Star Ship
+     *
+     * @return delegate
+     */
+    public Ship.Delegate getDelegate() {
+        return delegateRef.get();
     }
 
-    TransactionID getTransactionID() {
-        return pack.head.sn;
+    /**
+     *  Get last time of trying
+     *
+     * @return timestamp
+     */
+    public long getTimestamp() {
+        return timestamp;
     }
 
-    StarShip update() {
+    /**
+     *  Get count of retries
+     *
+     * @return count
+     */
+    public int getRetries() {
+        return retries;
+    }
+
+    /**
+     *  Check whether retry too many times and no response
+     *
+     * @return true on failure
+     */
+    public boolean isExpired() {
+        long delta = (new Date()).getTime() - timestamp;
+        return delta > EXPIRES * RETRIES * 2L;
+    }
+
+    /**
+     *  Update retries count and time
+     *
+     * @return this Ship
+     */
+    protected StarShip update() {
         timestamp = (new Date()).getTime();
         retries += 1;
         return this;
-    }
-
-    //
-    //  Ship
-    //
-
-    @Override
-    public Package getPackage() {
-        return pack;
-    }
-
-    @Override
-    public StarGate.Delegate getDelegate() {
-        return delegateRef.get();
     }
 }

@@ -31,60 +31,179 @@
 package chat.dim.stargate;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-final class Dock {
+public final class Dock {
 
     // tasks for sending out
-    private final List<Integer> priorityList = new ArrayList<>();
-    private final Map<Integer, List<StarShip>> shipTables = new HashMap<>();
-    private final ReentrantReadWriteLock shipLock = new ReentrantReadWriteLock();
+    private final List<Integer> priorities = new ArrayList<>();
+    private final Map<Integer, List<StarShip>> fleets = new HashMap<>();
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
-    void addShip(StarShip task) {
-        Lock writeLock = shipLock.writeLock();
+    /**
+     *  Park this ship in the Dock for departure
+     *
+     * @param task - outgo ship
+     * @return false on duplicated
+     */
+    public boolean put(StarShip task) {
+        boolean duplicated = false;
+        Lock writeLock = lock.writeLock();
         writeLock.lock();
         try {
-            int priority = task.priority;
-            List<StarShip> table = shipTables.get(priority);
-            if (table == null) {
-                // create new table for this priority
-                table = new ArrayList<>();
-                shipTables.put(priority, table);
-                // insert the priority in a sorted list
+            // 1. choose an array with priority
+            int prior = task.priority;
+            List<StarShip> array = fleets.get(prior);
+            if (array == null) {
+                // 1.1. create new array for this priority
+                array = new ArrayList<>();
+                fleets.put(prior, array);
+                // 1.2. insert the priority in a sorted list
                 int index = 0;
-                for (; index < priorityList.size(); ++index) {
-                    if (priority < priorityList.get(index)) {
+                for (; index < priorities.size(); ++index) {
+                    if (prior < priorities.get(index)) {
                         // insert priority before the bigger one
                         break;
                     }
                 }
-                priorityList.add(index, priority);
+                priorities.add(index, prior);
             }
-            // append to tail
-            table.add(task);
+            // 2. check duplicated task
+            for (StarShip item : array) {
+                if (item == task) {
+                    duplicated = true;
+                    break;
+                }
+            }
+            // 3. append to the tail
+            if (!duplicated) {
+                array.add(task);
+            }
         } finally {
             writeLock.unlock();
         }
+        return duplicated;
     }
 
-    StarShip getShip() {
+    /**
+     *  Get next new ship, remove it from the park
+     *
+     * @return outgo ship
+     */
+    public StarShip pop() {
         StarShip task = null;
-        Lock writeLock = shipLock.writeLock();
+        Lock writeLock = lock.writeLock();
         writeLock.lock();
         try {
-            List<StarShip> table;
-            for (int priority : priorityList) {
-                table = shipTables.get(priority);
-                if (table == null || table.size() == 0) {
+            List<StarShip> array;
+            for (int prior : priorities) {
+                array = fleets.get(prior);
+                if (array == null) {
                     continue;
                 }
-                // pop from the head
-                task = table.remove(0);
-                break;
+                for (StarShip item : array) {
+                    if (item.getTimestamp() == 0) {
+                        // update time and retry
+                        task = item;
+                        task.update();
+                        array.remove(item);
+                        break;
+                    }
+                }
+                if (task != null) {
+                    // got it
+                    break;
+                }
+            }
+        } finally {
+            writeLock.unlock();
+        }
+        return task;
+    }
+
+    /**
+     *  Get ship with ID, remove it from the park
+     *
+     * @param sn - ship ID
+     * @return outgo ship
+     */
+    public StarShip pop(byte[] sn) {
+        StarShip task = null;
+        Lock writeLock = lock.writeLock();
+        writeLock.lock();
+        try {
+            List<StarShip> array;
+            for (int prior : priorities) {
+                array = fleets.get(prior);
+                if (array == null) {
+                    continue;
+                }
+                for (StarShip item : array) {
+                    if (Arrays.equals(item.getSN(), sn)) {
+                        // just remove it
+                        task = item;
+                        array.remove(item);
+                        break;
+                    }
+                }
+                if (task != null) {
+                    // got it
+                    break;
+                }
+            }
+        } finally {
+            writeLock.unlock();
+        }
+        return task;
+    }
+
+    /**
+     *  Get any ship timeout/expired
+     *    1. if expired, remove it from the park;
+     *    2. else, update time and retry (keep it in the park)
+     *
+     * @return outgo ship
+     */
+    public StarShip any() {
+        StarShip task = null;
+        Lock writeLock = lock.writeLock();
+        writeLock.lock();
+        try {
+            long expired = (new Date()).getTime() - StarShip.EXPIRES;
+            List<StarShip> array;
+            for (int prior : priorities) {
+                array = fleets.get(prior);
+                if (array == null) {
+                    continue;
+                }
+                for (StarShip item : array) {
+                    if (item.getTimestamp() > expired) {
+                        // not expired yet
+                        continue;
+                    }
+                    if (item.getRetries() <= StarShip.RETRIES) {
+                        // update time and retry
+                        task = item;
+                        task.update();
+                        break;
+                    }
+                    // retryed too may times
+                    if (item.isExpired()) {
+                        // task expired, remove it and don't retry
+                        array.remove(item);
+                        break;
+                    }
+                }
+                if (task != null) {
+                    // got it
+                    break;
+                }
             }
         } finally {
             writeLock.unlock();

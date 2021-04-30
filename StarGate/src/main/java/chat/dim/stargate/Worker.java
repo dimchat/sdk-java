@@ -30,36 +30,30 @@
  */
 package chat.dim.stargate;
 
-import chat.dim.tcp.Connection;
-import chat.dim.tcp.ConnectionStatus;
-
 public interface Worker {
 
-    static StarGate.Status getStatus(ConnectionStatus status) {
-        switch (status) {
-            case Default:
-            case Connecting: {
-                return StarGate.Status.Connecting;
-            }
-            case Connected:
-            case Expired:
-            case Maintaining: {
-                return StarGate.Status.Connected;
-            }
-            case Error: {
-                return StarGate.Status.Error;
-            }
-        }
-        return StarGate.Status.Init;
-    }
-    StarGate.Status getStatus();
+    /**
+     *  Set up connection
+     */
+    void setup();
 
-    StarGate.Delegate getDelegate();
+    /**
+     *  Process incoming/outgoing Ships
+     */
+    boolean handle();
 
-    Connection connect(String host, int port);
-    void disconnect();
+    /**
+     *  Do clean jobs
+     */
+    void finish();
 
-    void addTask(StarShip ship);
-
-    int process(StarGate star, int count);
+    /**
+     *  Send data to remote peer
+     *
+     * @param payload  - request data
+     * @param priority - -1 is the most fast
+     * @param delegate - callback
+     * @return false on error
+     */
+    boolean send(byte[] payload, int priority, Ship.Delegate delegate);
 }

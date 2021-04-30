@@ -30,77 +30,61 @@
  */
 package chat.dim.stargate;
 
-import java.util.Map;
+import java.lang.ref.WeakReference;
+import java.net.Socket;
 
-import chat.dim.mtp.protocol.Package;
-import chat.dim.gate.Star;
+import chat.dim.tcp.ActiveConnection;
+import chat.dim.tcp.BaseConnection;
 import chat.dim.tcp.Connection;
-import chat.dim.tcp.ConnectionHandler;
-import chat.dim.tcp.ConnectionStatus;
 
-public class StarGate extends Thread implements Star<StarShip>, ConnectionHandler {
+public class StarGate implements Gate, Connection.Delegate, Runnable {
 
-    public static class Error extends java.lang.Error {
-        public final StarShip ship;
-        Error(StarShip s, String message) {
-            super(message);
-            ship = s;
+    public final Connection connection;
+    public final Dock dock;
+
+    private Worker worker;
+    private WeakReference<Delegate> delegateRef;
+
+    public StarGate(Connection conn) {
+        super();
+        connection = conn;
+        dock = new Dock();
+        worker = null;
+        delegateRef = null;
+    }
+
+    public StarGate(Socket connectedSocket) {
+        this(new BaseConnection(connectedSocket));
+    }
+    public StarGate(String remoteHost, int remotePort) {
+        this(new ActiveConnection(remoteHost, remotePort));
+    }
+    public StarGate(String remoteHost, int remotePort, Socket connectedSocket) {
+        this(new ActiveConnection(remoteHost, remotePort, connectedSocket));
+    }
+
+    // override for customized worker
+    public Worker getWorker() {
+        if (worker == null) {
+            if (MTPDocker.check(connection)) {
+                worker = new MTPDocker(this);
+            }
+        }
+        return worker;
+    }
+
+    public Delegate getDelegate() {
+        if (delegateRef == null) {
+            return null;
+        } else {
+            return delegateRef.get();
         }
     }
-
-    public interface Delegate extends chat.dim.gate.Delegate<Package, StarGate> {
-    }
-
-    private final Worker worker;
-
-    public StarGate(Delegate delegate) {
-        super();
-        worker = getWorker(delegate);
-    }
-
-    protected Worker getWorker(Delegate delegate) {
-        // override for customized worker
-        return new Docker(delegate);
-    }
-
-    /**
-     *  Create a connection for client
-     *
-     * @param host - server host
-     * @param port - server port
-     * @return connection
-     */
-    public Connection connect(String host, int port) {
-        Connection conn = worker.connect(host, port);
-        conn.setDelegate(this);
-        return conn;
-    }
-
-    public void disconnect() {
-        worker.disconnect();
-    }
-
-    private boolean running = false;
-
-    @Override
-    public void start() {
-        running = true;
-        super.start();
-    }
-
-    public void close() {
-        running = false;
-    }
-
-    @Override
-    public void run() {
-        int count = 0;
-        while (running) {
-            try {
-                count = worker.process(this, count);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+    public void setDelegate(Delegate delegate) {
+        if (delegate == null) {
+            delegateRef = null;
+        } else {
+            delegateRef = new WeakReference<>(delegate);
         }
     }
 
@@ -110,34 +94,12 @@ public class StarGate extends Thread implements Star<StarShip>, ConnectionHandle
 
     @Override
     public Status getStatus() {
-        return worker.getStatus();
+        return Gate.getStatus(connection.getStatus());
     }
 
     @Override
-    public void launch(Map<String, Object> options) {
-        String host = (String) options.get("host");
-        int port = (int) options.get("port");
+    public void run() {
 
-        connect(host, port);
-        start();
-    }
-
-    @Override
-    public void terminate() {
-        close();
-    }
-
-    @Override
-    public void enterBackground() {
-    }
-
-    @Override
-    public void enterForeground() {
-    }
-
-    @Override
-    public void send(StarShip ship) {
-        worker.addTask(ship);
     }
 
     //
@@ -145,15 +107,15 @@ public class StarGate extends Thread implements Star<StarShip>, ConnectionHandle
     //
 
     @Override
-    public void onConnectionStatusChanged(Connection connection, ConnectionStatus oldStatus, ConnectionStatus newStatus) {
-        Delegate delegate = worker.getDelegate();
+    public void onConnectionStatusChanged(Connection connection, Connection.Status oldStatus, Connection.Status newStatus) {
+        Delegate delegate = getDelegate();
         if (delegate != null) {
-            delegate.onStatusChanged(this, Worker.getStatus(oldStatus), Worker.getStatus(newStatus));
+            delegate.onStatusChanged(this, Gate.getStatus(oldStatus), Gate.getStatus(newStatus));
         }
     }
 
     @Override
-    public void onConnectionReceivedData(Connection connection) {
+    public void onConnectionReceivedData(Connection connection, byte[] data) {
         // received data will be processed in run loop,
         // do nothing here
     }
