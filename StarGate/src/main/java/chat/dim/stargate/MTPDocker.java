@@ -116,7 +116,7 @@ public class MTPDocker extends Docker {
     }
 
     @Override
-    protected StarShip handleShip(Ship income) {
+    protected StarShip processIncomeShip(Ship income) {
         MTPShip ship = (MTPShip) income;
         Package pack = ship.getPackage();
         Header head = pack.head;
@@ -125,21 +125,21 @@ public class MTPDocker extends Docker {
         // 1. check data type
         if (type.equals(DataType.Command)) {
             // respond for Command directly
-            if (body.equals(PING)) {
-                Data res = new Data(PONG);
+            if (body.equals(PING)) {        // 'PING'
+                Data res = new Data(PONG);  // 'PONG'
                 pack = Package.create(DataType.CommandRespond, head.sn, PONG.length, res);
                 return new MTPShip(pack, StarShip.SLOWER);
             }
             return null;
         } else if (type.equals(DataType.CommandRespond)) {
             // remove linked outgo Ship
-            return super.handleShip(income);
+            return super.processIncomeShip(income);
         } else if (type.equals(DataType.MessageFragment)) {
             // just ignore
             return null;
         } else if (type.equals(DataType.MessageRespond)) {
             // remove linked outgo Ship
-            super.handleShip(income);
+            super.processIncomeShip(income);
             if (body.getLength() == 0 || body.equals(OK)) {
                 // just ignore
                 return null;
@@ -152,7 +152,7 @@ public class MTPDocker extends Docker {
         byte[] res = null;
         Gate.Delegate delegate = getDelegate();
         if (body.getLength() > 0 && delegate != null) {
-            res = delegate.onReceived(getGate(), body.getBytes());
+            res = delegate.onReceived(getGate(), income);
         }
         // 3. response
         if (type.equals(DataType.Message)) {
@@ -170,7 +170,7 @@ public class MTPDocker extends Docker {
     }
 
     @Override
-    protected boolean send(StarShip outgo) {
+    protected boolean sendOutgoShip(StarShip outgo) {
         MTPShip ship = (MTPShip) outgo;
         Package pack = ship.getPackage();
         // check data type

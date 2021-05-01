@@ -88,7 +88,7 @@ public final class Dock {
         } finally {
             writeLock.unlock();
         }
-        return duplicated;
+        return !duplicated;
     }
 
     /**
@@ -193,9 +193,10 @@ public final class Dock {
                         task.update();
                         break;
                     }
-                    // retryed too may times
+                    // retried too may times
                     if (item.isExpired()) {
                         // task expired, remove it and don't retry
+                        task = item;
                         array.remove(item);
                         break;
                     }

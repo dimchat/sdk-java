@@ -38,9 +38,14 @@ public interface Worker {
     void setup();
 
     /**
+     *  Call 'process()' circularly
+     */
+    void handle();
+
+    /**
      *  Process incoming/outgoing Ships
      */
-    boolean handle();
+    boolean process();
 
     /**
      *  Do clean jobs

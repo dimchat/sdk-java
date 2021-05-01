@@ -34,28 +34,42 @@ import chat.dim.tcp.Connection;
 
 public interface Gate {
 
-//    /**
-//     *  Get connection
-//     *
-//     * @return current connection
-//     */
-//    Connection getConnection();
-//
-//    /**
-//     *  Send data package to the connected server
-//     *
-//     * @param payload  - request data
-//     * @param priority - priority, -1 is the most fast
-//     * @param delegate - callback
-//     */
-//    void send(byte[] payload, int priority, Ship.Delegate delegate);
-//
-//    /**
-//     *  Process income & outgo
-//     */
-//    void process();
-//
-//    Delegate getDelegate();
+    /**
+     *  Send data package to the connected server
+     *
+     * @param payload  - request data
+     * @param priority - priority, -1 is the most fast
+     * @param delegate - callback
+     */
+    boolean send(byte[] payload, int priority, Ship.Delegate delegate);
+
+    /**
+     *  Get callback
+     *
+     * @return gate delegate
+     */
+    Gate.Delegate getDelegate();
+
+    /**
+     *  Get worker for processing packages
+     *
+     * @return docker for ships
+     */
+    Worker getWorker();
+
+    /**
+     *  Get memory cache for outgoing ships
+     *
+     * @return ship park
+     */
+    Dock getDock();
+
+    /**
+     *  Get current connection
+     *
+     * @return connection
+     */
+    Connection getConnection();
 
     /**
      *  Get connection status
@@ -111,10 +125,10 @@ public interface Gate {
          *  Callback when new package received
          *
          * @param gate      - remote gate
-         * @param payload   - received data
+         * @param ship      - data package container
          * @return response
          */
-        byte[] onReceived(Gate gate, byte[] payload);
+        byte[] onReceived(Gate gate, Ship ship);
     }
 
     class Error extends java.lang.Error {

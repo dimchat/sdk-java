@@ -55,7 +55,11 @@ public abstract class StarShip implements Ship {
     public StarShip(int prior, Ship.Delegate delegate) {
         super();
         priority = prior;
-        delegateRef = new WeakReference<>(delegate);
+        if (delegate == null) {
+            delegateRef = null;
+        } else {
+            delegateRef = new WeakReference<>(delegate);
+        }
     }
 
     /**
@@ -64,7 +68,11 @@ public abstract class StarShip implements Ship {
      * @return delegate
      */
     public Ship.Delegate getDelegate() {
-        return delegateRef.get();
+        if (delegateRef == null) {
+            return null;
+        } else {
+            return delegateRef.get();
+        }
     }
 
     /**

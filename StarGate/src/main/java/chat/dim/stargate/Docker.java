@@ -35,15 +35,17 @@ import java.util.Date;
 
 import chat.dim.tcp.Connection;
 
-public abstract class Docker implements Worker {
+public abstract class Docker implements Worker, Runnable {
 
     private final WeakReference<StarGate> gateRef;
 
+    private boolean running = false;
     private long heartbeatExpired;
 
     public Docker(StarGate gate) {
         super();
         gateRef = new WeakReference<>(gate);
+        // time for checking heartbeat
         heartbeatExpired = (new Date()).getTime() + 2000;
     }
 
@@ -79,9 +81,27 @@ public abstract class Docker implements Worker {
         return getConnection().receive(length);
     }
 
+    //
+    //  Running
+    //
+
+    @Override
+    public void run() {
+        setup();
+        try {
+            handle();
+        } finally {
+            finish();
+        }
+    }
+
+    public void stop() {
+        running = false;
+    }
+
     @Override
     public void setup() {
-        // override to build the connection
+        running = true;
     }
 
     @Override
@@ -89,18 +109,39 @@ public abstract class Docker implements Worker {
         // TODO: go through all outgo Ships parking in Dock and call 'sent failed' on their delegates
     }
 
+    public boolean isRunning() {
+        return running;
+    }
+
     @Override
-    public boolean handle() {
+    public void handle() {
+        while (isRunning()) {
+            if (!process()) {
+                idle();
+            }
+        }
+    }
+
+    protected void idle() {
+        try {
+            Thread.sleep(128);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public boolean process() {
         // 1. process income
         Ship income = getIncomeShip();
         if (income != null) {
-            StarShip res = handleShip(income);
+            StarShip res = processIncomeShip(income);
             if (res != null) {
                 if (res.priority == StarShip.SLOWER) {
                     // put the response into waiting queue
                     getDock().put(res);
                 } else {
-                    send(res);
+                    // send response directly
+                    sendOutgoShip(res);
                 }
             }
         }
@@ -113,7 +154,7 @@ public abstract class Docker implements Worker {
                 if (delegate != null) {
                     delegate.onSent(outgo, new Gate.Error(outgo, "Request timeout"));
                 }
-            } else if (!send(outgo)) {
+            } else if (!sendOutgoShip(outgo)) {
                 // failed to send outgo Ship, callback
                 Ship.Delegate delegate = outgo.getDelegate();
                 if (delegate != null) {
@@ -146,9 +187,10 @@ public abstract class Docker implements Worker {
     protected abstract Ship getIncomeShip();
 
     // Override to process income SHip
-    protected StarShip handleShip(Ship income) {
+    protected StarShip processIncomeShip(Ship income) {
         StarShip linked = getOutgoShip(income);
         if (linked != null) {
+            // callback for the linked outgo Ship and remove it
             Ship.Delegate delegate = linked.getDelegate();
             if (delegate != null) {
                 delegate.onSent(linked, null);
@@ -180,7 +222,7 @@ public abstract class Docker implements Worker {
     /**
      *  Send outgo Ship via current Connection
      */
-    protected abstract boolean send(StarShip outgo);
+    protected abstract boolean sendOutgoShip(StarShip outgo);
 
     /**
      *  Get an empty ship for keeping connection alive
