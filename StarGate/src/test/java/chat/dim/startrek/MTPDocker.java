@@ -28,18 +28,23 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.stargate;
+package chat.dim.startrek;
 
 import chat.dim.mtp.protocol.DataType;
 import chat.dim.mtp.protocol.Header;
 import chat.dim.mtp.protocol.Package;
+import chat.dim.stargate.Gate;
+import chat.dim.stargate.Ship;
+import chat.dim.stargate.StarDocker;
+import chat.dim.stargate.StarGate;
+import chat.dim.stargate.StarShip;
 import chat.dim.tcp.Connection;
 import chat.dim.tlv.Data;
 
 /**
- *  Docker for MTP packages
+ *  Star Docker for MTP packages
  */
-public class MTPDocker extends Docker {
+public class MTPDocker extends StarDocker {
 
     public MTPDocker(StarGate gate) {
         super(gate);
@@ -55,16 +60,15 @@ public class MTPDocker extends Docker {
     }
 
     @Override
-    public boolean send(byte[] payload, int priority, Ship.Delegate delegate) {
+    public StarShip pack(byte[] payload, int priority, Ship.Delegate delegate) {
         Data req = new Data(payload);
-        Package pack = Package.create(DataType.Message, req.getLength(), req);
-        StarShip ship = new MTPShip(pack, priority, delegate);
-        return getDock().put(ship);
+        Package mtp = Package.create(DataType.Message, req.getLength(), req);
+        return new MTPShip(mtp, priority, delegate);
     }
 
     private Package receivePackage() {
         // 1. check received data
-        byte[] buffer = received();
+        byte[] buffer = getGate().received();
         if (buffer == null) {
             // received nothing
             return null;
@@ -80,10 +84,10 @@ public class MTPDocker extends Docker {
             int pos = data.find(Header.MAGIC_CODE, 1);
             if (pos > 0) {
                 // found next head(starts with 'DIM'), skip data before it
-                receive(pos);
+                getGate().receive(pos);
             } else {
                 // skip thw whole data
-                receive(buffer.length);
+                getGate().receive(buffer.length);
             }
             return null;
         }
@@ -99,7 +103,7 @@ public class MTPDocker extends Docker {
             return null;
         }
         // receive package
-        buffer = receive(packLen);
+        buffer = getGate().receive(packLen);
         data = new Data(buffer);
         Data body = data.slice(head.getLength());
         return new Package(data, head, body);
@@ -118,17 +122,17 @@ public class MTPDocker extends Docker {
     @Override
     protected StarShip processIncomeShip(Ship income) {
         MTPShip ship = (MTPShip) income;
-        Package pack = ship.getPackage();
-        Header head = pack.head;
-        Data body = pack.body;
+        Package mtp = ship.mtp;
+        Header head = mtp.head;
+        Data body = mtp.body;
         DataType type = head.type;
         // 1. check data type
         if (type.equals(DataType.Command)) {
             // respond for Command directly
             if (body.equals(PING)) {        // 'PING'
                 Data res = new Data(PONG);  // 'PONG'
-                pack = Package.create(DataType.CommandRespond, head.sn, PONG.length, res);
-                return new MTPShip(pack, StarShip.SLOWER);
+                mtp = Package.create(DataType.CommandRespond, head.sn, PONG.length, res);
+                return new MTPShip(mtp, StarShip.SLOWER);
             }
             return null;
         } else if (type.equals(DataType.CommandRespond)) {
@@ -150,7 +154,7 @@ public class MTPDocker extends Docker {
         }
         // 2. process payload by delegate
         byte[] res = null;
-        Gate.Delegate delegate = getDelegate();
+        Gate.Delegate delegate = getGate().getDelegate();
         if (body.getLength() > 0 && delegate != null) {
             res = delegate.onReceived(getGate(), income);
         }
@@ -160,11 +164,12 @@ public class MTPDocker extends Docker {
             if (res == null || res.length == 0) {
                 res = OK;
             }
-            pack = Package.create(DataType.MessageRespond, head.sn, res.length, new Data(res));
-            return new MTPShip(pack, StarShip.NORMAL);
+            mtp = Package.create(DataType.MessageRespond, head.sn, res.length, new Data(res));
+            // send it directly
+            getGate().send(mtp.getBytes());
         } else if (res != null && res.length > 0) {
             // push as new Message
-            send(res, StarShip.SLOWER, null);
+            return pack(res, StarShip.SLOWER, null);
         }
         return null;
     }
@@ -172,14 +177,13 @@ public class MTPDocker extends Docker {
     @Override
     protected boolean sendOutgoShip(StarShip outgo) {
         MTPShip ship = (MTPShip) outgo;
-        Package pack = ship.getPackage();
         // check data type
-        if (pack.head.type.equals(DataType.Message)) {
+        if (outgo.getRetries() == 0 && ship.mtp.head.type.equals(DataType.Message)) {
             // put back for response
-            getDock().put(outgo);
+            getGate().parkShip(outgo);
         }
         // send out request data
-        return send(pack.getBytes());
+        return super.sendOutgoShip(outgo);
     }
 
     @Override

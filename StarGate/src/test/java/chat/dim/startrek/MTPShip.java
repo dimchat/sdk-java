@@ -2,12 +2,12 @@
  *
  *  Star Gate: Interfaces for network connection
  *
- *                                Written in 2020 by Moky <albert.moky@gmail.com>
+ *                                Written in 2021 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Albert Moky
+ * Copyright (c) 2021 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,37 +28,41 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.stargate;
+package chat.dim.startrek;
 
-public interface Worker {
+import chat.dim.mtp.protocol.Package;
+import chat.dim.stargate.StarShip;
 
-    /**
-     *  Set up connection
-     */
-    void setup();
+/**
+ *  Star Ship with MTP Package
+ */
+public class MTPShip extends StarShip {
 
-    /**
-     *  Call 'process()' circularly
-     */
-    void handle();
+    public final Package mtp;
 
-    /**
-     *  Process incoming/outgoing Ships
-     */
-    boolean process();
+    public MTPShip(Package pack, int prior, Delegate delegate) {
+        super(prior, delegate);
+        mtp = pack;
+    }
+    public MTPShip(Package pack, int prior) {
+        this(pack, prior, null);
+    }
+    public MTPShip(Package pack) {
+        this(pack, StarShip.NORMAL, null);
+    }
 
-    /**
-     *  Do clean jobs
-     */
-    void finish();
+    @Override
+    public byte[] getPackage() {
+        return mtp.getBytes();
+    }
 
-    /**
-     *  Send data to remote peer
-     *
-     * @param payload  - request data
-     * @param priority - -1 is the most fast
-     * @param delegate - callback
-     * @return false on error
-     */
-    boolean send(byte[] payload, int priority, Ship.Delegate delegate);
+    @Override
+    public byte[] getSN() {
+        return mtp.head.sn.getBytes();
+    }
+
+    @Override
+    public byte[] getPayload() {
+        return mtp.body.getBytes();
+    }
 }

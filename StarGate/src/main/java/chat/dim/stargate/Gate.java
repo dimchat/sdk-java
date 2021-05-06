@@ -35,6 +35,27 @@ import chat.dim.tcp.Connection;
 public interface Gate {
 
     /**
+     *  Get callback
+     *
+     * @return gate delegate
+     */
+    Gate.Delegate getDelegate();
+
+    /**
+     *  Check whether StarGate is not closed and the current Connection is active
+     *
+     * @return false on error
+     */
+    boolean isOpened();
+
+    /**
+     *  Check whether Connection Status is expired for maintaining
+     *
+     * @return true on waiting for heartbeat
+     */
+    boolean isExpired();
+
+    /**
      *  Send data package to the connected server
      *
      * @param payload  - request data
@@ -43,33 +64,65 @@ public interface Gate {
      */
     boolean send(byte[] payload, int priority, Ship.Delegate delegate);
 
-    /**
-     *  Get callback
-     *
-     * @return gate delegate
-     */
-    Gate.Delegate getDelegate();
+    //
+    //  Connection
+    //
 
     /**
-     *  Get worker for processing packages
+     *  Send data package
      *
-     * @return docker for ships
+     * @param pack - data package
+     * @return false on error
      */
-    Worker getWorker();
+    boolean send(byte[] pack);
 
     /**
-     *  Get memory cache for outgoing ships
+     *  Get received data from cache, but not remove
      *
-     * @return ship park
+     * @return received data
      */
-    Dock getDock();
+    byte[] received();
 
     /**
-     *  Get current connection
+     *  Get received data from cache, and remove it
+     *  (call 'received()' to check data first)
      *
-     * @return connection
+     * @param length - how many bytes to receive
+     * @return received data
      */
-    Connection getConnection();
+    byte[] receive(int length);
+
+    //
+    //  Ship Docking
+    //
+
+    /**
+     *  Park this outgo Ship in a waiting queue for departure
+     *
+     * @param outgo - outgo ship
+     * @return False on duplicated
+     */
+    boolean parkShip(StarShip outgo);
+
+    /**
+     *  Pull out an outgo Ship from waiting queue
+     *
+     * @param sn - ship ID
+     * @return outgo Ship
+     */
+    StarShip pullShip(byte[] sn);  // Get a Ship(with SN as ID) and remove it from the Dock
+    StarShip pullShip();           // Get a new Ship(time == 0) and remove it from the Dock
+
+    /**
+     *  Get any Ship timeout/expired (keep it in the waiting queue)
+     *
+     * @return outgo Ship
+     */
+    StarShip anyShip();
+
+    //
+    //  Gate Status
+    //
 
     /**
      *  Get connection status
@@ -109,6 +162,10 @@ public interface Gate {
             value = v;
         }
     }
+
+    //
+    //  Gate Delegate
+    //
 
     interface Delegate {
 

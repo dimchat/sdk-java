@@ -30,7 +30,17 @@
  */
 package chat.dim.stargate;
 
+/**
+ *  Star Ship for carrying data package
+ */
 public interface Ship {
+
+    /**
+     *  Get the data package in this Ship
+     *
+     * @return the whole package
+     */
+    byte[] getPackage();
 
     /**
      *  Get ID for this Ship

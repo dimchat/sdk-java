@@ -30,204 +30,37 @@
  */
 package chat.dim.stargate;
 
-import java.lang.ref.WeakReference;
-import java.util.Date;
-
-import chat.dim.tcp.Connection;
-
-public abstract class Docker implements Worker, Runnable {
-
-    private final WeakReference<StarGate> gateRef;
-
-    private boolean running = false;
-    private long heartbeatExpired;
-
-    public Docker(StarGate gate) {
-        super();
-        gateRef = new WeakReference<>(gate);
-        // time for checking heartbeat
-        heartbeatExpired = (new Date()).getTime() + 2000;
-    }
-
-    public StarGate getGate() {
-        return gateRef.get();
-    }
-
-    public Gate.Status getStatus() {
-        return getGate().getStatus();
-    }
-
-    protected Connection getConnection() {
-        return getGate().connection;
-    }
-
-    protected Dock getDock() {
-        return getGate().dock;
-    }
-
-    public Gate.Delegate getDelegate() {
-        return getGate().getDelegate();
-    }
-
-    protected boolean send(byte[] buffer) {
-        return getConnection().send(buffer) == buffer.length;
-    }
-
-    protected byte[] received() {
-        return getConnection().received();
-    }
-
-    protected byte[] receive(int length) {
-        return getConnection().receive(length);
-    }
-
-    //
-    //  Running
-    //
-
-    @Override
-    public void run() {
-        setup();
-        try {
-            handle();
-        } finally {
-            finish();
-        }
-    }
-
-    public void stop() {
-        running = false;
-    }
-
-    @Override
-    public void setup() {
-        running = true;
-    }
-
-    @Override
-    public void finish() {
-        // TODO: go through all outgo Ships parking in Dock and call 'sent failed' on their delegates
-    }
-
-    public boolean isRunning() {
-        return running;
-    }
-
-    @Override
-    public void handle() {
-        while (isRunning()) {
-            if (!process()) {
-                idle();
-            }
-        }
-    }
-
-    protected void idle() {
-        try {
-            Thread.sleep(128);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public boolean process() {
-        // 1. process income
-        Ship income = getIncomeShip();
-        if (income != null) {
-            StarShip res = processIncomeShip(income);
-            if (res != null) {
-                if (res.priority == StarShip.SLOWER) {
-                    // put the response into waiting queue
-                    getDock().put(res);
-                } else {
-                    // send response directly
-                    sendOutgoShip(res);
-                }
-            }
-        }
-        // 2. process outgo
-        StarShip outgo = getOutgoShip();
-        if (outgo != null) {
-            if (outgo.isExpired()) {
-                // outgo Ship expired, callback
-                Ship.Delegate delegate = outgo.getDelegate();
-                if (delegate != null) {
-                    delegate.onSent(outgo, new Gate.Error(outgo, "Request timeout"));
-                }
-            } else if (!sendOutgoShip(outgo)) {
-                // failed to send outgo Ship, callback
-                Ship.Delegate delegate = outgo.getDelegate();
-                if (delegate != null) {
-                    delegate.onSent(outgo, new Gate.Error(outgo, "Connection error"));
-                }
-            }
-        }
-        // 3. heartbeat
-        if (income == null && outgo == null) {
-            // check time for next heartbeat
-            long now = (new Date()).getTime();
-            if (now > heartbeatExpired) {
-                StarShip beat = getHeartbeat();
-                if (beat != null) {
-                    // put the heartbeat into waiting queue
-                    getDock().put(beat);
-                }
-                // try heartbeat next 2 seconds
-                heartbeatExpired = now + 2000;
-            }
-            return false;
-        } else {
-            return true;
-        }
-    }
+public interface Docker {
 
     /**
-     *  Get income Ship from Connection
+     *  Set up connection
      */
-    protected abstract Ship getIncomeShip();
-
-    // Override to process income SHip
-    protected StarShip processIncomeShip(Ship income) {
-        StarShip linked = getOutgoShip(income);
-        if (linked != null) {
-            // callback for the linked outgo Ship and remove it
-            Ship.Delegate delegate = linked.getDelegate();
-            if (delegate != null) {
-                delegate.onSent(linked, null);
-            }
-        }
-        return null;
-    }
+    void setup();
 
     /**
-     *  Get outgo Ship from waiting queue
+     *  Call 'process()' circularly
      */
-    protected StarShip getOutgoShip() {
-        // get next new task (time == 0)
-        StarShip outgo = getDock().pop();
-        if (outgo == null) {
-            // no more new task now, get any expired task
-            outgo = getDock().any();
-        }
-        return outgo;
-    }
+    void handle();
 
     /**
-     *  get task with ID (income.SN)
+     *  Process incoming/outgoing Ships
+     *
+     * @return false on nothing to do
      */
-    protected StarShip getOutgoShip(Ship income) {
-        return getDock().pop(income.getSN());
-    }
+    boolean process();
 
     /**
-     *  Send outgo Ship via current Connection
+     *  Do clean jobs
      */
-    protected abstract boolean sendOutgoShip(StarShip outgo);
+    void finish();
 
     /**
-     *  Get an empty ship for keeping connection alive
+     *  Pack the payload to an outgo Ship
+     *
+     * @param payload  - request data
+     * @param priority - -1 is the most fast
+     * @param delegate - callback
+     * @return false on error
      */
-    protected StarShip getHeartbeat() {
-        return null;
-    }
+    StarShip pack(byte[] payload, int priority, Ship.Delegate delegate);
 }

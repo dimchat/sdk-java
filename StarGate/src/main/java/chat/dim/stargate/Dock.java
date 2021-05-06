@@ -37,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public final class Dock {
@@ -44,7 +45,7 @@ public final class Dock {
     // tasks for sending out
     private final List<Integer> priorities = new ArrayList<>();
     private final Map<Integer, List<StarShip>> fleets = new HashMap<>();
-    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     /**
      *  Park this ship in the Dock for departure

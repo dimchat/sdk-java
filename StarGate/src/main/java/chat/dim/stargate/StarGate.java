@@ -31,16 +31,19 @@
 package chat.dim.stargate;
 
 import java.lang.ref.WeakReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import chat.dim.tcp.BaseConnection;
 import chat.dim.tcp.Connection;
 
-public class StarGate implements Gate, Connection.Delegate, Runnable {
+public abstract class StarGate implements Gate, Connection.Delegate, Runnable {
 
-    public final Connection connection;
     public final Dock dock = new Dock();
+    public final Connection connection;
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    private Worker worker = null;
+    private Docker docker = null;
     private WeakReference<Delegate> delegateRef = null;
 
     private boolean running = false;
@@ -50,35 +53,18 @@ public class StarGate implements Gate, Connection.Delegate, Runnable {
         connection = conn;
     }
 
-    @Override
-    public Dock getDock() {
-        return dock;
-    }
-
-    @Override
-    public Connection getConnection() {
-        return connection;
-    }
-
-    @Override
-    public Worker getWorker() {
-        if (worker == null) {
-            worker = createWorker();
+    public Docker getDocker() {
+        if (docker == null) {
+            docker = createDocker();
         }
-        return worker;
+        return docker;
     }
 
     // override to customize Worker
-    protected Worker createWorker() {
-        if (MTPDocker.check(connection)) {
-            return new MTPDocker(this);
-        } else {
-            return null;
-        }
-    }
+    protected abstract Docker createDocker();
 
-    public void setWorker(Worker docker) {
-        worker = docker;
+    public void setDocker(Docker worker) {
+        docker = worker;
     }
 
     @Override
@@ -98,20 +84,89 @@ public class StarGate implements Gate, Connection.Delegate, Runnable {
     }
 
     @Override
+    public boolean isOpened() {
+        // 1. StarGate not stopped
+        // 2. Connection not closed or still have data unprocessed
+        return running && (connection.isAlive() || connection.received() != null);
+    }
+
+    @Override
+    public boolean isExpired() {
+        return connection.getStatus().equals(Connection.Status.Expired);
+    }
+
+    @Override
     public Status getStatus() {
         return Gate.getStatus(connection.getStatus());
     }
 
     @Override
     public boolean send(byte[] payload, int priority, Ship.Delegate delegate) {
-        Worker worker = getWorker();
-        if (worker == null) {
+        Docker docker = getDocker();
+        if (docker == null) {
             return false;
-        } else if (getStatus().equals(Status.Connected)) {
-            return worker.send(payload, priority, delegate);
-        } else {
+        } else if (!getStatus().equals(Status.Connected)) {
             return false;
         }
+        StarShip outgo = docker.pack(payload, priority, delegate);
+        if (priority < 0) {
+            // send out directly
+            return send(outgo.getPackage());
+        } else {
+            // put the Ship into a waiting queue
+            return parkShip(outgo);
+        }
+    }
+
+    //
+    //  Connection
+    //
+
+    @Override
+    public boolean send(byte[] pack) {
+        boolean ok;
+        Lock writeLock = lock.writeLock();
+        writeLock.lock();
+        try {
+            ok = connection.send(pack) == pack.length;
+        } finally {
+            writeLock.unlock();
+        }
+        return ok;
+    }
+
+    @Override
+    public byte[] received() {
+        return connection.received();
+    }
+
+    @Override
+    public byte[] receive(int length) {
+        return connection.receive(length);
+    }
+
+    //
+    //  Docking
+    //
+
+    @Override
+    public boolean parkShip(StarShip outgo) {
+        return dock.put(outgo);
+    }
+
+    @Override
+    public StarShip pullShip(byte[] sn) {
+        return dock.pop(sn);
+    }
+
+    @Override
+    public StarShip pullShip() {
+        return dock.pop();
+    }
+
+    @Override
+    public StarShip anyShip() {
+        return dock.any();
     }
 
     //
@@ -132,41 +187,33 @@ public class StarGate implements Gate, Connection.Delegate, Runnable {
         running = false;
     }
 
-    public boolean isRunning() {
-        if (running) {
-            if (connection instanceof BaseConnection) {
-                BaseConnection bc = (BaseConnection) connection;
-                // connection not closed, or more data to be processed
-                return bc.isRunning() || bc.received() != null;
-            } else {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public void setup() {
         running = true;
-        // check worker
-        while (getWorker() == null && isRunning()) {
-            // waiting for worker
+        if (!isOpened()) {
+            // waiting for connection
             idle();
         }
-        // setup worker
-        if (worker != null) {
-            worker.setup();
+        // check docker
+        while (getDocker() == null && isOpened()) {
+            // waiting for docker
+            idle();
+        }
+        // setup docker
+        if (docker != null) {
+            docker.setup();
         }
     }
 
     public void finish() {
-        // clean worker
-        if (worker != null) {
-            worker.finish();
+        running = false;
+        // clean docker
+        if (docker != null) {
+            docker.finish();
         }
     }
 
     public void handle() {
-        while (isRunning()) {
+        while (isOpened()) {
             if (!process()) {
                 idle();
             }
@@ -182,10 +229,12 @@ public class StarGate implements Gate, Connection.Delegate, Runnable {
     }
 
     public boolean process() {
-        if (worker != null) {
-            return worker.process();
+        if (docker == null) {
+            //throw new NullPointerException("Star worker not found!");
+            return false;
+        } else {
+            return docker.process();
         }
-        return false;
     }
 
     //
@@ -194,11 +243,11 @@ public class StarGate implements Gate, Connection.Delegate, Runnable {
 
     @Override
     public void onConnectionStatusChanged(Connection connection, Connection.Status oldStatus, Connection.Status newStatus) {
-        Delegate delegate = getDelegate();
-        if (delegate != null) {
-            Status s1 = Gate.getStatus(oldStatus);
-            Status s2 = Gate.getStatus(newStatus);
-            if (!s1.equals(s2)) {
+        Status s1 = Gate.getStatus(oldStatus);
+        Status s2 = Gate.getStatus(newStatus);
+        if (!s1.equals(s2)) {
+            Delegate delegate = getDelegate();
+            if (delegate != null) {
                 delegate.onStatusChanged(this, s1, s2);
             }
         }
