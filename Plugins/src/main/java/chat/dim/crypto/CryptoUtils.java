@@ -37,6 +37,17 @@ import java.security.Signature;
 public final class CryptoUtils {
 
     //
+    //  Algorithms
+    //
+
+    final static String AES_CBC_PKCS7 = "AES/CBC/PKCS7Padding";
+
+    final static String ECDSA_SHA256 = "SHA256withECDSA";
+
+    final static String RSA_SHA256 = "SHA256withRSA";
+    final static String RSA_ECB_PKCS1 = "RSA/ECB/PKCS1Padding";
+
+    //
     //  Factories
     //
 

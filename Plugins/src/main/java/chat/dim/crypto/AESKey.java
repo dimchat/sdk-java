@@ -62,7 +62,7 @@ final class AESKey extends Dictionary implements SymmetricKey {
         // TODO: check algorithm parameters
         // 1. check mode = 'CBC'
         // 2. check padding = 'PKCS7Padding'
-        cipher = CryptoUtils.getCipher("AES/CBC/PKCS7Padding");
+        cipher = CryptoUtils.getCipher(CryptoUtils.AES_CBC_PKCS7);
         keySpec = new SecretKeySpec(getData(), "AES");
         ivSpec = new IvParameterSpec(getInitVector());
     }
@@ -154,9 +154,11 @@ final class AESKey extends Dictionary implements SymmetricKey {
     @Override
     public byte[] encrypt(byte[] plaintext) {
         try {
+            Cipher cipher = CryptoUtils.getCipher(CryptoUtils.AES_CBC_PKCS7);
             cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
             return cipher.doFinal(plaintext);
         } catch (InvalidKeyException | InvalidAlgorithmParameterException |
+                NoSuchPaddingException | NoSuchAlgorithmException |
                 IllegalBlockSizeException | BadPaddingException e) {
             e.printStackTrace();
             return null;
@@ -166,9 +168,11 @@ final class AESKey extends Dictionary implements SymmetricKey {
     @Override
     public byte[] decrypt(byte[] ciphertext) {
         try {
+            Cipher cipher = CryptoUtils.getCipher(CryptoUtils.AES_CBC_PKCS7);
             cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
             return cipher.doFinal(ciphertext);
         } catch (InvalidKeyException | InvalidAlgorithmParameterException |
+                NoSuchPaddingException | NoSuchAlgorithmException |
                 IllegalBlockSizeException | BadPaddingException e) {
             e.printStackTrace();
             return null;

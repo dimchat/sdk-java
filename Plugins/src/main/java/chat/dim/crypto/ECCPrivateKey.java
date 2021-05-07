@@ -53,7 +53,7 @@ import chat.dim.type.Dictionary;
  */
 final class ECCPrivateKey extends Dictionary implements PrivateKey {
 
-    private ECPrivateKey privateKey;
+    private final ECPrivateKey privateKey;
     private ECPublicKey publicKey;
 
     ECCPrivateKey(Map<String, Object> dictionary) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
@@ -144,7 +144,7 @@ final class ECCPrivateKey extends Dictionary implements PrivateKey {
     @Override
     public byte[] sign(byte[] data) {
         try {
-            Signature signer = CryptoUtils.getSignature("SHA256withECDSA");
+            Signature signer = CryptoUtils.getSignature(CryptoUtils.ECDSA_SHA256);
             signer.initSign(privateKey);
             signer.update(data);
             return signer.sign();

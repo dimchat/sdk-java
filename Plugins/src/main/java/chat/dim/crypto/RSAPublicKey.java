@@ -91,7 +91,7 @@ final class RSAPublicKey extends Dictionary implements PublicKey, EncryptKey {
             throw new InvalidParameterException("RSA plain text length error: " + plaintext.length);
         }
         try {
-            Cipher cipher = CryptoUtils.getCipher("RSA/ECB/PKCS1Padding");
+            Cipher cipher = CryptoUtils.getCipher(CryptoUtils.RSA_ECB_PKCS1);
             cipher.init(Cipher.ENCRYPT_MODE, publicKey);
             return cipher.doFinal(plaintext);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException |
@@ -104,7 +104,7 @@ final class RSAPublicKey extends Dictionary implements PublicKey, EncryptKey {
     @Override
     public boolean verify(byte[] data, byte[] signature) {
         try {
-            Signature signer = CryptoUtils.getSignature("SHA256withRSA");
+            Signature signer = CryptoUtils.getSignature(CryptoUtils.RSA_SHA256);
             signer.initVerify(publicKey);
             signer.update(data);
             return signer.verify(signature);

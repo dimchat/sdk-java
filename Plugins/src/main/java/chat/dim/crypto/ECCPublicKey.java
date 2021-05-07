@@ -77,7 +77,7 @@ final class ECCPublicKey extends Dictionary implements PublicKey {
     @Override
     public boolean verify(byte[] data, byte[] signature) {
         try {
-            Signature signer = CryptoUtils.getSignature("SHA256withECDSA");
+            Signature signer = CryptoUtils.getSignature(CryptoUtils.ECDSA_SHA256);
             signer.initVerify(publicKey);
             signer.update(data);
             return signer.verify(signature);

@@ -52,8 +52,8 @@ import chat.dim.type.Dictionary;
  */
 final class RSAPrivateKey extends Dictionary implements PrivateKey, DecryptKey {
 
-    private java.security.interfaces.RSAPrivateKey privateKey;
-    private java.security.interfaces.RSAPublicKey publicKey;
+    private final java.security.interfaces.RSAPrivateKey privateKey;
+    private final java.security.interfaces.RSAPublicKey publicKey;
 
     RSAPrivateKey(Map<String, Object> dictionary) throws NoSuchAlgorithmException {
         super(dictionary);
@@ -145,7 +145,7 @@ final class RSAPrivateKey extends Dictionary implements PrivateKey, DecryptKey {
             throw new InvalidParameterException("RSA cipher text length error: " + ciphertext.length);
         }
         try {
-            Cipher cipher = CryptoUtils.getCipher("RSA/ECB/PKCS1Padding");
+            Cipher cipher = CryptoUtils.getCipher(CryptoUtils.RSA_ECB_PKCS1);
             cipher.init(Cipher.DECRYPT_MODE, privateKey);
             return cipher.doFinal(ciphertext);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException |
@@ -158,7 +158,7 @@ final class RSAPrivateKey extends Dictionary implements PrivateKey, DecryptKey {
     @Override
     public byte[] sign(byte[] data) {
         try {
-            Signature signer = CryptoUtils.getSignature("SHA256withRSA");
+            Signature signer = CryptoUtils.getSignature(CryptoUtils.RSA_SHA256);
             signer.initSign(privateKey);
             signer.update(data);
             return signer.sign();
