@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  Star Trek: Interstellar Transport
+ *  Star Gate: Network Connection Module
  *
  *                                Written in 2021 by Moky <albert.moky@gmail.com>
  *
@@ -28,17 +28,21 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.startrek;
+package chat.dim.stargate;
 
 import chat.dim.mtp.protocol.DataType;
 import chat.dim.mtp.protocol.Header;
 import chat.dim.mtp.protocol.Package;
+import chat.dim.startrek.Gate;
+import chat.dim.startrek.Ship;
+import chat.dim.startrek.StarDocker;
+import chat.dim.startrek.StarShip;
 import chat.dim.tlv.Data;
 
 /**
  *  Star Docker for MTP packages
  */
-public class MTPDocker extends StarDocker {
+public final class MTPDocker extends StarDocker {
 
     public static final int MAX_HEAD_LENGTH = 24;
 

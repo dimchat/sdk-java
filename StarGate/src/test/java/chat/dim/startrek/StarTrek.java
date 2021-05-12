@@ -31,16 +31,15 @@
 package chat.dim.startrek;
 
 import java.net.Socket;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import chat.dim.stargate.LockedGate;
 import chat.dim.tcp.ActiveConnection;
 import chat.dim.tcp.BaseConnection;
+import chat.dim.tcp.Connection;
 
-public class StarTrek extends TCPGate {
+public final class StarTrek extends LockedGate {
 
-    public StarTrek(BaseConnection conn) {
+    public StarTrek(Connection conn) {
         super(conn);
     }
 
@@ -57,35 +56,6 @@ public class StarTrek extends TCPGate {
     }
     public static StarGate createGate(String host, int port, Socket socket) {
         return createGate(new ActiveConnection(host, port, socket));
-    }
-
-    private final ReadWriteLock sendLock = new ReentrantReadWriteLock();
-    private final ReadWriteLock receiveLock = new ReentrantReadWriteLock();
-
-    @Override
-    public boolean send(byte[] pack) {
-        boolean ok;
-        Lock writeLock = sendLock.writeLock();
-        writeLock.lock();
-        try {
-            ok = super.send(pack);
-        } finally {
-            writeLock.unlock();
-        }
-        return ok;
-    }
-
-    @Override
-    public byte[] receive(int length, boolean remove) {
-        byte[] data;
-        Lock writeLock = receiveLock.writeLock();
-        writeLock.lock();
-        try {
-            data = super.receive(length, remove);
-        } finally {
-            writeLock.unlock();
-        }
-        return data;
     }
 
     @Override

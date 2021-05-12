@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  Star Trek: Interstellar Transport
+ *  Star Gate: Network Connection Module
  *
  *                                Written in 2021 by Moky <albert.moky@gmail.com>
  *
@@ -28,9 +28,11 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.startrek;
+package chat.dim.stargate;
 
 import chat.dim.mem.BytesArray;
+import chat.dim.startrek.Docker;
+import chat.dim.startrek.StarGate;
 import chat.dim.tcp.Connection;
 
 public class TCPGate extends StarGate implements Connection.Delegate {

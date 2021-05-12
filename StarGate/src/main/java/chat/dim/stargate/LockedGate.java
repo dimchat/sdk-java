@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  Star Trek: Interstellar Transport
+ *  Star Gate: Network Connection Module
  *
  *                                Written in 2021 by Moky <albert.moky@gmail.com>
  *
@@ -28,40 +28,46 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.startrek;
+package chat.dim.stargate;
 
-import chat.dim.mtp.protocol.Package;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-/**
- *  Star Ship with MTP Package
- */
-public class MTPShip extends StarShip {
+import chat.dim.tcp.Connection;
 
-    public final Package mtp;
+public class LockedGate extends TCPGate {
 
-    public MTPShip(Package pack, int prior, Delegate delegate) {
-        super(prior, delegate);
-        mtp = pack;
-    }
-    public MTPShip(Package pack, int prior) {
-        this(pack, prior, null);
-    }
-    public MTPShip(Package pack) {
-        this(pack, StarShip.NORMAL, null);
+    private final ReadWriteLock sendLock = new ReentrantReadWriteLock();
+    private final ReadWriteLock receiveLock = new ReentrantReadWriteLock();
+
+    public LockedGate(Connection conn) {
+        super(conn);
     }
 
     @Override
-    public byte[] getPackage() {
-        return mtp.getBytes();
+    public boolean send(byte[] pack) {
+        boolean ok;
+        Lock writeLock = sendLock.writeLock();
+        writeLock.lock();
+        try {
+            ok = super.send(pack);
+        } finally {
+            writeLock.unlock();
+        }
+        return ok;
     }
 
     @Override
-    public byte[] getSN() {
-        return mtp.head.sn.getBytes();
-    }
-
-    @Override
-    public byte[] getPayload() {
-        return mtp.body.getBytes();
+    public byte[] receive(int length, boolean remove) {
+        byte[] data;
+        Lock writeLock = receiveLock.writeLock();
+        writeLock.lock();
+        try {
+            data = super.receive(length, remove);
+        } finally {
+            writeLock.unlock();
+        }
+        return data;
     }
 }
