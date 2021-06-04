@@ -44,41 +44,42 @@ final class DocumentFactory implements Document.Factory {
         version = type;
     }
 
-    private String getType(ID identifier) {
-        if (version.equals("*")) {
+    private static String getType(String type, ID identifier) {
+        if (type.equals("*")) {
             if (identifier.isGroup()) {
                 return Document.BULLETIN;
-            }
-            if (identifier.isUser()) {
+            } else if (identifier.isUser()) {
                 return Document.VISA;
+            } else {
+                return Document.PROFILE;
             }
-            return Document.PROFILE;
+        } else {
+            return type;
         }
-        return version;
     }
 
     @Override
     public Document createDocument(ID identifier, byte[] data, byte[] signature) {
-        String type = getType(identifier);
+        String type = getType(version, identifier);
         if (Document.VISA.equals(type)) {
             return new BaseVisa(identifier, data, signature);
-        }
-        if (Document.BULLETIN.equals(type)) {
+        } else if (Document.BULLETIN.equals(type)) {
             return new BaseBulletin(identifier, data, signature);
+        } else {
+            return new BaseDocument(identifier, data, signature);
         }
-        return new BaseDocument(identifier, data, signature);
     }
 
     @Override
     public Document createDocument(ID identifier) {
-        String type = getType(identifier);
+        String type = getType(version, identifier);
         if (Document.VISA.equals(type)) {
             return new BaseVisa(identifier);
-        }
-        if (Document.BULLETIN.equals(type)) {
+        } else if (Document.BULLETIN.equals(type)) {
             return new BaseBulletin(identifier);
+        } else {
+            return new BaseDocument(identifier, type);
         }
-        return new BaseDocument(identifier, type);
     }
 
     @Override
@@ -89,18 +90,14 @@ final class DocumentFactory implements Document.Factory {
         }
         String type = Document.getType(doc);
         if (type == null) {
-            if (identifier.isGroup()) {
-                type = Document.BULLETIN;
-            } else {
-                type = Document.VISA;
-            }
+            type = getType("*", identifier);
         }
         if (Document.VISA.equals(type)) {
             return new BaseVisa(doc);
-        }
-        if (Document.BULLETIN.equals(type)) {
+        } else if (Document.BULLETIN.equals(type)) {
             return new BaseBulletin(doc);
+        } else {
+            return new BaseDocument(doc);
         }
-        return new BaseDocument(doc);
     }
 }

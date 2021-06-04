@@ -44,20 +44,26 @@ public final class Password {
         byte[] data = UTF8.encode(password);
         byte[] digest = SHA256.digest(data);
         // AES key data
-        int len = KEY_SIZE - data.length;
-        if (len > 0) {
+        int filling = KEY_SIZE - data.length;
+        if (filling > 0) {
             // format: {digest_prefix}+{pwd_data}
             byte[] merged = new byte[KEY_SIZE];
-            System.arraycopy(digest, 0, merged, 0, len);
-            System.arraycopy(data, 0, merged, len, data.length);
+            System.arraycopy(digest, 0, merged, 0, filling);
+            System.arraycopy(data, 0, merged, filling, data.length);
             data = merged;
-        } else if (len < 0) {
+        } else if (filling < 0) {
             //throw new IllegalArgumentException("password too long: " + password);
-            data = digest;
+            if (KEY_SIZE == digest.length) {
+                data = digest;
+            } else {
+                // FIXME: what about KEY_SIZE > digest.length?
+                data = new byte[KEY_SIZE];
+                System.arraycopy(digest, 0, data, 0, KEY_SIZE);
+            }
         }
         // AES iv
         byte[] iv = new byte[BLOCK_SIZE];
-        System.arraycopy(digest, KEY_SIZE - BLOCK_SIZE, iv, 0, BLOCK_SIZE);
+        System.arraycopy(digest, digest.length - BLOCK_SIZE, iv, 0, BLOCK_SIZE);
         // generate AES key
         Map<String, Object> key = new HashMap<>();
         key.put("algorithm", SymmetricKey.AES);

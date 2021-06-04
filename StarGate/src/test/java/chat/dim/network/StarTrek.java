@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  Star Trek: Interstellar Transport
+ *  Star Gate: Network Connection Module
  *
  *                                Written in 2021 by Moky <albert.moky@gmail.com>
  *
@@ -28,11 +28,12 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.startrek;
+package chat.dim.network;
 
 import java.net.Socket;
 
 import chat.dim.stargate.LockedGate;
+import chat.dim.startrek.StarGate;
 import chat.dim.tcp.ActiveConnection;
 import chat.dim.tcp.BaseConnection;
 import chat.dim.tcp.Connection;

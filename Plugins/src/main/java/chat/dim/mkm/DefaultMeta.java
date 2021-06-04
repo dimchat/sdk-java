@@ -61,7 +61,7 @@ final class DefaultMeta extends BaseMeta {
     }
 
     // caches
-    private Map<Byte, Address> cachedAddresses = new HashMap<>();
+    private final Map<Byte, Address> cachedAddresses = new HashMap<>();
 
     @Override
     public Address generateAddress(byte type) {
