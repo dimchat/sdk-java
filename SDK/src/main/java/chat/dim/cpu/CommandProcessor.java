@@ -30,6 +30,9 @@
  */
 package chat.dim.cpu;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import chat.dim.cpu.group.ExpelCommandProcessor;
 import chat.dim.cpu.group.InviteCommandProcessor;
 import chat.dim.cpu.group.QueryCommandProcessor;
@@ -43,7 +46,8 @@ import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.TextContent;
 
 /**
- *  Base Command Processor
+ *  Command Processing Unit
+ *  ~~~~~~~~~~~~~~~~~~~~~~~
  */
 public class CommandProcessor extends ContentProcessor {
 
@@ -51,6 +55,13 @@ public class CommandProcessor extends ContentProcessor {
         super();
     }
 
+    /**
+     *  Execute command
+     *
+     * @param cmd  - command received
+     * @param rMsg - reliable message
+     * @return {Content} response to sender
+     */
     public Content execute(Command cmd, ReliableMessage rMsg) {
         String text = String.format("Command (name: %s) not support yet!", cmd.getCommand());
         TextContent res = new TextContent(text);
@@ -85,16 +96,29 @@ public class CommandProcessor extends ContentProcessor {
     //
     //  CPU factory
     //
+    private static final Map<String, CommandProcessor> commandProcessors = new HashMap<>();
 
+    /**
+     *  Get command processor with name
+     *
+     * @param command - name
+     * @return CommandProcessor
+     */
+    protected static CommandProcessor getProcessor(String command) {
+        return commandProcessors.get(command);
+    }
     static CommandProcessor getProcessor(Command cmd) {
         return getProcessor(cmd.getCommand());
     }
-    protected static CommandProcessor getProcessor(String command) {
-        return Processors.commandProcessors.get(command);
-    }
 
+    /**
+     *  Register command processor with name
+     *
+     * @param command - name
+     * @param cpu     - command processor
+     */
     public static void register(String command, CommandProcessor cpu) {
-        Processors.commandProcessors.put(command, cpu);
+        commandProcessors.put(command, cpu);
     }
 
     public static void registerAllProcessors() {

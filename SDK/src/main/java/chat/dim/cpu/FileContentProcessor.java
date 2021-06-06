@@ -30,7 +30,8 @@
  */
 package chat.dim.cpu;
 
-import chat.dim.crypto.SymmetricKey;
+import chat.dim.crypto.DecryptKey;
+import chat.dim.crypto.EncryptKey;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.FileContent;
 import chat.dim.protocol.InstantMessage;
@@ -43,10 +44,20 @@ public class FileContentProcessor extends ContentProcessor {
         super();
     }
 
-    public boolean uploadFileContent(FileContent content, SymmetricKey password, InstantMessage iMsg) {
+    /**
+     *  Encrypt data in file content with the password, and upload to CDN
+     *
+     * @param content  - file content
+     * @param password - symmetric key
+     * @param iMsg - plain message
+     * @return false on error
+     */
+    public boolean uploadFileContent(FileContent content, EncryptKey password, InstantMessage iMsg) {
         byte[] data = content.getData();
         if (data == null || data.length == 0) {
-            throw new NullPointerException("failed to get file data: " + content);
+            // FIXME: already uploaded?
+            //throw new NullPointerException("failed to get file data: " + content);
+            return false;
         }
         // encrypt and upload file data onto CDN and save the URL in message content
         byte[] encrypted = password.encrypt(data);
@@ -64,7 +75,15 @@ public class FileContentProcessor extends ContentProcessor {
         }
     }
 
-    public boolean downloadFileContent(FileContent content, SymmetricKey password, SecureMessage sMsg) {
+    /**
+     *  Download data for file content from CDN, and decrypt it with the password
+     *
+     * @param content  - file content
+     * @param password - symmetric key
+     * @param sMsg     - encrypted message
+     * @return false on error
+     */
+    public boolean downloadFileContent(FileContent content, DecryptKey password, SecureMessage sMsg) {
         String url = content.getURL();
         if (url == null || !url.contains("://")) {
             // download URL not found

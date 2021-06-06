@@ -105,7 +105,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
 
         // 2. resetting members
         List<ID> newMembers = getMembers((GroupCommand) cmd);
-        if (newMembers == null || newMembers.size() == 0) {
+        if (newMembers.size() == 0) {
             throw new NullPointerException("group command error: " + cmd);
         }
         // 2.1. check owner

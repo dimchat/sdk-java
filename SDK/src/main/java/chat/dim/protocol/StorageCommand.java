@@ -90,6 +90,28 @@ public class StorageCommand extends Command {
         password = null;
     }
 
+    public String getTitle() {
+        if (title == null) {
+            title = (String) get("title");
+            if (title == null || title.length() == 0) {
+                // (compatible with v1.0)
+                //  contacts command: {
+                //      command : 'contacts',
+                //      data    : '...',
+                //      key     : '...'
+                //  }
+                title = getCommand();
+                assert !title.equalsIgnoreCase(STORAGE) : "title error: " + title;
+            }
+        }
+        return title;
+    }
+
+    private void setTitle(String text) {
+        put("title", text);
+        title = text;
+    }
+
     // user ID
     public ID getIdentifier() {
         return ID.parse(get("ID"));
@@ -101,23 +123,6 @@ public class StorageCommand extends Command {
         } else {
             put("ID", identifier.toString());
         }
-    }
-
-    public String getTitle() {
-        if (title == null) {
-            title = (String) get("title");
-            if (title == null) {
-                // (compatible with v1.0)
-                //  contacts command: {
-                //      command : 'contacts',
-                //      data    : '...',
-                //      key     : '...'
-                //  }
-                title = (String) get("command");
-                assert !title.equalsIgnoreCase(STORAGE) : "title error: " + title;
-            }
-        }
-        return title;
     }
 
     //

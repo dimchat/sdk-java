@@ -31,6 +31,8 @@
 package chat.dim.cpu;
 
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
+import java.util.Map;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
@@ -41,7 +43,8 @@ import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.TextContent;
 
 /**
- *  Base Content Processor
+ *  Content Processing Unit
+ *  ~~~~~~~~~~~~~~~~~~~~~~~
  */
 public class ContentProcessor {
 
@@ -62,6 +65,13 @@ public class ContentProcessor {
         return getMessenger().getFacebook();
     }
 
+    /**
+     *  Process message content
+     *
+     * @param content - content received
+     * @param rMsg    - reliable message
+     * @return {Content} response to sender
+     */
     public Content process(Content content, ReliableMessage rMsg) {
         String text = String.format("Content (type: %d) not support yet!", content.getType());
         TextContent res = new TextContent(text);
@@ -76,22 +86,35 @@ public class ContentProcessor {
     //
     //  CPU factory
     //
+    private static final Map<Integer, ContentProcessor> contentProcessors = new HashMap<>();
 
-    public static ContentProcessor getProcessor(Content content) {
-        return getProcessor(content.getType());
-    }
+    /**
+     *  Get content processor with content type
+     *
+     * @param type - ContentType
+     * @return ContentProcessor
+     */
     public static ContentProcessor getProcessor(ContentType type) {
         return getProcessor(type.value);
     }
     public static ContentProcessor getProcessor(int type) {
-        return Processors.contentProcessors.get(type);
+        return contentProcessors.get(type);
+    }
+    public static ContentProcessor getProcessor(Content content) {
+        return getProcessor(content.getType());
     }
 
-    public static void register(int type, ContentProcessor cpu) {
-        Processors.contentProcessors.put(type, cpu);
-    }
+    /**
+     *  Register content processor class with content type
+     *
+     * @param type - ContentType
+     * @param cpu  - ContentProcessor
+     */
     public static void register(ContentType type, ContentProcessor cpu) {
-        Processors.contentProcessors.put(type.value, cpu);
+        contentProcessors.put(type.value, cpu);
+    }
+    public static void register(int type, ContentProcessor cpu) {
+        contentProcessors.put(type, cpu);
     }
 
     public static void registerAllProcessors() {

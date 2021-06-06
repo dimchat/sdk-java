@@ -50,10 +50,10 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
     }
 
     private Content callReset(Command cmd, ReliableMessage rMsg) {
-        CommandProcessor cpu = getProcessor(GroupCommand.RESET);
-        assert cpu != null : "reset CPU not register yet";
-        cpu.setMessenger(getMessenger());
-        return cpu.execute(cmd, rMsg);
+        CommandProcessor gpu = getProcessor(GroupCommand.RESET);
+        assert gpu != null : "reset CPU not register yet";
+        gpu.setMessenger(getMessenger());
+        return gpu.execute(cmd, rMsg);
     }
 
     @Override
@@ -84,7 +84,7 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
 
         // 2. inviting members
         List<ID> inviteList = getMembers((GroupCommand) cmd);
-        if (inviteList == null || inviteList.size() == 0) {
+        if (inviteList.size() == 0) {
             throw new NullPointerException("invite command error: " + cmd);
         }
         // 2.1. check for reset

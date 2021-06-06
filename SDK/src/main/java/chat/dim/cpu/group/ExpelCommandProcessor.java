@@ -74,7 +74,7 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
 
         // 2. expelling members
         List<ID> expelList = getMembers((GroupCommand) cmd);
-        if (expelList == null || expelList.size() == 0) {
+        if (expelList.size() == 0) {
             throw new NullPointerException("expel command error: " + cmd);
         }
         // 2.1. check owner
@@ -91,7 +91,7 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
             removedList.add(item.toString());
             members.remove(item);
         }
-        // 2.3. do expel
+        // 2.3. do expelling
         if (removedList.size() > 0) {
             if (facebook.saveMembers(members, group)) {
                 cmd.put("removed", removedList);

@@ -50,10 +50,10 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
         // get from 'members'
         List<ID> members = cmd.getMembers();
         if (members == null) {
+            members = new ArrayList<>();
             // get from 'member'
             ID member = cmd.getMember();
             if (member != null) {
-                members = new ArrayList<>();
                 members.add(member);
             }
         }

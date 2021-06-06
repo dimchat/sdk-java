@@ -30,7 +30,6 @@
  */
 package chat.dim.protocol;
 
-import java.util.Date;
 import java.util.Map;
 
 import chat.dim.format.Base64;
@@ -111,11 +110,15 @@ public class ReceiptCommand extends Command {
             remove("receiver");
             //remove("time");
         } else {
-            put("sender", env.getSender().toString());
-            put("receiver", env.getReceiver().toString());
-            Date time = env.getTime();
+            put("sender", env.get("sender"));
+            put("receiver", env.get("receiver"));
+            Object time = env.get("time");
             if (time != null) {
-                put("time", time.getTime() / 1000);
+                put("time", time);
+            }
+            Object group = env.get("group");
+            if (group != null) {
+                put("group", group);
             }
         }
     }

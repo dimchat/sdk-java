@@ -161,7 +161,7 @@ public abstract class Machine<S extends State> {
      *  Drive the machine running forward
      */
     public void tick() {
-        if (status == Status.Running) {
+        if (currentState != null && status == Status.Running) {
             currentState.tick(this);
         }
     }

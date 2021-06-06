@@ -131,9 +131,15 @@ public abstract class Facebook extends Barrack {
     public boolean isFounder(ID member, ID group) {
         // check member's public key with group's meta.key
         Meta gMeta = getMeta(group);
-        assert gMeta != null : "failed to get meta for group: " + group;
+        if (gMeta == null) {
+            // throw new AssertionError("failed to get meta for group: " + group);
+            return false;
+        }
         Meta mMeta = getMeta(member);
-        assert mMeta != null : "failed to get meta for member: " + member;
+        if (mMeta == null) {
+            // throw new AssertionError("failed to get meta for member: " + member);
+            return false;
+        }
         return gMeta.matches(mMeta.getKey());
     }
 
