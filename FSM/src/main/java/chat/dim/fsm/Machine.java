@@ -47,7 +47,7 @@ public abstract class Machine<S extends State> {
     }
     private Status status = Status.Stopped;
 
-    private WeakReference<StateDelegate<S>> delegateRef = null;
+    private WeakReference<Delegate<S>> delegateRef = null;
 
     private S currentState = null;
     private String defaultStateName;
@@ -57,14 +57,18 @@ public abstract class Machine<S extends State> {
         this.defaultStateName = defaultStateName;
     }
 
-    public void setDelegate(StateDelegate<S> delegate) {
+    protected Machine() {
+        this("default");
+    }
+
+    public void setDelegate(Delegate<S> delegate) {
         if (delegate == null) {
             delegateRef = null;
         } else {
             delegateRef = new WeakReference<>(delegate);
         }
     }
-    public StateDelegate<S> getDelegate() {
+    public Delegate<S> getDelegate() {
         if (delegateRef == null) {
             return null;
         } else {
@@ -87,7 +91,7 @@ public abstract class Machine<S extends State> {
     protected abstract S getState(String name);
 
     public void changeState(String stateName) {
-        StateDelegate<S> delegate = getDelegate();
+        Delegate<S> delegate = getDelegate();
         S oldState = currentState;
         S newState = getState(stateName);
 
@@ -136,7 +140,7 @@ public abstract class Machine<S extends State> {
      */
     public void pause() {
         assert currentState != null && Status.Running.equals(status) : "FSM pause error: " + status + ", " + currentState;
-        StateDelegate<S> delegate = getDelegate();
+        Delegate<S> delegate = getDelegate();
         if (delegate != null) {
             delegate.pauseState(currentState, this);
         }
@@ -149,7 +153,7 @@ public abstract class Machine<S extends State> {
      */
     public void resume() {
         assert currentState != null && Status.Paused.equals(status) : "FSM resume error: " + status + ", " + currentState;
-        StateDelegate<S> delegate = getDelegate();
+        Delegate<S> delegate = getDelegate();
         if (delegate != null) {
             delegate.resumeState(currentState, this);
         }

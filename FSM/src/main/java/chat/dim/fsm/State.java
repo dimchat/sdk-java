@@ -35,7 +35,7 @@ import java.util.List;
 
 public abstract class State {
 
-    private List<Transition> transitionList = new ArrayList<>();
+    private final List<Transition> transitionList = new ArrayList<>();
 
     public void addTransition(Transition transition) {
         if (transitionList.contains(transition)) {

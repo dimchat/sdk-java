@@ -43,6 +43,10 @@ public class AutoMachine<S extends State> extends Machine<S> implements Runnable
         super(defaultStateName);
     }
 
+    public AutoMachine() {
+        super();
+    }
+
     @Override
     public void addState(String name, S state) {
         stateMap.put(name, state);
@@ -61,19 +65,22 @@ public class AutoMachine<S extends State> extends Machine<S> implements Runnable
     @Override
     public void start() {
         super.start();
-        assert thread == null : "FSM start error: " + thread;
+        forceStop();
         thread = new Thread(this);
         thread.start();
+    }
+
+    private void forceStop() {
+        if (thread != null && thread.isAlive()) {
+            thread.interrupt();
+        }
+        thread = null;
     }
 
     @Override
     public void stop() {
         super.stop();
-        sleep(1000);
-        if (thread.isAlive()) {
-            thread.interrupt();
-        }
-        thread = null;
+        forceStop();
     }
 
     @Override

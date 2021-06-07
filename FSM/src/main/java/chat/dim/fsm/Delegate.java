@@ -30,11 +30,41 @@
  */
 package chat.dim.fsm;
 
-public interface StateDelegate<S extends State> {
+/**
+ *  State Machine Delegate
+ *  ~~~~~~~~~~~~~~~~~~~~~~
+ */
+public interface Delegate<S extends State> {
 
+    /**
+     * Callback when entering a new state
+     *
+     * @param state   - new state
+     * @param machine - state machine
+     */
     void enterState(S state, Machine<S> machine);
+
+    /**
+     * Callback when exit from current state
+     *
+     * @param state   - old state
+     * @param machine - state machine
+     */
     void exitState(S state, Machine<S> machine);
 
+    /**
+     * Callback when pause current state
+     *
+     * @param state   - current state
+     * @param machine - state machine
+     */
     void pauseState(S state, Machine<S> machine);
+
+    /**
+     * Callback when resume current state
+     *
+     * @param state   - current state
+     * @param machine - state machine
+     */
     void resumeState(S state, Machine<S> machine);
 }
