@@ -62,7 +62,7 @@ public class TCPGate extends StarGate implements Connection.Delegate {
 
     @Override
     public boolean isExpired() {
-        return connection.getStatus().equals(Connection.Status.Expired);
+        return connection.getStatus().equals(Connection.Status.EXPIRED);
     }
 
     @Override
@@ -75,16 +75,16 @@ public class TCPGate extends StarGate implements Connection.Delegate {
     //
     public static Status getStatus(Connection.Status status) {
         switch (status) {
-            case Connecting:
-                return Status.Connecting;
-            case Connected:
-            case Maintaining:
-            case Expired:
-                return Status.Connected;
-            case Error:
-                return Status.Error;
+            case CONNECTING:
+                return Status.CONNECTING;
+            case CONNECTED:
+            case MAINTAINING:
+            case EXPIRED:
+                return Status.CONNECTED;
+            case ERROR:
+                return Status.ERROR;
             default:
-                return Status.Init;
+                return Status.INIT;
         }
     }
 
