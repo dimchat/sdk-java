@@ -57,6 +57,10 @@ final class BTCMeta extends BaseMeta {
         super(dictionary);
     }
 
+    BTCMeta(int version, VerifyKey key) {
+        super(version, key, null, null);
+    }
+
     BTCMeta(int version, VerifyKey key, String seed, byte[] fingerprint) {
         super(version, key, seed, fingerprint);
     }

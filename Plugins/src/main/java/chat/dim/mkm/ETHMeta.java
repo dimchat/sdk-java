@@ -56,6 +56,10 @@ final class ETHMeta extends BaseMeta {
         super(dictionary);
     }
 
+    ETHMeta(int version, VerifyKey key) {
+        super(version, key, null, null);
+    }
+
     ETHMeta(int version, VerifyKey key, String seed, byte[] fingerprint) {
         super(version, key, seed, fingerprint);
     }

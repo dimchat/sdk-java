@@ -53,11 +53,17 @@ final class MetaFactory implements Meta.Factory {
         if (MetaType.MKM.equals(version)) {
             // MKM
             return new DefaultMeta(version, key, seed, fingerprint);
-        } else if (MetaType.BTC.equals(version) || MetaType.ExBTC.equals(version)) {
-            // BTC, ExBTC
+        } else if (MetaType.BTC.equals(version)) {
+            // BTC
+            return new BTCMeta(version, key);
+        } else if (MetaType.ExBTC.equals(version)) {
+            // ExBTC
             return new BTCMeta(version, key, seed, fingerprint);
-        } else if (MetaType.ETH.equals(version) || MetaType.ExETH.equals(version)) {
-            // ETH, ExETH
+        } else if (MetaType.ETH.equals(version)) {
+            // ETH
+            return new ETHMeta(version, key);
+        } else if (MetaType.ExETH.equals(version)) {
+            // ExETH
             return new ETHMeta(version, key, seed, fingerprint);
         }
         return null;
