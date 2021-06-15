@@ -116,7 +116,7 @@ public final class MTPDocker extends StarDocker {
         int packLen = head.getLength() + bodyLen;
         // 2. receive data with 'head.length + body.length'
         byte[] buffer = getGate().receive(packLen, false);
-        if (buffer.length < packLen) {
+        if (buffer == null || buffer.length < packLen) {
             // waiting for more data
             return null;
         }
