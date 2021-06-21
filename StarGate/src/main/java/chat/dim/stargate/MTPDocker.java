@@ -37,7 +37,8 @@ import chat.dim.startrek.Gate;
 import chat.dim.startrek.Ship;
 import chat.dim.startrek.StarDocker;
 import chat.dim.startrek.StarShip;
-import chat.dim.tlv.Data;
+import chat.dim.type.ByteArray;
+import chat.dim.type.Data;
 
 /**
  *  Star Docker for MTP packages
@@ -123,7 +124,7 @@ public final class MTPDocker extends StarDocker {
         // receive package
         buffer = getGate().receive(packLen, true);
         Data data = new Data(buffer);
-        Data body = data.slice(head.getLength());
+        ByteArray body = data.slice(head.getLength());
         return new Package(data, head, body);
     }
 
@@ -142,7 +143,7 @@ public final class MTPDocker extends StarDocker {
         MTPShip ship = (MTPShip) income;
         Package mtp = ship.mtp;
         Header head = mtp.head;
-        Data body = mtp.body;
+        ByteArray body = mtp.body;
         DataType type = head.type;
         // 1. check data type
         if (type.equals(DataType.Command)) {
