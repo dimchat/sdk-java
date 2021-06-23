@@ -30,41 +30,30 @@
  */
 package chat.dim.fsm;
 
-/**
- *  State Machine Delegate
- *  ~~~~~~~~~~~~~~~~~~~~~~
- */
-public interface Delegate<M extends IMachine<S>, S extends IState<S>> {
+public interface IState<S extends IState<S>> {
 
     /**
-     *  Before enter state
-     *
-     * @param state   - new state
-     * @param machine - state machine
+     *  After entered
      */
-    void enterState(S state, M machine);
+    void onEnter(IMachine<S> machine);
 
     /**
-     *  Before exit state
-     *
-     * @param state   - old state
-     * @param machine - state machine
+     *  After exited
      */
-    void exitState(S state, M machine);
+    void onExit(IMachine<S> machine);
 
     /**
-     *  Before pause state
-     *
-     * @param state   - current state
-     * @param machine - state machine
+     *  After paused
      */
-    void pauseState(S state, M machine);
+    void onPause(IMachine<S> machine);
 
     /**
-     *  Before resume state
-     *
-     * @param state   - current state
-     * @param machine - state machine
+     *  After resumed
      */
-    void resumeState(S state, M machine);
+    void onResume(IMachine<S> machine);
+
+    /**
+     *  Called by machine.tick() to evaluate each transitions
+     */
+    void tick(IMachine<S> machine);
 }

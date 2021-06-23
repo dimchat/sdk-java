@@ -32,7 +32,7 @@ package chat.dim.fsm;
 
 import java.lang.ref.WeakReference;
 
-public abstract class Machine<S extends State> {
+public abstract class Machine<S extends IState<S>> implements IMachine<S> {
 
     private enum Status {
         Stopped (0),
@@ -47,53 +47,40 @@ public abstract class Machine<S extends State> {
     }
     private Status status = Status.Stopped;
 
-    private WeakReference<Delegate<S>> delegateRef = null;
+    private WeakReference<Delegate<IMachine<S>, S>> delegateRef = null;
 
     private S currentState = null;
-    private String defaultStateName;
+    private final String defaultStateName;
 
-    protected Machine(String defaultStateName) {
+    public Machine(String defaultStateName) {
         super();
         this.defaultStateName = defaultStateName;
     }
 
-    protected Machine() {
-        this("default");
-    }
-
-    public void setDelegate(Delegate<S> delegate) {
-        if (delegate == null) {
-            delegateRef = null;
-        } else {
-            delegateRef = new WeakReference<>(delegate);
-        }
-    }
-    public Delegate<S> getDelegate() {
+    public Delegate<IMachine<S>, S> getDelegate() {
         if (delegateRef == null) {
             return null;
         } else {
             return delegateRef.get();
         }
     }
+    public void setDelegate(Delegate<IMachine<S>, S> delegate) {
+        if (delegate == null) {
+            delegateRef = null;
+        } else {
+            delegateRef = new WeakReference<>(delegate);
+        }
+    }
 
+    @Override
     public S getCurrentState() {
         return currentState;
     }
 
-    /**
-     *  add state with name
-     *
-     * @param name - name for state
-     * @param state - finite state
-     */
-    public abstract void addState(String name, S state);
-
-    protected abstract S getState(String name);
-
-    public void changeState(String stateName) {
-        Delegate<S> delegate = getDelegate();
+    @Override
+    public void changeState(S newState) {
+        Delegate<IMachine<S>, S> delegate = getDelegate();
         S oldState = currentState;
-        S newState = getState(stateName);
 
         // events before state changed
         if (delegate != null) {
@@ -121,8 +108,11 @@ public abstract class Machine<S extends State> {
      *  start machine from default state
      */
     public void start() {
-        assert currentState == null && Status.Stopped.equals(status) : "FSM start error: " + status + ", " + currentState;
-        changeState(defaultStateName);
+        assert currentState == null && Status.Stopped.equals(status) :
+                "FSM start error: " + status + ", " + currentState;
+        S defaultState = getState(defaultStateName);
+        assert defaultState != null : "FSM default state not found: " + defaultStateName;
+        changeState(defaultState);
         status = Status.Running;
     }
 
@@ -130,7 +120,8 @@ public abstract class Machine<S extends State> {
      *  stop machine and set current state to null
      */
     public void stop() {
-        assert currentState != null && !Status.Stopped.equals(status) : "FSM stop error: " + status + ", " + currentState;
+        assert currentState != null && !Status.Stopped.equals(status) :
+                "FSM stop error: " + status + ", " + currentState;
         status = Status.Stopped;
         changeState(null);
     }
@@ -139,8 +130,9 @@ public abstract class Machine<S extends State> {
      *  pause machine, current state not change
      */
     public void pause() {
-        assert currentState != null && Status.Running.equals(status) : "FSM pause error: " + status + ", " + currentState;
-        Delegate<S> delegate = getDelegate();
+        assert currentState != null && Status.Running.equals(status) :
+                "FSM pause error: " + status + ", " + currentState;
+        Delegate<IMachine<S>, S> delegate = getDelegate();
         if (delegate != null) {
             delegate.pauseState(currentState, this);
         }
@@ -152,8 +144,9 @@ public abstract class Machine<S extends State> {
      *  resume machine with current state
      */
     public void resume() {
-        assert currentState != null && Status.Paused.equals(status) : "FSM resume error: " + status + ", " + currentState;
-        Delegate<S> delegate = getDelegate();
+        assert currentState != null && Status.Paused.equals(status) :
+                "FSM resume error: " + status + ", " + currentState;
+        Delegate<IMachine<S>, S> delegate = getDelegate();
         if (delegate != null) {
             delegate.resumeState(currentState, this);
         }

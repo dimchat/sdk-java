@@ -33,33 +33,27 @@ package chat.dim.fsm;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AutoMachine<S extends State> extends Machine<S> implements Runnable {
+public class AutoMachine<S extends IState<S>> extends Machine<S> implements Runnable {
 
-    private Map<String, S> stateMap = new HashMap<>();
+    private final Map<String, S> stateMap = new HashMap<>();
 
     private Thread thread = null;
 
-    public AutoMachine(String defaultStateName) {
-        super(defaultStateName);
+    public AutoMachine(String defaultState) {
+        super(defaultState);
     }
 
-    public AutoMachine() {
-        super();
-    }
-
-    @Override
     public void addState(String name, S state) {
         stateMap.put(name, state);
     }
 
     @Override
-    protected S getState(String name) {
+    public S getState(String name) {
         if (name == null) {
             return null;
+        } else {
+            return stateMap.get(name);
         }
-        S state = stateMap.get(name);
-        assert state != null : "FSM failed to get state: " + name;
-        return state;
     }
 
     @Override
@@ -85,15 +79,30 @@ public class AutoMachine<S extends State> extends Machine<S> implements Runnable
 
     @Override
     public void run() {
-        while (getCurrentState() != null) {
-            sleep(200);
-            tick();
+        setup();
+        try {
+            handle();
+        } finally {
+            finish();
         }
     }
 
-    private static void sleep(long millis) {
+    protected void setup() {
+        // prepare for running
+    }
+    protected void finish() {
+        // clean up after running
+    }
+    protected void handle() {
+        while (getCurrentState() != null) {
+            tick();
+            idle();
+        }
+    }
+
+    protected void idle() {
         try {
-            Thread.sleep(millis);
+            Thread.sleep(128);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
