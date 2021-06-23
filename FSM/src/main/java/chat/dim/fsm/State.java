@@ -30,32 +30,18 @@
  */
 package chat.dim.fsm;
 
-import java.util.ArrayList;
-import java.util.List;
+public interface State<C extends Context> {
 
-public abstract class State<S extends IState<S>> implements IState<S> {
+    // call after entered
+    void onEnter(C ctx);
+    // call after exited
+    void onExit(C ctx);
 
-    private final List<ITransition<S>> transitionList = new ArrayList<>();
+    // call after paused
+    void onPause(C ctx);
+    // call after resume
+    void onResume(C ctx);
 
-    public void addTransition(ITransition<S> transition) {
-        if (transitionList.contains(transition)) {
-            throw new ArithmeticException("transition exists");
-        }
-        transitionList.add(transition);
-    }
-
-    @Override
-    public void tick(IMachine<S> machine) {
-        for (ITransition<S> transition : transitionList) {
-            if (transition.evaluate(machine)) {
-                // OK, get target state
-                S state = transition.getTargetState(machine);
-                if (state == null) {
-                    throw new NullPointerException("failed to get target state: " + transition);
-                }
-                machine.changeState(state);
-                break;
-            }
-        }
-    }
+    // called by machine.tick() to evaluate each transitions
+    void tick(C ctx);
 }

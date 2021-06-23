@@ -33,27 +33,45 @@ package chat.dim.fsm;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AutoMachine<S extends IState<S>> extends Machine<S> implements Runnable {
+public class AutoMachine<S extends State<Context>> extends BaseMachine<S> implements Context, Runnable {
 
     private final Map<String, S> stateMap = new HashMap<>();
+    private final String defaultStateName;
+    private S currentState;
 
     private Thread thread = null;
 
     public AutoMachine(String defaultState) {
-        super(defaultState);
-    }
-
-    public void addState(String name, S state) {
-        stateMap.put(name, state);
+        super();
+        defaultStateName = defaultState;
     }
 
     @Override
-    public S getState(String name) {
-        if (name == null) {
-            return null;
-        } else {
-            return stateMap.get(name);
-        }
+    public Context getContext() {
+        return this;
+    }
+
+    //
+    //  States
+    //
+    public void addState(String name, S state) {
+        stateMap.put(name, state);
+    }
+    @Override
+    public S getDefaultState() {
+        return stateMap.get(defaultStateName);
+    }
+    @Override
+    public S getTargetState(BaseTransition transition) {
+        return stateMap.get(transition.target);
+    }
+    @Override
+    public S getCurrentState() {
+        return currentState;
+    }
+    @Override
+    public void setCurrentState(S currentState) {
+        this.currentState = currentState;
     }
 
     @Override

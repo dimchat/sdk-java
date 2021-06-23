@@ -30,30 +30,18 @@
  */
 package chat.dim.fsm;
 
-public interface IState<S extends IState<S>> {
+public interface Context {
+    // context for state machine
+}
 
-    /**
-     *  After entered
-     */
-    void onEnter(IMachine<S> machine);
+enum Status {
+    Stopped(0),
+    Running(1),
+    Paused(2);
 
-    /**
-     *  After exited
-     */
-    void onExit(IMachine<S> machine);
+    final int value;
 
-    /**
-     *  After paused
-     */
-    void onPause(IMachine<S> machine);
-
-    /**
-     *  After resumed
-     */
-    void onResume(IMachine<S> machine);
-
-    /**
-     *  Called by machine.tick() to evaluate each transitions
-     */
-    void tick(IMachine<S> machine);
+    Status(int value) {
+        this.value = value;
+    }
 }

@@ -30,36 +30,12 @@
  */
 package chat.dim.fsm;
 
-public interface IMachine<S extends IState<S>> {
+public abstract class BaseTransition implements Transition<Context> {
 
-    S getState(String name);
+    public final String target; // target state name
 
-    S getCurrentState();
-
-    void changeState(S newState);
-
-    /**
-     *  start machine from default state
-     */
-    void start();
-
-    /**
-     *  stop machine and set current state to null
-     */
-    void stop();
-
-    /**
-     *  pause machine, current state not change
-     */
-    void pause();
-
-    /**
-     *  resume machine with current state
-     */
-    void resume();
-
-    /**
-     *  Drive the machine running forward
-     */
-    void tick();
+    protected BaseTransition(String target) {
+        super();
+        this.target = target;
+    }
 }

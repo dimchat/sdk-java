@@ -34,37 +34,37 @@ package chat.dim.fsm;
  *  State Machine Delegate
  *  ~~~~~~~~~~~~~~~~~~~~~~
  */
-public interface Delegate<M extends IMachine<S>, S extends IState<S>> {
+public interface Delegate<C extends Context, S extends State<C>> {
 
     /**
      *  Before enter state
      *
      * @param state   - new state
-     * @param machine - state machine
+     * @param ctx     - state machine
      */
-    void enterState(S state, M machine);
+    void enterState(S state, C ctx);
 
     /**
      *  Before exit state
      *
      * @param state   - old state
-     * @param machine - state machine
+     * @param ctx     - state machine
      */
-    void exitState(S state, M machine);
+    void exitState(S state, C ctx);
 
     /**
      *  Before pause state
      *
      * @param state   - current state
-     * @param machine - state machine
+     * @param ctx     - state machine
      */
-    void pauseState(S state, M machine);
+    void pauseState(S state, C ctx);
 
     /**
      *  Before resume state
      *
      * @param state   - current state
-     * @param machine - state machine
+     * @param ctx     - state machine
      */
-    void resumeState(S state, M machine);
+    void resumeState(S state, C ctx);
 }

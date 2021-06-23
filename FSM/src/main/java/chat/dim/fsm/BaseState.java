@@ -30,18 +30,39 @@
  */
 package chat.dim.fsm;
 
-public interface ITransition<S extends IState<S>> {
+import java.util.ArrayList;
+import java.util.List;
 
-    /**
-     *  Target state
-     */
-    S getTargetState(IMachine<S> machine);
+public abstract class BaseState<S extends State<Context>,
+        M extends Machine<Context, S, BaseTransition, Delegate<Context, S>>>
+        implements State<Context> {
 
-    /**
-     *  Evaluate the current state
-     *
-     * @param machine - finite state machine
-     * @return true when state should be changed
-     */
-    boolean evaluate(IMachine<S> machine);
+    private final List<BaseTransition> transitionList = new ArrayList<>();
+
+    public void addTransition(BaseTransition transition) {
+        if (transitionList.contains(transition)) {
+            throw new ArithmeticException("transition exists");
+        }
+        transitionList.add(transition);
+    }
+
+    protected M getMachine(Context ctx) {
+        return (M) ctx;
+    }
+
+    @Override
+    public void tick(Context ctx) {
+        for (BaseTransition transition : transitionList) {
+            if (transition.evaluate(ctx)) {
+                // OK, get target state
+                M machine = getMachine(ctx);
+                S state = machine.getTargetState(transition);
+                if (state == null) {
+                    throw new NullPointerException("failed to get target state: " + transition);
+                }
+                machine.changeState(state);
+                break;
+            }
+        }
+    }
 }

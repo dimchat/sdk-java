@@ -30,17 +30,13 @@
  */
 package chat.dim.fsm;
 
-public abstract class Transition<S extends IState<S>> implements ITransition<S> {
+public interface Transition<C extends Context> {
 
-    private final String target; // target state name
-
-    protected Transition(String target) {
-        super();
-        this.target = target;
-    }
-
-    @Override
-    public S getTargetState(IMachine<S> machine) {
-        return machine.getState(target);
-    }
+    /**
+     *  Evaluate the current state
+     *
+     * @param ctx - context
+     * @return true when current state should be changed
+     */
+    boolean evaluate(C ctx);
 }
