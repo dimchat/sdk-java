@@ -74,7 +74,7 @@ public final class MTPDocker extends StarDocker {
     @Override
     public StarShip pack(byte[] payload, int priority, Ship.Delegate delegate) {
         Data req = new Data(payload);
-        Package mtp = Package.create(DataType.Message, req.getLength(), req);
+        Package mtp = Package.create(DataType.Message, req.getSize(), req);
         return new MTPShip(mtp, priority, delegate);
     }
 
@@ -114,17 +114,20 @@ public final class MTPDocker extends StarDocker {
         }
         int bodyLen = head.bodyLength;
         assert bodyLen >= 0 : "body length error: " + bodyLen;
-        int packLen = head.getLength() + bodyLen;
+        int packLen = head.getSize() + bodyLen;
         // 2. receive data with 'head.length + body.length'
         byte[] buffer = getGate().receive(packLen, false);
         if (buffer == null || buffer.length < packLen) {
             // waiting for more data
             return null;
+        } else {
+            // remove data from cache
+            byte[] removed = getGate().receive(packLen, true);
+            assert removed.length == packLen : "should not happen: " + buffer.length + ", " + removed.length;
         }
         // receive package
-        buffer = getGate().receive(packLen, true);
         Data data = new Data(buffer);
-        ByteArray body = data.slice(head.getLength());
+        ByteArray body = data.slice(head.getSize());
         return new Package(data, head, body);
     }
 
@@ -161,7 +164,7 @@ public final class MTPDocker extends StarDocker {
             // just ignore
             return null;
         } else if (type.equals(DataType.MessageRespond)) {
-            if (body.getLength() == 0 || body.equals(OK)) {
+            if (body.getSize() == 0 || body.equals(OK)) {
                 // just ignore
                 return null;
             } else if (body.equals(AGAIN)) {
@@ -172,7 +175,7 @@ public final class MTPDocker extends StarDocker {
         // 2. process payload by delegate
         byte[] res = null;
         Gate.Delegate delegate = getGate().getDelegate();
-        if (body.getLength() > 0 && delegate != null) {
+        if (body.getSize() > 0 && delegate != null) {
             res = delegate.onReceived(getGate(), income);
         }
         // 3. response

@@ -30,10 +30,12 @@
  */
 package chat.dim.stargate;
 
-import chat.dim.mem.BytesArray;
 import chat.dim.startrek.Docker;
 import chat.dim.startrek.StarGate;
 import chat.dim.tcp.Connection;
+import chat.dim.tcp.ConnectionState;
+import chat.dim.type.ByteArray;
+import chat.dim.type.Data;
 
 public class TCPGate extends StarGate implements Connection.Delegate {
 
@@ -62,26 +64,28 @@ public class TCPGate extends StarGate implements Connection.Delegate {
 
     @Override
     public boolean isExpired() {
-        return connection.getStatus().equals(Connection.Status.EXPIRED);
+        ConnectionState state = connection.getState();
+        return state != null && state.equals(ConnectionState.EXPIRED);
     }
 
     @Override
     public Status getStatus() {
-        return getStatus(connection.getStatus());
+        return getStatus(connection.getState());
     }
 
     //
     //  Connection Status -> Gate Status
     //
-    public static Status getStatus(Connection.Status status) {
-        switch (status) {
-            case CONNECTING:
+    public static Status getStatus(ConnectionState state) {
+        String name = state == null ? ConnectionState.DEFAULT : state.name;
+        switch (name) {
+            case ConnectionState.CONNECTING:
                 return Status.CONNECTING;
-            case CONNECTED:
-            case MAINTAINING:
-            case EXPIRED:
+            case ConnectionState.CONNECTED:
+            case ConnectionState.MAINTAINING:
+            case ConnectionState.EXPIRED:
                 return Status.CONNECTED;
-            case ERROR:
+            case ConnectionState.ERROR:
                 return Status.ERROR;
             default:
                 return Status.INIT;
@@ -91,7 +95,7 @@ public class TCPGate extends StarGate implements Connection.Delegate {
     @Override
     public boolean send(byte[] pack) {
         if (connection.isRunning()) {
-            return connection.send(pack) == pack.length;
+            return connection.send(new Data(pack)) == pack.length;
         } else {
             return false;
         }
@@ -99,32 +103,32 @@ public class TCPGate extends StarGate implements Connection.Delegate {
 
     @Override
     public byte[] receive(int length, boolean remove) {
-        byte[] fragment = receive(length);
-        if (fragment != null) {
-            if (fragment.length > length) {
-                if (remove) {
-                    // fragment[length:]
-                    chunks = BytesArray.slice(fragment, length);
-                }
-                // fragment[:length]
-                return BytesArray.slice(fragment, 0, length);
-            } else if (remove) {
-                //assert fragment.length == length : "fragment length error";
-                chunks = null;
+        ByteArray fragment = receive(length);
+        if (fragment == null) {
+            return null;
+        } else if (fragment.getSize() > length) {
+            if (remove) {
+                // fragment[length:]
+                chunks = fragment.slice(length);
             }
+            // fragment[:length]
+            fragment = fragment.slice(0, length);
+        } else if (remove) {
+            //assert fragment.length == length : "fragment length error";
+            chunks = null;
         }
-        return fragment;
+        return fragment.getBytes();
     }
 
-    private byte[] chunks = null;
+    private ByteArray chunks = null;
 
-    private byte[] receive(int length) {
+    private ByteArray receive(int length) {
         int cached = 0;
         if (chunks != null) {
-            cached = chunks.length;
+            cached = chunks.getSize();
         }
         int available;
-        byte[] data;
+        ByteArray data;
         while (cached < length) {
             // check available length from connection
             available = connection.available();
@@ -133,16 +137,16 @@ public class TCPGate extends StarGate implements Connection.Delegate {
             }
             // try to receive data from connection
             data = connection.receive(available);
-            if (data == null || data.length == 0) {
+            if (data == null || data.getSize() == 0) {
                 break;
             }
             // append data
             if (chunks == null) {
                 chunks = data;
             } else {
-                chunks = BytesArray.concat(chunks, data);
+                chunks = chunks.concat(data);
             }
-            cached += data.length;
+            cached += data.getSize();
         }
         return chunks;
     }
@@ -152,20 +156,14 @@ public class TCPGate extends StarGate implements Connection.Delegate {
     //
 
     @Override
-    public void onConnectionStatusChanged(Connection connection, Connection.Status oldStatus, Connection.Status newStatus) {
-        Status s1 = getStatus(oldStatus);
-        Status s2 = getStatus(newStatus);
+    public void onConnectionStateChanged(Connection connection, ConnectionState oldState, ConnectionState newState) {
+        Status s1 = getStatus(oldState);
+        Status s2 = getStatus(newState);
         if (!s1.equals(s2)) {
             Delegate delegate = getDelegate();
             if (delegate != null) {
                 delegate.onStatusChanged(this, s1, s2);
             }
         }
-    }
-
-    @Override
-    public void onConnectionReceivedData(Connection connection, byte[] data) {
-        // received data will be processed in run loop,
-        // do nothing here
     }
 }
