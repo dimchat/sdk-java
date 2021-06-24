@@ -33,36 +33,25 @@ package chat.dim.fsm;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class BaseState<S extends State<Context>,
-        M extends Machine<Context, S, BaseTransition, Delegate<Context, S>>>
-        implements State<Context> {
+public abstract class BaseState<C extends Context, T extends Transition<C>> implements State<C, T> {
 
-    private final List<BaseTransition> transitionList = new ArrayList<>();
+    private final List<T> transitionList = new ArrayList<>();
 
-    public void addTransition(BaseTransition transition) {
+    public void addTransition(T transition) {
         if (transitionList.contains(transition)) {
             throw new ArithmeticException("transition exists");
         }
         transitionList.add(transition);
     }
 
-    protected M getMachine(Context ctx) {
-        return (M) ctx;
-    }
-
     @Override
-    public void tick(Context ctx) {
-        for (BaseTransition transition : transitionList) {
+    public T evaluate(C ctx) {
+        for (T transition : transitionList) {
             if (transition.evaluate(ctx)) {
-                // OK, get target state
-                M machine = getMachine(ctx);
-                S state = machine.getTargetState(transition);
-                if (state == null) {
-                    throw new NullPointerException("failed to get target state: " + transition);
-                }
-                machine.changeState(state);
-                break;
+                // OK, get target state from this transition
+                return transition;
             }
         }
+        return null;
     }
 }

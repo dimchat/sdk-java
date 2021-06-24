@@ -30,48 +30,13 @@
  */
 package chat.dim.fsm;
 
-import java.util.HashMap;
-import java.util.Map;
-
-public class AutoMachine<S extends State<Context>> extends BaseMachine<S> implements Context, Runnable {
-
-    private final Map<String, S> stateMap = new HashMap<>();
-    private final String defaultStateName;
-    private S currentState;
+public abstract class AutoMachine<C extends Context, T extends BaseTransition<C>, S extends State<C, T>>
+        extends BaseMachine<C, T, S, Delegate<C, T, S>> implements Context, Runnable {
 
     private Thread thread = null;
 
     public AutoMachine(String defaultState) {
-        super();
-        defaultStateName = defaultState;
-    }
-
-    @Override
-    public Context getContext() {
-        return this;
-    }
-
-    //
-    //  States
-    //
-    public void addState(String name, S state) {
-        stateMap.put(name, state);
-    }
-    @Override
-    public S getDefaultState() {
-        return stateMap.get(defaultStateName);
-    }
-    @Override
-    public S getTargetState(BaseTransition transition) {
-        return stateMap.get(transition.target);
-    }
-    @Override
-    public S getCurrentState() {
-        return currentState;
-    }
-    @Override
-    public void setCurrentState(S currentState) {
-        this.currentState = currentState;
+        super(defaultState);
     }
 
     @Override
@@ -108,14 +73,14 @@ public class AutoMachine<S extends State<Context>> extends BaseMachine<S> implem
     protected void setup() {
         // prepare for running
     }
-    protected void finish() {
-        // clean up after running
-    }
     protected void handle() {
         while (getCurrentState() != null) {
             tick();
             idle();
         }
+    }
+    protected void finish() {
+        // clean up after running
     }
 
     protected void idle() {

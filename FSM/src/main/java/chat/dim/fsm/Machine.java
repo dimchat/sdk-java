@@ -34,16 +34,16 @@ package chat.dim.fsm;
  *  State machine
  *  ~~~~~~~~~~~~~
  *
- * @param <C> - context
  * @param <S> - state
+ * @param <C> - context
+ * @param <U> - delegate
  * @param <T> - transition
- * @param <D> - delegate
  */
-public interface Machine<C extends Context, S extends State<C>, T extends Transition<C>, D extends Delegate<C, S>> {
+public interface Machine<C extends Context, T extends Transition<C>, S extends State<C, T>, U extends Delegate<C, T, S>> {
 
     C getContext();
 
-    D getDelegate();
+    U getDelegate();
 
     //
     //  States

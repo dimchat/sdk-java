@@ -30,7 +30,7 @@
  */
 package chat.dim.fsm;
 
-public interface State<C extends Context> {
+public interface State<C extends Context, T extends Transition<C>> {
 
     // call after entered
     void onEnter(C ctx);
@@ -43,5 +43,5 @@ public interface State<C extends Context> {
     void onResume(C ctx);
 
     // called by machine.tick() to evaluate each transitions
-    void tick(C ctx);
+    T evaluate(C ctx);
 }

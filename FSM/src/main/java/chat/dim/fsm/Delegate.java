@@ -34,7 +34,7 @@ package chat.dim.fsm;
  *  State Machine Delegate
  *  ~~~~~~~~~~~~~~~~~~~~~~
  */
-public interface Delegate<C extends Context, S extends State<C>> {
+public interface Delegate<C extends Context, T extends Transition<C>, S extends State<C, T>> {
 
     /**
      *  Before enter state

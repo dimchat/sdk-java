@@ -30,7 +30,7 @@
  */
 package chat.dim.fsm;
 
-public abstract class BaseTransition implements Transition<Context> {
+public abstract class BaseTransition<C extends Context> implements Transition<C> {
 
     public final String target; // target state name
 
