@@ -30,7 +30,7 @@
  */
 package chat.dim.stargate;
 
-import chat.dim.mtp.protocol.Package;
+import chat.dim.mtp.Package;
 import chat.dim.startrek.StarShip;
 
 /**

@@ -30,9 +30,9 @@
  */
 package chat.dim.stargate;
 
-import chat.dim.mtp.protocol.DataType;
-import chat.dim.mtp.protocol.Header;
-import chat.dim.mtp.protocol.Package;
+import chat.dim.mtp.DataType;
+import chat.dim.mtp.Header;
+import chat.dim.mtp.Package;
 import chat.dim.startrek.Gate;
 import chat.dim.startrek.Ship;
 import chat.dim.startrek.StarDocker;
@@ -147,23 +147,22 @@ public final class MTPDocker extends StarDocker {
         Package mtp = ship.mtp;
         Header head = mtp.head;
         ByteArray body = mtp.body;
-        DataType type = head.type;
         // 1. check data type
-        if (type.equals(DataType.Command)) {
+        if (mtp.isCommand()) {
             // respond for Command directly
             if (body.equals(PING)) {        // 'PING'
                 Data res = new Data(PONG);  // 'PONG'
-                mtp = Package.create(DataType.CommandRespond, head.sn, PONG.length, res);
+                mtp = Package.create(DataType.CommandResponse, head.sn, PONG.length, res);
                 return new MTPShip(mtp, StarShip.SLOWER);
             }
             return null;
-        } else if (type.equals(DataType.CommandRespond)) {
+        } else if (mtp.isCommandResponse()) {
             // just ignore
             return null;
-        } else if (type.equals(DataType.MessageFragment)) {
-            // just ignore
+        } else if (mtp.isMessageFragment()) {
+            // should not happen
             return null;
-        } else if (type.equals(DataType.MessageRespond)) {
+        } else if (mtp.isMessageResponse()) {
             if (body.getSize() == 0 || body.equals(OK)) {
                 // just ignore
                 return null;
@@ -179,12 +178,12 @@ public final class MTPDocker extends StarDocker {
             res = delegate.onReceived(getGate(), income);
         }
         // 3. response
-        if (type.equals(DataType.Message)) {
+        if (mtp.isMessage()) {
             // respond for message
             if (res == null || res.length == 0) {
                 res = OK;
             }
-            mtp = Package.create(DataType.MessageRespond, head.sn, res.length, new Data(res));
+            mtp = Package.create(DataType.MessageResponse, head.sn, res.length, new Data(res));
             return new MTPShip(mtp);
         } else if (res != null && res.length > 0) {
             // push as new Message
@@ -197,7 +196,7 @@ public final class MTPDocker extends StarDocker {
     @Override
     protected void removeLinkedShip(Ship income) {
         MTPShip ship = (MTPShip) income;
-        if (ship.mtp.head.type.equals(DataType.MessageRespond)) {
+        if (ship.mtp.isMessageResponse()) {
             super.removeLinkedShip(income);
         }
     }
@@ -209,7 +208,7 @@ public final class MTPDocker extends StarDocker {
             MTPShip ship = (MTPShip) outgo;
             // if retries == 0, means this ship is first time to be sent,
             // and it would be removed from the dock.
-            if (outgo.getRetries() == 0 && ship.mtp.head.type.equals(DataType.Message)) {
+            if (outgo.getRetries() == 0 && ship.mtp.isMessage()) {
                 // put back for waiting response
                 getGate().parkShip(outgo);
             }
