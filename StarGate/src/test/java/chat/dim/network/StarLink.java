@@ -28,46 +28,37 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.stargate;
+package chat.dim.network;
 
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.io.IOException;
+import java.net.InetSocketAddress;
 
-import chat.dim.net.Connection;
+import chat.dim.net.ActiveConnection;
+import chat.dim.net.Channel;
+import chat.dim.tcp.StreamChannel;
 
-public class LockedGate extends TCPGate {
+public class StarLink extends ActiveConnection {
 
-    private final ReadWriteLock sendLock = new ReentrantReadWriteLock();
-    private final ReadWriteLock receiveLock = new ReentrantReadWriteLock();
+    public StarLink(InetSocketAddress remote, Channel byteChannel) {
+        super(remote, byteChannel);
+    }
 
-    public LockedGate(Connection conn) {
-        super(conn);
+    public StarLink(InetSocketAddress remote) {
+        this(remote, null);
+    }
+
+    public StarLink(String host, int port) {
+        this(new InetSocketAddress(host, port));
     }
 
     @Override
-    public boolean send(byte[] pack) {
-        boolean ok;
-        Lock writeLock = sendLock.writeLock();
-        writeLock.lock();
-        try {
-            ok = super.send(pack);
-        } finally {
-            writeLock.unlock();
+    protected Channel connect(InetSocketAddress remote) throws IOException {
+        StreamChannel channel = new StreamChannel();
+        if (channel.connect(remote)) {
+            channel.configureBlocking(false);
+            return channel;
+        } else {
+            return null;
         }
-        return ok;
-    }
-
-    @Override
-    public byte[] receive(int length, boolean remove) {
-        byte[] data;
-        Lock writeLock = receiveLock.writeLock();
-        writeLock.lock();
-        try {
-            data = super.receive(length, remove);
-        } finally {
-            writeLock.unlock();
-        }
-        return data;
     }
 }

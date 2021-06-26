@@ -30,10 +30,10 @@
  */
 package chat.dim.stargate;
 
+import chat.dim.net.Connection;
+import chat.dim.net.ConnectionState;
 import chat.dim.startrek.Docker;
 import chat.dim.startrek.StarGate;
-import chat.dim.tcp.Connection;
-import chat.dim.tcp.ConnectionState;
 import chat.dim.type.ByteArray;
 import chat.dim.type.Data;
 
@@ -59,7 +59,7 @@ public class TCPGate extends StarGate implements Connection.Delegate {
     public boolean isRunning() {
         // 1. StarGate not stopped
         // 2. Connection not closed or still have data unprocessed
-        return super.isRunning() && connection.isRunning(); // || connection.available() > 0);
+        return super.isRunning() && connection.isAlive(); // || connection.available() > 0);
     }
 
     @Override
@@ -94,8 +94,8 @@ public class TCPGate extends StarGate implements Connection.Delegate {
 
     @Override
     public boolean send(byte[] pack) {
-        if (connection.isRunning()) {
-            return connection.send(new Data(pack)) == pack.length;
+        if (connection.isAlive()) {
+            return connection.send(pack) == pack.length;
         } else {
             return false;
         }
@@ -127,26 +127,20 @@ public class TCPGate extends StarGate implements Connection.Delegate {
         if (chunks != null) {
             cached = chunks.getSize();
         }
-        int available;
-        ByteArray data;
+        byte[] data;
         while (cached < length) {
-            // check available length from connection
-            available = connection.available();
-            if (available <= 0) {
-                break;
-            }
             // try to receive data from connection
-            data = connection.receive(available);
-            if (data == null || data.getSize() == 0) {
+            data = connection.receive();
+            if (data == null || data.length == 0) {
                 break;
             }
             // append data
             if (chunks == null) {
-                chunks = data;
+                chunks = new Data(data);
             } else {
                 chunks = chunks.concat(data);
             }
-            cached += data.getSize();
+            cached += data.length;
         }
         return chunks;
     }
