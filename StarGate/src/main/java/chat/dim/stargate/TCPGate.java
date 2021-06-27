@@ -58,8 +58,8 @@ public class TCPGate extends StarGate implements Connection.Delegate {
     @Override
     public boolean isRunning() {
         // 1. StarGate not stopped
-        // 2. Connection not closed or still have data unprocessed
-        return super.isRunning() && connection.isAlive(); // || connection.available() > 0);
+        // 2. Connection not closed (or still have data unprocessed?)
+        return super.isRunning() && connection.isOpen();
     }
 
     @Override
@@ -94,11 +94,7 @@ public class TCPGate extends StarGate implements Connection.Delegate {
 
     @Override
     public boolean send(byte[] pack) {
-        if (connection.isAlive()) {
-            return connection.send(pack) == pack.length;
-        } else {
-            return false;
-        }
+        return connection.send(pack) == pack.length;
     }
 
     @Override

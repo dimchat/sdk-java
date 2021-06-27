@@ -54,11 +54,9 @@ public class StarLink extends ActiveConnection {
     @Override
     protected Channel connect(InetSocketAddress remote) throws IOException {
         StreamChannel channel = new StreamChannel();
-        if (channel.connect(remote)) {
-            channel.configureBlocking(false);
-            return channel;
-        } else {
-            return null;
-        }
+        channel.configureBlocking(true);
+        channel.connect(remote);
+        channel.configureBlocking(false);
+        return channel;
     }
 }

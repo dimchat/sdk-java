@@ -32,7 +32,6 @@ package chat.dim.network;
 
 import chat.dim.net.BaseConnection;
 import chat.dim.stargate.LockedGate;
-import chat.dim.startrek.StarGate;
 
 public final class StarTrek extends LockedGate {
 
@@ -40,15 +39,19 @@ public final class StarTrek extends LockedGate {
         super(conn);
     }
 
-    private static StarGate createGate(BaseConnection conn) {
+    private static StarTrek createGate(BaseConnection conn) {
         StarTrek gate = new StarTrek(conn);
         conn.setDelegate(gate);
-        conn.start();
-        (new Thread(gate)).start();
         return gate;
     }
-    public static StarGate createGate(String host, int port) {
+    public static StarTrek createGate(String host, int port) {
         return createGate(new StarLink(host, port));
+    }
+
+    public void start() {
+        assert connection instanceof BaseConnection;
+        ((BaseConnection) connection).start();
+        (new Thread(this)).start();
     }
 
     @Override
