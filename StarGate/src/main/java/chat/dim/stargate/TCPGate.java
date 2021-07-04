@@ -30,6 +30,11 @@
  */
 package chat.dim.stargate;
 
+import java.io.IOException;
+import java.net.SocketAddress;
+import java.nio.ByteBuffer;
+
+import chat.dim.net.BaseHub;
 import chat.dim.net.Connection;
 import chat.dim.net.ConnectionState;
 import chat.dim.startrek.Docker;
@@ -94,7 +99,38 @@ public class TCPGate extends StarGate implements Connection.Delegate {
 
     @Override
     public boolean send(byte[] pack) {
-        return connection.send(pack) == pack.length;
+        if (!connection.isOpen() || !connection.isConnected()) {
+            return false;
+        }
+        SocketAddress remote = connection.getRemoteAddress();
+        ByteBuffer buffer = ByteBuffer.allocate(pack.length);
+        buffer.put(pack);
+        buffer.flip();
+        try {
+            return connection.send(buffer, remote) != -1;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private byte[] receiveData() {
+        if (!connection.isOpen() || !connection.isConnected()) {
+            return null;
+        }
+        ByteBuffer buffer = ByteBuffer.allocate(BaseHub.MSS);
+        try {
+            if (connection.receive(buffer) == null) {
+                // received nothing
+                return null;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        byte[] data = new byte[buffer.position()];
+        buffer.flip();
+        buffer.get(data);
+        return data;
     }
 
     @Override
@@ -126,7 +162,7 @@ public class TCPGate extends StarGate implements Connection.Delegate {
         byte[] data;
         while (cached < length) {
             // try to receive data from connection
-            data = connection.receive();
+            data = receiveData();
             if (data == null || data.length == 0) {
                 break;
             }
@@ -146,7 +182,7 @@ public class TCPGate extends StarGate implements Connection.Delegate {
     //
 
     @Override
-    public void onConnectionStateChanged(Connection connection, ConnectionState oldState, ConnectionState newState) {
+    public void onConnectionStateChanging(Connection connection, ConnectionState oldState, ConnectionState newState) {
         Status s1 = getStatus(oldState);
         Status s2 = getStatus(newState);
         if (!s1.equals(s2)) {
