@@ -74,7 +74,7 @@ public final class MTPDocker extends StarDocker {
     @Override
     public StarShip pack(byte[] payload, int priority, Ship.Delegate delegate) {
         Data req = new Data(payload);
-        Package mtp = Package.create(DataType.Message, req.getSize(), req);
+        Package mtp = Package.create(DataType.MESSAGE, req.getSize(), req);
         return new MTPShip(mtp, priority, delegate);
     }
 
@@ -152,7 +152,7 @@ public final class MTPDocker extends StarDocker {
             // respond for Command directly
             if (body.equals(PING)) {        // 'PING'
                 Data res = new Data(PONG);  // 'PONG'
-                mtp = Package.create(DataType.CommandResponse, head.sn, PONG.length, res);
+                mtp = Package.create(DataType.COMMAND_RESPONSE, head.sn, PONG.length, res);
                 return new MTPShip(mtp, StarShip.SLOWER);
             }
             return null;
@@ -183,7 +183,7 @@ public final class MTPDocker extends StarDocker {
             if (res == null || res.length == 0) {
                 res = OK;
             }
-            mtp = Package.create(DataType.MessageResponse, head.sn, res.length, new Data(res));
+            mtp = Package.create(DataType.MESSAGE_RESPONSE, head.sn, res.length, new Data(res));
             return new MTPShip(mtp);
         } else if (res != null && res.length > 0) {
             // push as new Message
@@ -218,7 +218,7 @@ public final class MTPDocker extends StarDocker {
 
     @Override
     protected StarShip getHeartbeat() {
-        Package pack = Package.create(DataType.Command, PING.length, new Data(PING));
+        Package pack = Package.create(DataType.COMMAND, PING.length, new Data(PING));
         return new MTPShip(pack, StarShip.SLOWER);
     }
 

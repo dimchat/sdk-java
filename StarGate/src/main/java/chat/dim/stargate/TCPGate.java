@@ -32,9 +32,7 @@ package chat.dim.stargate;
 
 import java.io.IOException;
 import java.net.SocketAddress;
-import java.nio.ByteBuffer;
 
-import chat.dim.net.BaseHub;
 import chat.dim.net.Connection;
 import chat.dim.net.ConnectionState;
 import chat.dim.startrek.Docker;
@@ -103,34 +101,12 @@ public class TCPGate extends StarGate implements Connection.Delegate {
             return false;
         }
         SocketAddress remote = connection.getRemoteAddress();
-        ByteBuffer buffer = ByteBuffer.allocate(pack.length);
-        buffer.put(pack);
-        buffer.flip();
         try {
-            return connection.send(buffer, remote) != -1;
+            return connection.send(pack, remote) != -1;
         } catch (IOException e) {
             e.printStackTrace();
             return false;
         }
-    }
-
-    private byte[] receiveData() {
-        if (!connection.isOpen() || !connection.isConnected()) {
-            return null;
-        }
-        ByteBuffer buffer = ByteBuffer.allocate(BaseHub.MSS);
-        try {
-            if (connection.receive(buffer) == null) {
-                // received nothing
-                return null;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        byte[] data = new byte[buffer.position()];
-        buffer.flip();
-        buffer.get(data);
-        return data;
     }
 
     @Override
@@ -152,30 +128,23 @@ public class TCPGate extends StarGate implements Connection.Delegate {
         return fragment.getBytes();
     }
 
-    private ByteArray chunks = null;
-
     private ByteArray receive(int length) {
-        int cached = 0;
-        if (chunks != null) {
-            cached = chunks.getSize();
-        }
-        byte[] data;
-        while (cached < length) {
-            // try to receive data from connection
-            data = receiveData();
-            if (data == null || data.length == 0) {
+        int prev, next = chunks == null ? 0 : chunks.getSize();
+        do {
+            prev = next;
+            if (prev >= length) {
+                // received data size is big enough
                 break;
             }
-            // append data
-            if (chunks == null) {
-                chunks = new Data(data);
-            } else {
-                chunks = chunks.concat(data);
-            }
-            cached += data.length;
-        }
+            // try to receive data from connection
+            connection.tick();
+            // get next received data size
+            next = chunks == null ? 0 : chunks.getSize();
+        } while (next > prev);
         return chunks;
     }
+
+    private ByteArray chunks = null;
 
     //
     //  ConnectionHandler
@@ -189,6 +158,18 @@ public class TCPGate extends StarGate implements Connection.Delegate {
             Delegate delegate = getDelegate();
             if (delegate != null) {
                 delegate.onStatusChanged(this, s1, s2);
+            }
+        }
+    }
+
+    @Override
+    public void onConnectionDataReceived(Connection connection, SocketAddress remote, Object wrapper, byte[] payload) {
+        if (payload != null && payload.length > 0) {
+            // append data
+            if (chunks == null) {
+                chunks = new Data(payload);
+            } else {
+                chunks = chunks.concat(payload);
             }
         }
     }
