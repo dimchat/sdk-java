@@ -151,9 +151,9 @@ public class TCPGate extends StarGate implements Connection.Delegate {
     //
 
     @Override
-    public void onConnectionStateChanging(Connection connection, ConnectionState oldState, ConnectionState newState) {
-        Status s1 = getStatus(oldState);
-        Status s2 = getStatus(newState);
+    public void onConnectionStateChanged(Connection connection, ConnectionState previous, ConnectionState current) {
+        Status s1 = getStatus(previous);
+        Status s2 = getStatus(current);
         if (!s1.equals(s2)) {
             Delegate delegate = getDelegate();
             if (delegate != null) {
