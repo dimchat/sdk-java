@@ -34,11 +34,11 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
-import chat.dim.net.ActiveConnection;
+import chat.dim.net.ActiveRawDataConnection;
 import chat.dim.net.Channel;
 import chat.dim.tcp.StreamChannel;
 
-public class StarLink extends ActiveConnection {
+public class StarLink extends ActiveRawDataConnection {
 
     public StarLink(SocketAddress remote, SocketAddress local) {
         super(remote, local);

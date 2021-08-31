@@ -35,11 +35,11 @@ import chat.dim.stargate.LockedGate;
 
 public final class StarTrek extends LockedGate {
 
-    public StarTrek(BaseConnection conn) {
+    public StarTrek(BaseConnection<byte[]> conn) {
         super(conn);
     }
 
-    private static StarTrek createGate(BaseConnection conn) {
+    private static StarTrek createGate(BaseConnection<byte[]> conn) {
         StarTrek gate = new StarTrek(conn);
         conn.setDelegate(gate);
         return gate;
@@ -50,7 +50,7 @@ public final class StarTrek extends LockedGate {
 
     public void start() {
         assert connection instanceof BaseConnection;
-        ((BaseConnection) connection).start();
+        ((BaseConnection<byte[]>) connection).start();
         (new Thread(this)).start();
     }
 
@@ -64,6 +64,6 @@ public final class StarTrek extends LockedGate {
     public void finish() {
         super.finish();
         assert connection instanceof BaseConnection;
-        ((BaseConnection) connection).stop();
+        ((BaseConnection<byte[]>) connection).stop();
     }
 }

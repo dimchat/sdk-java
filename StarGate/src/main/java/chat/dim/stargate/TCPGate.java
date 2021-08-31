@@ -40,11 +40,11 @@ import chat.dim.startrek.StarGate;
 import chat.dim.type.ByteArray;
 import chat.dim.type.Data;
 
-public class TCPGate extends StarGate implements Connection.Delegate {
+public class TCPGate extends StarGate implements Connection.Delegate<byte[]> {
 
-    public final Connection connection;
+    public final Connection<byte[]> connection;
 
-    public TCPGate(Connection conn) {
+    public TCPGate(Connection<byte[]> conn) {
         super();
         connection = conn;
     }
@@ -163,13 +163,13 @@ public class TCPGate extends StarGate implements Connection.Delegate {
     }
 
     @Override
-    public void onConnectionDataReceived(Connection connection, SocketAddress remote, Object wrapper, byte[] payload) {
-        if (payload != null && payload.length > 0) {
+    public void onConnectionDataReceived(Connection<byte[]> connection, SocketAddress remote, byte[] pack) {
+        if (pack != null && pack.length > 0) {
             // append data
             if (chunks == null) {
-                chunks = new Data(payload);
+                chunks = new Data(pack);
             } else {
-                chunks = chunks.concat(payload);
+                chunks = chunks.concat(pack);
             }
         }
     }

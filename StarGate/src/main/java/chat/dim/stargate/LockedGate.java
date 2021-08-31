@@ -41,7 +41,7 @@ public class LockedGate extends TCPGate {
     private final ReadWriteLock sendLock = new ReentrantReadWriteLock();
     private final ReadWriteLock receiveLock = new ReentrantReadWriteLock();
 
-    public LockedGate(Connection conn) {
+    public LockedGate(Connection<byte[]> conn) {
         super(conn);
     }
 
