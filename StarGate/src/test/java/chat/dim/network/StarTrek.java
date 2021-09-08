@@ -37,57 +37,61 @@ import java.util.List;
 
 import chat.dim.mtp.PackUtils;
 import chat.dim.mtp.Package;
-import chat.dim.mtp.StreamArrival;
-import chat.dim.mtp.StreamDeparture;
 import chat.dim.mtp.StreamDocker;
-import chat.dim.mtp.TransactionID;
-import chat.dim.net.BaseHub;
+import chat.dim.port.Docker;
 import chat.dim.port.Gate;
 import chat.dim.stargate.TCPGate;
 import chat.dim.tcp.ClientHub;
 
-interface StarDelegate extends Gate.Delegate<StreamDeparture, StreamArrival, TransactionID> {
+interface StarDelegate extends Gate.Delegate {
 }
 
-public final class StarTrek extends TCPGate<StreamDeparture, StreamArrival, TransactionID> {
+public final class StarTrek extends TCPGate<ClientHub> {
 
     public final SocketAddress remoteAddress;
+    public final SocketAddress localAddress;
 
-    public StarTrek(StarDelegate delegate, SocketAddress remote) {
+    public StarTrek(StarDelegate delegate, SocketAddress remote, SocketAddress local) {
         super(delegate);
         remoteAddress = remote;
+        localAddress = local;
     }
 
     @Override
-    protected BaseHub createHub() {
+    protected ClientHub createHub() {
         return new ClientHub(this);
     }
 
     @Override
-    protected StreamDocker createDocker(SocketAddress remote, SocketAddress local, List<byte[]> data) {
+    protected Docker createDocker(SocketAddress remote, SocketAddress local, List<byte[]> data) {
         // TODO: check data format before create docker
-        return new StreamDocker(remote, local, data, this);
+        return new StreamDocker(remote, local, this);
     }
 
-    public void start() throws IOException {
-        connect(remoteAddress, null);
-        (new Thread(this)).start();
+    public void start() {
+        super.start();
+        try {
+            hub.connect(remoteAddress, localAddress);
+            (new Thread(this)).start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     void sendCommand(byte[] body, int priority) {
         Package pack = PackUtils.createCommand(body);
-        Object worker = getDocker(remoteAddress, null, true);
+        Docker worker = getDocker(remoteAddress, localAddress, null);
         ((StreamDocker) worker).sendPackage(pack, priority);
     }
 
     void sendMessage(byte[] body, int priority) {
         Package pack = PackUtils.createMessage(body);
-        Object worker = getDocker(remoteAddress, null, true);
+        Docker worker = getDocker(remoteAddress, localAddress, null);
         ((StreamDocker) worker).sendPackage(pack, priority);
     }
 
     public static StarTrek create(String host, int port, StarDelegate delegate) {
         SocketAddress remote = new InetSocketAddress(host, port);
-        return new StarTrek(delegate, remote);
+        return new StarTrek(delegate, remote, null);
     }
 }

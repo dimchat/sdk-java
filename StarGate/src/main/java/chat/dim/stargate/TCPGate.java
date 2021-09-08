@@ -30,42 +30,72 @@
  */
 package chat.dim.stargate;
 
-import java.io.IOException;
 import java.net.SocketAddress;
+import java.util.ArrayList;
+import java.util.List;
 
-import chat.dim.net.BaseHub;
 import chat.dim.net.Connection;
-import chat.dim.port.Arrival;
-import chat.dim.port.Departure;
+import chat.dim.net.Hub;
+import chat.dim.skywalker.Runner;
 import chat.dim.startrek.StarGate;
 
-public abstract class TCPGate<D extends Departure<A, I>, A extends Arrival<A, I>, I>
-        extends StarGate<D, A, I> {
+public abstract class TCPGate<H extends Hub> extends StarGate implements Runnable {
 
-    private final BaseHub hub;
+    private boolean running = false;
+    protected final H hub;
 
-    public TCPGate(Delegate<D, A, I> delegate) {
+    public TCPGate(Delegate delegate) {
         super(delegate);
         hub = createHub();
     }
 
-    protected abstract BaseHub createHub();
+    protected abstract H createHub();
+
+    public boolean isRunning() {
+        return running;
+    }
+
+    public void start() {
+        running = true;
+    }
+
+    public void stop() {
+        running = false;
+    }
+
+    @Override
+    public void run() {
+        while (running) {
+            if (!process()) {
+                Runner.idle(8);
+            }
+        }
+    }
 
     @Override
     public boolean process() {
-        hub.tick();
-        boolean available = hub.getActivatedCount() > 0;
+        boolean activated = hub.process();
         boolean busy = super.process();
-        return available || busy;
+        return activated || busy;
+    }
+
+    @Override
+    protected List<byte[]> cacheAdvanceParty(byte[] data, SocketAddress source, SocketAddress destination, Connection connection) {
+        // TODO: cache the advance party before decide which docker to use
+        List<byte[]> array = new ArrayList<>();
+        if (data != null) {
+            array.add(data);
+        }
+        return array;
+    }
+
+    @Override
+    protected void clearAdvanceParty(SocketAddress source, SocketAddress destination, Connection connection) {
+        // TODO: remove advance party for this connection
     }
 
     @Override
     protected Connection getConnection(SocketAddress remote, SocketAddress local) {
         return hub.getConnection(remote, local);
-    }
-
-    @Override
-    protected Connection connect(SocketAddress remote, SocketAddress local) throws IOException {
-        return hub.connect(remote, local);
     }
 }

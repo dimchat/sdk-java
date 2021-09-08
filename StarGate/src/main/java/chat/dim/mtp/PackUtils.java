@@ -30,10 +30,21 @@
  */
 package chat.dim.mtp;
 
+import chat.dim.type.ByteArray;
 import chat.dim.type.Data;
 
 public class PackUtils {
 
+    public static Header parseHead(ByteArray data) {
+        return Header.parse(data);
+    }
+    public static Header parseHead(byte[] data) {
+        return Header.parse(new Data(data));
+    }
+
+    public static Package parse(ByteArray data) {
+        return Package.parse(data);
+    }
     public static Package parse(byte[] data) {
         return Package.parse(new Data(data));
     }

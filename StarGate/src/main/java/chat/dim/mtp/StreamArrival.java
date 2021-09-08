@@ -32,9 +32,10 @@ package chat.dim.mtp;
 
 import java.util.List;
 
+import chat.dim.port.Arrival;
 import chat.dim.startrek.ArrivalShip;
 
-public class StreamArrival extends ArrivalShip<StreamArrival, TransactionID> {
+public class StreamArrival extends ArrivalShip {
 
     private final TransactionID sn;
 
@@ -63,10 +64,11 @@ public class StreamArrival extends ArrivalShip<StreamArrival, TransactionID> {
     }
 
     @Override
-    public StreamArrival assemble(StreamArrival arrival) {
+    public Arrival assemble(Arrival income) {
         if (completed == null) {
-            List<Package> fragments = arrival.getFragments();
-            assert fragments != null && fragments.size() > 0 : "fragments error: " + arrival;
+            assert income instanceof StreamArrival : "arrival ship error: " + income;
+            List<Package> fragments = ((StreamArrival) income).getFragments();
+            assert fragments != null && fragments.size() > 0 : "fragments error: " + income;
             for (Package item : fragments) {
                 completed = packer.insert(item);
             }

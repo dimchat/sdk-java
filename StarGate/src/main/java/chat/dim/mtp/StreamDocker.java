@@ -35,22 +35,20 @@ import java.lang.ref.WeakReference;
 import java.net.SocketAddress;
 import java.util.List;
 
+import chat.dim.port.Arrival;
 import chat.dim.port.Departure;
 import chat.dim.port.Gate;
 import chat.dim.startrek.StarDocker;
 import chat.dim.startrek.StarGate;
 import chat.dim.type.ByteArray;
+import chat.dim.type.Data;
 
-public class StreamDocker extends StarDocker<StreamDeparture, StreamArrival, TransactionID> {
+public class StreamDocker extends StarDocker {
 
-    private List<byte[]> advanceParties;
+    private final WeakReference<StarGate> gateRef;
 
-    private final WeakReference<StarGate<StreamDeparture, StreamArrival, TransactionID>> gateRef;
-
-    public StreamDocker(SocketAddress remote, SocketAddress local, List<byte[]> parties,
-                        StarGate<StreamDeparture, StreamArrival, TransactionID> gate) {
+    public StreamDocker(SocketAddress remote, SocketAddress local, StarGate gate) {
         super(remote, local);
-        advanceParties = parties;
         gateRef = new WeakReference<>(gate);
     }
 
@@ -60,27 +58,52 @@ public class StreamDocker extends StarDocker<StreamDeparture, StreamArrival, Tra
     }
 
     @Override
-    protected Gate.Delegate<StreamDeparture, StreamArrival, TransactionID> getDelegate() {
-        StarGate<StreamDeparture, StreamArrival, TransactionID> gate = gateRef.get();
+    protected Gate.Delegate getDelegate() {
+        StarGate gate = gateRef.get();
         return gate == null ? null : gate.getDelegate();
     }
 
-    @Override
-    public void process(final byte[] data) {
-        if (data != null) {
-            super.process(data);
-        } else if (advanceParties != null) {
-            // process advance parties
-            for (byte[] item : advanceParties) {
-                super.process(item);
-            }
-            advanceParties = null;
+    private ByteArray chunks = Data.ZERO;
+
+    private Package parse(byte[] data) {
+        if (data != null && data.length > 0) {
+            // append to tail
+            chunks = chunks.concat(data);
         }
+        // check header
+        final Header head = PackUtils.parseHead(chunks);
+        if (head == null) {
+            // header error, seeking for next header
+            int pos = chunks.find(Header.MAGIC_CODE, 1);
+            if (pos > 0) {
+                // found, drop all data before it
+                chunks = chunks.slice(pos);
+                // try again
+                return parse(null);
+            } else {
+                // not found, drop all data
+                chunks = Data.ZERO;
+                return null;
+            }
+        }
+        // header ok, check body length
+        int dataLen = chunks.getSize();
+        int headLen = head.getSize();
+        int bodyLen = head.bodyLength;
+        int packLen = bodyLen == -1 ? dataLen : headLen + bodyLen;
+        //assert bodyLen != -1;
+        if (dataLen < packLen) {
+            // waiting for more data
+            return null;
+        }
+        ByteArray pack = chunks.slice(0, packLen);
+        chunks = chunks.slice(packLen);
+        return new Package(pack, head, pack.slice(headLen));
     }
 
     @Override
-    protected StreamArrival getIncomeShip(byte[] data) {
-        final Package pack = PackUtils.parse(data);
+    protected Arrival getIncomeShip(byte[] data) {
+        final Package pack = parse(data);
         if (pack == null) {
             return null;
         }
@@ -93,10 +116,12 @@ public class StreamDocker extends StarDocker<StreamDeparture, StreamArrival, Tra
     }
 
     @Override
-    protected StreamArrival checkIncomeShip(StreamArrival income) {
-        Package pack = income.getPackage();
+    protected Arrival checkIncomeShip(Arrival income) {
+        assert income instanceof StreamArrival : "arrival ship error: " + income;
+        StreamArrival ship = (StreamArrival) income;
+        Package pack = ship.getPackage();
         if (pack == null) {
-            List<Package> fragments = income.getFragments();
+            List<Package> fragments = ship.getFragments();
             if (fragments == null || fragments.size() == 0) {
                 throw new NullPointerException("fragments error: " + income);
             }
@@ -172,7 +197,7 @@ public class StreamDocker extends StarDocker<StreamDeparture, StreamArrival, Tra
     }
 
     @Override
-    protected boolean sendOutgoShip(final StreamDeparture outgo) throws IOException {
+    protected boolean sendOutgoShip(final Departure outgo) throws IOException {
         final List<byte[]> fragments = outgo.getFragments();
         if (fragments == null || fragments.size() == 0) {
             return true;
@@ -185,7 +210,7 @@ public class StreamDocker extends StarDocker<StreamDeparture, StreamArrival, Tra
     }
 
     public void sendPackage(Package pack, int priority) {
-        StreamDeparture ship = new StreamDeparture(priority, pack);
+        Departure ship = new StreamDeparture(priority, pack);
         dock.appendDeparture(ship);
     }
     public void sendPackage(Package pack, Departure.Priority priority) {
@@ -196,7 +221,7 @@ public class StreamDocker extends StarDocker<StreamDeparture, StreamArrival, Tra
     }
 
     @Override
-    public StreamDeparture pack(byte[] payload, int priority) {
+    public Departure pack(byte[] payload, int priority) {
         Package pack = PackUtils.createMessage(payload);
         return new StreamDeparture(priority, pack);
     }
