@@ -42,17 +42,17 @@ import chat.dim.startrek.StarGate;
 public abstract class TCPGate<H extends Hub> extends StarGate implements Runnable {
 
     private boolean running = false;
-    protected final H hub;
+    private H hub = null;
 
     public TCPGate(Delegate delegate) {
         super(delegate);
-        hub = createHub();
     }
 
-    protected abstract H createHub();
-
-    public boolean isRunning() {
-        return running;
+    public H getHub() {
+        return hub;
+    }
+    public void setHub(H h) {
+        hub = h;
     }
 
     public void start() {
@@ -63,20 +63,33 @@ public abstract class TCPGate<H extends Hub> extends StarGate implements Runnabl
         running = false;
     }
 
+    public boolean isRunning() {
+        return running;
+    }
+
     @Override
     public void run() {
-        while (running) {
+        while (isRunning()) {
             if (!process()) {
-                Runner.idle(8);
+                idle();
             }
         }
     }
 
+    protected void idle() {
+        Runner.idle(128);
+    }
+
     @Override
     public boolean process() {
-        boolean activated = hub.process();
-        boolean busy = super.process();
-        return activated || busy;
+        boolean incoming = getHub().process();
+        boolean outgoing = super.process();
+        return incoming || outgoing;
+    }
+
+    @Override
+    public Connection getConnection(SocketAddress remote, SocketAddress local) {
+        return getHub().getConnection(remote, local);
     }
 
     @Override
@@ -92,10 +105,5 @@ public abstract class TCPGate<H extends Hub> extends StarGate implements Runnabl
     @Override
     protected void clearAdvanceParty(SocketAddress source, SocketAddress destination, Connection connection) {
         // TODO: remove advance party for this connection
-    }
-
-    @Override
-    protected Connection getConnection(SocketAddress remote, SocketAddress local) {
-        return hub.getConnection(remote, local);
     }
 }

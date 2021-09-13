@@ -30,9 +30,11 @@
  */
 package chat.dim.network;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import chat.dim.mtp.PackUtils;
@@ -58,40 +60,43 @@ public final class StarTrek extends TCPGate<ClientHub> {
     }
 
     @Override
-    protected ClientHub createHub() {
-        return new ClientHub(this);
-    }
-
-    @Override
     protected Docker createDocker(SocketAddress remote, SocketAddress local, List<byte[]> data) {
         // TODO: check data format before create docker
         return new StreamDocker(remote, local, this);
     }
 
+    @Override
     public void start() {
         super.start();
-        try {
-            hub.connect(remoteAddress, localAddress);
-            (new Thread(this)).start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        (new Thread(this)).start();
     }
 
     void sendCommand(byte[] body, int priority) {
         Package pack = PackUtils.createCommand(body);
         Docker worker = getDocker(remoteAddress, localAddress, null);
-        ((StreamDocker) worker).sendPackage(pack, priority);
+        ((StreamDocker) worker).send(pack, priority);
     }
 
     void sendMessage(byte[] body, int priority) {
         Package pack = PackUtils.createMessage(body);
         Docker worker = getDocker(remoteAddress, localAddress, null);
-        ((StreamDocker) worker).sendPackage(pack, priority);
+        ((StreamDocker) worker).send(pack, priority);
     }
 
     public static StarTrek create(String host, int port, StarDelegate delegate) {
         SocketAddress remote = new InetSocketAddress(host, port);
         return new StarTrek(delegate, remote, null);
+    }
+
+    public static void info(byte[] data) {
+        info(new String(data, StandardCharsets.UTF_8));
+    }
+    public static void info(String msg) {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String now = formatter.format(new Date());
+        System.out.printf("[%s] %s\n", now, msg);
+    }
+    public static void error(String msg) {
+        System.out.printf("ERROR> %s\n", msg);
     }
 }

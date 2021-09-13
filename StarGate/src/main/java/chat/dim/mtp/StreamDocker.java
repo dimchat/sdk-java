@@ -30,14 +30,15 @@
  */
 package chat.dim.mtp;
 
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.SocketAddress;
 import java.util.List;
 
+import chat.dim.net.Connection;
 import chat.dim.port.Arrival;
 import chat.dim.port.Departure;
-import chat.dim.port.Gate;
+import chat.dim.port.Ship;
+import chat.dim.startrek.DepartureShip;
 import chat.dim.startrek.StarDocker;
 import chat.dim.startrek.StarGate;
 import chat.dim.type.ByteArray;
@@ -53,19 +54,26 @@ public class StreamDocker extends StarDocker {
     }
 
     @Override
-    protected Gate getGate() {
-        return gateRef.get();
+    protected Connection getConnection() {
+        StarGate gate = gateRef.get();
+        if (gate == null) {
+            return null;
+        }
+        return gate.getConnection(getRemoteAddress(), getLocalAddress());
     }
 
     @Override
-    protected Gate.Delegate getDelegate() {
+    protected Ship.Delegate getDelegate() {
         StarGate gate = gateRef.get();
-        return gate == null ? null : gate.getDelegate();
+        if (gate == null) {
+            return null;
+        }
+        return gate.getDelegate();
     }
 
     private ByteArray chunks = Data.ZERO;
 
-    private Package parse(byte[] data) {
+    private Package parse(final byte[] data) {
         if (data != null && data.length > 0) {
             // append to tail
             chunks = chunks.concat(data);
@@ -102,7 +110,7 @@ public class StreamDocker extends StarDocker {
     }
 
     @Override
-    protected Arrival getIncomeShip(byte[] data) {
+    protected Arrival getArrival(final byte[] data) {
         final Package pack = parse(data);
         if (pack == null) {
             return null;
@@ -116,7 +124,7 @@ public class StreamDocker extends StarDocker {
     }
 
     @Override
-    protected Arrival checkIncomeShip(Arrival income) {
+    protected Arrival checkArrival(final Arrival income) {
         assert income instanceof StreamArrival : "arrival ship error: " + income;
         StreamArrival ship = (StreamArrival) income;
         Package pack = ship.getPackage();
@@ -150,11 +158,11 @@ public class StreamDocker extends StarDocker {
             //      '...'
             if (body.equals(PING)) {
                 // PING -> PONG
-                sendPackage(PackUtils.respondCommand(head.sn, PONG), Departure.Priority.SLOWER);
+                send(PackUtils.respondCommand(head.sn, PONG), Departure.Priority.SLOWER);
                 return null;
             }
             // respond for Command
-            sendPackage(PackUtils.respondCommand(head.sn, OK));
+            send(PackUtils.respondCommand(head.sn, OK));
             // Unknown Command?
             // let the caller to process it
         } else if (type.isMessageResponse()) {
@@ -174,11 +182,11 @@ public class StreamDocker extends StarDocker {
             // let the caller to process it
         } else if (type.isMessageFragment()) {
             // assemble MessageFragment with cached fragments to completed Message
-            income = dock.assembleArrival(income);
             // let the caller to process the completed message
+            return assembleArrival(income);
         } else if (type.isMessage()) {
             // respond for Message
-            sendPackage(PackUtils.respondMessage(head.sn, head.pages, head.index, OK));
+            send(PackUtils.respondMessage(head.sn, head.pages, head.index, OK));
             // let the caller to process the message
         }
 
@@ -197,27 +205,23 @@ public class StreamDocker extends StarDocker {
     }
 
     @Override
-    protected boolean sendOutgoShip(final Departure outgo) throws IOException {
-        final List<byte[]> fragments = outgo.getFragments();
-        if (fragments == null || fragments.size() == 0) {
-            return true;
+    protected Departure getNextDeparture(final long now) {
+        Departure outgo = super.getNextDeparture(now);
+        if (outgo != null && outgo.getRetries() < DepartureShip.MAX_RETRIES) {
+            // put back for next retry
+            appendDeparture(outgo);
         }
-        if (outgo.getRetries() < 2) {
-            // FIXME:
-            dock.appendDeparture(outgo);
-        }
-        return super.sendOutgoShip(outgo);
+        return outgo;
     }
 
-    public void sendPackage(Package pack, int priority) {
-        Departure ship = new StreamDeparture(priority, pack);
-        dock.appendDeparture(ship);
+    public void send(Package pack) {
+        send(pack, Departure.Priority.NORMAL.value);
     }
-    public void sendPackage(Package pack, Departure.Priority priority) {
-        sendPackage(pack, priority.value);
+    public void send(Package pack, Departure.Priority priority) {
+        send(pack, priority.value);
     }
-    public void sendPackage(Package pack) {
-        sendPackage(pack, Departure.Priority.NORMAL.value);
+    public void send(Package pack, int priority) {
+        appendDeparture(new StreamDeparture(priority, pack));
     }
 
     @Override
@@ -229,7 +233,7 @@ public class StreamDocker extends StarDocker {
     @Override
     public void heartbeat() {
         Package pack = PackUtils.createCommand(PING);
-        sendPackage(pack, Departure.Priority.SLOWER.value);
+        send(pack, Departure.Priority.SLOWER.value);
     }
 
     static final byte[] PING = {'P', 'I', 'N', 'G'};
