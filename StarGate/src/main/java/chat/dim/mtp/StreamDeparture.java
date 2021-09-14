@@ -48,7 +48,7 @@ public class StreamDeparture extends DepartureShip {
         super(prior);
         completed = pack;
         packages = new ArrayList<>();
-        packages.add(pack);
+        packages.add(pack);  // stream docker will not separate packages
         fragments = new ArrayList<>();
     }
 

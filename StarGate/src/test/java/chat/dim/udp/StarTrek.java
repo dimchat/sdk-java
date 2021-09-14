@@ -28,41 +28,41 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.network;
+package chat.dim.udp;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 import chat.dim.mtp.PackUtils;
 import chat.dim.mtp.Package;
-import chat.dim.mtp.StreamDocker;
+import chat.dim.mtp.PackageDocker;
 import chat.dim.port.Docker;
 import chat.dim.port.Gate;
-import chat.dim.stargate.TCPGate;
-import chat.dim.tcp.ClientHub;
+import chat.dim.stargate.UDPGate;
 
-interface StarDelegate extends Gate.Delegate {
-}
-
-public final class StarTrek extends TCPGate<ClientHub> {
+public final class StarTrek extends UDPGate<PackageHub> {
 
     public final SocketAddress remoteAddress;
     public final SocketAddress localAddress;
 
-    public StarTrek(StarDelegate delegate, SocketAddress remote, SocketAddress local) {
+    public StarTrek(Gate.Delegate delegate, SocketAddress remote, SocketAddress local) {
         super(delegate);
         remoteAddress = remote;
         localAddress = local;
     }
 
+    public static StarTrek create(String host, int port, Gate.Delegate delegate) {
+        SocketAddress remote = new InetSocketAddress(host, port);
+        StarTrek gate = new StarTrek(delegate, remote, null);
+        gate.setHub(new PackageHub(gate));
+        return gate;
+    }
+
     @Override
     protected Docker createDocker(SocketAddress remote, SocketAddress local, List<byte[]> data) {
         // TODO: check data format before create docker
-        return new StreamDocker(remote, local, this);
+        return new PackageDocker(remote, local, this);
     }
 
     @Override
@@ -71,32 +71,15 @@ public final class StarTrek extends TCPGate<ClientHub> {
         (new Thread(this)).start();
     }
 
-    void sendCommand(byte[] body, int priority) {
-        Package pack = PackUtils.createCommand(body);
+    public void send(Package pack, int priority) {
         Docker worker = getDocker(remoteAddress, localAddress, null);
-        ((StreamDocker) worker).send(pack, priority);
+        ((PackageDocker) worker).send(pack, priority);
     }
 
-    void sendMessage(byte[] body, int priority) {
-        Package pack = PackUtils.createMessage(body);
-        Docker worker = getDocker(remoteAddress, localAddress, null);
-        ((StreamDocker) worker).send(pack, priority);
+    public void sendCommand(byte[] body, int priority) {
+        send(PackUtils.createCommand(body), priority);
     }
-
-    public static StarTrek create(String host, int port, StarDelegate delegate) {
-        SocketAddress remote = new InetSocketAddress(host, port);
-        return new StarTrek(delegate, remote, null);
-    }
-
-    public static void info(byte[] data) {
-        info(new String(data, StandardCharsets.UTF_8));
-    }
-    public static void info(String msg) {
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        String now = formatter.format(new Date());
-        System.out.printf("[%s] %s\n", now, msg);
-    }
-    public static void error(String msg) {
-        System.out.printf("ERROR> %s\n", msg);
+    public void sendMessage(byte[] body, int priority) {
+        send(PackUtils.createMessage(body), priority);
     }
 }
