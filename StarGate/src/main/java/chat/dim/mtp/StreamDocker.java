@@ -72,41 +72,76 @@ public class StreamDocker extends StarDocker {
     }
 
     private ByteArray chunks = Data.ZERO;
+    private int processing = 0;
 
     private Package parse(final byte[] data) {
-        if (data != null && data.length > 0) {
-            // append to tail
-            chunks = chunks.concat(data);
+        ++processing;
+        if (processing > 1) {
+            // it's already in processing now,
+            // append the data to the tail of memory cache
+            if (data != null && data.length > 0) {
+                chunks = chunks.concat(data);
+            }
+            --processing;
+            return null;
         }
+        // append the data to the memory cache
+        ByteArray buffer;
+        if (data != null && data.length > 0) {
+            buffer = chunks.concat(data);
+        } else {
+            buffer = chunks;
+        }
+        chunks = Data.ZERO;
         // check header
-        final Header head = PackUtils.parseHead(chunks);
+        final Header head = PackUtils.parseHead(buffer);
         if (head == null) {
             // header error, seeking for next header
-            int pos = chunks.find(Header.MAGIC_CODE, 1);
+            int pos = buffer.find(Header.MAGIC_CODE, 1);
             if (pos > 0) {
                 // found, drop all data before it
-                chunks = chunks.slice(pos);
-                // try again
-                return parse(null);
-            } else {
-                // not found, drop all data
-                chunks = Data.ZERO;
-                return null;
+                buffer = buffer.slice(pos);
+                if (buffer.getSize() > 0) {
+                    // join to the memory cache
+                    if (chunks.getSize() > 0) {
+                        chunks = buffer.concat(chunks);
+                    } else {
+                        chunks = buffer;
+                    }
+                }
+                if (chunks.getSize() > 0) {
+                    // try again
+                    --processing;
+                    return parse(null);
+                }
             }
+            // waiting for more data
+            --processing;
+            return null;
         }
         // header ok, check body length
-        int dataLen = chunks.getSize();
+        int dataLen = buffer.getSize();
         int headLen = head.getSize();
         int bodyLen = head.bodyLength;
         int packLen = bodyLen == -1 ? dataLen : headLen + bodyLen;
         //assert bodyLen != -1;
         if (dataLen < packLen) {
             // waiting for more data
+            --processing;
             return null;
         }
-        ByteArray pack = chunks.slice(0, packLen);
-        chunks = chunks.slice(packLen);
-        return new Package(pack, head, pack.slice(headLen));
+        if (dataLen > packLen) {
+            // cut the tail and put it back to the memory cache
+            if (chunks.getSize() > 0) {
+                chunks = buffer.slice(packLen).concat(chunks);
+            } else {
+                chunks = buffer.slice(packLen);
+            }
+            buffer = buffer.slice(0, packLen);
+        }
+        // OK
+        --processing;
+        return new Package(buffer, head, buffer.slice(headLen));
     }
 
     @Override
@@ -158,7 +193,7 @@ public class StreamDocker extends StarDocker {
             //      '...'
             if (body.equals(PING)) {
                 // PING -> PONG
-                send(PackUtils.respondCommand(head.sn, PONG), Departure.Priority.SLOWER);
+                send(PackUtils.respondCommand(head.sn, PONG));
                 return null;
             }
             // respond for Command
@@ -214,26 +249,29 @@ public class StreamDocker extends StarDocker {
         return outgo;
     }
 
-    public void send(Package pack) {
-        send(pack, Departure.Priority.NORMAL.value);
+    public void send(Package pkg) {
+        send(pkg, Departure.Priority.NORMAL.value, getDelegate());
     }
-    public void send(Package pack, Departure.Priority priority) {
-        send(pack, priority.value);
+
+    public void send(Package pkg, int priority, Ship.Delegate delegate) {
+        Departure ship = new StreamDeparture(delegate, priority, pkg);
+        appendDeparture(ship);
     }
-    public void send(Package pack, int priority) {
-        appendDeparture(new StreamDeparture(priority, pack));
+    public void send(Departure ship) {
+        appendDeparture(ship);
     }
 
     @Override
-    public Departure pack(byte[] payload, int priority) {
-        Package pack = PackUtils.createMessage(payload);
-        return new StreamDeparture(priority, pack);
+    public Departure pack(byte[] payload, int priority, Ship.Delegate delegate) {
+        Package pkg = PackUtils.createMessage(payload);
+        return new StreamDeparture(delegate, priority, pkg);
     }
 
     @Override
     public void heartbeat() {
-        Package pack = PackUtils.createCommand(PING);
-        send(pack, Departure.Priority.SLOWER.value);
+        Package pkg = PackUtils.createCommand(PING);
+        Departure ship = new StreamDeparture(null, Departure.Priority.SLOWER.value, pkg);
+        appendDeparture(ship);
     }
 
     static final byte[] PING = {'P', 'I', 'N', 'G'};

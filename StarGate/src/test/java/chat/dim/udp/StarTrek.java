@@ -71,15 +71,15 @@ public final class StarTrek extends UDPGate<PackageHub> {
         (new Thread(this)).start();
     }
 
-    public void send(Package pack, int priority) {
+    public void send(Package pack) {
         Docker worker = getDocker(remoteAddress, localAddress, null);
-        ((PackageDocker) worker).send(pack, priority);
+        ((PackageDocker) worker).send(pack);
     }
 
-    public void sendCommand(byte[] body, int priority) {
-        send(PackUtils.createCommand(body), priority);
+    public void sendCommand(byte[] body) {
+        send(PackUtils.createCommand(body));
     }
-    public void sendMessage(byte[] body, int priority) {
-        send(PackUtils.createMessage(body), priority);
+    public void sendMessage(byte[] body) {
+        send(PackUtils.createMessage(body));
     }
 }

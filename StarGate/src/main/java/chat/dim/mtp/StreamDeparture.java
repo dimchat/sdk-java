@@ -44,8 +44,8 @@ public class StreamDeparture extends DepartureShip {
     private final List<Package> packages;
     private final List<byte[]> fragments;
 
-    public StreamDeparture(int prior, Package pack) {
-        super(prior);
+    public StreamDeparture(Delegate delegate, int prior, Package pack) {
+        super(delegate, prior);
         completed = pack;
         packages = new ArrayList<>();
         packages.add(pack);  // stream docker will not separate packages
