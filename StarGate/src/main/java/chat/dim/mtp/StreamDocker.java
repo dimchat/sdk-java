@@ -30,51 +30,26 @@
  */
 package chat.dim.mtp;
 
-import java.lang.ref.WeakReference;
 import java.net.SocketAddress;
-import java.util.List;
 
-import chat.dim.net.Connection;
 import chat.dim.port.Arrival;
 import chat.dim.port.Departure;
 import chat.dim.port.Ship;
-import chat.dim.startrek.DepartureShip;
-import chat.dim.startrek.StarDocker;
 import chat.dim.startrek.StarGate;
 import chat.dim.type.ByteArray;
 import chat.dim.type.Data;
 
-public class StreamDocker extends StarDocker {
-
-    private final WeakReference<StarGate> gateRef;
+public class StreamDocker extends PackageDocker {
 
     public StreamDocker(SocketAddress remote, SocketAddress local, StarGate gate) {
-        super(remote, local);
-        gateRef = new WeakReference<>(gate);
-    }
-
-    @Override
-    protected Connection getConnection() {
-        StarGate gate = gateRef.get();
-        if (gate == null) {
-            return null;
-        }
-        return gate.getConnection(getRemoteAddress(), getLocalAddress());
-    }
-
-    @Override
-    protected Ship.Delegate getDelegate() {
-        StarGate gate = gateRef.get();
-        if (gate == null) {
-            return null;
-        }
-        return gate.getDelegate();
+        super(remote, local, gate);
     }
 
     private ByteArray chunks = Data.ZERO;
     private int processing = 0;
 
-    private Package parse(final byte[] data) {
+    @Override
+    protected Package parsePackage(final byte[] data) {
         ++processing;
         if (processing > 1) {
             // it's already in processing now,
@@ -112,7 +87,7 @@ public class StreamDocker extends StarDocker {
                 if (chunks.getSize() > 0) {
                     // try again
                     --processing;
-                    return parse(null);
+                    return parsePackage(null);
                 }
             }
             // waiting for more data
@@ -145,138 +120,34 @@ public class StreamDocker extends StarDocker {
     }
 
     @Override
-    protected Arrival getArrival(final byte[] data) {
-        final Package pack = parse(data);
-        if (pack == null) {
-            return null;
-        }
-        final ByteArray body = pack.body;
-        if (body == null || body.getSize() == 0) {
-            // should not happen
-            return null;
-        }
-        return new StreamArrival(pack);
+    protected Arrival createArrival(final Package pkg) {
+        return new StreamArrival(pkg);
     }
 
     @Override
-    protected Arrival checkArrival(final Arrival income) {
-        assert income instanceof StreamArrival : "arrival ship error: " + income;
-        StreamArrival ship = (StreamArrival) income;
-        Package pack = ship.getPackage();
-        if (pack == null) {
-            List<Package> fragments = ship.getFragments();
-            if (fragments == null || fragments.size() == 0) {
-                throw new NullPointerException("fragments error: " + income);
-            }
-            // each ship can carry one fragment only
-            pack = fragments.get(0);
-        }
-        // check data type in package header
-        final Header head = pack.head;
-        final DataType type = head.type;
-        final ByteArray body = pack.body;
-
-        if (type.isCommandResponse()) {
-            // process CommandResponse:
-            //      'PONG'
-            //      'OK'
-            checkResponse(income);
-            if (body.equals(PONG) || body.equals(OK)) {
-                // command responded
-                return null;
-            }
-            // extra data in CommandResponse?
-            // let the caller to process it
-        } else if (type.isCommand()) {
-            // process Command:
-            //      'PING'
-            //      '...'
-            if (body.equals(PING)) {
-                // PING -> PONG
-                send(PackUtils.respondCommand(head.sn, PONG));
-                return null;
-            }
-            // respond for Command
-            send(PackUtils.respondCommand(head.sn, OK));
-            // Unknown Command?
-            // let the caller to process it
-        } else if (type.isMessageResponse()) {
-            // process MessageResponse:
-            //      'OK'
-            //      'AGAIN'
-            if (body.equals(AGAIN)) {
-                // TODO: reset maxRetries?
-                return null;
-            }
-            checkResponse(income);
-            if (body.equals(OK)) {
-                // message responded
-                return null;
-            }
-            // extra data in MessageResponse?
-            // let the caller to process it
-        } else if (type.isMessageFragment()) {
-            // assemble MessageFragment with cached fragments to completed Message
-            // let the caller to process the completed message
-            return assembleArrival(income);
-        } else if (type.isMessage()) {
-            // respond for Message
-            send(PackUtils.respondMessage(head.sn, head.pages, head.index, OK));
-            // let the caller to process the message
-        }
-
-        if (body.getSize() == 4) {
-            if (body.equals(NOOP)) {
-                // do nothing
-                return null;
-            } else if (body.equals(PING) || body.equals(PONG)) {
-                // FIXME: these bodies should be in a Command
-                // ignore them
-                return null;
-            }
-        }
-
-        return income;
+    protected Departure createDeparture(Package pkg, int priority, Ship.Delegate delegate) {
+        return new StreamDeparture(pkg, priority, delegate);
     }
 
     @Override
-    protected Departure getNextDeparture(final long now) {
-        Departure outgo = super.getNextDeparture(now);
-        if (outgo != null && outgo.getRetries() < DepartureShip.MAX_RETRIES) {
-            // put back for next retry
-            appendDeparture(outgo);
-        }
-        return outgo;
+    protected void respondCommand(TransactionID sn, byte[] body) {
+        send(PackUtils.respondCommand(sn, body));
     }
 
-    public void send(Package pkg) {
-        send(pkg, Departure.Priority.NORMAL.value, getDelegate());
-    }
-
-    public void send(Package pkg, int priority, Ship.Delegate delegate) {
-        Departure ship = new StreamDeparture(delegate, priority, pkg);
-        appendDeparture(ship);
-    }
-    public void send(Departure ship) {
-        appendDeparture(ship);
+    @Override
+    protected void respondMessage(TransactionID sn, int pages, int index) {
+        send(PackUtils.respondMessage(sn, pages, index, OK));
     }
 
     @Override
     public Departure pack(byte[] payload, int priority, Ship.Delegate delegate) {
         Package pkg = PackUtils.createMessage(payload);
-        return new StreamDeparture(delegate, priority, pkg);
+        return createDeparture(pkg, priority, delegate);
     }
 
     @Override
     public void heartbeat() {
         Package pkg = PackUtils.createCommand(PING);
-        Departure ship = new StreamDeparture(null, Departure.Priority.SLOWER.value, pkg);
-        appendDeparture(ship);
+        appendDeparture(createDeparture(pkg, Departure.Priority.SLOWER.value, null));
     }
-
-    static final byte[] PING = {'P', 'I', 'N', 'G'};
-    static final byte[] PONG = {'P', 'O', 'N', 'G'};
-    static final byte[] NOOP = {'N', 'O', 'O', 'P'};
-    static final byte[] OK = {'O', 'K'};
-    static final byte[] AGAIN = {'A', 'G', 'A', 'I', 'N'};
 }

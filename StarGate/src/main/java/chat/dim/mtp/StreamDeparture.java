@@ -31,80 +31,19 @@
 package chat.dim.mtp;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
-import chat.dim.port.Arrival;
-import chat.dim.startrek.DepartureShip;
+public class StreamDeparture extends PackageDeparture {
 
-public class StreamDeparture extends DepartureShip {
-
-    private final Package completed;
-
-    private final List<Package> packages;
-    private final List<byte[]> fragments;
-
-    public StreamDeparture(Delegate delegate, int prior, Package pack) {
-        super(delegate, prior);
-        completed = pack;
-        packages = new ArrayList<>();
-        packages.add(pack);  // stream docker will not separate packages
-        fragments = new ArrayList<>();
-    }
-
-    public Package getPackage() {
-        return completed;
+    public StreamDeparture(Package pack, int prior, Delegate delegate) {
+        super(pack, prior, delegate);
     }
 
     @Override
-    public TransactionID getSN() {
-        return completed.head.sn;
-    }
-
-    @Override
-    public List<byte[]> getFragments() {
-        if (fragments.size() == 0 && packages.size() > 0) {
-            for (Package pack : packages) {
-                fragments.add(pack.getBytes());
-            }
-        }
-        return fragments;
-    }
-
-    @Override
-    public boolean checkResponse(Arrival response) {
-        int count = 0;
-        assert response instanceof StreamArrival : "arrival ship error: " + response;
-        StreamArrival ship = (StreamArrival) response;
-        List<Package> array = ship.getFragments();
-        if (array == null) {
-            // it's a completed data package
-            Package pack = ship.getPackage();
-            if (removePage(pack.head.index)) {
-                ++count;
-            }
-        } else {
-            for (Package pack : array) {
-                if (removePage(pack.head.index)) {
-                    ++count;
-                }
-            }
-        }
-        if (count == 0) {
-            return false;
-        }
-        fragments.clear();
-        return true;
-    }
-    private boolean removePage(int index) {
-        Iterator<Package> iterator = packages.iterator();
-        while (iterator.hasNext()) {
-            if (iterator.next().head.index == index) {
-                // got it
-                iterator.remove();
-                return true;
-            }
-        }
-        return false;
+    protected List<Package> split(Package pack) {
+        // stream docker will not separate packages
+        List<Package> array = new ArrayList<>();
+        array.add(pack);
+        return array;
     }
 }

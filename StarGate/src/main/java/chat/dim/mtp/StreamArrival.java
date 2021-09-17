@@ -30,53 +30,9 @@
  */
 package chat.dim.mtp;
 
-import java.util.List;
-
-import chat.dim.port.Arrival;
-import chat.dim.startrek.ArrivalShip;
-
-public class StreamArrival extends ArrivalShip {
-
-    private final TransactionID sn;
-
-    private final Packer packer;
-    private Package completed;
+public class StreamArrival extends PackageArrival {
 
     public StreamArrival(Package pack) {
-        super();
-        sn = pack.head.sn;
-        if (pack.isFragment()) {
-            packer = new Packer(pack.head.sn, pack.head.pages);
-            completed = packer.insert(pack);
-        } else {
-            packer = null;
-            completed = pack;
-        }
-    }
-
-    public Package getPackage() {
-        return completed;
-    }
-
-    @Override
-    public TransactionID getSN() {
-        return sn;
-    }
-
-    @Override
-    public Arrival assemble(Arrival income) {
-        if (completed == null && this != income) {
-            assert income instanceof StreamArrival : "arrival ship error: " + income;
-            List<Package> fragments = ((StreamArrival) income).getFragments();
-            assert fragments != null && fragments.size() > 0 : "fragments error: " + income;
-            for (Package item : fragments) {
-                completed = packer.insert(item);
-            }
-        }
-        return completed == null ? null : this;
-    }
-
-    List<Package> getFragments() {
-        return packer == null ? null : packer.getFragments();
+        super(pack);
     }
 }
