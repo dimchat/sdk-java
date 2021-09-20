@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  MTP: Message Transfer Protocol
+ *  Star Gate: Network Connection Module
  *
  *                                Written in 2021 by Moky <albert.moky@gmail.com>
  *
@@ -28,40 +28,14 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.mtp;
+package chat.dim.stream;
 
-import chat.dim.type.ByteArray;
-import chat.dim.type.Data;
+public class SeekerResult<V> {
+    public final V value;
+    public final int offset;
 
-public class PackUtils {
-
-    public static Header parseHead(ByteArray data) {
-        return Header.parse(data);
-    }
-    public static Header parseHead(byte[] data) {
-        return Header.parse(new Data(data));
-    }
-
-    public static Package parse(ByteArray data) {
-        return Package.parse(data);
-    }
-    public static Package parse(byte[] data) {
-        return Package.parse(new Data(data));
-    }
-
-    public static Package createCommand(byte[] body) {
-        return Package.create(DataType.COMMAND, body.length, new Data(body));
-    }
-
-    public static Package createMessage(byte[] body) {
-        return Package.create(DataType.MESSAGE, body.length, new Data(body));
-    }
-
-    public static Package respondCommand(TransactionID sn , byte[] body) {
-        return Package.create(DataType.COMMAND_RESPONSE, sn, body.length, new Data(body));
-    }
-
-    public static Package respondMessage(TransactionID sn, int pages, int index, byte[] body) {
-        return Package.create(DataType.MESSAGE_RESPONSE, sn, pages, index, body.length, new Data(body));
+    public SeekerResult(V res, int pos) {
+        value = res;
+        offset = pos;
     }
 }

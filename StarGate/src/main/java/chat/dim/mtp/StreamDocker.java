@@ -31,11 +31,15 @@
 package chat.dim.mtp;
 
 import java.net.SocketAddress;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import chat.dim.port.Arrival;
 import chat.dim.port.Departure;
 import chat.dim.port.Ship;
 import chat.dim.startrek.StarGate;
+import chat.dim.stream.SeekerResult;
 import chat.dim.type.ByteArray;
 import chat.dim.type.Data;
 
@@ -46,77 +50,50 @@ public class StreamDocker extends PackageDocker {
     }
 
     private ByteArray chunks = Data.ZERO;
-    private int processing = 0;
+    private boolean received = false;
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     @Override
     protected Package parsePackage(final byte[] data) {
-        ++processing;
-        if (processing > 1) {
-            // it's already in processing now,
-            // append the data to the tail of memory cache
-            if (data != null && data.length > 0) {
-                chunks = chunks.concat(data);
-            }
-            --processing;
-            return null;
-        }
-        // append the data to the memory cache
-        ByteArray buffer;
-        if (data != null && data.length > 0) {
-            buffer = chunks.concat(data);
-        } else {
-            buffer = chunks;
-        }
-        chunks = Data.ZERO;
-        // check header
-        final Header head = PackUtils.parseHead(buffer);
-        if (head == null) {
-            // header error, seeking for next header
-            int pos = buffer.find(Header.MAGIC_CODE, 1);
-            if (pos > 0) {
-                // found, drop all data before it
-                buffer = buffer.slice(pos);
-                if (buffer.getSize() > 0) {
-                    // join to the memory cache
-                    if (chunks.getSize() > 0) {
-                        chunks = buffer.concat(chunks);
-                    } else {
-                        chunks = buffer;
-                    }
+        Package pack;
+        Lock writeLock = lock.writeLock();
+        writeLock.lock();
+        try {
+            // join the data to the memory cache
+            ByteArray buffer = chunks.concat(data);
+            chunks = Data.ZERO;
+            // try to fetch a package
+            SeekerResult<Package> result = MTPHelper.seekPackage(buffer);
+            pack = result.value;
+            received = pack != null;
+            int offset = result.offset;
+            if (offset >= 0) {
+                // 'error part' + 'MTP package' + 'remaining data'
+                if (pack != null) {
+                    offset += pack.getSize();
                 }
-                if (chunks.getSize() > 0) {
-                    // try again
-                    --processing;
-                    return parsePackage(null);
+                if (offset == 0) {
+                    chunks = buffer.concat(chunks);
+                } else if (offset < buffer.getSize()) {
+                    chunks = buffer.slice(offset).concat(chunks);
                 }
             }
-            // waiting for more data
-            --processing;
-            return null;
+        } finally {
+            writeLock.unlock();
         }
-        // header ok, check body length
-        int dataLen = buffer.getSize();
-        int headLen = head.getSize();
-        int bodyLen = head.bodyLength;
-        int packLen = bodyLen == -1 ? dataLen : headLen + bodyLen;
-        //assert bodyLen != -1;
-        if (dataLen < packLen) {
-            // waiting for more data
-            --processing;
-            return null;
+        return pack;
+    }
+
+    @Override
+    public void processReceived(byte[] data) {
+        // the cached data maybe contain sticky packages,
+        // so we need to process them circularly here
+        received = true;
+        while (received) {
+            received = false;
+            super.processReceived(data);
+            data = new byte[0];
         }
-        if (dataLen > packLen) {
-            // cut the tail and put it back to the memory cache
-            if (chunks.getSize() > 0) {
-                chunks = buffer.slice(packLen).concat(chunks);
-            } else {
-                chunks = buffer.slice(packLen);
-            }
-            buffer = buffer.slice(0, packLen);
-        }
-        // OK
-        --processing;
-        return new Package(buffer, head, buffer.slice(headLen));
     }
 
     @Override
@@ -131,23 +108,23 @@ public class StreamDocker extends PackageDocker {
 
     @Override
     protected void respondCommand(TransactionID sn, byte[] body) {
-        send(PackUtils.respondCommand(sn, body));
+        send(MTPHelper.respondCommand(sn, body));
     }
 
     @Override
     protected void respondMessage(TransactionID sn, int pages, int index) {
-        send(PackUtils.respondMessage(sn, pages, index, OK));
+        send(MTPHelper.respondMessage(sn, pages, index, OK));
     }
 
     @Override
     public Departure pack(byte[] payload, int priority, Ship.Delegate delegate) {
-        Package pkg = PackUtils.createMessage(payload);
+        Package pkg = MTPHelper.createMessage(payload);
         return createDeparture(pkg, priority, delegate);
     }
 
     @Override
     public void heartbeat() {
-        Package pkg = PackUtils.createCommand(PING);
+        Package pkg = MTPHelper.createCommand(PING);
         appendDeparture(createDeparture(pkg, Departure.Priority.SLOWER.value, null));
     }
 }

@@ -33,7 +33,7 @@ package chat.dim.udp;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 
-import chat.dim.mtp.PackUtils;
+import chat.dim.mtp.MTPHelper;
 import chat.dim.mtp.Package;
 import chat.dim.port.Gate;
 import chat.dim.stargate.UDPGate;
@@ -63,11 +63,11 @@ public final class StarTrek extends UDPGate<PackageHub> {
     }
 
     public void sendCommand(byte[] body) {
-        Package pack = PackUtils.createCommand(body);
+        Package pack = MTPHelper.createCommand(body);
         send(pack, localAddress, remoteAddress);
     }
     public void sendMessage(byte[] body) {
-        Package pack = PackUtils.createMessage(body);
+        Package pack = MTPHelper.createMessage(body);
         send(pack, localAddress, remoteAddress);
     }
 }
