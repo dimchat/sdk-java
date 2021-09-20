@@ -31,79 +31,34 @@
 package chat.dim.stargate;
 
 import java.net.SocketAddress;
-import java.util.ArrayList;
 import java.util.List;
 
-import chat.dim.net.Connection;
+import chat.dim.mtp.Package;
+import chat.dim.mtp.PackageDocker;
 import chat.dim.net.Hub;
-import chat.dim.skywalker.Runner;
-import chat.dim.startrek.StarGate;
+import chat.dim.port.Departure;
+import chat.dim.port.Docker;
 
-public abstract class UDPGate<H extends Hub> extends StarGate implements Runnable {
-
-    private boolean running = false;
-    private H hub = null;
+public class UDPGate<H extends Hub> extends CommonGate<H> {
 
     public UDPGate(Delegate delegate) {
         super(delegate);
     }
 
-    public H getHub() {
-        return hub;
-    }
-    public void setHub(H h) {
-        hub = h;
-    }
-
-    public void start() {
-        running = true;
-    }
-
-    public void stop() {
-        running = false;
-    }
-
-    public boolean isRunning() {
-        return running;
-    }
-
     @Override
-    public void run() {
-        while (isRunning()) {
-            if (!process()) {
-                idle();
-            }
-        }
+    protected Docker createDocker(SocketAddress remote, SocketAddress local, List<byte[]> data) {
+        // TODO: check data format before create docker
+        return new PackageDocker(remote, local, this);
     }
 
-    protected void idle() {
-        Runner.idle(128);
+    public void send(Package pack, SocketAddress source, SocketAddress destination,
+                     int priority, Delegate delegate) {
+        Docker worker = getDocker(destination, source, null);
+        ((PackageDocker) worker).send(pack, priority, delegate);
     }
 
-    @Override
-    public boolean process() {
-        boolean incoming = getHub().process();
-        boolean outgoing = super.process();
-        return incoming || outgoing;
-    }
-
-    @Override
-    public Connection getConnection(SocketAddress remote, SocketAddress local) {
-        return getHub().getConnection(remote, local);
-    }
-
-    @Override
-    protected List<byte[]> cacheAdvanceParty(byte[] data, SocketAddress source, SocketAddress destination, Connection connection) {
-        // TODO: cache the advance party before decide which docker to use
-        List<byte[]> array = new ArrayList<>();
-        if (data != null) {
-            array.add(data);
-        }
-        return array;
-    }
-
-    @Override
-    protected void clearAdvanceParty(SocketAddress source, SocketAddress destination, Connection connection) {
-        // TODO: remove advance party for this connection
+    public void send(Package pack, SocketAddress source, SocketAddress destination) {
+        final int priority = Departure.Priority.NORMAL.value;
+        send(pack, source, destination, priority, getDelegate());
     }
 }

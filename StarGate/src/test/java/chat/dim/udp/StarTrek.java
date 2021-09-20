@@ -32,12 +32,9 @@ package chat.dim.udp;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.util.List;
 
 import chat.dim.mtp.PackUtils;
 import chat.dim.mtp.Package;
-import chat.dim.mtp.PackageDocker;
-import chat.dim.port.Docker;
 import chat.dim.port.Gate;
 import chat.dim.stargate.UDPGate;
 
@@ -60,26 +57,17 @@ public final class StarTrek extends UDPGate<PackageHub> {
     }
 
     @Override
-    protected Docker createDocker(SocketAddress remote, SocketAddress local, List<byte[]> data) {
-        // TODO: check data format before create docker
-        return new PackageDocker(remote, local, this);
-    }
-
-    @Override
     public void start() {
         super.start();
         (new Thread(this)).start();
     }
 
-    public void send(Package pack) {
-        Docker worker = getDocker(remoteAddress, localAddress, null);
-        ((PackageDocker) worker).send(pack);
-    }
-
     public void sendCommand(byte[] body) {
-        send(PackUtils.createCommand(body));
+        Package pack = PackUtils.createCommand(body);
+        send(pack, localAddress, remoteAddress);
     }
     public void sendMessage(byte[] body) {
-        send(PackUtils.createMessage(body));
+        Package pack = PackUtils.createMessage(body);
+        send(pack, localAddress, remoteAddress);
     }
 }
