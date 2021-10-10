@@ -47,7 +47,7 @@ import chat.dim.crypto.CryptoUtils;
 
 public final class ECCKeys {
 
-    private static byte[] privatePrefix = Hex.decode("303E020100301006072A8648CE3D020106052B8104000A042730250201010420");
+    private static final byte[] privatePrefix = Hex.decode("303E020100301006072A8648CE3D020106052B8104000A042730250201010420");
 
     private static PrivateKey createPrivateKey(byte[] privateKey) {
         byte[] full = new byte[privatePrefix.length + privateKey.length];

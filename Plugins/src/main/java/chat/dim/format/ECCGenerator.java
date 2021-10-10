@@ -98,6 +98,6 @@ final class ECCGenerator {
         return new ECPoint(Xout, Yout);
     }
 
-    static private BigInteger FieldP_2 = BigInteger.valueOf(2); // constant for scalar operations
-    static private BigInteger FieldP_3 = BigInteger.valueOf(3); // constant for scalar operations
+    static private final BigInteger FieldP_2 = BigInteger.valueOf(2); // constant for scalar operations
+    static private final BigInteger FieldP_3 = BigInteger.valueOf(3); // constant for scalar operations
 }

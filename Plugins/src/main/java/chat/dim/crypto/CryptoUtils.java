@@ -52,47 +52,38 @@ public final class CryptoUtils {
     //
 
     public static AlgorithmParameters getAlgorithmParameters(String algorithm) throws NoSuchAlgorithmException {
-        try {
-            return AlgorithmParameters.getInstance(algorithm, "BC");
-        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-            //e.printStackTrace();
-            return AlgorithmParameters.getInstance(algorithm);
-        }
+        return AlgorithmParameters.getInstance(algorithm);
     }
 
     public static KeyFactory getKeyFactory(String algorithm) throws NoSuchAlgorithmException {
-        try {
-            return KeyFactory.getInstance(algorithm, "BC");
-        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-            //e.printStackTrace();
-            return KeyFactory.getInstance(algorithm);
-        }
+        return KeyFactory.getInstance(algorithm);
     }
 
     public static KeyPairGenerator getKeyPairGenerator(String algorithm) throws NoSuchAlgorithmException {
-        try {
-            return KeyPairGenerator.getInstance(algorithm, "BC");
-        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-            //e.printStackTrace();
-            return KeyPairGenerator.getInstance(algorithm);
+        if (algorithm.equals("EC")) {
+            // ECC
+            try {
+                return KeyPairGenerator.getInstance(algorithm, "BC");
+            } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+                //e.printStackTrace();
+            }
         }
+        return KeyPairGenerator.getInstance(algorithm);
     }
 
     public static Cipher getCipher(String algorithm) throws NoSuchPaddingException, NoSuchAlgorithmException {
-        try {
-            return Cipher.getInstance(algorithm, "BC");
-        } catch (NoSuchAlgorithmException | NoSuchProviderException | NoSuchPaddingException e) {
-            //e.printStackTrace();
-            return Cipher.getInstance(algorithm);
-        }
+        return Cipher.getInstance(algorithm);
     }
 
     public static Signature getSignature(String algorithm) throws NoSuchAlgorithmException {
-        try {
-            return Signature.getInstance(algorithm, "BC");
-        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-            //e.printStackTrace();
-            return Signature.getInstance(algorithm);
+        if (algorithm.equals(ECDSA_SHA256)) {
+            // ECC
+            try {
+                return Signature.getInstance(algorithm, "BC");
+            } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+                //e.printStackTrace();
+            }
         }
+        return Signature.getInstance(algorithm);
     }
 }
