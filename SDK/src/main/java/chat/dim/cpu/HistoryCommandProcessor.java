@@ -30,6 +30,9 @@
  */
 package chat.dim.cpu;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
@@ -43,14 +46,16 @@ public class HistoryCommandProcessor extends CommandProcessor {
     }
 
     @Override
-    public Content execute(Command cmd, ReliableMessage rMsg) {
-        String text = String.format("History command (name: %s) not support yet!", cmd.getCommand());
-        TextContent res = new TextContent(text);
+    public List<Content> execute(final Command cmd, final ReliableMessage rMsg) {
+        final String text = String.format("History command (name: %s) not support yet!", cmd.getCommand());
+        final TextContent res = new TextContent(text);
         // check group message
-        ID group = cmd.getGroup();
+        final ID group = cmd.getGroup();
         if (group != null) {
             res.setGroup(group);
         }
-        return res;
+        final List<Content> responses = new ArrayList<>();
+        responses.add(res);
+        return responses;
     }
 }

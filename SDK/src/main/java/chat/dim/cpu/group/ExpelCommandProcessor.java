@@ -49,31 +49,31 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public Content execute(Command cmd, ReliableMessage rMsg) {
+    public List<Content> execute(final Command cmd, final ReliableMessage rMsg) {
         assert cmd instanceof ExpelCommand : "expel command error: " + cmd;
-        Facebook facebook = getFacebook();
+        final Facebook facebook = getFacebook();
 
         // 0. check group
-        ID group = cmd.getGroup();
-        ID owner = facebook.getOwner(group);
-        List<ID> members = facebook.getMembers(group);
+        final ID group = cmd.getGroup();
+        final ID owner = facebook.getOwner(group);
+        final List<ID> members = facebook.getMembers(group);
         if (owner == null || members == null || members.size() == 0) {
             throw new NullPointerException("Group not ready: " + group);
         }
 
         // 1. check permission
-        ID sender = rMsg.getSender();
+        final ID sender = rMsg.getSender();
         if (!owner.equals(sender)) {
             // not the owner? check assistants
-            List<ID> assistants = facebook.getAssistants(group);
+            final List<ID> assistants = facebook.getAssistants(group);
             if (assistants == null || !assistants.contains(sender)) {
-                String text = sender + " is not the owner/assistant of group " + group + ", cannot expel member.";
+                final String text = sender + " is not the owner/assistant of group " + group + ", cannot expel member.";
                 throw new UnsupportedOperationException(text);
             }
         }
 
         // 2. expelling members
-        List<ID> expelList = getMembers((GroupCommand) cmd);
+        final List<ID> expelList = getMembers((GroupCommand) cmd);
         if (expelList.size() == 0) {
             throw new NullPointerException("expel command error: " + cmd);
         }
@@ -82,7 +82,7 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
             throw new UnsupportedOperationException("cannot expel owner(" + owner + ") of group: " + group);
         }
         // 2.2. build expelled-list
-        List<String> removedList = new ArrayList<>();
+        final List<String> removedList = new ArrayList<>();
         for (ID item: expelList) {
             if (!members.contains(item)) {
                 continue;

@@ -30,9 +30,14 @@
  */
 package chat.dim.cpu;
 
+import java.util.List;
+
+import chat.dim.Messenger;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ForwardContent;
+import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
+import chat.dim.protocol.SecureMessage;
 
 public class ForwardContentProcessor extends ContentProcessor {
 
@@ -41,24 +46,26 @@ public class ForwardContentProcessor extends ContentProcessor {
     }
 
     @Override
-    public Content process(Content content, ReliableMessage rMsg) {
+    public List<Content> process(final Content content, final ReliableMessage rMsg) {
         assert content instanceof ForwardContent : "forward content error: " + content;
-        ForwardContent forward = (ForwardContent) content;
-        ReliableMessage secret = forward.getMessage();
+        final ForwardContent forward = (ForwardContent) content;
+        final ReliableMessage secret = forward.getMessage();
         // call messenger to process it
-        secret = getMessenger().process(secret);
-        // check response
-        if (secret != null) {
-            // Over The Top
-            return new ForwardContent(secret);
-        }/* else {
-            Object receiver = forward.forwardMessage.getReceiver();
-            String text = String.format("Message forwarded: %s", receiver);
-            return new ReceiptCommand(text);
-        }*/
-
-        // NOTICE: decrypt failed, not for you?
-        //         it means you are asked to re-pack and forward this message
-        return null;
+        final Messenger messenger = getMessenger();
+        // 1. verify message
+        final SecureMessage sMsg = messenger.verifyMessage(secret);
+        if (sMsg == null) {
+            // waiting for sender's meta if not exists
+            return null;
+        }
+        // 2. decrypt message
+        final InstantMessage iMsg = messenger.decryptMessage(sMsg);
+        if (iMsg == null) {
+            // NOTICE: decrypt failed, not for you?
+            //         it means you are asked to re-pack and forward this message
+            return null;
+        }
+        // 3. process message content
+        return messenger.process(iMsg.getContent(), secret);
     }
 }

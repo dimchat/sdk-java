@@ -46,13 +46,13 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
         super();
     }
 
-    protected List<ID> getMembers(GroupCommand cmd) {
+    protected List<ID> getMembers(final GroupCommand cmd) {
         // get from 'members'
         List<ID> members = cmd.getMembers();
         if (members == null) {
             members = new ArrayList<>();
             // get from 'member'
-            ID member = cmd.getMember();
+            final ID member = cmd.getMember();
             if (member != null) {
                 members.add(member);
             }
@@ -61,17 +61,19 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
     }
 
     @Override
-    public Content execute(Command cmd, ReliableMessage rMsg) {
-        String text = String.format("Group command (name: %s) not support yet!", cmd.getCommand());
-        TextContent res = new TextContent(text);
+    public List<Content> execute(final Command cmd, final ReliableMessage rMsg) {
+        final String text = String.format("Group command (name: %s) not support yet!", cmd.getCommand());
+        final TextContent res = new TextContent(text);
         res.setGroup(cmd.getGroup());
-        return res;
+        final List<Content> responses = new ArrayList<>();
+        responses.add(res);
+        return responses;
     }
 
     @Override
-    public Content process(Content content, ReliableMessage rMsg) {
+    public List<Content> process(final Content content, final ReliableMessage rMsg) {
         assert content instanceof GroupCommand : "group command error: " + content;
-        Command cmd = (Command) content;
+        final Command cmd = (Command) content;
         // get CPU by command name
         CommandProcessor cpu = getProcessor(cmd);
         if (cpu == null) {

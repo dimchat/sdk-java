@@ -30,6 +30,8 @@
  */
 package chat.dim;
 
+import java.util.List;
+
 import chat.dim.core.Factories;
 import chat.dim.core.Processor;
 import chat.dim.cpu.CommandProcessor;
@@ -56,17 +58,18 @@ public class MessageProcessor extends Processor {
     }
 
     @Override
-    public InstantMessage process(InstantMessage iMsg, ReliableMessage rMsg) {
-        InstantMessage res = super.process(iMsg, rMsg);
-        if (getMessenger().saveMessage(iMsg)) {
-            return res;
+    public List<InstantMessage> process(final InstantMessage iMsg, final ReliableMessage rMsg) {
+        final List<InstantMessage> responses = super.process(iMsg, rMsg);
+        final Messenger messenger = getMessenger();
+        if (!messenger.saveMessage(iMsg)) {
+            // error
+            return null;
         }
-        // error
-        return null;
+        return responses;
     }
 
     @Override
-    public Content process(Content content, ReliableMessage rMsg) {
+    public List<Content> process(final Content content, final ReliableMessage rMsg) {
         // TODO: override to check group
         ContentProcessor cpu = ContentProcessor.getProcessor(content);
         if (cpu == null) {

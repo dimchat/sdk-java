@@ -56,50 +56,55 @@ public class MessageTransmitter implements Transmitter {
     }
 
     @Override
-    public boolean sendContent(ID sender, ID receiver, Content content, Messenger.Callback callback, int priority) {
+    public boolean sendContent(ID sender, final ID receiver, final Content content,
+                               final Messenger.Callback callback, final int priority) {
         // Application Layer should make sure user is already login before it send message to server.
         // Application layer should put message into queue so that it will send automatically after user login
         if (sender == null) {
-            User user = getFacebook().getCurrentUser();
+            final User user = getFacebook().getCurrentUser();
             if (user == null) {
                 throw new NullPointerException("current user not set");
             }
             sender = user.identifier;
         }
-        Envelope env = Envelope.create(sender, receiver, null);
-        InstantMessage iMsg = InstantMessage.create(env, content);
+        final Envelope env = Envelope.create(sender, receiver, null);
+        final InstantMessage iMsg = InstantMessage.create(env, content);
         return getMessenger().sendMessage(iMsg, callback, priority);
     }
 
     @Override
-    public boolean sendMessage(InstantMessage iMsg, Messenger.Callback callback, int priority) {
+    public boolean sendMessage(final InstantMessage iMsg, final Messenger.Callback callback, final int priority) {
+        final Messenger messenger = getMessenger();
         // Send message (secured + certified) to target station
-        SecureMessage sMsg = getMessenger().encryptMessage(iMsg);
+        final SecureMessage sMsg = messenger.encryptMessage(iMsg);
         if (sMsg == null) {
             // public key not found?
             return false;
             //throw new NullPointerException("failed to encrypt message: " + iMsg);
         }
-        ReliableMessage rMsg = getMessenger().signMessage(sMsg);
+        final ReliableMessage rMsg = messenger.signMessage(sMsg);
         if (rMsg == null) {
             // TODO: set iMsg.state = error
             throw new NullPointerException("failed to sign message: " + sMsg);
         }
 
-        boolean OK = getMessenger().sendMessage(rMsg, callback, priority);
+        final boolean OK = messenger.sendMessage(rMsg, callback, priority);
         // TODO: if OK, set iMsg.state = sending; else set iMsg.state = waiting
 
-        return getMessenger().saveMessage(iMsg) && OK;
+        return messenger.saveMessage(iMsg) && OK;
     }
 
     @Override
-    public boolean sendMessage(ReliableMessage rMsg, Messenger.Callback callback, int priority) {
-        Messenger.CompletionHandler handler = null;
-        if (callback != null) {
+    public boolean sendMessage(final ReliableMessage rMsg, final Messenger.Callback callback, final int priority) {
+        final Messenger.CompletionHandler handler;
+        if (callback == null) {
+            handler = null;
+        } else {
             handler = new CompletionHandler(rMsg, callback);
         }
-        byte[] data = getMessenger().serializeMessage(rMsg);
-        return getMessenger().sendPackage(data, handler, priority);
+        final Messenger messenger = getMessenger();
+        final byte[] data = messenger.serializeMessage(rMsg);
+        return messenger.sendPackage(data, handler, priority);
     }
 
     public static class CompletionHandler implements chat.dim.Messenger.CompletionHandler {
@@ -119,7 +124,7 @@ public class MessageTransmitter implements Transmitter {
         }
 
         @Override
-        public void onFailed(Error error) {
+        public void onFailed(final Error error) {
             callback.onFinished(message, error);
         }
     }

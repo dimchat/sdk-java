@@ -30,6 +30,9 @@
  */
 package chat.dim.cpu;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import chat.dim.Facebook;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
@@ -47,61 +50,67 @@ public class DocumentCommandProcessor extends CommandProcessor {
         super();
     }
 
-    private Content getDocument(ID identifier, String type) {
-        Facebook facebook = getFacebook();
+    private Content getDocument(final ID identifier, final String type) {
+        final Facebook facebook = getFacebook();
         // query entity document for ID
-        Document doc = facebook.getDocument(identifier, type);
+        final Document doc = facebook.getDocument(identifier, type);
         if (doc == null) {
             // document not found
-            String text = String.format("Sorry, document not found for ID: %s", identifier);
+            final String text = String.format("Sorry, document not found for ID: %s", identifier);
             return new TextContent(text);
         }
         // response
-        Meta meta = facebook.getMeta(identifier);
+        final Meta meta = facebook.getMeta(identifier);
         return new DocumentCommand(identifier, meta, doc);
     }
 
-    private Content putDocument(ID identifier, Meta meta, Document doc) {
-        Facebook facebook = getFacebook();
+    private Content putDocument(final ID identifier, final Meta meta, final Document doc) {
+        final Facebook facebook = getFacebook();
         if (meta != null) {
             // received a meta for ID
             if (!facebook.saveMeta(meta, identifier)) {
                 // meta not match
-                String text = String.format("Meta not accept: %s", identifier);
+                final String text = String.format("Meta not accept: %s", identifier);
                 return new TextContent(text);
             }
         }
         // receive a document for ID
         if (!facebook.saveDocument(doc))  {
             // save document failed
-            String text = String.format("Document not accept: %s", identifier);
+            final String text = String.format("Document not accept: %s", identifier);
             return new TextContent(text);
         }
         // response
-        String text = String.format("Document received: %s", identifier);
+        final String text = String.format("Document received: %s", identifier);
         return new ReceiptCommand(text);
     }
 
     @Override
-    public Content execute(Command cmd, ReliableMessage rMsg) {
+    public List<Content> execute(final Command cmd, final ReliableMessage rMsg) {
         assert cmd instanceof DocumentCommand : "document command error: " + cmd;
-        DocumentCommand dCmd = (DocumentCommand) cmd;
-        ID identifier = dCmd.getIdentifier();
+        final DocumentCommand dCmd = (DocumentCommand) cmd;
+        Content res = null;
+        final ID identifier = dCmd.getIdentifier();
         if (identifier != null) {
-            Document doc = dCmd.getDocument();
+            final Document doc = dCmd.getDocument();
             if (doc == null) {
                 String type = (String) cmd.get("doc_type");
                 if (type == null) {
                     type = "*";  // ANY
                 }
-                return getDocument(identifier, type);
+                res = getDocument(identifier, type);
             } else if (identifier.equals(doc.getIdentifier())) {
                 // check meta
-                Meta meta = dCmd.getMeta();
-                return putDocument(identifier, meta, doc);
+                final Meta meta = dCmd.getMeta();
+                res = putDocument(identifier, meta, doc);
             }
         }
-        // command error
-        return null;
+        if (res == null) {
+            // command error
+            return null;
+        }
+        final List<Content> responses = new ArrayList<>();
+        responses.add(res);
+        return responses;
     }
 }

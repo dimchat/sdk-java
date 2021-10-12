@@ -31,7 +31,9 @@
 package chat.dim.cpu;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import chat.dim.Facebook;
@@ -72,15 +74,17 @@ public class ContentProcessor {
      * @param rMsg    - reliable message
      * @return {Content} response to sender
      */
-    public Content process(Content content, ReliableMessage rMsg) {
-        String text = String.format("Content (type: %d) not support yet!", content.getType());
-        TextContent res = new TextContent(text);
+    public List<Content> process(final Content content, final ReliableMessage rMsg) {
+        final String text = String.format("Content (type: %d) not support yet!", content.getType());
+        final TextContent res = new TextContent(text);
         // check group message
-        ID group = content.getGroup();
+        final ID group = content.getGroup();
         if (group != null) {
             res.setGroup(group);
         }
-        return res;
+        final List<Content> responses = new ArrayList<>();
+        responses.add(res);
+        return responses;
     }
 
     //
@@ -94,13 +98,13 @@ public class ContentProcessor {
      * @param type - ContentType
      * @return ContentProcessor
      */
-    public static ContentProcessor getProcessor(ContentType type) {
+    public static ContentProcessor getProcessor(final ContentType type) {
         return getProcessor(type.value);
     }
-    public static ContentProcessor getProcessor(int type) {
+    public static ContentProcessor getProcessor(final int type) {
         return contentProcessors.get(type);
     }
-    public static ContentProcessor getProcessor(Content content) {
+    public static ContentProcessor getProcessor(final Content content) {
         return getProcessor(content.getType());
     }
 
@@ -110,10 +114,10 @@ public class ContentProcessor {
      * @param type - ContentType
      * @param cpu  - ContentProcessor
      */
-    public static void register(ContentType type, ContentProcessor cpu) {
+    public static void register(final ContentType type, final ContentProcessor cpu) {
         contentProcessors.put(type.value, cpu);
     }
-    public static void register(int type, ContentProcessor cpu) {
+    public static void register(final int type, final ContentProcessor cpu) {
         contentProcessors.put(type, cpu);
     }
 

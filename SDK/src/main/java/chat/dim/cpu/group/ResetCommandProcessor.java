@@ -51,11 +51,13 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
         super();
     }
 
-    private Content temporarySave(GroupCommand cmd, ID sender) {
-        Facebook facebook = getFacebook();
-        ID group = cmd.getGroup();
+    private Content temporarySave(final GroupCommand cmd, final ID sender) {
+        final Facebook facebook = getFacebook();
+        final Messenger messenger = getMessenger();
+        final ID group = cmd.getGroup();
+        final QueryCommand query = new QueryCommand(group);
         // check whether the owner contained in the new members
-        List<ID> newMembers = getMembers(cmd);
+        final List<ID> newMembers = getMembers(cmd);
         for (ID item : newMembers) {
             if (facebook.isOwner(item, group)) {
                 // it's a full list, save it now
@@ -63,9 +65,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
                     if (!item.equals(sender)) {
                         // NOTICE: to prevent counterfeit,
                         //         query the owner for newest member-list
-                        cmd = new QueryCommand(group);
-                        Messenger messenger = getMessenger();
-                        messenger.sendContent(null, item, cmd, null, 1);
+                        messenger.sendContent(null, item, query, null, 1);
                     }
                 }
                 // response (no need to respond this group command)
@@ -74,29 +74,35 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
         }
         // NOTICE: this is a partial member-list
         //         query the sender for full-list
-        return new QueryCommand(group);
+        return query;
     }
 
     @Override
-    public Content execute(Command cmd, ReliableMessage rMsg) {
+    public List<Content> execute(final Command cmd, final ReliableMessage rMsg) {
         assert cmd instanceof ResetCommand || cmd instanceof InviteCommand : "reset command error: " + cmd;
-        Facebook facebook = getFacebook();
+        final Facebook facebook = getFacebook();
 
         // 0. check group
-        ID group = cmd.getGroup();
-        ID owner = facebook.getOwner(group);
-        List<ID> members = facebook.getMembers(group);
+        final ID group = cmd.getGroup();
+        final ID owner = facebook.getOwner(group);
+        final List<ID> members = facebook.getMembers(group);
         if (owner == null || members == null || members.size() == 0) {
             // FIXME: group info lost?
             // FIXME: how to avoid strangers impersonating group member?
-            return temporarySave((GroupCommand) cmd, rMsg.getSender());
+            final Content res = temporarySave((GroupCommand) cmd, rMsg.getSender());
+            if (res == null) {
+                return null;
+            }
+            final List<Content> responses = new ArrayList<>();
+            responses.add(res);
+            return responses;
         }
 
         // 1. check permission
-        ID sender = rMsg.getSender();
+        final ID sender = rMsg.getSender();
         if (!owner.equals(sender)) {
             // not the owner? check assistants
-            List<ID> assistants = facebook.getAssistants(group);
+            final List<ID> assistants = facebook.getAssistants(group);
             if (assistants == null || !assistants.contains(sender)) {
                 String text = sender + " is not the owner/assistant of group " + group + ", cannot reset members.";
                 throw new UnsupportedOperationException(text);
@@ -104,7 +110,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
         }
 
         // 2. resetting members
-        List<ID> newMembers = getMembers((GroupCommand) cmd);
+        final List<ID> newMembers = getMembers((GroupCommand) cmd);
         if (newMembers.size() == 0) {
             throw new NullPointerException("group command error: " + cmd);
         }
@@ -113,7 +119,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
             throw new UnsupportedOperationException("cannot expel owner(" + owner + ") of group: " + group);
         }
         // 2.2. build expelled-list
-        List<String> removedList = new ArrayList<>();
+        final List<String> removedList = new ArrayList<>();
         for (ID item : members) {
             if (newMembers.contains(item)) {
                 continue;
@@ -122,7 +128,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
             removedList.add(item.toString());
         }
         // 2.3. build invited-list
-        List<String> addedList = new ArrayList<>();
+        final List<String> addedList = new ArrayList<>();
         for (ID item : newMembers) {
             if (members.contains(item)) {
                 continue;

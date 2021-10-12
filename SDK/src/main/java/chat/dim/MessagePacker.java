@@ -51,7 +51,7 @@ public class MessagePacker extends Packer {
         return getMessenger().getFacebook();
     }
 
-    private boolean isWaiting(ID identifier) {
+    private boolean isWaiting(final ID identifier) {
         if (identifier.isGroup()) {
             // checking group meta
             return getFacebook().getMeta(identifier) == null;
@@ -62,9 +62,9 @@ public class MessagePacker extends Packer {
     }
 
     @Override
-    public SecureMessage encryptMessage(InstantMessage iMsg) {
-        ID receiver = iMsg.getReceiver();
-        ID group = iMsg.getGroup();
+    public SecureMessage encryptMessage(final InstantMessage iMsg) {
+        final ID receiver = iMsg.getReceiver();
+        final ID group = iMsg.getGroup();
         if (!(receiver.isBroadcast() || (group != null  && group.isBroadcast()))) {
             // this message is not a broadcast message
             if (isWaiting(receiver) || (group != null && isWaiting(group))) {
@@ -80,9 +80,9 @@ public class MessagePacker extends Packer {
     }
 
     @Override
-    public SecureMessage verifyMessage(ReliableMessage rMsg) {
-        Facebook facebook = getFacebook();
-        ID sender = rMsg.getSender();
+    public SecureMessage verifyMessage(final ReliableMessage rMsg) {
+        final Facebook facebook = getFacebook();
+        final ID sender = rMsg.getSender();
         // [Meta Protocol]
         Meta meta = rMsg.getMeta();
         if (meta == null) {
@@ -110,14 +110,15 @@ public class MessagePacker extends Packer {
     }
 
     @Override
-    public InstantMessage decryptMessage(SecureMessage sMsg) {
+    public InstantMessage decryptMessage(final SecureMessage sMsg) {
+        final Transceiver transceiver = getTransceiver();
         // check message delegate
         if (sMsg.getDelegate() == null) {
-            sMsg.setDelegate(getTransceiver());
+            sMsg.setDelegate(transceiver);
         }
-        ID receiver = sMsg.getReceiver();
-        User user = getTransceiver().selectLocalUser(receiver);
-        SecureMessage trimmed;
+        final ID receiver = sMsg.getReceiver();
+        final User user = transceiver.selectLocalUser(receiver);
+        final SecureMessage trimmed;
         if (user == null) {
             // current users not match
             trimmed = null;

@@ -49,22 +49,22 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
         super();
     }
 
-    private Content callReset(Command cmd, ReliableMessage rMsg) {
-        CommandProcessor gpu = getProcessor(GroupCommand.RESET);
+    private List<Content> callReset(final Command cmd, final ReliableMessage rMsg) {
+        final CommandProcessor gpu = getProcessor(GroupCommand.RESET);
         assert gpu != null : "reset CPU not register yet";
         gpu.setMessenger(getMessenger());
         return gpu.execute(cmd, rMsg);
     }
 
     @Override
-    public Content execute(Command cmd, ReliableMessage rMsg) {
+    public List<Content> execute(final Command cmd, final ReliableMessage rMsg) {
         assert cmd instanceof InviteCommand : "invite command error: " + cmd;
-        Facebook facebook = getFacebook();
+        final Facebook facebook = getFacebook();
 
         // 0. check group
-        ID group = cmd.getGroup();
-        ID owner = facebook.getOwner(group);
-        List<ID> members = facebook.getMembers(group);
+        final ID group = cmd.getGroup();
+        final ID owner = facebook.getOwner(group);
+        final List<ID> members = facebook.getMembers(group);
         if (owner == null || members == null || members.size() == 0) {
             // NOTICE: group membership lost?
             //         reset group members
@@ -72,10 +72,10 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
         }
 
         // 1. check permission
-        ID sender = rMsg.getSender();
+        final ID sender = rMsg.getSender();
         if (!members.contains(sender)) {
             // not a member? check assistants
-            List<ID> assistants = facebook.getAssistants(group);
+            final List<ID> assistants = facebook.getAssistants(group);
             if (assistants == null || !assistants.contains(sender)) {
                 String text = sender + " is not a member/assistant of group " + group + ", cannot invite member.";
                 throw new UnsupportedOperationException(text);
@@ -83,7 +83,7 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
         }
 
         // 2. inviting members
-        List<ID> inviteList = getMembers((GroupCommand) cmd);
+        final List<ID> inviteList = getMembers((GroupCommand) cmd);
         if (inviteList.size() == 0) {
             throw new NullPointerException("invite command error: " + cmd);
         }
@@ -94,7 +94,7 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
             return callReset(cmd, rMsg);
         }
         // 2.2. build invited-list
-        List<String> addedList = new ArrayList<>();
+        final List<String> addedList = new ArrayList<>();
         for (ID item: inviteList) {
             if (members.contains(item)) {
                 continue;

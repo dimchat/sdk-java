@@ -30,7 +30,9 @@
  */
 package chat.dim.cpu;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import chat.dim.cpu.group.ExpelCommandProcessor;
@@ -62,21 +64,23 @@ public class CommandProcessor extends ContentProcessor {
      * @param rMsg - reliable message
      * @return {Content} response to sender
      */
-    public Content execute(Command cmd, ReliableMessage rMsg) {
-        String text = String.format("Command (name: %s) not support yet!", cmd.getCommand());
-        TextContent res = new TextContent(text);
+    public List<Content> execute(final Command cmd, final ReliableMessage rMsg) {
+        final String text = String.format("Command (name: %s) not support yet!", cmd.getCommand());
+        final TextContent res = new TextContent(text);
         // check group message
-        ID group = cmd.getGroup();
+        final ID group = cmd.getGroup();
         if (group != null) {
             res.setGroup(group);
         }
-        return res;
+        final List<Content> responses = new ArrayList<>();
+        responses.add(res);
+        return responses;
     }
 
     @Override
-    public Content process(Content content, ReliableMessage rMsg) {
+    public List<Content> process(final Content content, final ReliableMessage rMsg) {
         assert content instanceof Command : "command error: " + content;
-        Command cmd = (Command) content;
+        final Command cmd = (Command) content;
         // get CPU by command name
         CommandProcessor cpu = getProcessor(cmd);
         if (cpu == null) {
@@ -104,10 +108,10 @@ public class CommandProcessor extends ContentProcessor {
      * @param command - name
      * @return CommandProcessor
      */
-    protected static CommandProcessor getProcessor(String command) {
+    protected static CommandProcessor getProcessor(final String command) {
         return commandProcessors.get(command);
     }
-    static CommandProcessor getProcessor(Command cmd) {
+    static CommandProcessor getProcessor(final Command cmd) {
         return getProcessor(cmd.getCommand());
     }
 
@@ -117,7 +121,7 @@ public class CommandProcessor extends ContentProcessor {
      * @param command - name
      * @param cpu     - command processor
      */
-    public static void register(String command, CommandProcessor cpu) {
+    public static void register(final String command, final CommandProcessor cpu) {
         commandProcessors.put(command, cpu);
     }
 

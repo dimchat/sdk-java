@@ -30,6 +30,9 @@
  */
 package chat.dim.cpu;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import chat.dim.Facebook;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
@@ -46,41 +49,45 @@ public class MetaCommandProcessor extends CommandProcessor {
         super();
     }
 
-    private Content getMeta(ID identifier) {
-        Facebook facebook = getFacebook();
+    private Content getMeta(final ID identifier) {
+        final Facebook facebook = getFacebook();
         // query meta for ID
-        Meta meta = facebook.getMeta(identifier);
+        final Meta meta = facebook.getMeta(identifier);
         if (meta == null) {
             // meta not found
-            String text = String.format("Sorry, meta not found for ID: %s", identifier);
+            final String text = String.format("Sorry, meta not found for ID: %s", identifier);
             return new TextContent(text);
         }
         // response
         return new MetaCommand(identifier, meta);
     }
 
-    private Content putMeta(ID identifier, Meta meta) {
+    private Content putMeta(final ID identifier, final Meta meta) {
         // received a meta for ID
         if (!getFacebook().saveMeta(meta, identifier)) {
             // save meta failed
-            String text = String.format("Meta not accept: %s", identifier);
+            final String text = String.format("Meta not accept: %s", identifier);
             return new TextContent(text);
         }
         // response
-        String text = String.format("Meta received: %s", identifier);
+        final String text = String.format("Meta received: %s", identifier);
         return new ReceiptCommand(text);
     }
 
     @Override
-    public Content execute(Command cmd, ReliableMessage rMsg) {
+    public List<Content> execute(final Command cmd, final ReliableMessage rMsg) {
         assert cmd instanceof MetaCommand : "meta command error: " + cmd;
-        MetaCommand mCmd = (MetaCommand) cmd;
-        Meta meta = mCmd.getMeta();
-        ID identifier = mCmd.getIdentifier();
+        final MetaCommand mCmd = (MetaCommand) cmd;
+        final Meta meta = mCmd.getMeta();
+        final ID identifier = mCmd.getIdentifier();
+        final Content res;
         if (meta == null) {
-            return getMeta(identifier);
+            res = getMeta(identifier);
         } else {
-            return putMeta(identifier, meta);
+            res = putMeta(identifier, meta);
         }
+        final List<Content> responses = new ArrayList<>();
+        responses.add(res);
+        return responses;
     }
 }

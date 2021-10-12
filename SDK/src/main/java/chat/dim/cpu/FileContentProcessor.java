@@ -30,6 +30,8 @@
  */
 package chat.dim.cpu;
 
+import java.util.List;
+
 import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.protocol.Content;
@@ -52,19 +54,19 @@ public class FileContentProcessor extends ContentProcessor {
      * @param iMsg - plain message
      * @return false on error
      */
-    public boolean uploadFileContent(FileContent content, EncryptKey password, InstantMessage iMsg) {
-        byte[] data = content.getData();
+    public boolean uploadFileContent(final FileContent content, final EncryptKey password, final InstantMessage iMsg) {
+        final byte[] data = content.getData();
         if (data == null || data.length == 0) {
             // FIXME: already uploaded?
             //throw new NullPointerException("failed to get file data: " + content);
             return false;
         }
         // encrypt and upload file data onto CDN and save the URL in message content
-        byte[] encrypted = password.encrypt(data);
+        final byte[] encrypted = password.encrypt(data);
         if (encrypted == null || encrypted.length == 0) {
             throw new NullPointerException("failed to encrypt file data with key: " + password);
         }
-        String url = getMessenger().uploadData(encrypted, iMsg);
+        final String url = getMessenger().uploadData(encrypted, iMsg);
         if (url == null) {
             return false;
         } else {
@@ -83,22 +85,22 @@ public class FileContentProcessor extends ContentProcessor {
      * @param sMsg     - encrypted message
      * @return false on error
      */
-    public boolean downloadFileContent(FileContent content, DecryptKey password, SecureMessage sMsg) {
-        String url = content.getURL();
+    public boolean downloadFileContent(final FileContent content, final DecryptKey password, final SecureMessage sMsg) {
+        final String url = content.getURL();
         if (url == null || !url.contains("://")) {
             // download URL not found
             return false;
         }
-        InstantMessage iMsg = InstantMessage.create(sMsg.getEnvelope(), content);
+        final InstantMessage iMsg = InstantMessage.create(sMsg.getEnvelope(), content);
         // download from CDN
-        byte[] encrypted = getMessenger().downloadData(url, iMsg);
+        final byte[] encrypted = getMessenger().downloadData(url, iMsg);
         if (encrypted == null || encrypted.length == 0) {
             // save symmetric key for decrypting file data after download from CDN
             content.setPassword(password);
             return false;
         } else {
             // decrypt file data
-            byte[] fileData = password.decrypt(encrypted);
+            final byte[] fileData = password.decrypt(encrypted);
             if (fileData == null || fileData.length == 0) {
                 throw new NullPointerException("failed to decrypt file data with key: " + password);
             }
@@ -109,7 +111,7 @@ public class FileContentProcessor extends ContentProcessor {
     }
 
     @Override
-    public Content process(Content content, ReliableMessage rMsg) {
+    public List<Content> process(final Content content, final ReliableMessage rMsg) {
         assert content instanceof FileContent : "file content error: " + content;
         // TODO: process file content
 

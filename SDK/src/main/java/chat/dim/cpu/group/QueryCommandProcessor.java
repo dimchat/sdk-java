@@ -30,6 +30,7 @@
  */
 package chat.dim.cpu.group;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import chat.dim.Facebook;
@@ -51,39 +52,45 @@ public class QueryCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public Content execute(Command cmd, ReliableMessage rMsg) {
+    public List<Content> execute(final Command cmd, final ReliableMessage rMsg) {
         assert cmd instanceof QueryCommand : "query command error: " + cmd;
-        Facebook facebook = getFacebook();
+        final Facebook facebook = getFacebook();
 
         // 0. check group
-        ID group = cmd.getGroup();
-        ID owner = facebook.getOwner(group);
-        List<ID> members = facebook.getMembers(group);
+        final ID group = cmd.getGroup();
+        final ID owner = facebook.getOwner(group);
+        final List<ID> members = facebook.getMembers(group);
         if (owner == null || members == null || members.size() == 0) {
-            String text = String.format("Sorry, members not found in group: %s", group);
-            TextContent res = new TextContent(text);
+            final String text = String.format("Sorry, members not found in group: %s", group);
+            final TextContent res = new TextContent(text);
             res.setGroup(group);
-            return res;
+            final List<Content> responses = new ArrayList<>();
+            responses.add(res);
+            return responses;
         }
 
         // 1. check permission
-        ID sender = rMsg.getSender();
+        final ID sender = rMsg.getSender();
         if (!members.contains(sender)) {
             // not a member? check assistants
-            List<ID> assistants = facebook.getAssistants(group);
+            final List<ID> assistants = facebook.getAssistants(group);
             if (assistants == null || !assistants.contains(sender)) {
-                String text = sender + " is not a member/assistant of group " + group + ", cannot query.";
+                final String text = sender + " is not a member/assistant of group " + group + ", cannot query.";
                 throw new UnsupportedOperationException(text);
             }
         }
 
         // 2. respond
-        User user = facebook.getCurrentUser();
+        final User user = facebook.getCurrentUser();
         assert user != null : "current user not set yet";
+        final Content res;
         if (user.identifier.equals(owner)) {
-            return new ResetCommand(group, members);
+            res = new ResetCommand(group, members);
         } else {
-            return new InviteCommand(group, members);
+            res = new InviteCommand(group, members);
         }
+        final List<Content> responses = new ArrayList<>();
+        responses.add(res);
+        return responses;
     }
 }

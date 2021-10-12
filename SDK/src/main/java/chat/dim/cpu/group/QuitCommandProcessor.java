@@ -47,25 +47,25 @@ public class QuitCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public Content execute(Command cmd, ReliableMessage rMsg) {
+    public List<Content> execute(final Command cmd, final ReliableMessage rMsg) {
         assert cmd instanceof QuitCommand : "quit command error: " + cmd;
-        Facebook facebook = getFacebook();
+        final Facebook facebook = getFacebook();
 
         // 0. check group
-        ID group = cmd.getGroup();
-        ID owner = facebook.getOwner(group);
-        List<ID> members = facebook.getMembers(group);
+        final ID group = cmd.getGroup();
+        final ID owner = facebook.getOwner(group);
+        final List<ID> members = facebook.getMembers(group);
         if (owner == null || members == null || members.size() == 0) {
             throw new NullPointerException("Group not ready: " + group);
         }
 
         // 1. check permission
-        ID sender = rMsg.getSender();
+        final ID sender = rMsg.getSender();
         if (owner.equals(sender)) {
-            String text = "owner cannot quit: " + sender + " -> " + group;
+            final String text = "owner cannot quit: " + sender + " -> " + group;
             throw new UnsupportedOperationException(text);
         }
-        List<ID> assistants = facebook.getAssistants(group);
+        final List<ID> assistants = facebook.getAssistants(group);
         if (assistants != null && assistants.contains(sender)) {
             String text = "assistant cannot quit: " + sender + " -> " + group;
             throw new UnsupportedOperationException(text);
