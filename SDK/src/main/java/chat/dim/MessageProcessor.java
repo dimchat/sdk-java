@@ -40,7 +40,6 @@ import chat.dim.protocol.BlockCommand;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.HandshakeCommand;
-import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.LoginCommand;
 import chat.dim.protocol.MuteCommand;
 import chat.dim.protocol.ReceiptCommand;
@@ -55,17 +54,6 @@ public class MessageProcessor extends Processor {
 
     protected Messenger getMessenger() {
         return (Messenger) getTransceiver();
-    }
-
-    @Override
-    public List<InstantMessage> process(final InstantMessage iMsg, final ReliableMessage rMsg) {
-        final List<InstantMessage> responses = super.process(iMsg, rMsg);
-        final Messenger messenger = getMessenger();
-        if (!messenger.saveMessage(iMsg)) {
-            // error
-            return null;
-        }
-        return responses;
     }
 
     @Override

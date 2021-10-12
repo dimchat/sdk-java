@@ -35,7 +35,6 @@ import java.lang.ref.WeakReference;
 import chat.dim.core.Transceiver;
 import chat.dim.cpu.ContentProcessor;
 import chat.dim.cpu.FileContentProcessor;
-import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
@@ -48,7 +47,6 @@ import chat.dim.protocol.SecureMessage;
 public abstract class Messenger extends Transceiver {
 
     private WeakReference<Delegate> delegateRef = null;
-    private WeakReference<DataSource> dataSourceRef = null;
 
     private WeakReference<Transmitter> transmitterRef = null;
 
@@ -71,18 +69,6 @@ public abstract class Messenger extends Transceiver {
     }
     protected Delegate getDelegate() {
         return delegateRef == null ? null : delegateRef.get();
-    }
-
-    /**
-     *  Delegate for Message Storage
-     *
-     * @param delegate - message data source
-     */
-    public void setDataSource(DataSource delegate) {
-        dataSourceRef = new WeakReference<>(delegate);
-    }
-    protected DataSource getDataSource() {
-        return dataSourceRef == null ? null : dataSourceRef.get();
     }
 
     /**
@@ -224,18 +210,6 @@ public abstract class Messenger extends Transceiver {
         return super.serializeContent(content, password, iMsg);
     }
 
-    @Override
-    public byte[] encryptKey(byte[] data, ID receiver, InstantMessage iMsg) {
-        EncryptKey key = getFacebook().getPublicKeyForEncryption(receiver);
-        if (key == null) {
-            // save this message in a queue waiting receiver's meta/document response
-            suspendMessage(iMsg);
-            //throw new NullPointerException("failed to get encrypt key for receiver: " + receiver);
-            return null;
-        }
-        return super.encryptKey(data, receiver, iMsg);
-    }
-
     //-------- SecureMessageDelegate
 
     @Override
@@ -282,21 +256,6 @@ public abstract class Messenger extends Transceiver {
         return getDelegate().sendPackage(data, handler, priority);
     }
 
-    //
-    //  Interfaces for Message Storage
-    //
-    public boolean saveMessage(InstantMessage iMsg) {
-        return getDataSource().saveMessage(iMsg);
-    }
-
-    public void suspendMessage(ReliableMessage rMsg) {
-        getDataSource().suspendMessage(rMsg);
-    }
-
-    public void suspendMessage(InstantMessage iMsg) {
-        getDataSource().suspendMessage(iMsg);
-    }
-
     /**
      *  Messenger Delegate
      *  ~~~~~~~~~~~~~~~~~~
@@ -330,36 +289,6 @@ public abstract class Messenger extends Transceiver {
          * @return true on success
          */
         boolean sendPackage(byte[] data, CompletionHandler handler, int priority);
-    }
-
-    /**
-     *  Messenger DataSource
-     *  ~~~~~~~~~~~~~~~~~~~~
-     */
-    public interface DataSource {
-
-        /**
-         * Save the message into local storage
-         *
-         * @param iMsg - instant message
-         * @return true on success
-         */
-        boolean saveMessage(InstantMessage iMsg);
-
-        /**
-         *  Suspend the received message for the sender's meta
-         *
-         * @param rMsg - message received from network
-         */
-        void suspendMessage(ReliableMessage rMsg);
-
-        /**
-         *  Suspend the sending message for the receiver's meta & visa,
-         *  or group meta when received new message
-         *
-         * @param iMsg - instant message to be sent
-         */
-        void suspendMessage(InstantMessage iMsg);
     }
 
     /**

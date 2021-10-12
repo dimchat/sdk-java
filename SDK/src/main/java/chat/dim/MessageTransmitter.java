@@ -88,10 +88,8 @@ public class MessageTransmitter implements Transmitter {
             throw new NullPointerException("failed to sign message: " + sMsg);
         }
 
-        final boolean OK = messenger.sendMessage(rMsg, callback, priority);
         // TODO: if OK, set iMsg.state = sending; else set iMsg.state = waiting
-
-        return messenger.saveMessage(iMsg) && OK;
+        return messenger.sendMessage(rMsg, callback, priority);
     }
 
     @Override

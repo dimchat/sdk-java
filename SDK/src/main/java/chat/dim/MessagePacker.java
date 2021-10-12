@@ -51,55 +51,17 @@ public class MessagePacker extends Packer {
         return getMessenger().getFacebook();
     }
 
-    private boolean isWaiting(final ID identifier) {
-        if (identifier.isGroup()) {
-            // checking group meta
-            return getFacebook().getMeta(identifier) == null;
-        } else {
-            // checking visa key
-            return getFacebook().getPublicKeyForEncryption(identifier) == null;
-        }
-    }
-
-    @Override
-    public SecureMessage encryptMessage(final InstantMessage iMsg) {
-        final ID receiver = iMsg.getReceiver();
-        final ID group = iMsg.getGroup();
-        if (!(receiver.isBroadcast() || (group != null  && group.isBroadcast()))) {
-            // this message is not a broadcast message
-            if (isWaiting(receiver) || (group != null && isWaiting(group))) {
-                // NOTICE: the application will query visa automatically,
-                //         save this message in a queue waiting sender's visa response
-                getMessenger().suspendMessage(iMsg);
-                return null;
-            }
-        }
-
-        // make sure visa.key exists before encrypting message
-        return super.encryptMessage(iMsg);
-    }
-
     @Override
     public SecureMessage verifyMessage(final ReliableMessage rMsg) {
         final Facebook facebook = getFacebook();
         final ID sender = rMsg.getSender();
         // [Meta Protocol]
-        Meta meta = rMsg.getMeta();
-        if (meta == null) {
-            // get from local storage
-            meta = facebook.getMeta(sender);
-        } else if (!facebook.saveMeta(meta, sender)) {
-            // failed to save meta attached to message
-            meta = null;
-        }
-        if (meta == null) {
-            // NOTICE: the application will query meta automatically,
-            //         save this message in a queue waiting sender's meta response
-            getMessenger().suspendMessage(rMsg);
-            return null;
+        final Meta meta = rMsg.getMeta();
+        if (meta != null) {
+            facebook.saveMeta(meta, sender);
         }
         // [Visa Protocol]
-        Visa visa = rMsg.getVisa();
+        final Visa visa = rMsg.getVisa();
         if (visa != null) {
             // check visa attached to message
             facebook.saveDocument(visa);
