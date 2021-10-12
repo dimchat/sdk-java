@@ -127,12 +127,6 @@ public class ContentProcessor {
         //
         register(ContentType.FORWARD, new ForwardContentProcessor());
 
-        FileContentProcessor fileProcessor = new FileContentProcessor();
-        register(ContentType.FILE, fileProcessor);
-        register(ContentType.IMAGE, fileProcessor);
-        register(ContentType.AUDIO, fileProcessor);
-        register(ContentType.VIDEO, fileProcessor);
-
         register(ContentType.COMMAND, new CommandProcessor());
         register(ContentType.HISTORY, new HistoryCommandProcessor());
 

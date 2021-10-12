@@ -39,7 +39,7 @@ import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 
-public class MessageTransmitter implements Transmitter {
+public abstract class MessageTransmitter implements Transmitter {
 
     private final WeakReference<Transceiver> messengerRef;
 
@@ -90,40 +90,5 @@ public class MessageTransmitter implements Transmitter {
 
         // TODO: if OK, set iMsg.state = sending; else set iMsg.state = waiting
         return messenger.sendMessage(rMsg, callback, priority);
-    }
-
-    @Override
-    public boolean sendMessage(final ReliableMessage rMsg, final Messenger.Callback callback, final int priority) {
-        final Messenger.CompletionHandler handler;
-        if (callback == null) {
-            handler = null;
-        } else {
-            handler = new CompletionHandler(rMsg, callback);
-        }
-        final Messenger messenger = getMessenger();
-        final byte[] data = messenger.serializeMessage(rMsg);
-        return messenger.sendPackage(data, handler, priority);
-    }
-
-    public static class CompletionHandler implements chat.dim.Messenger.CompletionHandler {
-
-        public final ReliableMessage message;
-        public final Messenger.Callback callback;
-
-        public CompletionHandler(ReliableMessage rMsg, Messenger.Callback cb) {
-            super();
-            message = rMsg;
-            callback = cb;
-        }
-
-        @Override
-        public void onSuccess() {
-            callback.onFinished(message, null);
-        }
-
-        @Override
-        public void onFailed(final Error error) {
-            callback.onFinished(message, error);
-        }
     }
 }

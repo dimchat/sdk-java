@@ -33,42 +33,19 @@ package chat.dim;
 import java.lang.ref.WeakReference;
 
 import chat.dim.core.Transceiver;
-import chat.dim.cpu.ContentProcessor;
-import chat.dim.cpu.FileContentProcessor;
-import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.Content;
-import chat.dim.protocol.ContentType;
-import chat.dim.protocol.FileContent;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
-import chat.dim.protocol.SecureMessage;
 
 public abstract class Messenger extends Transceiver {
 
-    private WeakReference<Delegate> delegateRef = null;
+    private Facebook facebook = null;
 
     private WeakReference<Transmitter> transmitterRef = null;
 
-    private Facebook facebook = null;
-    private MessagePacker messagePacker = null;
-    private MessageProcessor messageProcessor = null;
-    private MessageTransmitter messageTransmitter = null;
-
     protected Messenger() {
         super();
-    }
-
-    /**
-     *  Delegate for Station
-     *
-     * @param delegate - message delegate
-     */
-    public void setDelegate(Delegate delegate) {
-        delegateRef = new WeakReference<>(delegate);
-    }
-    protected Delegate getDelegate() {
-        return delegateRef == null ? null : delegateRef.get();
     }
 
     /**
@@ -101,129 +78,15 @@ public abstract class Messenger extends Transceiver {
     protected abstract Facebook createFacebook();
 
     /**
-     *  Delegate for packing message
-     *
-     * @param packer - message packer
-     */
-    @Override
-    public void setPacker(Packer packer) {
-        super.setPacker(packer);
-        if (packer instanceof MessagePacker) {
-            messagePacker = (MessagePacker) packer;
-        }
-    }
-    @Override
-    protected Packer getPacker() {
-        Packer packer = super.getPacker();
-        if (packer == null) {
-            packer = getMessagePacker();
-            super.setPacker(packer);
-        }
-        return packer;
-    }
-    private MessagePacker getMessagePacker() {
-        if (messagePacker == null) {
-            messagePacker = createMessagePacker();
-        }
-        return messagePacker;
-    }
-    protected MessagePacker createMessagePacker() {
-        return new MessagePacker(this);
-    }
-
-    /**
-     *  Delegate for processing message
-     *
-     * @param processor - message processor
-     */
-    @Override
-    public void setProcessor(Processor processor) {
-        super.setProcessor(processor);
-        if (processor instanceof MessageProcessor) {
-            messageProcessor = (MessageProcessor) processor;
-        }
-    }
-    @Override
-    protected Processor getProcessor() {
-        Processor processor = super.getProcessor();
-        if (processor == null) {
-            processor = getMessageProcessor();
-            super.setProcessor(processor);
-        }
-        return processor;
-    }
-    private MessageProcessor getMessageProcessor() {
-        if (messageProcessor == null) {
-            messageProcessor = createMessageProcessor();
-        }
-        return messageProcessor;
-    }
-    protected MessageProcessor createMessageProcessor() {
-        return new MessageProcessor(this);
-    }
-
-    /**
      *  Delegate for transmitting message
      *
      * @param transmitter - message transmitter
      */
     public void setTransmitter(Transmitter transmitter) {
         transmitterRef = new WeakReference<>(transmitter);
-        if (transmitter instanceof MessageTransmitter) {
-            messageTransmitter = (MessageTransmitter) transmitter;
-        }
     }
     protected Transmitter getTransmitter() {
-        Transmitter transmitter = transmitterRef == null ? null : transmitterRef.get();
-        if (transmitter == null) {
-            transmitter = getMessageTransmitter();
-            transmitterRef = new WeakReference<>(transmitter);
-        }
-        return transmitter;
-    }
-    private MessageTransmitter getMessageTransmitter() {
-        if (messageTransmitter == null) {
-            messageTransmitter = createMessageTransmitter();
-        }
-        return messageTransmitter;
-    }
-    protected MessageTransmitter createMessageTransmitter() {
-        return new MessageTransmitter(this);
-    }
-
-    private FileContentProcessor getFileContentProcessor() {
-        ContentProcessor cpu = ContentProcessor.getProcessor(ContentType.FILE);
-        assert cpu instanceof FileContentProcessor : "failed to get file content processor";
-        cpu.setMessenger(this);
-        return (FileContentProcessor) cpu;
-    }
-
-    //-------- InstantMessageDelegate
-
-    @Override
-    public byte[] serializeContent(Content content, SymmetricKey password, InstantMessage iMsg) {
-        // check attachment for File/Image/Audio/Video message content
-        if (content instanceof FileContent) {
-            FileContentProcessor fpu = getFileContentProcessor();
-            fpu.uploadFileContent((FileContent) content, password, iMsg);
-        }
-        return super.serializeContent(content, password, iMsg);
-    }
-
-    //-------- SecureMessageDelegate
-
-    @Override
-    public Content deserializeContent(byte[] data, SymmetricKey password, SecureMessage sMsg) {
-        Content content = super.deserializeContent(data, password, sMsg);
-        if (content == null) {
-            throw new NullPointerException("failed to deserialize message content: " + sMsg);
-        }
-        // check attachment for File/Image/Audio/Video message content
-        if (content instanceof FileContent) {
-            FileContentProcessor fpu = getFileContentProcessor();
-            fpu.downloadFileContent((FileContent) content, password, sMsg);
-        }
-        return content;
+        return transmitterRef == null ? null : transmitterRef.get();
     }
 
     //
@@ -241,73 +104,12 @@ public abstract class Messenger extends Transceiver {
         return getTransmitter().sendMessage(rMsg, callback, priority);
     }
 
-    //
-    //  Interfaces for Station
-    //
-    public String uploadData(byte[] data, InstantMessage iMsg) {
-        return getDelegate().uploadData(data, iMsg);
-    }
-
-    public byte[] downloadData(String url, InstantMessage iMsg) {
-        return getDelegate().downloadData(url, iMsg);
-    }
-
-    public boolean sendPackage(byte[] data, CompletionHandler handler, int priority) {
-        return getDelegate().sendPackage(data, handler, priority);
-    }
-
-    /**
-     *  Messenger Delegate
-     *  ~~~~~~~~~~~~~~~~~~
-     */
-    public interface Delegate {
-
-        /**
-         *  Upload encrypted data to CDN
-         *
-         * @param data - encrypted file data
-         * @param iMsg - instant message
-         * @return download URL
-         */
-        String uploadData(byte[] data, InstantMessage iMsg);
-
-        /**
-         *  Download encrypted data from CDN
-         *
-         * @param url - download URL
-         * @param iMsg - instant message
-         * @return encrypted file data
-         */
-        byte[] downloadData(String url, InstantMessage iMsg);
-
-        /**
-         *  Send out a data package onto network
-         *
-         * @param data - package data
-         * @param handler - completion handler
-         * @param priority - task priority
-         * @return true on success
-         */
-        boolean sendPackage(byte[] data, CompletionHandler handler, int priority);
-    }
-
     /**
      *  Messenger Callback
      *  ~~~~~~~~~~~~~~~~~~
      */
     public interface Callback {
 
-        void onFinished(Object result, Error error);
-    }
-
-    /**
-     *  Messenger Completion Handler
-     *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-     */
-    public interface CompletionHandler {
-
-        void onSuccess();
-
-        void onFailed(Error error);
+        void onFinished(ReliableMessage rMsg, Error error);
     }
 }
