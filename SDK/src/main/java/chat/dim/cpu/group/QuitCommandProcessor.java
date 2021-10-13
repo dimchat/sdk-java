@@ -42,8 +42,17 @@ import chat.dim.protocol.group.QuitCommand;
 
 public class QuitCommandProcessor extends GroupCommandProcessor {
 
+    public static String STR_OWNER_CANNOT_QUIT = "Sorry, owner cannot quit.";
+    public static String STR_ASSISTANT_CANNOT_QUIT = "Sorry, assistant cannot quit.";
+
     public QuitCommandProcessor() {
         super();
+    }
+
+    @SuppressWarnings("unused")
+    protected List<Content> removeAssistant(final QuitCommand cmd, final ReliableMessage rMsg) {
+        // NOTICE: group assistant should be retired by the owner
+        return respondText(STR_ASSISTANT_CANNOT_QUIT, cmd.getGroup());
     }
 
     @Override
@@ -56,19 +65,17 @@ public class QuitCommandProcessor extends GroupCommandProcessor {
         final ID owner = facebook.getOwner(group);
         final List<ID> members = facebook.getMembers(group);
         if (owner == null || members == null || members.size() == 0) {
-            throw new NullPointerException("Group not ready: " + group);
+            return respondText(STR_GROUP_EMPTY, group);
         }
 
         // 1. check permission
         final ID sender = rMsg.getSender();
         if (owner.equals(sender)) {
-            final String text = "owner cannot quit: " + sender + " -> " + group;
-            throw new UnsupportedOperationException(text);
+            return respondText(STR_OWNER_CANNOT_QUIT, group);
         }
         final List<ID> assistants = facebook.getAssistants(group);
         if (assistants != null && assistants.contains(sender)) {
-            String text = "assistant cannot quit: " + sender + " -> " + group;
-            throw new UnsupportedOperationException(text);
+            return removeAssistant((QuitCommand) cmd, rMsg);
         }
 
         // 2. remove the sender from group members

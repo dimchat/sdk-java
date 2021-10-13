@@ -44,6 +44,10 @@ import chat.dim.protocol.group.ExpelCommand;
 
 public class ExpelCommandProcessor extends GroupCommandProcessor {
 
+    public static String STR_EXPEL_CMD_ERROR = "Expel command error.";
+    public static String STR_EXPEL_NOT_ALLOWED = "Sorry, you are not allowed to expel member from this group.";
+    public static String STR_CANNOT_EXPEL_OWNER = "Group owner cannot be expelled.";
+
     public ExpelCommandProcessor() {
         super();
     }
@@ -58,7 +62,7 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
         final ID owner = facebook.getOwner(group);
         final List<ID> members = facebook.getMembers(group);
         if (owner == null || members == null || members.size() == 0) {
-            throw new NullPointerException("Group not ready: " + group);
+            return respondText(STR_GROUP_EMPTY, group);
         }
 
         // 1. check permission
@@ -67,19 +71,18 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
             // not the owner? check assistants
             final List<ID> assistants = facebook.getAssistants(group);
             if (assistants == null || !assistants.contains(sender)) {
-                final String text = sender + " is not the owner/assistant of group " + group + ", cannot expel member.";
-                throw new UnsupportedOperationException(text);
+                return respondText(STR_EXPEL_NOT_ALLOWED, group);
             }
         }
 
         // 2. expelling members
         final List<ID> expelList = getMembers((GroupCommand) cmd);
         if (expelList.size() == 0) {
-            throw new NullPointerException("expel command error: " + cmd);
+            return respondText(STR_EXPEL_CMD_ERROR, group);
         }
         // 2.1. check owner
         if (expelList.contains(owner)) {
-            throw new UnsupportedOperationException("cannot expel owner(" + owner + ") of group: " + group);
+            return respondText(STR_CANNOT_EXPEL_OWNER, group);
         }
         // 2.2. build expelled-list
         final List<String> removedList = new ArrayList<>();

@@ -30,7 +30,6 @@
  */
 package chat.dim.cpu;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,15 +42,15 @@ import chat.dim.cpu.group.ResetCommandProcessor;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
-import chat.dim.protocol.ID;
 import chat.dim.protocol.ReliableMessage;
-import chat.dim.protocol.TextContent;
 
 /**
  *  Command Processing Unit
  *  ~~~~~~~~~~~~~~~~~~~~~~~
  */
 public class CommandProcessor extends ContentProcessor {
+
+    public static String FMT_CMD_NOT_SUPPORT = "Command (name: %s) not support yet!";
 
     public CommandProcessor() {
         super();
@@ -65,16 +64,8 @@ public class CommandProcessor extends ContentProcessor {
      * @return {Content} response to sender
      */
     public List<Content> execute(final Command cmd, final ReliableMessage rMsg) {
-        final String text = String.format("Command (name: %s) not support yet!", cmd.getCommand());
-        final TextContent res = new TextContent(text);
-        // check group message
-        final ID group = cmd.getGroup();
-        if (group != null) {
-            res.setGroup(group);
-        }
-        final List<Content> responses = new ArrayList<>();
-        responses.add(res);
-        return responses;
+        final String text = String.format(FMT_CMD_NOT_SUPPORT, cmd.getCommand());
+        return respondText(text, cmd.getGroup());
     }
 
     @Override
@@ -125,16 +116,16 @@ public class CommandProcessor extends ContentProcessor {
         commandProcessors.put(command, cpu);
     }
 
-    public static void registerAllProcessors() {
-        //
-        //  Register command processors
-        //
+    public static void registerCommandProcessors() {
+        // meta
         register(Command.META, new MetaCommandProcessor());
-
+        // document
         CommandProcessor docProcessor = new DocumentCommandProcessor();
-        register(Command.PROFILE, docProcessor);
         register(Command.DOCUMENT, docProcessor);
-
+        register("profile", docProcessor);
+        register("visa", docProcessor);
+        register("bulletin", docProcessor);
+        // group
         register("group", new GroupCommandProcessor());
         register(GroupCommand.INVITE, new InviteCommandProcessor());
         register(GroupCommand.EXPEL, new ExpelCommandProcessor());

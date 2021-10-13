@@ -38,9 +38,11 @@ import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.ReliableMessage;
-import chat.dim.protocol.TextContent;
 
 public class GroupCommandProcessor extends HistoryCommandProcessor {
+
+    public static String FMT_GRP_CMD_NOT_SUPPORT = "Group command (name: %s) not support yet!";
+    public static String STR_GROUP_EMPTY = "Group empty";
 
     public GroupCommandProcessor() {
         super();
@@ -62,12 +64,8 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
 
     @Override
     public List<Content> execute(final Command cmd, final ReliableMessage rMsg) {
-        final String text = String.format("Group command (name: %s) not support yet!", cmd.getCommand());
-        final TextContent res = new TextContent(text);
-        res.setGroup(cmd.getGroup());
-        final List<Content> responses = new ArrayList<>();
-        responses.add(res);
-        return responses;
+        final String text = String.format(FMT_GRP_CMD_NOT_SUPPORT, cmd.getCommand());
+        return respondText(text, cmd.getGroup());
     }
 
     @Override

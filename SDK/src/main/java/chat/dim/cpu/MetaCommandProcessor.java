@@ -30,7 +30,6 @@
  */
 package chat.dim.cpu;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import chat.dim.Facebook;
@@ -39,39 +38,37 @@ import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 import chat.dim.protocol.MetaCommand;
-import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.ReliableMessage;
-import chat.dim.protocol.TextContent;
 
 public class MetaCommandProcessor extends CommandProcessor {
+
+    public static String STR_META_CMD_ERROR = "Meta command error";
+    public static String FMT_META_NOT_FOUND = "Sorry, meta not found for ID: %s";
+    public static String FMT_META_NOT_ACCEPTED = "Meta not accepted: %s";
+    public static String FMT_META_ACCEPTED = "Meta received: %s";
 
     public MetaCommandProcessor() {
         super();
     }
 
-    private Content getMeta(final ID identifier) {
-        final Facebook facebook = getFacebook();
-        // query meta for ID
-        final Meta meta = facebook.getMeta(identifier);
+    private List<Content> getMeta(final ID identifier) {
+        final Meta meta = getFacebook().getMeta(identifier);
         if (meta == null) {
-            // meta not found
-            final String text = String.format("Sorry, meta not found for ID: %s", identifier);
-            return new TextContent(text);
+            final String text = String.format(FMT_META_NOT_FOUND, identifier);
+            return respondText(text, null);
+        } else {
+            return respondContent(new MetaCommand(identifier, meta));
         }
-        // response
-        return new MetaCommand(identifier, meta);
     }
 
-    private Content putMeta(final ID identifier, final Meta meta) {
-        // received a meta for ID
+    private List<Content> putMeta(final ID identifier, final Meta meta) {
         if (!getFacebook().saveMeta(meta, identifier)) {
-            // save meta failed
-            final String text = String.format("Meta not accept: %s", identifier);
-            return new TextContent(text);
+            final String text = String.format(FMT_META_NOT_ACCEPTED, identifier);
+            return respondText(text, null);
+        } else {
+            final String text = String.format(FMT_META_ACCEPTED, identifier);
+            return respondReceipt(text);
         }
-        // response
-        final String text = String.format("Meta received: %s", identifier);
-        return new ReceiptCommand(text);
     }
 
     @Override
@@ -80,14 +77,15 @@ public class MetaCommandProcessor extends CommandProcessor {
         final MetaCommand mCmd = (MetaCommand) cmd;
         final Meta meta = mCmd.getMeta();
         final ID identifier = mCmd.getIdentifier();
-        final Content res;
-        if (meta == null) {
-            res = getMeta(identifier);
+        if (identifier == null) {
+            // error
+            return respondText(STR_META_CMD_ERROR, cmd.getGroup());
+        } else if (meta == null) {
+            // query meta for ID
+            return getMeta(identifier);
         } else {
-            res = putMeta(identifier, meta);
+            // received a meta for ID
+            return putMeta(identifier, meta);
         }
-        final List<Content> responses = new ArrayList<>();
-        responses.add(res);
-        return responses;
     }
 }

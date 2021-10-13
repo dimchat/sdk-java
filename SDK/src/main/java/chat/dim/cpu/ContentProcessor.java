@@ -41,6 +41,7 @@ import chat.dim.Messenger;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
 import chat.dim.protocol.ID;
+import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.TextContent;
 
@@ -49,6 +50,8 @@ import chat.dim.protocol.TextContent;
  *  ~~~~~~~~~~~~~~~~~~~~~~~
  */
 public class ContentProcessor {
+
+    public static String FMT_CONTENT_NOT_SUPPORT = "Content (type: %d) not support yet!";
 
     private WeakReference<Messenger> messengerRef = null;
 
@@ -75,12 +78,28 @@ public class ContentProcessor {
      * @return {Content} response to sender
      */
     public List<Content> process(final Content content, final ReliableMessage rMsg) {
-        final String text = String.format("Content (type: %d) not support yet!", content.getType());
+        final String text = String.format(FMT_CONTENT_NOT_SUPPORT, content.getType());
+        return respondText(text, content.getGroup());
+    }
+
+    protected List<Content> respondText(final String text, final ID group) {
         final TextContent res = new TextContent(text);
-        // check group message
-        final ID group = content.getGroup();
         if (group != null) {
             res.setGroup(group);
+        }
+        final List<Content> responses = new ArrayList<>();
+        responses.add(res);
+        return responses;
+    }
+    protected List<Content> respondReceipt(final String text) {
+        final ReceiptCommand res = new ReceiptCommand(text);
+        final List<Content> responses = new ArrayList<>();
+        responses.add(res);
+        return responses;
+    }
+    protected List<Content> respondContent(final Content res) {
+        if (res == null) {
+            return null;
         }
         final List<Content> responses = new ArrayList<>();
         responses.add(res);
@@ -121,15 +140,12 @@ public class ContentProcessor {
         contentProcessors.put(type, cpu);
     }
 
-    public static void registerAllProcessors() {
-        //
-        //  Register content processors
-        //
+    public static void registerContentProcessors() {
+        // contents
+        register(0, new ContentProcessor());  // default
         register(ContentType.FORWARD, new ForwardContentProcessor());
-
+        // commands
         register(ContentType.COMMAND, new CommandProcessor());
         register(ContentType.HISTORY, new HistoryCommandProcessor());
-
-        register(0, new ContentProcessor());
     }
 }

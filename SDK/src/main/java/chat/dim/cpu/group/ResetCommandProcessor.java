@@ -34,7 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import chat.dim.Facebook;
-import chat.dim.Messenger;
 import chat.dim.cpu.GroupCommandProcessor;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
@@ -47,34 +46,48 @@ import chat.dim.protocol.group.ResetCommand;
 
 public class ResetCommandProcessor extends GroupCommandProcessor {
 
+    public static String STR_RESET_CMD_ERROR = "Reset command error.";
+    public static String STR_RESET_NOT_ALLOWED = "Sorry, you are not allowed to reset this group.";
+
     public ResetCommandProcessor() {
         super();
     }
 
-    private Content temporarySave(final GroupCommand cmd, final ID sender) {
-        final Facebook facebook = getFacebook();
-        final Messenger messenger = getMessenger();
-        final ID group = cmd.getGroup();
+    protected void queryOwner(ID owner, ID group) {
         final QueryCommand query = new QueryCommand(group);
+        getMessenger().sendContent(null, owner, query, null, 1);
+    }
+
+    private List<Content> temporarySave(final GroupCommand cmd, final ID sender) {
+        final Facebook facebook = getFacebook();
+        final ID group = cmd.getGroup();
         // check whether the owner contained in the new members
         final List<ID> newMembers = getMembers(cmd);
+        if (newMembers.size() == 0) {
+            return respondText(STR_RESET_CMD_ERROR, group);
+        }
         for (ID item : newMembers) {
-            if (facebook.isOwner(item, group)) {
-                // it's a full list, save it now
-                if (facebook.saveMembers(newMembers, group)) {
-                    if (!item.equals(sender)) {
-                        // NOTICE: to prevent counterfeit,
-                        //         query the owner for newest member-list
-                        messenger.sendContent(null, item, query, null, 1);
-                    }
-                }
-                // response (no need to respond this group command)
-                return null;
+            if (facebook.getMeta(item) == null) {
+                // TODO: waiting for member's meta?
+                continue;
+            } else if (!facebook.isOwner(item, group)) {
+                // not owner, skip it
+                continue;
             }
+            // it's a full list, save it now
+            if (facebook.saveMembers(newMembers, group)) {
+                if (!item.equals(sender)) {
+                    // NOTICE: to prevent counterfeit,
+                    //         query the owner for newest member-list
+                    queryOwner(item, group);
+                }
+            }
+            // response (no need to respond this group command)
+            return null;
         }
         // NOTICE: this is a partial member-list
         //         query the sender for full-list
-        return query;
+        return respondContent(new QueryCommand(group));
     }
 
     @Override
@@ -89,13 +102,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
         if (owner == null || members == null || members.size() == 0) {
             // FIXME: group info lost?
             // FIXME: how to avoid strangers impersonating group member?
-            final Content res = temporarySave((GroupCommand) cmd, rMsg.getSender());
-            if (res == null) {
-                return null;
-            }
-            final List<Content> responses = new ArrayList<>();
-            responses.add(res);
-            return responses;
+            return temporarySave((GroupCommand) cmd, rMsg.getSender());
         }
 
         // 1. check permission
@@ -104,19 +111,18 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
             // not the owner? check assistants
             final List<ID> assistants = facebook.getAssistants(group);
             if (assistants == null || !assistants.contains(sender)) {
-                String text = sender + " is not the owner/assistant of group " + group + ", cannot reset members.";
-                throw new UnsupportedOperationException(text);
+                return respondText(STR_RESET_NOT_ALLOWED, group);
             }
         }
 
         // 2. resetting members
         final List<ID> newMembers = getMembers((GroupCommand) cmd);
         if (newMembers.size() == 0) {
-            throw new NullPointerException("group command error: " + cmd);
+            return respondText(STR_RESET_CMD_ERROR, group);
         }
         // 2.1. check owner
         if (!newMembers.contains(owner)) {
-            throw new UnsupportedOperationException("cannot expel owner(" + owner + ") of group: " + group);
+            return respondText(STR_RESET_CMD_ERROR, group);
         }
         // 2.2. build expelled-list
         final List<String> removedList = new ArrayList<>();

@@ -63,7 +63,6 @@ public class MessagePacker extends Packer {
         // [Visa Protocol]
         final Visa visa = rMsg.getVisa();
         if (visa != null) {
-            // check visa attached to message
             facebook.saveDocument(visa);
         }
 

@@ -45,6 +45,9 @@ import chat.dim.protocol.group.InviteCommand;
 
 public class InviteCommandProcessor extends GroupCommandProcessor {
 
+    public static String STR_INVITE_CMD_ERROR = "Invite command error.";
+    public static String STR_INVITE_NOT_ALLOWED = "Sorry, you are not allowed to invite new members into this group.";
+
     public InviteCommandProcessor() {
         super();
     }
@@ -77,15 +80,14 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
             // not a member? check assistants
             final List<ID> assistants = facebook.getAssistants(group);
             if (assistants == null || !assistants.contains(sender)) {
-                String text = sender + " is not a member/assistant of group " + group + ", cannot invite member.";
-                throw new UnsupportedOperationException(text);
+                return respondText(STR_INVITE_NOT_ALLOWED, group);
             }
         }
 
         // 2. inviting members
         final List<ID> inviteList = getMembers((GroupCommand) cmd);
         if (inviteList.size() == 0) {
-            throw new NullPointerException("invite command error: " + cmd);
+            return respondText(STR_INVITE_CMD_ERROR, group);
         }
         // 2.1. check for reset
         if (sender.equals(owner) && inviteList.contains(owner)) {

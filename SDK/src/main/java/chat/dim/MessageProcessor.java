@@ -76,8 +76,7 @@ public class MessageProcessor extends Processor {
         //
         //  Register core factories
         //
-        Factories.registerContentFactories();
-        Factories.registerCommandFactories();
+        Factories.registerCoreFactories();
 
         //
         //  Register command factories
@@ -99,15 +98,7 @@ public class MessageProcessor extends Processor {
      *  Register All Content/Command Processors
      */
     public static void registerAllProcessors() {
-
-        //
-        //  Register content processors
-        //
-        ContentProcessor.registerAllProcessors();
-
-        //
-        //  Register command processors
-        //
-        CommandProcessor.registerAllProcessors();
+        ContentProcessor.registerContentProcessors();
+        CommandProcessor.registerCommandProcessors();
     }
 }

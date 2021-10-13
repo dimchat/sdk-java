@@ -30,7 +30,6 @@
  */
 package chat.dim.cpu.group;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import chat.dim.Facebook;
@@ -40,12 +39,13 @@ import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.ReliableMessage;
-import chat.dim.protocol.TextContent;
 import chat.dim.protocol.group.InviteCommand;
 import chat.dim.protocol.group.QueryCommand;
 import chat.dim.protocol.group.ResetCommand;
 
 public class QueryCommandProcessor extends GroupCommandProcessor {
+
+    public static String STR_QUERY_NOT_ALLOWED = "Sorry, you are not allowed to query this group.";
 
     public QueryCommandProcessor() {
         super();
@@ -61,12 +61,7 @@ public class QueryCommandProcessor extends GroupCommandProcessor {
         final ID owner = facebook.getOwner(group);
         final List<ID> members = facebook.getMembers(group);
         if (owner == null || members == null || members.size() == 0) {
-            final String text = String.format("Sorry, members not found in group: %s", group);
-            final TextContent res = new TextContent(text);
-            res.setGroup(group);
-            final List<Content> responses = new ArrayList<>();
-            responses.add(res);
-            return responses;
+            return respondText(STR_GROUP_EMPTY, group);
         }
 
         // 1. check permission
@@ -75,8 +70,7 @@ public class QueryCommandProcessor extends GroupCommandProcessor {
             // not a member? check assistants
             final List<ID> assistants = facebook.getAssistants(group);
             if (assistants == null || !assistants.contains(sender)) {
-                final String text = sender + " is not a member/assistant of group " + group + ", cannot query.";
-                throw new UnsupportedOperationException(text);
+                return respondText(STR_QUERY_NOT_ALLOWED, group);
             }
         }
 
@@ -89,8 +83,6 @@ public class QueryCommandProcessor extends GroupCommandProcessor {
         } else {
             res = new InviteCommand(group, members);
         }
-        final List<Content> responses = new ArrayList<>();
-        responses.add(res);
-        return responses;
+        return respondContent(res);
     }
 }
