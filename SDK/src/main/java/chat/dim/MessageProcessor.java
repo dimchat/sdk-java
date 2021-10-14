@@ -98,6 +98,9 @@ public class MessageProcessor extends Processor {
      *  Register All Content/Command Processors
      */
     public static void registerAllProcessors() {
+        //
+        //  Register processors
+        //
         ContentProcessor.registerContentProcessors();
         CommandProcessor.registerCommandProcessors();
     }

@@ -43,7 +43,7 @@ import chat.dim.protocol.ReliableMessage;
 
 public class DocumentCommandProcessor extends MetaCommandProcessor {
 
-    public static String STR_DOC_CMD_ERROR = "Document command error";
+    public static String STR_DOC_CMD_ERROR = "Document command error.";
     public static String FMT_DOC_NOT_FOUND = "Sorry, document not found for ID: %s";
     public static String FMT_DOC_NOT_ACCEPTED = "Document not accept: %s";
     public static String FMT_DOC_ACCEPTED = "Document received: %s";
@@ -74,12 +74,12 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
             }
         }
         // receive a document for ID
-        if (!facebook.saveDocument(doc))  {
-            final String text = String.format(FMT_DOC_NOT_ACCEPTED, identifier);
-            return respondText(text, null);
-        } else {
+        if (facebook.saveDocument(doc))  {
             final String text = String.format(FMT_DOC_ACCEPTED, identifier);
             return respondReceipt(text);
+        } else {
+            final String text = String.format(FMT_DOC_NOT_ACCEPTED, identifier);
+            return respondText(text, null);
         }
     }
 

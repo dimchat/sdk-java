@@ -32,7 +32,6 @@ package chat.dim.cpu;
 
 import java.util.List;
 
-import chat.dim.Facebook;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
@@ -42,7 +41,7 @@ import chat.dim.protocol.ReliableMessage;
 
 public class MetaCommandProcessor extends CommandProcessor {
 
-    public static String STR_META_CMD_ERROR = "Meta command error";
+    public static String STR_META_CMD_ERROR = "Meta command error.";
     public static String FMT_META_NOT_FOUND = "Sorry, meta not found for ID: %s";
     public static String FMT_META_NOT_ACCEPTED = "Meta not accepted: %s";
     public static String FMT_META_ACCEPTED = "Meta received: %s";
@@ -62,12 +61,12 @@ public class MetaCommandProcessor extends CommandProcessor {
     }
 
     private List<Content> putMeta(final ID identifier, final Meta meta) {
-        if (!getFacebook().saveMeta(meta, identifier)) {
-            final String text = String.format(FMT_META_NOT_ACCEPTED, identifier);
-            return respondText(text, null);
-        } else {
+        if (getFacebook().saveMeta(meta, identifier)) {
             final String text = String.format(FMT_META_ACCEPTED, identifier);
             return respondReceipt(text);
+        } else {
+            final String text = String.format(FMT_META_NOT_ACCEPTED, identifier);
+            return respondText(text, null);
         }
     }
 

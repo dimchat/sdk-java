@@ -42,7 +42,7 @@ import chat.dim.protocol.ReliableMessage;
 public class GroupCommandProcessor extends HistoryCommandProcessor {
 
     public static String FMT_GRP_CMD_NOT_SUPPORT = "Group command (name: %s) not support yet!";
-    public static String STR_GROUP_EMPTY = "Group empty";
+    public static String STR_GROUP_EMPTY = "Group empty.";
 
     public GroupCommandProcessor() {
         super();
