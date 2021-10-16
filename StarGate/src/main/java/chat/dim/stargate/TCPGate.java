@@ -34,10 +34,12 @@ import java.net.SocketAddress;
 import java.util.List;
 
 import chat.dim.mtp.Package;
+import chat.dim.mtp.PackageDeparture;
 import chat.dim.mtp.StreamDocker;
 import chat.dim.net.Hub;
 import chat.dim.port.Departure;
 import chat.dim.port.Docker;
+import chat.dim.startrek.DepartureShip;
 
 public class TCPGate<H extends Hub> extends CommonGate<H> {
 
@@ -48,7 +50,27 @@ public class TCPGate<H extends Hub> extends CommonGate<H> {
     @Override
     protected Docker createDocker(SocketAddress remote, SocketAddress local, List<byte[]> data) {
         // TODO: check data format before create docker
-        return new StreamDocker(remote, local, this);
+        return new StreamDocker(remote, local, this) {
+            @Override
+            protected Departure getNextDeparture(final long now) {
+                Departure outgo = super.getNextDeparture(now);
+                if (outgo == null) {
+                    return null;
+                }
+                if (outgo.getRetries() >= DepartureShip.MAX_RETRIES) {
+                    // last try
+                    return outgo;
+                }
+                if (outgo instanceof PackageDeparture) {
+                    Package pack = ((PackageDeparture) outgo).getPackage();
+                    if (!pack.isResponse()) {
+                        // put back for next retry
+                        appendDeparture(outgo);
+                    }
+                }
+                return outgo;
+            }
+        };
     }
 
     public void send(Package pack, SocketAddress source, SocketAddress destination,

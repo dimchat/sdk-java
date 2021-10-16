@@ -38,7 +38,7 @@ public abstract class PackageSeeker<H, P> {
     private final int MAGIC_CODE_OFFSET;
     private final int MAX_HEAD_LENGTH;
 
-    public PackageSeeker(byte[] magicCode, int magicOffset, int maxHeadLen) {
+    protected PackageSeeker(byte[] magicCode, int magicOffset, int maxHeadLen) {
         super();
         MAGIC_CODE = magicCode;
         MAGIC_CODE_OFFSET = magicOffset;

@@ -52,7 +52,7 @@ public final class StarTrek extends UDPGate<PackageHub> {
     public static StarTrek create(String host, int port, Gate.Delegate delegate) {
         SocketAddress remote = new InetSocketAddress(host, port);
         StarTrek gate = new StarTrek(delegate, remote, null);
-        gate.setHub(new PackageHub(gate));
+        gate.setHub(new ClientHub(gate));
         return gate;
     }
 
