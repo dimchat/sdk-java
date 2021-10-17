@@ -38,6 +38,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import chat.dim.port.Arrival;
 import chat.dim.port.Departure;
 import chat.dim.port.Ship;
+import chat.dim.startrek.DepartureShip;
 import chat.dim.startrek.StarGate;
 import chat.dim.stream.SeekerResult;
 import chat.dim.type.ByteArray;
@@ -104,6 +105,29 @@ public class StreamDocker extends PackageDocker {
     @Override
     protected Departure createDeparture(Package pkg, int priority, Ship.Delegate delegate) {
         return new StreamDeparture(pkg, priority, delegate);
+    }
+
+    @Override
+    protected Departure getNextDeparture(final long now) {
+        Departure outgo = super.getNextDeparture(now);
+        if (outgo != null) {
+            retryDeparture(outgo);
+        }
+        return outgo;
+    }
+
+    protected void retryDeparture(Departure outgo) {
+        if (outgo.getRetries() >= DepartureShip.MAX_RETRIES) {
+            // last try
+            return;
+        }
+        if (outgo instanceof PackageDeparture) {
+            Package pack = ((PackageDeparture) outgo).getPackage();
+            if (!pack.isResponse()) {
+                // put back for next retry
+                appendDeparture(outgo);
+            }
+        }
     }
 
     @Override

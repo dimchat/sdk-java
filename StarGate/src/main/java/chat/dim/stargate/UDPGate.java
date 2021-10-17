@@ -39,6 +39,7 @@ import chat.dim.mtp.PackageDocker;
 import chat.dim.net.Hub;
 import chat.dim.port.Departure;
 import chat.dim.port.Docker;
+import chat.dim.port.Ship;
 import chat.dim.startrek.DepartureShip;
 
 public class UDPGate<H extends Hub> extends CommonGate<H> {
@@ -74,8 +75,13 @@ public class UDPGate<H extends Hub> extends CommonGate<H> {
     }
 
     public void send(Package pack, SocketAddress source, SocketAddress destination,
-                     int priority, Delegate delegate) {
-        Docker worker = getDocker(destination, source, null);
+                     int priority, Ship.Delegate delegate) {
+        Docker worker = getDocker(destination, source);
+        if (worker == null) {
+            worker = createDocker(destination, source, null);
+            assert worker != null : "failed to create docker: " + destination + ", " + source;
+            putDocker(worker);
+        }
         ((PackageDocker) worker).send(pack, priority, delegate);
     }
 

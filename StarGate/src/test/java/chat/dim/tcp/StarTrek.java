@@ -32,9 +32,12 @@ package chat.dim.tcp;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.List;
 
 import chat.dim.mtp.MTPHelper;
 import chat.dim.mtp.Package;
+import chat.dim.mtp.StreamDocker;
+import chat.dim.port.Docker;
 import chat.dim.port.Gate;
 import chat.dim.stargate.TCPGate;
 
@@ -60,6 +63,12 @@ public final class StarTrek extends TCPGate<ClientHub> {
     public void start() {
         super.start();
         (new Thread(this)).start();
+    }
+
+    @Override
+    protected Docker createDocker(SocketAddress remote, SocketAddress local, List<byte[]> data) {
+        // TODO: check data format before create docker
+        return new StreamDocker(remote, null, this);
     }
 
     public void sendCommand(byte[] body) {
