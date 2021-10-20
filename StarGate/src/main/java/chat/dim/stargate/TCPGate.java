@@ -49,7 +49,7 @@ public class TCPGate<H extends Hub> extends CommonGate<H> {
     @Override
     protected Docker createDocker(SocketAddress remote, SocketAddress local, List<byte[]> data) {
         // TODO: check data format before create docker
-        return new StreamDocker(remote, local, this);
+        return new StreamDocker(remote, null, this);
     }
 
     public void send(Package pack, SocketAddress source, SocketAddress destination,

@@ -34,7 +34,9 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
+import chat.dim.net.BaseConnection;
 import chat.dim.net.Connection;
+import chat.dim.net.ConnectionState;
 import chat.dim.net.Hub;
 import chat.dim.skywalker.Runner;
 import chat.dim.startrek.StarGate;
@@ -89,7 +91,7 @@ public abstract class CommonGate<H extends Hub> extends StarGate implements Runn
 
     @Override
     public Connection getConnection(SocketAddress remote, SocketAddress local) {
-        return getHub().getConnection(remote, local);
+        return getHub().connect(remote, local);
     }
 
     @Override
@@ -105,5 +107,33 @@ public abstract class CommonGate<H extends Hub> extends StarGate implements Runn
     @Override
     protected void clearAdvanceParty(SocketAddress source, SocketAddress destination, Connection connection) {
         // TODO: remove advance party for this connection
+    }
+
+    @Override
+    protected void heartbeat(Connection connection) {
+        // let the client to do the job
+        if (connection instanceof BaseConnection) {
+            if (((BaseConnection) connection).isActivated) {
+                super.heartbeat(connection);
+            }
+        }
+    }
+
+    private void disconnect(Connection conn) {
+        // close connection for server
+        if (conn instanceof BaseConnection && !((BaseConnection) conn).isActivated) {
+            // 1. remove docker
+            removeDocker(conn.getRemoteAddress(), conn.getLocalAddress(), null);
+        }
+        // 2. remove connection
+        getHub().disconnect(conn);
+    }
+
+    @Override
+    public void onStateChanged(ConnectionState previous, ConnectionState current, Connection connection) {
+        super.onStateChanged(previous, current, connection);
+        if (current != null && current.equals(ConnectionState.ERROR)) {
+            disconnect(connection);
+        }
     }
 }
