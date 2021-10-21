@@ -34,10 +34,16 @@ import java.net.SocketAddress;
 import java.util.ArrayList;
 import java.util.List;
 
+import chat.dim.mtp.MTPHelper;
+import chat.dim.mtp.Package;
+import chat.dim.mtp.PackageDeparture;
 import chat.dim.net.BaseConnection;
 import chat.dim.net.Connection;
 import chat.dim.net.ConnectionState;
 import chat.dim.net.Hub;
+import chat.dim.port.Departure;
+import chat.dim.port.Docker;
+import chat.dim.port.Ship;
 import chat.dim.skywalker.Runner;
 import chat.dim.startrek.StarGate;
 
@@ -119,21 +125,77 @@ public abstract class CommonGate<H extends Hub> extends StarGate implements Runn
         }
     }
 
-    private void disconnect(Connection conn) {
-        // close connection for server
-        if (conn instanceof BaseConnection && !((BaseConnection) conn).isActivated) {
-            // 1. remove docker
-            removeDocker(conn.getRemoteAddress(), conn.getLocalAddress(), null);
+    private void kill(SocketAddress remote, SocketAddress local, Connection connection) {
+        // if conn is null, disconnect with (remote, local);
+        // else, disconnect with connection when local address matched.
+        connection = getHub().disconnect(remote, local, connection);
+        // if connection is not activated, means it's a server connection,
+        // remove the docker too.
+        if (connection instanceof BaseConnection) {
+            if (!((BaseConnection) connection).isActivated) {
+                // remove docker for server connection
+                remote = connection.getRemoteAddress();
+                local = connection.getLocalAddress();
+                removeDocker(remote, local, null);
+            }
         }
-        // 2. remove connection
-        getHub().disconnect(conn);
     }
 
     @Override
     public void onStateChanged(ConnectionState previous, ConnectionState current, Connection connection) {
         super.onStateChanged(previous, current, connection);
         if (current != null && current.equals(ConnectionState.ERROR)) {
-            disconnect(connection);
+            kill(null, null, connection);
         }
     }
+
+    @Override
+    public void onError(Throwable error, byte[] data, SocketAddress source, SocketAddress destination, Connection connection) {
+        if (connection == null) {
+            // failed to receive data
+            kill(source, destination, null);
+        } else {
+            // failed to send data
+            kill(destination, source, connection);
+        }
+    }
+
+    protected Docker getDocker(SocketAddress remote, SocketAddress local, List<byte[]> data) {
+        Docker worker = getDocker(remote, local);
+        if (worker == null) {
+            worker = createDocker(remote, local, data);
+            if (worker != null) {
+                putDocker(worker);
+            }
+        }
+        return worker;
+    }
+
+    public boolean send(SocketAddress source, SocketAddress destination,
+                        Departure ship) {
+        Docker worker = getDocker(destination, source, null);
+        return worker != null && worker.appendDeparture(ship);
+    }
+
+    public boolean send(SocketAddress source, SocketAddress destination,
+                        Package pack, int priority, Ship.Delegate delegate) {
+        Departure ship = new PackageDeparture(pack, priority, delegate);
+        return send(source, destination, ship);
+    }
+
+    public boolean send(SocketAddress source, SocketAddress destination,
+                        byte[] payload, int priority, Ship.Delegate delegate) {
+        Package pack = MTPHelper.createMessage(payload);
+        return send(source, destination, pack, priority, delegate);
+    }
+
+    public boolean send(SocketAddress source, SocketAddress destination,
+                        byte[] payload, Ship.Delegate delegate) {
+        return send(source, destination, payload, NORMAL, delegate);
+    }
+    public boolean send(SocketAddress source, SocketAddress destination,
+                        Package pack) {
+        return send(source, destination, pack, NORMAL, getDelegate());
+    }
+    static final int NORMAL = Departure.Priority.NORMAL.value;
 }

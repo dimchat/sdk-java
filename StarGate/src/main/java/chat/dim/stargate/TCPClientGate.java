@@ -33,38 +33,52 @@ package chat.dim.stargate;
 import java.net.SocketAddress;
 import java.util.List;
 
+import chat.dim.mtp.MTPHelper;
 import chat.dim.mtp.Package;
-import chat.dim.mtp.PackageDocker;
-import chat.dim.net.Hub;
-import chat.dim.port.Departure;
+import chat.dim.mtp.StreamDocker;
 import chat.dim.port.Docker;
 import chat.dim.port.Ship;
+import chat.dim.tcp.ClientHub;
 
-public class UDPGate<H extends Hub> extends CommonGate<H> {
+public class TCPClientGate extends CommonGate<ClientHub> {
 
-    public UDPGate(Delegate delegate) {
+    public final SocketAddress remoteAddress;
+    public final SocketAddress localAddress;
+
+    public TCPClientGate(Delegate delegate, SocketAddress remote, SocketAddress local) {
         super(delegate);
+        remoteAddress = remote;
+        localAddress = local;
+        setHub(createClientHub());
+    }
+
+    protected ClientHub createClientHub() {
+        // override for user-customized hub
+        return new ClientHub(this);
     }
 
     @Override
     protected Docker createDocker(SocketAddress remote, SocketAddress local, List<byte[]> data) {
         // TODO: check data format before create docker
-        return new PackageDocker(remote, null, this);
+        return new StreamDocker(remote, null, this);
     }
 
-    public void send(Package pack, SocketAddress source, SocketAddress destination,
-                     int priority, Ship.Delegate delegate) {
-        Docker worker = getDocker(destination, source);
-        if (worker == null) {
-            worker = createDocker(destination, source, null);
-            assert worker != null : "failed to create docker: " + destination + ", " + source;
-            putDocker(worker);
-        }
-        ((PackageDocker) worker).send(pack, priority, delegate);
+    @Override
+    public void start() {
+        super.start();
+        (new Thread(this)).start();
     }
 
-    public void send(Package pack, SocketAddress source, SocketAddress destination) {
-        final int priority = Departure.Priority.NORMAL.value;
-        send(pack, source, destination, priority, getDelegate());
+    public boolean send(Package pack, int priority, Ship.Delegate delegate) {
+        return send(localAddress, remoteAddress, pack, priority, delegate);
+    }
+
+    public boolean sendCommand(byte[] body, int priority, Ship.Delegate delegate) {
+        Package pack = MTPHelper.createCommand(body);
+        return send(pack, priority, delegate);
+    }
+    public boolean sendMessage(byte[] body, int priority, Ship.Delegate delegate) {
+        Package pack = MTPHelper.createMessage(body);
+        return send(pack, priority, delegate);
     }
 }

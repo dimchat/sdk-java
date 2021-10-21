@@ -28,32 +28,52 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.udp;
+package chat.dim.stargate;
 
-import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.List;
 
-import chat.dim.mtp.MTPHelper;
+import chat.dim.mtp.DataType;
 import chat.dim.mtp.Package;
+import chat.dim.mtp.PackageDocker;
+import chat.dim.net.Hub;
+import chat.dim.port.Docker;
 import chat.dim.port.Gate;
-import chat.dim.stargate.UDPGate;
+import chat.dim.port.Ship;
+import chat.dim.type.Data;
+import chat.dim.udp.ClientHub;
 
-public final class StarTrek extends UDPGate<PackageHub> {
+public class UDPClientGate extends CommonGate<ClientHub> {
 
     public final SocketAddress remoteAddress;
     public final SocketAddress localAddress;
 
-    public StarTrek(Gate.Delegate delegate, SocketAddress remote, SocketAddress local) {
+    public UDPClientGate(Delegate delegate, SocketAddress remote, SocketAddress local) {
         super(delegate);
         remoteAddress = remote;
         localAddress = local;
+        setHub(createClientHub());
     }
 
-    public static StarTrek create(String host, int port, Gate.Delegate delegate) {
-        SocketAddress remote = new InetSocketAddress(host, port);
-        StarTrek gate = new StarTrek(delegate, remote, null);
-        gate.setHub(new ClientHub(gate));
-        return gate;
+    protected ClientHub createClientHub() {
+        // override for user-customized hub
+        return new ClientHub(this);
+    }
+
+    @Override
+    protected Docker createDocker(SocketAddress remote, SocketAddress local, List<byte[]> data) {
+        // TODO: check data format before create docker
+        return new PackageDocker(remote, null, this) {
+            @Override
+            protected Hub getHub() {
+                Gate gate = getGate();
+                if (gate instanceof CommonGate) {
+                    //noinspection rawtypes
+                    return ((CommonGate) gate).getHub();
+                }
+                return null;
+            }
+        };
     }
 
     @Override
@@ -62,12 +82,16 @@ public final class StarTrek extends UDPGate<PackageHub> {
         (new Thread(this)).start();
     }
 
-    public void sendCommand(byte[] body) {
-        Package pack = MTPHelper.createCommand(body);
-        send(pack, localAddress, remoteAddress);
+    public boolean send(Package pack, int priority, Ship.Delegate delegate) {
+        return send(localAddress, remoteAddress, pack, priority, delegate);
     }
-    public void sendMessage(byte[] body) {
-        Package pack = MTPHelper.createMessage(body);
-        send(pack, localAddress, remoteAddress);
+
+    public boolean sendCommand(byte[] body, int priority, Ship.Delegate delegate) {
+        Package pack = Package.create(DataType.COMMAND, new Data(body));
+        return send(pack, priority, delegate);
+    }
+    public boolean sendMessage(byte[] body, int priority, Ship.Delegate delegate) {
+        Package pack = Package.create(DataType.MESSAGE, new Data(body));
+        return send(pack, priority, delegate);
     }
 }

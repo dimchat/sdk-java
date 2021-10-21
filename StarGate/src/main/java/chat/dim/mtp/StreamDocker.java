@@ -35,9 +35,12 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import chat.dim.net.Hub;
 import chat.dim.port.Arrival;
 import chat.dim.port.Departure;
+import chat.dim.port.Gate;
 import chat.dim.port.Ship;
+import chat.dim.stargate.CommonGate;
 import chat.dim.startrek.StarGate;
 import chat.dim.stream.SeekerResult;
 import chat.dim.type.ByteArray;
@@ -47,6 +50,16 @@ public class StreamDocker extends PackageDocker {
 
     public StreamDocker(SocketAddress remote, SocketAddress local, StarGate gate) {
         super(remote, local, gate);
+    }
+
+    @Override
+    protected Hub getHub() {
+        Gate gate = getGate();
+        if (gate instanceof CommonGate) {
+            //noinspection rawtypes
+            return ((CommonGate) gate).getHub();
+        }
+        return null;
     }
 
     private ByteArray chunks = Data.ZERO;
