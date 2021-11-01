@@ -69,15 +69,15 @@ public class MTPHelper {
     }
 
     public static Package createCommand(byte[] body) {
-        return Package.create(DataType.COMMAND, body.length, new Data(body));
+        return Package.create(DataType.COMMAND, null, 1, 0, body.length, new Data(body));
     }
 
     public static Package createMessage(byte[] body) {
-        return Package.create(DataType.MESSAGE, body.length, new Data(body));
+        return Package.create(DataType.MESSAGE, null, 1, 0, body.length, new Data(body));
     }
 
     public static Package respondCommand(TransactionID sn , byte[] body) {
-        return Package.create(DataType.COMMAND_RESPONSE, sn, body.length, new Data(body));
+        return Package.create(DataType.COMMAND_RESPONSE, sn, 1, 0, body.length, new Data(body));
     }
 
     public static Package respondMessage(TransactionID sn, int pages, int index, byte[] body) {

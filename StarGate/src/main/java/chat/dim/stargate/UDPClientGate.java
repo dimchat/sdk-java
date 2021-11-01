@@ -87,11 +87,11 @@ public class UDPClientGate extends CommonGate<ClientHub> {
     }
 
     public boolean sendCommand(byte[] body, int priority, Ship.Delegate delegate) {
-        Package pack = Package.create(DataType.COMMAND, new Data(body));
+        Package pack = Package.create(DataType.COMMAND, null, 1, 0, -1, new Data(body));
         return send(pack, priority, delegate);
     }
     public boolean sendMessage(byte[] body, int priority, Ship.Delegate delegate) {
-        Package pack = Package.create(DataType.MESSAGE, new Data(body));
+        Package pack = Package.create(DataType.MESSAGE, null, 1, 0, -1, new Data(body));
         return send(pack, priority, delegate);
     }
 }
