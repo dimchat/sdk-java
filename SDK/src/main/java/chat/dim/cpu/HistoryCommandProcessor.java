@@ -32,6 +32,7 @@ package chat.dim.cpu;
 
 import java.util.List;
 
+import chat.dim.Messenger;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ReliableMessage;
@@ -40,13 +41,13 @@ public class HistoryCommandProcessor extends CommandProcessor {
 
     public static String FMT_HIS_CMD_NOT_SUPPORT = "History command (name: %s) not support yet!";
 
-    public HistoryCommandProcessor() {
-        super();
+    public HistoryCommandProcessor(Messenger messenger) {
+        super(messenger);
     }
 
     @Override
-    public List<Content> execute(final Command cmd, final ReliableMessage rMsg) {
-        final String text = String.format(FMT_HIS_CMD_NOT_SUPPORT, cmd.getCommand());
+    public List<Content> execute(Command cmd, ReliableMessage rMsg) {
+        String text = String.format(FMT_HIS_CMD_NOT_SUPPORT, cmd.getCommand());
         return respondText(text, cmd.getGroup());
     }
 }

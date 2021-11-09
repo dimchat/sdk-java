@@ -33,6 +33,7 @@ package chat.dim.cpu;
 import java.util.List;
 
 import chat.dim.Facebook;
+import chat.dim.Messenger;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.Document;
@@ -48,8 +49,8 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
     public static String FMT_DOC_NOT_ACCEPTED = "Document not accept: %s";
     public static String FMT_DOC_ACCEPTED = "Document received: %s";
 
-    public DocumentCommandProcessor() {
-        super();
+    public DocumentCommandProcessor(Messenger messenger) {
+        super(messenger);
     }
 
     private List<Content> getDocument(final ID identifier, final String type) {

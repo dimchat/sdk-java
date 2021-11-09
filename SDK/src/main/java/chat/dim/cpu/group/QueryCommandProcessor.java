@@ -33,6 +33,7 @@ package chat.dim.cpu.group;
 import java.util.List;
 
 import chat.dim.Facebook;
+import chat.dim.Messenger;
 import chat.dim.User;
 import chat.dim.cpu.GroupCommandProcessor;
 import chat.dim.protocol.Command;
@@ -47,8 +48,8 @@ public class QueryCommandProcessor extends GroupCommandProcessor {
 
     public static String STR_QUERY_NOT_ALLOWED = "Sorry, you are not allowed to query this group.";
 
-    public QueryCommandProcessor() {
-        super();
+    public QueryCommandProcessor(Messenger messenger) {
+        super(messenger);
     }
 
     @Override

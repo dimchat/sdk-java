@@ -110,6 +110,8 @@ public abstract class Messenger extends Transceiver {
      */
     public interface Callback {
 
-        void onFinished(ReliableMessage rMsg, Error error);
+        void onSuccess();
+
+        void onFailed(Error error);
     }
 }

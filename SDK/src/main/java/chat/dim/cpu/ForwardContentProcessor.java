@@ -41,8 +41,8 @@ import chat.dim.protocol.SecureMessage;
 
 public class ForwardContentProcessor extends ContentProcessor {
 
-    public ForwardContentProcessor() {
-        super();
+    public ForwardContentProcessor(Messenger messenger) {
+        super(messenger);
     }
 
     @Override

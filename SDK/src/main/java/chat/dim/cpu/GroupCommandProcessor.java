@@ -33,6 +33,7 @@ package chat.dim.cpu;
 import java.util.ArrayList;
 import java.util.List;
 
+import chat.dim.Messenger;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
@@ -44,17 +45,17 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
     public static String FMT_GRP_CMD_NOT_SUPPORT = "Group command (name: %s) not support yet!";
     public static String STR_GROUP_EMPTY = "Group empty.";
 
-    public GroupCommandProcessor() {
-        super();
+    public GroupCommandProcessor(Messenger messenger) {
+        super(messenger);
     }
 
-    protected List<ID> getMembers(final GroupCommand cmd) {
+    protected List<ID> getMembers(GroupCommand cmd) {
         // get from 'members'
         List<ID> members = cmd.getMembers();
         if (members == null) {
             members = new ArrayList<>();
             // get from 'member'
-            final ID member = cmd.getMember();
+            ID member = cmd.getMember();
             if (member != null) {
                 members.add(member);
             }
@@ -63,22 +64,8 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
     }
 
     @Override
-    public List<Content> execute(final Command cmd, final ReliableMessage rMsg) {
-        final String text = String.format(FMT_GRP_CMD_NOT_SUPPORT, cmd.getCommand());
+    public List<Content> execute(Command cmd, ReliableMessage rMsg) {
+        String text = String.format(FMT_GRP_CMD_NOT_SUPPORT, cmd.getCommand());
         return respondText(text, cmd.getGroup());
-    }
-
-    @Override
-    public List<Content> process(final Content content, final ReliableMessage rMsg) {
-        assert content instanceof GroupCommand : "group command error: " + content;
-        final Command cmd = (Command) content;
-        // get CPU by command name
-        CommandProcessor cpu = getProcessor(cmd);
-        if (cpu == null) {
-            cpu = this;
-        } else {
-            cpu.setMessenger(getMessenger());
-        }
-        return cpu.execute(cmd, rMsg);
     }
 }

@@ -30,18 +30,11 @@
  */
 package chat.dim.cpu;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import chat.dim.cpu.group.ExpelCommandProcessor;
-import chat.dim.cpu.group.InviteCommandProcessor;
-import chat.dim.cpu.group.QueryCommandProcessor;
-import chat.dim.cpu.group.QuitCommandProcessor;
-import chat.dim.cpu.group.ResetCommandProcessor;
+import chat.dim.Messenger;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
-import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.ReliableMessage;
 
 /**
@@ -52,8 +45,14 @@ public class CommandProcessor extends ContentProcessor {
 
     public static String FMT_CMD_NOT_SUPPORT = "Command (name: %s) not support yet!";
 
-    public CommandProcessor() {
-        super();
+    public CommandProcessor(Messenger messenger) {
+        super(messenger);
+    }
+
+    @Override
+    public List<Content> process(Content content, ReliableMessage rMsg) {
+        assert content instanceof Command : "command error: " + content;
+        return execute((Command) content, rMsg);
     }
 
     /**
@@ -63,74 +62,8 @@ public class CommandProcessor extends ContentProcessor {
      * @param rMsg - reliable message
      * @return {Content} response to sender
      */
-    public List<Content> execute(final Command cmd, final ReliableMessage rMsg) {
-        final String text = String.format(FMT_CMD_NOT_SUPPORT, cmd.getCommand());
+    public List<Content> execute(Command cmd, ReliableMessage rMsg) {
+        String text = String.format(FMT_CMD_NOT_SUPPORT, cmd.getCommand());
         return respondText(text, cmd.getGroup());
-    }
-
-    @Override
-    public List<Content> process(final Content content, final ReliableMessage rMsg) {
-        assert content instanceof Command : "command error: " + content;
-        final Command cmd = (Command) content;
-        // get CPU by command name
-        CommandProcessor cpu = getProcessor(cmd);
-        if (cpu == null) {
-            // check for group command
-            if (cmd instanceof GroupCommand) {
-                cpu = getProcessor("group");
-            }
-        }
-        if (cpu == null) {
-            cpu = this;
-        } else {
-            cpu.setMessenger(getMessenger());
-        }
-        return cpu.execute(cmd, rMsg);
-    }
-
-    //
-    //  CPU factory
-    //
-    private static final Map<String, CommandProcessor> commandProcessors = new HashMap<>();
-
-    /**
-     *  Get command processor with name
-     *
-     * @param command - name
-     * @return CommandProcessor
-     */
-    protected static CommandProcessor getProcessor(final String command) {
-        return commandProcessors.get(command);
-    }
-    static CommandProcessor getProcessor(final Command cmd) {
-        return getProcessor(cmd.getCommand());
-    }
-
-    /**
-     *  Register command processor with name
-     *
-     * @param command - name
-     * @param cpu     - command processor
-     */
-    public static void register(final String command, final CommandProcessor cpu) {
-        commandProcessors.put(command, cpu);
-    }
-
-    public static void registerCommandProcessors() {
-        // meta
-        register(Command.META, new MetaCommandProcessor());
-        // document
-        CommandProcessor docProcessor = new DocumentCommandProcessor();
-        register(Command.DOCUMENT, docProcessor);
-        register("profile", docProcessor);
-        register("visa", docProcessor);
-        register("bulletin", docProcessor);
-        // group
-        register("group", new GroupCommandProcessor());
-        register(GroupCommand.INVITE, new InviteCommandProcessor());
-        register(GroupCommand.EXPEL, new ExpelCommandProcessor());
-        register(GroupCommand.QUIT, new QuitCommandProcessor());
-        register(GroupCommand.QUERY, new QueryCommandProcessor());
-        register(GroupCommand.RESET, new ResetCommandProcessor());
     }
 }

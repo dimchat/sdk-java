@@ -34,11 +34,12 @@ import java.util.List;
 
 import chat.dim.core.Factories;
 import chat.dim.core.Processor;
-import chat.dim.cpu.CommandProcessor;
 import chat.dim.cpu.ContentProcessor;
+import chat.dim.cpu.ProcessorFactory;
 import chat.dim.protocol.BlockCommand;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
+import chat.dim.protocol.ContentType;
 import chat.dim.protocol.HandshakeCommand;
 import chat.dim.protocol.LoginCommand;
 import chat.dim.protocol.MuteCommand;
@@ -48,23 +49,35 @@ import chat.dim.protocol.StorageCommand;
 
 public class MessageProcessor extends Processor {
 
+    private final ProcessorFactory cpm;
+
     public MessageProcessor(Transceiver messenger) {
         super(messenger);
+        cpm = createProcessorFactory();
+    }
+
+    protected ProcessorFactory createProcessorFactory() {
+        return new ProcessorFactory(getMessenger());
     }
 
     protected Messenger getMessenger() {
         return (Messenger) getTransceiver();
     }
 
+    public ContentProcessor getProcessor(ContentType type) {
+        return cpm.getProcessor(type);
+    }
+    public ContentProcessor getProcessor(int type) {
+        return cpm.getProcessor(type);
+    }
+    public ContentProcessor getProcessor(Content content) {
+        return cpm.getProcessor(content);
+    }
+
     @Override
     public List<Content> process(final Content content, final ReliableMessage rMsg) {
         // TODO: override to check group
-        ContentProcessor cpu = ContentProcessor.getProcessor(content);
-        if (cpu == null) {
-            cpu = ContentProcessor.getProcessor(0);  // unknown
-            assert cpu != null : "cannot process content: " + content;
-        }
-        cpu.setMessenger(getMessenger());
+        ContentProcessor cpu = getProcessor(content);
         return cpu.process(content, rMsg);
         // TODO: override to filter the response
     }
@@ -92,16 +105,5 @@ public class MessageProcessor extends Processor {
         Command.register(StorageCommand.STORAGE, StorageCommand::new);
         Command.register(StorageCommand.CONTACTS, StorageCommand::new);
         Command.register(StorageCommand.PRIVATE_KEY, StorageCommand::new);
-    }
-
-    /**
-     *  Register All Content/Command Processors
-     */
-    public static void registerAllProcessors() {
-        //
-        //  Register processors
-        //
-        ContentProcessor.registerContentProcessors();
-        CommandProcessor.registerCommandProcessors();
     }
 }

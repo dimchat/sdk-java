@@ -33,6 +33,7 @@ package chat.dim.cpu.group;
 import java.util.List;
 
 import chat.dim.Facebook;
+import chat.dim.Messenger;
 import chat.dim.cpu.GroupCommandProcessor;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
@@ -45,8 +46,8 @@ public class QuitCommandProcessor extends GroupCommandProcessor {
     public static String STR_OWNER_CANNOT_QUIT = "Sorry, owner cannot quit.";
     public static String STR_ASSISTANT_CANNOT_QUIT = "Sorry, assistant cannot quit.";
 
-    public QuitCommandProcessor() {
-        super();
+    public QuitCommandProcessor(Messenger messenger) {
+        super(messenger);
     }
 
     @SuppressWarnings("unused")

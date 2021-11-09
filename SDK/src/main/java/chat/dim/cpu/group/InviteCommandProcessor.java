@@ -34,8 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import chat.dim.Facebook;
-import chat.dim.cpu.CommandProcessor;
-import chat.dim.cpu.GroupCommandProcessor;
+import chat.dim.Messenger;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
@@ -43,20 +42,13 @@ import chat.dim.protocol.ID;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.group.InviteCommand;
 
-public class InviteCommandProcessor extends GroupCommandProcessor {
+public class InviteCommandProcessor extends ResetCommandProcessor {
 
     public static String STR_INVITE_CMD_ERROR = "Invite command error.";
     public static String STR_INVITE_NOT_ALLOWED = "Sorry, you are not allowed to invite new members into this group.";
 
-    public InviteCommandProcessor() {
-        super();
-    }
-
-    private List<Content> callReset(final Command cmd, final ReliableMessage rMsg) {
-        final CommandProcessor gpu = getProcessor(GroupCommand.RESET);
-        assert gpu != null : "reset CPU not register yet";
-        gpu.setMessenger(getMessenger());
-        return gpu.execute(cmd, rMsg);
+    public InviteCommandProcessor(Messenger messenger) {
+        super(messenger);
     }
 
     @Override
@@ -71,7 +63,7 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
         if (owner == null || members == null || members.size() == 0) {
             // NOTICE: group membership lost?
             //         reset group members
-            return callReset(cmd, rMsg);
+            return temporarySave((GroupCommand) cmd, rMsg.getSender());
         }
 
         // 1. check permission
@@ -93,7 +85,7 @@ public class InviteCommandProcessor extends GroupCommandProcessor {
         if (sender.equals(owner) && inviteList.contains(owner)) {
             // NOTICE: owner invites owner?
             //         it means this should be a 'reset' command
-            return callReset(cmd, rMsg);
+            return temporarySave((GroupCommand) cmd, rMsg.getSender());
         }
         // 2.2. build invited-list
         final List<String> addedList = new ArrayList<>();

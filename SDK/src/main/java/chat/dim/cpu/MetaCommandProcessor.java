@@ -32,6 +32,7 @@ package chat.dim.cpu;
 
 import java.util.List;
 
+import chat.dim.Messenger;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
@@ -46,8 +47,8 @@ public class MetaCommandProcessor extends CommandProcessor {
     public static String FMT_META_NOT_ACCEPTED = "Meta not accepted: %s";
     public static String FMT_META_ACCEPTED = "Meta received: %s";
 
-    public MetaCommandProcessor() {
-        super();
+    public MetaCommandProcessor(Messenger messenger) {
+        super(messenger);
     }
 
     private List<Content> getMeta(final ID identifier) {

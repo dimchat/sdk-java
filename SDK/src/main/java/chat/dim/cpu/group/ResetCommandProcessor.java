@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import chat.dim.Facebook;
+import chat.dim.Messenger;
 import chat.dim.cpu.GroupCommandProcessor;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
@@ -49,8 +50,8 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
     public static String STR_RESET_CMD_ERROR = "Reset command error.";
     public static String STR_RESET_NOT_ALLOWED = "Sorry, you are not allowed to reset this group.";
 
-    public ResetCommandProcessor() {
-        super();
+    public ResetCommandProcessor(Messenger messenger) {
+        super(messenger);
     }
 
     protected void queryOwner(ID owner, ID group) {
@@ -58,7 +59,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
         getMessenger().sendContent(null, owner, query, null, 1);
     }
 
-    private List<Content> temporarySave(final GroupCommand cmd, final ID sender) {
+    protected List<Content> temporarySave(final GroupCommand cmd, final ID sender) {
         final Facebook facebook = getFacebook();
         final ID group = cmd.getGroup();
         // check whether the owner contained in the new members

@@ -32,14 +32,11 @@ package chat.dim.cpu;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.protocol.Content;
-import chat.dim.protocol.ContentType;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.ReliableMessage;
@@ -53,17 +50,16 @@ public class ContentProcessor {
 
     public static String FMT_CONTENT_NOT_SUPPORT = "Content (type: %d) not support yet!";
 
-    private WeakReference<Messenger> messengerRef = null;
+    private final WeakReference<Messenger> messengerRef;
 
-    public ContentProcessor() {
+    public ContentProcessor(Messenger messenger) {
         super();
-    }
-
-    public void setMessenger(Messenger messenger) {
+        assert messenger != null : "messenger should not be empty";
         messengerRef = new WeakReference<>(messenger);
     }
+
     protected Messenger getMessenger() {
-        return messengerRef == null ? null : messengerRef.get();
+        return messengerRef.get();
     }
 
     protected Facebook getFacebook() {
@@ -77,75 +73,35 @@ public class ContentProcessor {
      * @param rMsg    - reliable message
      * @return {Content} response to sender
      */
-    public List<Content> process(final Content content, final ReliableMessage rMsg) {
-        final String text = String.format(FMT_CONTENT_NOT_SUPPORT, content.getType());
+    public List<Content> process(Content content, ReliableMessage rMsg) {
+        String text = String.format(FMT_CONTENT_NOT_SUPPORT, content.getType());
         return respondText(text, content.getGroup());
     }
 
-    protected List<Content> respondText(final String text, final ID group) {
-        final TextContent res = new TextContent(text);
+    //
+    //  Convenient responding
+    //
+    protected List<Content> respondText(String text, ID group) {
+        TextContent res = new TextContent(text);
         if (group != null) {
             res.setGroup(group);
         }
-        final List<Content> responses = new ArrayList<>();
+        List<Content> responses = new ArrayList<>();
         responses.add(res);
         return responses;
     }
-    protected List<Content> respondReceipt(final String text) {
-        final ReceiptCommand res = new ReceiptCommand(text);
-        final List<Content> responses = new ArrayList<>();
+    protected List<Content> respondReceipt(String text) {
+        ReceiptCommand res = new ReceiptCommand(text);
+        List<Content> responses = new ArrayList<>();
         responses.add(res);
         return responses;
     }
-    protected List<Content> respondContent(final Content res) {
+    protected List<Content> respondContent(Content res) {
         if (res == null) {
             return null;
         }
-        final List<Content> responses = new ArrayList<>();
+        List<Content> responses = new ArrayList<>();
         responses.add(res);
         return responses;
-    }
-
-    //
-    //  CPU factory
-    //
-    private static final Map<Integer, ContentProcessor> contentProcessors = new HashMap<>();
-
-    /**
-     *  Get content processor with content type
-     *
-     * @param type - ContentType
-     * @return ContentProcessor
-     */
-    public static ContentProcessor getProcessor(final ContentType type) {
-        return getProcessor(type.value);
-    }
-    public static ContentProcessor getProcessor(final int type) {
-        return contentProcessors.get(type);
-    }
-    public static ContentProcessor getProcessor(final Content content) {
-        return getProcessor(content.getType());
-    }
-
-    /**
-     *  Register content processor class with content type
-     *
-     * @param type - ContentType
-     * @param cpu  - ContentProcessor
-     */
-    public static void register(final ContentType type, final ContentProcessor cpu) {
-        contentProcessors.put(type.value, cpu);
-    }
-    public static void register(final int type, final ContentProcessor cpu) {
-        contentProcessors.put(type, cpu);
-    }
-
-    public static void registerContentProcessors() {
-        // contents
-        register(0, new ContentProcessor());  // default
-        register(ContentType.FORWARD, new ForwardContentProcessor());
-        // commands
-        register(ContentType.COMMAND, new CommandProcessor());
-        register(ContentType.HISTORY, new HistoryCommandProcessor());
     }
 }

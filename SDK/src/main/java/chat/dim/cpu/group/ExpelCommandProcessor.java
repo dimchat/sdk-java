@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import chat.dim.Facebook;
+import chat.dim.Messenger;
 import chat.dim.cpu.GroupCommandProcessor;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
@@ -48,8 +49,8 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
     public static String STR_EXPEL_NOT_ALLOWED = "Sorry, you are not allowed to expel member from this group.";
     public static String STR_CANNOT_EXPEL_OWNER = "Group owner cannot be expelled.";
 
-    public ExpelCommandProcessor() {
-        super();
+    public ExpelCommandProcessor(Messenger messenger) {
+        super(messenger);
     }
 
     @Override
