@@ -63,12 +63,6 @@ public class TCPClientGate extends CommonGate<ClientHub> {
         return new StreamDocker(remote, null, this);
     }
 
-    @Override
-    public void start() {
-        super.start();
-        (new Thread(this)).start();
-    }
-
     public boolean send(Package pack, int priority, Ship.Delegate delegate) {
         return send(localAddress, remoteAddress, pack, priority, delegate);
     }

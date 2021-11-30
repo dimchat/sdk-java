@@ -37,19 +37,17 @@ import java.util.List;
 import chat.dim.mtp.MTPHelper;
 import chat.dim.mtp.Package;
 import chat.dim.mtp.PackageDeparture;
-import chat.dim.net.BaseConnection;
+import chat.dim.net.ActiveConnection;
 import chat.dim.net.Connection;
 import chat.dim.net.ConnectionState;
 import chat.dim.net.Hub;
 import chat.dim.port.Departure;
 import chat.dim.port.Docker;
 import chat.dim.port.Ship;
-import chat.dim.skywalker.Runner;
 import chat.dim.startrek.StarGate;
 
-public abstract class CommonGate<H extends Hub> extends StarGate implements Runnable {
+public abstract class CommonGate<H extends Hub> extends StarGate {
 
-    private boolean running = false;
     private H hub = null;
 
     protected CommonGate(Delegate delegate) {
@@ -61,38 +59,6 @@ public abstract class CommonGate<H extends Hub> extends StarGate implements Runn
     }
     public void setHub(H h) {
         hub = h;
-    }
-
-    public void start() {
-        running = true;
-    }
-
-    public void stop() {
-        running = false;
-    }
-
-    public boolean isRunning() {
-        return running;
-    }
-
-    @Override
-    public void run() {
-        while (isRunning()) {
-            if (!process()) {
-                idle();
-            }
-        }
-    }
-
-    protected void idle() {
-        Runner.idle(128);
-    }
-
-    @Override
-    public boolean process() {
-        boolean incoming = getHub().process();
-        boolean outgoing = super.process();
-        return incoming || outgoing;
     }
 
     @Override
@@ -118,26 +84,22 @@ public abstract class CommonGate<H extends Hub> extends StarGate implements Runn
     @Override
     protected void heartbeat(Connection connection) {
         // let the client to do the job
-        if (connection instanceof BaseConnection) {
-            if (((BaseConnection) connection).isActivated) {
-                super.heartbeat(connection);
-            }
+        if (connection instanceof ActiveConnection) {
+            super.heartbeat(connection);
         }
     }
 
     private void kill(SocketAddress remote, SocketAddress local, Connection connection) {
         // if conn is null, disconnect with (remote, local);
         // else, disconnect with connection when local address matched.
-        connection = getHub().disconnect(remote, local, connection);
+        Connection conn = getHub().disconnect(remote, local, connection);
         // if connection is not activated, means it's a server connection,
         // remove the docker too.
-        if (connection instanceof BaseConnection) {
-            if (!((BaseConnection) connection).isActivated) {
-                // remove docker for server connection
-                remote = connection.getRemoteAddress();
-                local = connection.getLocalAddress();
-                removeDocker(remote, local, null);
-            }
+        if (conn != null && !(conn instanceof ActiveConnection)) {
+            // remove docker for server connection
+            remote = conn.getRemoteAddress();
+            local = conn.getLocalAddress();
+            removeDocker(remote, local, null);
         }
     }
 
