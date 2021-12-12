@@ -55,8 +55,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
     }
 
     protected void queryOwner(ID owner, ID group) {
-        final QueryCommand query = new QueryCommand(group);
-        getMessenger().sendContent(null, owner, query, null, 1);
+        // TODO: send QueryCommand to owner
     }
 
     protected List<Content> temporarySave(final GroupCommand cmd, final ID sender) {

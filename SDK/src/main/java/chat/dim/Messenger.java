@@ -30,19 +30,11 @@
  */
 package chat.dim;
 
-import java.lang.ref.WeakReference;
-
 import chat.dim.core.Transceiver;
-import chat.dim.protocol.Content;
-import chat.dim.protocol.ID;
-import chat.dim.protocol.InstantMessage;
-import chat.dim.protocol.ReliableMessage;
 
 public abstract class Messenger extends Transceiver {
 
     private Facebook facebook = null;
-
-    private WeakReference<Transmitter> transmitterRef = null;
 
     protected Messenger() {
         super();
@@ -76,42 +68,4 @@ public abstract class Messenger extends Transceiver {
         return facebook;
     }
     protected abstract Facebook createFacebook();
-
-    /**
-     *  Delegate for transmitting message
-     *
-     * @param transmitter - message transmitter
-     */
-    public void setTransmitter(Transmitter transmitter) {
-        transmitterRef = new WeakReference<>(transmitter);
-    }
-    protected Transmitter getTransmitter() {
-        return transmitterRef == null ? null : transmitterRef.get();
-    }
-
-    //
-    //  Interfaces for transmitting Message
-    //
-    public boolean sendContent(ID sender, ID receiver, Content content, Messenger.Callback callback, int priority) {
-        return getTransmitter().sendContent(sender, receiver, content, callback, priority);
-    }
-
-    public boolean sendMessage(InstantMessage iMsg, Messenger.Callback callback, int priority) {
-        return getTransmitter().sendMessage(iMsg, callback, priority);
-    }
-
-    public boolean sendMessage(ReliableMessage rMsg, Messenger.Callback callback, int priority) {
-        return getTransmitter().sendMessage(rMsg, callback, priority);
-    }
-
-    /**
-     *  Messenger Callback
-     *  ~~~~~~~~~~~~~~~~~~
-     */
-    public interface Callback {
-
-        void onSuccess();
-
-        void onFailed(Error error);
-    }
 }
