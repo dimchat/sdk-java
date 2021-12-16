@@ -56,12 +56,12 @@ public class MessageProcessor implements Processor {
 
     private final WeakReference<Messenger> messengerRef;
 
-    private final ProcessorFactory cpm;
+    private final ProcessorFactory factory;
 
     public MessageProcessor(Messenger messenger) {
         super();
         messengerRef = new WeakReference<>(messenger);
-        cpm = createProcessorFactory();
+        factory = createProcessorFactory();
     }
 
     protected ProcessorFactory createProcessorFactory() {
@@ -76,13 +76,13 @@ public class MessageProcessor implements Processor {
     }
 
     public ContentProcessor getProcessor(ContentType type) {
-        return cpm.getProcessor(type);
+        return factory.getProcessor(type);
     }
     public ContentProcessor getProcessor(int type) {
-        return cpm.getProcessor(type);
+        return factory.getProcessor(type);
     }
     public ContentProcessor getProcessor(Content content) {
-        return cpm.getProcessor(content);
+        return factory.getProcessor(content);
     }
 
     @Override
