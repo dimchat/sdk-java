@@ -52,14 +52,14 @@ public class InviteCommandProcessor extends ResetCommandProcessor {
     }
 
     @Override
-    public List<Content> execute(final Command cmd, final ReliableMessage rMsg) {
+    public List<Content> execute(Command cmd, ReliableMessage rMsg) {
         assert cmd instanceof InviteCommand : "invite command error: " + cmd;
-        final Facebook facebook = getFacebook();
+        Facebook facebook = getFacebook();
 
         // 0. check group
-        final ID group = cmd.getGroup();
-        final ID owner = facebook.getOwner(group);
-        final List<ID> members = facebook.getMembers(group);
+        ID group = cmd.getGroup();
+        ID owner = facebook.getOwner(group);
+        List<ID> members = facebook.getMembers(group);
         if (owner == null || members == null || members.size() == 0) {
             // NOTICE: group membership lost?
             //         reset group members
@@ -67,17 +67,17 @@ public class InviteCommandProcessor extends ResetCommandProcessor {
         }
 
         // 1. check permission
-        final ID sender = rMsg.getSender();
+        ID sender = rMsg.getSender();
         if (!members.contains(sender)) {
             // not a member? check assistants
-            final List<ID> assistants = facebook.getAssistants(group);
+            List<ID> assistants = facebook.getAssistants(group);
             if (assistants == null || !assistants.contains(sender)) {
                 return respondText(STR_INVITE_NOT_ALLOWED, group);
             }
         }
 
         // 2. inviting members
-        final List<ID> inviteList = getMembers((GroupCommand) cmd);
+        List<ID> inviteList = getMembers((GroupCommand) cmd);
         if (inviteList.size() == 0) {
             return respondText(STR_INVITE_CMD_ERROR, group);
         }
@@ -88,7 +88,7 @@ public class InviteCommandProcessor extends ResetCommandProcessor {
             return temporarySave((GroupCommand) cmd, rMsg.getSender());
         }
         // 2.2. build invited-list
-        final List<String> addedList = new ArrayList<>();
+        List<String> addedList = new ArrayList<>();
         for (ID item: inviteList) {
             if (members.contains(item)) {
                 continue;

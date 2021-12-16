@@ -53,32 +53,32 @@ public class QueryCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public List<Content> execute(final Command cmd, final ReliableMessage rMsg) {
+    public List<Content> execute(Command cmd, ReliableMessage rMsg) {
         assert cmd instanceof QueryCommand : "query command error: " + cmd;
-        final Facebook facebook = getFacebook();
+        Facebook facebook = getFacebook();
 
         // 0. check group
-        final ID group = cmd.getGroup();
-        final ID owner = facebook.getOwner(group);
-        final List<ID> members = facebook.getMembers(group);
+        ID group = cmd.getGroup();
+        ID owner = facebook.getOwner(group);
+        List<ID> members = facebook.getMembers(group);
         if (owner == null || members == null || members.size() == 0) {
             return respondText(STR_GROUP_EMPTY, group);
         }
 
         // 1. check permission
-        final ID sender = rMsg.getSender();
+        ID sender = rMsg.getSender();
         if (!members.contains(sender)) {
             // not a member? check assistants
-            final List<ID> assistants = facebook.getAssistants(group);
+            List<ID> assistants = facebook.getAssistants(group);
             if (assistants == null || !assistants.contains(sender)) {
                 return respondText(STR_QUERY_NOT_ALLOWED, group);
             }
         }
 
         // 2. respond
-        final User user = facebook.getCurrentUser();
+        User user = facebook.getCurrentUser();
         assert user != null : "current user not set yet";
-        final Content res;
+        Content res;
         if (user.identifier.equals(owner)) {
             res = new ResetCommand(group, members);
         } else {

@@ -58,11 +58,11 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
         // TODO: send QueryCommand to owner
     }
 
-    protected List<Content> temporarySave(final GroupCommand cmd, final ID sender) {
-        final Facebook facebook = getFacebook();
-        final ID group = cmd.getGroup();
+    protected List<Content> temporarySave(GroupCommand cmd, ID sender) {
+        Facebook facebook = getFacebook();
+        ID group = cmd.getGroup();
         // check whether the owner contained in the new members
-        final List<ID> newMembers = getMembers(cmd);
+        List<ID> newMembers = getMembers(cmd);
         if (newMembers.size() == 0) {
             return respondText(STR_RESET_CMD_ERROR, group);
         }
@@ -91,14 +91,14 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public List<Content> execute(final Command cmd, final ReliableMessage rMsg) {
+    public List<Content> execute(Command cmd, ReliableMessage rMsg) {
         assert cmd instanceof ResetCommand || cmd instanceof InviteCommand : "reset command error: " + cmd;
-        final Facebook facebook = getFacebook();
+        Facebook facebook = getFacebook();
 
         // 0. check group
-        final ID group = cmd.getGroup();
-        final ID owner = facebook.getOwner(group);
-        final List<ID> members = facebook.getMembers(group);
+        ID group = cmd.getGroup();
+        ID owner = facebook.getOwner(group);
+        List<ID> members = facebook.getMembers(group);
         if (owner == null || members == null || members.size() == 0) {
             // FIXME: group info lost?
             // FIXME: how to avoid strangers impersonating group member?
@@ -106,17 +106,17 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
         }
 
         // 1. check permission
-        final ID sender = rMsg.getSender();
+        ID sender = rMsg.getSender();
         if (!owner.equals(sender)) {
             // not the owner? check assistants
-            final List<ID> assistants = facebook.getAssistants(group);
+            List<ID> assistants = facebook.getAssistants(group);
             if (assistants == null || !assistants.contains(sender)) {
                 return respondText(STR_RESET_NOT_ALLOWED, group);
             }
         }
 
         // 2. resetting members
-        final List<ID> newMembers = getMembers((GroupCommand) cmd);
+        List<ID> newMembers = getMembers((GroupCommand) cmd);
         if (newMembers.size() == 0) {
             return respondText(STR_RESET_CMD_ERROR, group);
         }
@@ -125,7 +125,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
             return respondText(STR_RESET_CMD_ERROR, group);
         }
         // 2.2. build expelled-list
-        final List<String> removedList = new ArrayList<>();
+        List<String> removedList = new ArrayList<>();
         for (ID item : members) {
             if (newMembers.contains(item)) {
                 continue;
@@ -134,7 +134,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
             removedList.add(item.toString());
         }
         // 2.3. build invited-list
-        final List<String> addedList = new ArrayList<>();
+        List<String> addedList = new ArrayList<>();
         for (ID item : newMembers) {
             if (members.contains(item)) {
                 continue;

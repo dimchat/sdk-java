@@ -54,30 +54,30 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public List<Content> execute(final Command cmd, final ReliableMessage rMsg) {
+    public List<Content> execute(Command cmd, ReliableMessage rMsg) {
         assert cmd instanceof ExpelCommand : "expel command error: " + cmd;
-        final Facebook facebook = getFacebook();
+        Facebook facebook = getFacebook();
 
         // 0. check group
-        final ID group = cmd.getGroup();
-        final ID owner = facebook.getOwner(group);
-        final List<ID> members = facebook.getMembers(group);
+        ID group = cmd.getGroup();
+        ID owner = facebook.getOwner(group);
+        List<ID> members = facebook.getMembers(group);
         if (owner == null || members == null || members.size() == 0) {
             return respondText(STR_GROUP_EMPTY, group);
         }
 
         // 1. check permission
-        final ID sender = rMsg.getSender();
+        ID sender = rMsg.getSender();
         if (!owner.equals(sender)) {
             // not the owner? check assistants
-            final List<ID> assistants = facebook.getAssistants(group);
+            List<ID> assistants = facebook.getAssistants(group);
             if (assistants == null || !assistants.contains(sender)) {
                 return respondText(STR_EXPEL_NOT_ALLOWED, group);
             }
         }
 
         // 2. expelling members
-        final List<ID> expelList = getMembers((GroupCommand) cmd);
+        List<ID> expelList = getMembers((GroupCommand) cmd);
         if (expelList.size() == 0) {
             return respondText(STR_EXPEL_CMD_ERROR, group);
         }
@@ -86,7 +86,7 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
             return respondText(STR_CANNOT_EXPEL_OWNER, group);
         }
         // 2.2. build expelled-list
-        final List<String> removedList = new ArrayList<>();
+        List<String> removedList = new ArrayList<>();
         for (ID item: expelList) {
             if (!members.contains(item)) {
                 continue;

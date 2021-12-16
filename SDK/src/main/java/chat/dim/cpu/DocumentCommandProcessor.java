@@ -53,44 +53,44 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         super(messenger);
     }
 
-    private List<Content> getDocument(final ID identifier, final String type) {
-        final Facebook facebook = getFacebook();
-        final Document doc = facebook.getDocument(identifier, type);
+    private List<Content> getDocument(ID identifier, String type) {
+        Facebook facebook = getFacebook();
+        Document doc = facebook.getDocument(identifier, type);
         if (doc == null) {
-            final String text = String.format(FMT_DOC_NOT_FOUND, identifier);
+            String text = String.format(FMT_DOC_NOT_FOUND, identifier);
             return respondText(text, null);
         } else {
-            final Meta meta = facebook.getMeta(identifier);
+            Meta meta = facebook.getMeta(identifier);
             return respondContent(new DocumentCommand(identifier, meta, doc));
         }
     }
 
-    private List<Content> putDocument(final ID identifier, final Meta meta, final Document doc) {
-        final Facebook facebook = getFacebook();
+    private List<Content> putDocument(ID identifier, Meta meta, Document doc) {
+        Facebook facebook = getFacebook();
         if (meta != null) {
             // received a meta for ID
             if (!facebook.saveMeta(meta, identifier)) {
-                final String text = String.format(FMT_META_NOT_ACCEPTED, identifier);
+                String text = String.format(FMT_META_NOT_ACCEPTED, identifier);
                 return respondText(text, null);
             }
         }
         // receive a document for ID
         if (facebook.saveDocument(doc))  {
-            final String text = String.format(FMT_DOC_ACCEPTED, identifier);
+            String text = String.format(FMT_DOC_ACCEPTED, identifier);
             return respondReceipt(text);
         } else {
-            final String text = String.format(FMT_DOC_NOT_ACCEPTED, identifier);
+            String text = String.format(FMT_DOC_NOT_ACCEPTED, identifier);
             return respondText(text, null);
         }
     }
 
     @Override
-    public List<Content> execute(final Command cmd, final ReliableMessage rMsg) {
+    public List<Content> execute(Command cmd, ReliableMessage rMsg) {
         assert cmd instanceof DocumentCommand : "document command error: " + cmd;
-        final DocumentCommand dCmd = (DocumentCommand) cmd;
-        final ID identifier = dCmd.getIdentifier();
+        DocumentCommand dCmd = (DocumentCommand) cmd;
+        ID identifier = dCmd.getIdentifier();
         if (identifier != null) {
-            final Document doc = dCmd.getDocument();
+            Document doc = dCmd.getDocument();
             if (doc == null) {
                 // query entity document for ID
                 String type = (String) cmd.get("doc_type");

@@ -51,32 +51,32 @@ public class MetaCommandProcessor extends CommandProcessor {
         super(messenger);
     }
 
-    private List<Content> getMeta(final ID identifier) {
-        final Meta meta = getFacebook().getMeta(identifier);
+    private List<Content> getMeta(ID identifier) {
+        Meta meta = getFacebook().getMeta(identifier);
         if (meta == null) {
-            final String text = String.format(FMT_META_NOT_FOUND, identifier);
+            String text = String.format(FMT_META_NOT_FOUND, identifier);
             return respondText(text, null);
         } else {
             return respondContent(new MetaCommand(identifier, meta));
         }
     }
 
-    private List<Content> putMeta(final ID identifier, final Meta meta) {
+    private List<Content> putMeta(ID identifier, Meta meta) {
         if (getFacebook().saveMeta(meta, identifier)) {
-            final String text = String.format(FMT_META_ACCEPTED, identifier);
+            String text = String.format(FMT_META_ACCEPTED, identifier);
             return respondReceipt(text);
         } else {
-            final String text = String.format(FMT_META_NOT_ACCEPTED, identifier);
+            String text = String.format(FMT_META_NOT_ACCEPTED, identifier);
             return respondText(text, null);
         }
     }
 
     @Override
-    public List<Content> execute(final Command cmd, final ReliableMessage rMsg) {
+    public List<Content> execute(Command cmd, ReliableMessage rMsg) {
         assert cmd instanceof MetaCommand : "meta command error: " + cmd;
-        final MetaCommand mCmd = (MetaCommand) cmd;
-        final Meta meta = mCmd.getMeta();
-        final ID identifier = mCmd.getIdentifier();
+        MetaCommand mCmd = (MetaCommand) cmd;
+        Meta meta = mCmd.getMeta();
+        ID identifier = mCmd.getIdentifier();
         if (identifier == null) {
             // error
             return respondText(STR_META_CMD_ERROR, cmd.getGroup());
