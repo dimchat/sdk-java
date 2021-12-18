@@ -62,28 +62,20 @@ public class HandshakeCommand extends Command {
         put("message", text);
         // session key
         sessionKey = session;
-        put("session", sessionKey);
+        if (session != null) {
+            put("session", session);
+        }
         // state
-        state = getState(message, sessionKey);
-    }
-
-    public HandshakeCommand(String session) {
-        this("Hello world!", session);
+        state = getState(text, session);
     }
 
     private static HandshakeState getState(String text, String session) {
-        // check message
-        if (text == null) {
-            return HandshakeState.INIT;
-        }
+        assert text != null : "handshake message should not be empty";
         if (text.equals("DIM!") || text.equals("OK!")) {
             return HandshakeState.SUCCESS;
-        }
-        if (text.equals("DIM?")) {
+        } else if (text.equals("DIM?")) {
             return HandshakeState.AGAIN;
-        }
-        // check session key
-        if (session == null) {
+        } else if (session == null) {
             return HandshakeState.START;
         } else {
             return HandshakeState.RESTART;
@@ -94,7 +86,6 @@ public class HandshakeCommand extends Command {
      *  Handshake state
      */
     public enum HandshakeState {
-        INIT,
         START,    // C -> S, without session key(or session expired)
         AGAIN,    // S -> C, with new session key
         RESTART,  // C -> S, with new session key
@@ -106,11 +97,11 @@ public class HandshakeCommand extends Command {
     //
 
     public static HandshakeCommand start() {
-        return restart(null);
+        return new HandshakeCommand("Hello world!", null);
     }
 
     public static HandshakeCommand restart(String sessionKey) {
-        return new HandshakeCommand(sessionKey);
+        return new HandshakeCommand("Hello world!", sessionKey);
     }
 
     public static HandshakeCommand again(String sessionKey) {
@@ -119,8 +110,5 @@ public class HandshakeCommand extends Command {
 
     public static HandshakeCommand success(String sessionKey) {
         return new HandshakeCommand("DIM!", sessionKey);
-    }
-    public static HandshakeCommand success() {
-        return success(null);
     }
 }

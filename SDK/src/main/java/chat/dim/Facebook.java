@@ -173,7 +173,7 @@ public abstract class Facebook extends Barrack {
             // throw new AssertionError("failed to get meta for member: " + member);
             return false;
         }
-        return gMeta.matches(mMeta.getKey());
+        return Meta.matches(mMeta.getKey(), gMeta);
     }
 
     public boolean isOwner(ID member, ID group) {
