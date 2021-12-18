@@ -36,9 +36,9 @@ import java.security.spec.X509EncodedKeySpec;
 
 import chat.dim.crypto.CryptoUtils;
 
-final class PEM {
+public final class PEM {
 
-    static String encodePublicKey(PublicKey key, String algorithm) {
+    public static String encodePublicKey(PublicKey key, String algorithm) {
         try {
             return (new PEMContent(key, algorithm)).toString();
         } catch (IOException e) {
@@ -47,7 +47,7 @@ final class PEM {
         }
     }
 
-    static String encodePrivateKey(PrivateKey key, String algorithm) {
+    public static String encodePrivateKey(PrivateKey key, String algorithm) {
         try {
             return (new PEMContent(key, algorithm)).toString();
         } catch (IOException e) {
@@ -56,7 +56,7 @@ final class PEM {
         }
     }
 
-    static PublicKey decodePublicKey(String pem, String algorithm) {
+    public static PublicKey decodePublicKey(String pem, String algorithm) {
         byte[] keyData;
         try {
             PEMContent file = new PEMContent(pem, algorithm);
@@ -78,7 +78,7 @@ final class PEM {
         return null;
     }
 
-    static PrivateKey decodePrivateKey(String pem, String algorithm) {
+    public static PrivateKey decodePrivateKey(String pem, String algorithm) {
         byte[] keyData;
         try {
             PEMContent file = new PEMContent(pem, algorithm);

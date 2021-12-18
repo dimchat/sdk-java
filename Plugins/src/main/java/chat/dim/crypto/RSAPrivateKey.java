@@ -170,6 +170,6 @@ final class RSAPrivateKey extends Dictionary implements PrivateKey, DecryptKey {
 
     @Override
     public boolean matches(EncryptKey pKey) {
-        return CryptographyKey.matches(pKey, this);
+        return SymmetricKey.matches(pKey, this);
     }
 }

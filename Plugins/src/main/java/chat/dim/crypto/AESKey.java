@@ -181,6 +181,6 @@ final class AESKey extends Dictionary implements SymmetricKey {
 
     @Override
     public boolean matches(EncryptKey pKey) {
-        return CryptographyKey.matches(pKey, this);
+        return SymmetricKey.matches(pKey, this);
     }
 }

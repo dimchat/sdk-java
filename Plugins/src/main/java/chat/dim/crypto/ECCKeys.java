@@ -23,7 +23,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.format;
+package chat.dim.crypto;
 
 import java.math.BigInteger;
 import java.security.AlgorithmParameters;
@@ -43,7 +43,9 @@ import java.security.spec.InvalidParameterSpecException;
 import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 
-import chat.dim.crypto.CryptoUtils;
+import chat.dim.format.Hex;
+import chat.dim.format.KeyParser;
+import chat.dim.format.PEM;
 
 public final class ECCKeys {
 
@@ -55,7 +57,7 @@ public final class ECCKeys {
         System.arraycopy(privateKey, 0, full, privatePrefix.length, privateKey.length);
         KeySpec spec = new PKCS8EncodedKeySpec(full);
         try {
-            KeyFactory factory = CryptoUtils.getKeyFactory("EC");
+            KeyFactory factory = CryptoUtils.getKeyFactory(CryptoUtils.EC);
             return factory.generatePrivate(spec);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
             e.printStackTrace();
@@ -65,7 +67,7 @@ public final class ECCKeys {
 
     /*
     private static PrivateKey createPrivateKey(byte[] privateKey) {
-        ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec("secp256k1");
+        ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec(CryptoUtils.SECP256K1);
         return createPrivateKey(privateKey, ecSpec);
     }
 
@@ -73,7 +75,7 @@ public final class ECCKeys {
         BigInteger s = new BigInteger(privateKey);
         ECPrivateKeySpec priSpec = new ECPrivateKeySpec(s, ecSpec);
         try {
-            KeyFactory keyFactory = CryptoUtils.getKeyFactory("EC");
+            KeyFactory keyFactory = CryptoUtils.getKeyFactory(CryptoUtils.EC);
             return  keyFactory.generatePrivate(priSpec);
         } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -85,8 +87,8 @@ public final class ECCKeys {
     private static PublicKey createPublicKey(byte[] publicKey) {
         ECParameterSpec ecSpec;
         try {
-            AlgorithmParameters parameters = CryptoUtils.getAlgorithmParameters("EC");
-            parameters.init(new ECGenParameterSpec("secp256k1"));
+            AlgorithmParameters parameters = CryptoUtils.getAlgorithmParameters(CryptoUtils.EC);
+            parameters.init(new ECGenParameterSpec(CryptoUtils.SECP256K1));
             ecSpec = parameters.getParameterSpec(ECParameterSpec.class);
         } catch (NoSuchAlgorithmException | InvalidParameterSpecException e) {
             e.printStackTrace();
@@ -98,7 +100,7 @@ public final class ECCKeys {
     private static PublicKey createPublicKey(byte[] publicKey, ECParameterSpec ecSpec) {
         ECPublicKeySpec pubSpec = new ECPublicKeySpec(decodePoint(publicKey), ecSpec);
         try {
-            KeyFactory keyFactory = CryptoUtils.getKeyFactory("EC");
+            KeyFactory keyFactory = CryptoUtils.getKeyFactory(CryptoUtils.EC);
             return  keyFactory.generatePublic(pubSpec);
         } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -130,7 +132,7 @@ public final class ECCKeys {
         ECPoint point = ecSpec.getCurve().decodePoint(publicKey);
         ECPublicKeySpec pubSpec = new ECPublicKeySpec(point, ecSpec);
         try {
-            KeyFactory keyFactory = CryptoUtils.getKeyFactory("EC");
+            KeyFactory keyFactory = CryptoUtils.getKeyFactory(CryptoUtils.EC);
             return  keyFactory.generatePublic(pubSpec);
         } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -156,7 +158,7 @@ public final class ECCKeys {
         if (namedSpec instanceof ECNamedCurveSpec) {
             curveName = ((ECNamedCurveSpec) namedSpec).getName();
         } else {
-            curveName = "secp256k1";
+            curveName = CryptoUtils.SECP256K1;
         }
         // Generate public key from private key
         ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec(curveName);
@@ -216,7 +218,7 @@ public final class ECCKeys {
             byte[] data = ECCKeys.getPointData((ECPublicKey) key);
             return Hex.encode(data);
              */
-            return PEM.encodePublicKey(key, "EC");
+            return PEM.encodePublicKey(key, CryptoUtils.EC);
         }
 
         @Override
@@ -227,7 +229,7 @@ public final class ECCKeys {
                 // Hex format
                 return createPublicKey(Hex.decode(pem));
             }
-            return PEM.decodePublicKey(pem, "EC");
+            return PEM.decodePublicKey(pem, CryptoUtils.EC);
         }
     };
 
@@ -239,7 +241,7 @@ public final class ECCKeys {
             byte[] data = ECCKeys.getPointData((ECPrivateKey) key);
             return Hex.encode(data);
              */
-            return PEM.encodePrivateKey(key, "EC");
+            return PEM.encodePrivateKey(key, CryptoUtils.EC);
         }
 
         @Override
@@ -250,7 +252,7 @@ public final class ECCKeys {
                 // Hex format
                 return createPrivateKey(Hex.decode(pem));
             }
-            return PEM.decodePrivateKey(pem, "EC");
+            return PEM.decodePrivateKey(pem, CryptoUtils.EC);
         }
     };
 }

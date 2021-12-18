@@ -42,6 +42,8 @@ public final class CryptoUtils {
 
     final static String AES_CBC_PKCS7 = "AES/CBC/PKCS7Padding";
 
+    final static String EC = "EC";
+    final static String SECP256K1 = "secp256k1";
     final static String ECDSA_SHA256 = "SHA256withECDSA";
 
     final static String RSA_SHA256 = "SHA256withRSA";
@@ -52,15 +54,31 @@ public final class CryptoUtils {
     //
 
     public static AlgorithmParameters getAlgorithmParameters(String algorithm) throws NoSuchAlgorithmException {
+        if (algorithm.equals(EC)) {
+            // ECC
+            try {
+                return AlgorithmParameters.getInstance(algorithm, "BC");
+            } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+                //e.printStackTrace();
+            }
+        }
         return AlgorithmParameters.getInstance(algorithm);
     }
 
     public static KeyFactory getKeyFactory(String algorithm) throws NoSuchAlgorithmException {
+        if (algorithm.equals(EC)) {
+            // ECC
+            try {
+                return KeyFactory.getInstance(algorithm, "BC");
+            } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+                //e.printStackTrace();
+            }
+        }
         return KeyFactory.getInstance(algorithm);
     }
 
     public static KeyPairGenerator getKeyPairGenerator(String algorithm) throws NoSuchAlgorithmException {
-        if (algorithm.equals("EC")) {
+        if (algorithm.equals(EC)) {
             // ECC
             try {
                 return KeyPairGenerator.getInstance(algorithm, "BC");

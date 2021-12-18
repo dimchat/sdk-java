@@ -39,7 +39,6 @@ import java.security.spec.ECGenParameterSpec;
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.format.ECCKeys;
 import chat.dim.type.Dictionary;
 
 /**
@@ -71,7 +70,7 @@ final class ECCPrivateKey extends Dictionary implements PrivateKey {
     private String getCurveName() {
         String curve = (String) get("curve");
         if (curve == null) {
-            curve = "secp256k1";
+            curve = CryptoUtils.SECP256K1;
         }
         return curve;
     }
@@ -90,7 +89,7 @@ final class ECCPrivateKey extends Dictionary implements PrivateKey {
     }
 
     private KeyPair generateKeyPair(String curveName) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
-        KeyPairGenerator generator = CryptoUtils.getKeyPairGenerator("EC");
+        KeyPairGenerator generator = CryptoUtils.getKeyPairGenerator(CryptoUtils.EC);
         ECGenParameterSpec spec = new ECGenParameterSpec(curveName);
         generator.initialize(spec, new SecureRandom());
         KeyPair keyPair = generator.generateKeyPair();

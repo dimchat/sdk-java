@@ -44,7 +44,7 @@ public interface Plugins {
 
         Address.setFactory(new AddressFactory() {
             @Override
-            protected Address createAddress(String address) {
+            public Address createAddress(String address) {
                 int len = address.length();
                 if (len == 42) {
                     return ETHAddress.parse(address);

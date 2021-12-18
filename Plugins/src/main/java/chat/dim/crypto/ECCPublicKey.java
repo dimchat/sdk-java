@@ -32,7 +32,6 @@ import java.security.SignatureException;
 import java.security.interfaces.ECPublicKey;
 import java.util.Map;
 
-import chat.dim.format.ECCKeys;
 import chat.dim.type.Dictionary;
 
 /**

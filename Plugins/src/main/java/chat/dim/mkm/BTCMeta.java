@@ -34,7 +34,6 @@ import java.util.Map;
 
 import chat.dim.crypto.VerifyKey;
 import chat.dim.protocol.Address;
-import chat.dim.protocol.ID;
 import chat.dim.protocol.MetaType;
 import chat.dim.protocol.NetworkType;
 
@@ -72,20 +71,12 @@ final class BTCMeta extends BaseMeta {
     public Address generateAddress(byte type) {
         assert NetworkType.BTC_MAIN.equals(type) : "BTC address type error: " + type;
         assert MetaType.BTC.equals(getType()) || MetaType.ExBTC.equals(getType()) : "meta version error";
-        if (cachedAddress == null && isValid()) {
+        if (cachedAddress == null) {
             // generate and cache it
             VerifyKey key = getKey();
             byte[] data = key.getData();
             cachedAddress = BTCAddress.generate(data, NetworkType.BTC_MAIN.value);
         }
         return cachedAddress;
-    }
-
-    @Override
-    public boolean matches(ID identifier) {
-        if (identifier.getAddress() instanceof BTCAddress) {
-            return super.matches(identifier);
-        }
-        return false;
     }
 }

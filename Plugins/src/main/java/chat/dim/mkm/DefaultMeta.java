@@ -35,7 +35,6 @@ import java.util.Map;
 
 import chat.dim.crypto.VerifyKey;
 import chat.dim.protocol.Address;
-import chat.dim.protocol.ID;
 import chat.dim.protocol.MetaType;
 
 /**
@@ -68,20 +67,11 @@ final class DefaultMeta extends BaseMeta {
         assert MetaType.MKM.equals(getType()) : "meta version error: " + getType();
         // check caches
         Address address = cachedAddresses.get(type);
-        if (address == null && isValid()) {
+        if (address == null) {
             // generate and cache it
             address = BTCAddress.generate(getFingerprint(), type);
             cachedAddresses.put(type, address);
         }
         return address;
-    }
-
-
-    @Override
-    public boolean matches(ID identifier) {
-        if (identifier.getAddress() instanceof BTCAddress) {
-            return super.matches(identifier);
-        }
-        return false;
     }
 }

@@ -23,9 +23,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.format;
-
-import chat.dim.crypto.CryptoUtils;
+package chat.dim.crypto;
 
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
@@ -44,7 +42,7 @@ final class ECCGenerator {
     public static ECPublicKey getPublicKey(ECPrivateKey pk) throws GeneralSecurityException {
         ECParameterSpec params = pk.getParams();
         ECPoint w = scalmult(params.getCurve(), pk.getParams().getGenerator(), pk.getS());
-        KeyFactory kg = CryptoUtils.getKeyFactory("EC");
+        KeyFactory kg = CryptoUtils.getKeyFactory(CryptoUtils.EC);
         return (ECPublicKey) kg.generatePublic(new ECPublicKeySpec(w, params));
     }
 

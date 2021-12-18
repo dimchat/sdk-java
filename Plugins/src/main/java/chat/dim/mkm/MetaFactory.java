@@ -83,17 +83,20 @@ final class MetaFactory implements Meta.Factory {
 
     @Override
     public Meta parseMeta(Map<String, Object> meta) {
+        Meta out;
         int type = Meta.getType(meta);
         if (MetaType.MKM.equals(type)) {
             // MKM
-            return new DefaultMeta(meta);
+            out = new DefaultMeta(meta);
         } else if (MetaType.BTC.equals(type) || MetaType.ExBTC.equals(type)) {
             // BTC, ExBTC
-            return new BTCMeta(meta);
+            out = new BTCMeta(meta);
         } else if (MetaType.ETH.equals(type) || MetaType.ExETH.equals(type)) {
             // ETH, ExETH
-            return new ETHMeta(meta);
+            out = new ETHMeta(meta);
+        } else {
+            throw new IllegalArgumentException("unknown meta type: " + type);
         }
-        return null;
+        return Meta.check(out) ? out : null;
     }
 }

@@ -37,6 +37,7 @@ import chat.dim.digest.SHA256;
 import chat.dim.format.Base58;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.NetworkType;
+import chat.dim.type.StringWrapper;
 
 /**
  *  Address like BitCoin
@@ -52,7 +53,7 @@ import chat.dim.protocol.NetworkType;
  *          code        = sha256(sha256(network + digest)).prefix(4);
  *          address     = base58_encode(network + digest + code);
  */
-public final class BTCAddress extends chat.dim.type.String implements Address {
+public final class BTCAddress extends StringWrapper implements Address {
 
     private final byte network;
 

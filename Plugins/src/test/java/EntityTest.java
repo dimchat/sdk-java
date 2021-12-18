@@ -135,7 +135,7 @@ public class EntityTest {
 
         ID identifier = ID.parse("moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
         Meta meta = facebook.getMeta(identifier);
-        if (meta != null && meta.isValid()) {
+        if (meta != null && Meta.check(meta)) {
             doc.verify(meta.getKey());
         }
         Log.info("profile: " + doc);

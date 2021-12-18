@@ -34,7 +34,6 @@ import java.util.Map;
 
 import chat.dim.crypto.VerifyKey;
 import chat.dim.protocol.Address;
-import chat.dim.protocol.ID;
 import chat.dim.protocol.MetaType;
 import chat.dim.protocol.NetworkType;
 
@@ -71,20 +70,12 @@ final class ETHMeta extends BaseMeta {
     public Address generateAddress(byte type) {
         assert NetworkType.MAIN.equals(type) : "ETH address type error: " + type;
         assert MetaType.ETH.equals(getType()) || MetaType.ExETH.equals(getType()) : "meta version error";
-        if (cachedAddress == null && isValid()) {
+        if (cachedAddress == null) {
             // generate and cache it
             VerifyKey key = getKey();
             byte[] data = key.getData();
             cachedAddress = ETHAddress.generate(data);
         }
         return cachedAddress;
-    }
-
-    @Override
-    public boolean matches(ID identifier) {
-        if (identifier.getAddress() instanceof ETHAddress) {
-            return super.matches(identifier);
-        }
-        return false;
     }
 }
