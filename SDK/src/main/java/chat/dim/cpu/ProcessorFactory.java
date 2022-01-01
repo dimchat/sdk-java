@@ -34,6 +34,7 @@ import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 
+import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.cpu.group.ExpelCommandProcessor;
 import chat.dim.cpu.group.InviteCommandProcessor;
@@ -51,15 +52,20 @@ public class ProcessorFactory {
     protected final Map<String, CommandProcessor> commandProcessors = new HashMap<>();
 
     private final WeakReference<Messenger> messengerRef;
+    private final WeakReference<Facebook> facebookRef;
 
-    public ProcessorFactory(Messenger messenger) {
+    public ProcessorFactory(Facebook facebook, Messenger messenger) {
         super();
-        assert messenger != null : "messenger should not be empty";
         messengerRef = new WeakReference<>(messenger);
+        facebookRef = new WeakReference<>(facebook);
     }
 
     protected Messenger getMessenger() {
         return messengerRef.get();
+    }
+
+    protected Facebook getFacebook() {
+        return facebookRef.get();
     }
 
     /**
@@ -118,7 +124,7 @@ public class ProcessorFactory {
     protected ContentProcessor createProcessor(int type) {
         // core contents
         if (ContentType.FORWARD.equals(type)) {
-            return new ForwardContentProcessor(getMessenger());
+            return new ForwardContentProcessor(getFacebook(), getMessenger());
         }
         // unknown
         return null;
@@ -133,15 +139,15 @@ public class ProcessorFactory {
     protected CommandProcessor createProcessor(int type, String command) {
         // meta
         if (Command.META.equals(command)) {
-            return new MetaCommandProcessor(getMessenger());
+            return new MetaCommandProcessor(getFacebook(), getMessenger());
         }
         // document
         if (Command.DOCUMENT.equals(command)) {
-            return new DocumentCommandProcessor(getMessenger());
+            return new DocumentCommandProcessor(getFacebook(), getMessenger());
         } else if ("profile".equals(command) || "visa".equals(command) || "bulletin".equals(command)) {
             CommandProcessor cpu = commandProcessors.get(Command.DOCUMENT);
             if (cpu == null) {
-                cpu = new DocumentCommandProcessor(getMessenger());
+                cpu = new DocumentCommandProcessor(getFacebook(), getMessenger());
                 commandProcessors.put(Command.DOCUMENT, cpu);
             }
             return cpu;
@@ -149,24 +155,24 @@ public class ProcessorFactory {
         // group
         switch (command) {
             case "group":
-                return new GroupCommandProcessor(getMessenger());
+                return new GroupCommandProcessor(getFacebook(), getMessenger());
             case GroupCommand.INVITE:
-                return new InviteCommandProcessor(getMessenger());
+                return new InviteCommandProcessor(getFacebook(), getMessenger());
             case GroupCommand.EXPEL:
-                return new ExpelCommandProcessor(getMessenger());
+                return new ExpelCommandProcessor(getFacebook(), getMessenger());
             case GroupCommand.QUIT:
-                return new QuitCommandProcessor(getMessenger());
+                return new QuitCommandProcessor(getFacebook(), getMessenger());
             case GroupCommand.QUERY:
-                return new QueryCommandProcessor(getMessenger());
+                return new QueryCommandProcessor(getFacebook(), getMessenger());
             case GroupCommand.RESET:
-                return new ResetCommandProcessor(getMessenger());
+                return new ResetCommandProcessor(getFacebook(), getMessenger());
         }
         // others
         if (ContentType.COMMAND.equals(type)) {
-            return new CommandProcessor(getMessenger());
+            return new CommandProcessor(getFacebook(), getMessenger());
         }
         if (ContentType.HISTORY.equals(type)) {
-            return new HistoryCommandProcessor(getMessenger());
+            return new HistoryCommandProcessor(getFacebook(), getMessenger());
         }
         // unknown
         return null;

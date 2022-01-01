@@ -51,10 +51,6 @@ public abstract class Facebook extends Barrack {
     private final Map<ID, User> userMap = new HashMap<>();
     private final Map<ID, Group> groupMap = new HashMap<>();
 
-    protected Facebook() {
-        super();
-    }
-
     /**
      * Call it when received 'UIApplicationDidReceiveMemoryWarningNotification',
      * this will remove 50% of cached objects
@@ -224,6 +220,66 @@ public abstract class Facebook extends Barrack {
             return new ServiceProvider(identifier);
         }
         throw new TypeNotPresentException("Unsupported group type: " + type, null);
+    }
+
+    /**
+     *  Get all local users (for decrypting received message)
+     *
+     * @return users with private key
+     */
+    public abstract List<User> getLocalUsers();
+
+    /**
+     *  Get current user (for signing and sending message)
+     *
+     * @return User
+     */
+    public User getCurrentUser() {
+        List<User> users = getLocalUsers();
+        if (users == null || users.size() == 0) {
+            return null;
+        }
+        return users.get(0);
+    }
+
+    /**
+     *  Select local user for receiver
+     *
+     * @param receiver - user/group ID
+     * @return local user
+     */
+    public User selectLocalUser(ID receiver) {
+        List<User> users = getLocalUsers();
+        if (users == null || users.size() == 0) {
+            throw new NullPointerException("local users should not be empty");
+        } else if (receiver.isBroadcast()) {
+            // broadcast message can decrypt by anyone, so just return current user
+            return users.get(0);
+        }
+        if (receiver.isGroup()) {
+            // group message (recipient not designated)
+            List<ID> members = getMembers(receiver);
+            if (members == null || members.size() == 0) {
+                // TODO: group not ready, waiting for group info
+                return null;
+            }
+            for (User item : users) {
+                if (members.contains(item.identifier)) {
+                    // DISCUSS: set this item to be current user?
+                    return item;
+                }
+            }
+        } else {
+            // 1. personal message
+            // 2. split group message
+            for (User item : users) {
+                if (receiver.equals(item.identifier)) {
+                    // DISCUSS: set this item to be current user?
+                    return item;
+                }
+            }
+        }
+        return null;
     }
 
     //-------- Entity Delegate

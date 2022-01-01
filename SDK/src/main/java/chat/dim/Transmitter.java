@@ -2,12 +2,12 @@
  *
  *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
- *                                Written in 2019 by Moky <albert.moky@gmail.com>
+ *                                Written in 2021 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Albert Moky
+ * Copyright (c) 2021 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,43 +28,31 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.cpu;
+package chat.dim;
 
-import java.util.List;
-
-import chat.dim.Facebook;
-import chat.dim.Messenger;
-import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
+import chat.dim.protocol.ID;
+import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
 
 /**
- *  Command Processing Unit
- *  ~~~~~~~~~~~~~~~~~~~~~~~
+ *  Message Transmitter
+ *  ~~~~~~~~~~~~~~~~~~~
  */
-public class CommandProcessor extends ContentProcessor {
-
-    public static String FMT_CMD_NOT_SUPPORT = "Command (name: %s) not support yet!";
-
-    public CommandProcessor(Facebook facebook, Messenger messenger) {
-        super(facebook, messenger);
-    }
-
-    @Override
-    public List<Content> process(Content content, ReliableMessage rMsg) {
-        assert content instanceof Command : "command error: " + content;
-        return execute((Command) content, rMsg);
-    }
+public interface Transmitter {
 
     /**
-     *  Execute command
+     *  Send content from sender to receiver with priority
      *
-     * @param cmd  - command received
-     * @param rMsg - reliable message
-     * @return {Content} response to sender
+     * @param sender   - from where
+     * @param receiver - to where
+     * @param content  - message content
+     * @param priority - smaller is faster
+     * @return false on error
      */
-    public List<Content> execute(Command cmd, ReliableMessage rMsg) {
-        String text = String.format(FMT_CMD_NOT_SUPPORT, cmd.getCommand());
-        return respondText(text, cmd.getGroup());
-    }
+    boolean sendContent(ID sender, ID receiver, Content content, int priority);
+
+    boolean sendMessage(InstantMessage msg, int priority);
+
+    boolean sendMessage(ReliableMessage msg, int priority);
 }

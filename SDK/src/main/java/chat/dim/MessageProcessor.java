@@ -55,24 +55,26 @@ import chat.dim.protocol.StorageCommand;
 public class MessageProcessor implements Processor {
 
     private final WeakReference<Messenger> messengerRef;
+    private final WeakReference<Facebook> facebookRef;
 
     private final ProcessorFactory factory;
 
-    public MessageProcessor(Messenger messenger) {
+    public MessageProcessor(Facebook facebook, Messenger messenger) {
         super();
         messengerRef = new WeakReference<>(messenger);
+        facebookRef = new WeakReference<>(facebook);
         factory = createProcessorFactory();
     }
 
     protected ProcessorFactory createProcessorFactory() {
-        return new ProcessorFactory(getMessenger());
+        return new ProcessorFactory(getFacebook(), getMessenger());
     }
 
     protected Messenger getMessenger() {
         return messengerRef.get();
     }
     protected Facebook getFacebook() {
-        return getMessenger().getFacebook();
+        return facebookRef.get();
     }
 
     public ContentProcessor getProcessor(ContentType type) {
@@ -86,7 +88,7 @@ public class MessageProcessor implements Processor {
     }
 
     @Override
-    public List<byte[]> process(byte[] data) {
+    public List<byte[]> processPackage(byte[] data) {
         Messenger messenger = getMessenger();
         // 1. deserialize message
         ReliableMessage rMsg = messenger.deserializeMessage(data);
@@ -95,7 +97,7 @@ public class MessageProcessor implements Processor {
             return null;
         }
         // 2. process message
-        List<ReliableMessage> responses = messenger.process(rMsg);
+        List<ReliableMessage> responses = messenger.processMessage(rMsg);
         if (responses == null || responses.size() == 0) {
             // nothing to respond
             return null;
@@ -115,7 +117,7 @@ public class MessageProcessor implements Processor {
     }
 
     @Override
-    public List<ReliableMessage> process(ReliableMessage rMsg) {
+    public List<ReliableMessage> processMessage(ReliableMessage rMsg) {
         // TODO: override to check broadcast message before calling it
         Messenger messenger = getMessenger();
         // 1. verify message
@@ -125,7 +127,7 @@ public class MessageProcessor implements Processor {
             return null;
         }
         // 2. process message
-        List<SecureMessage> responses = messenger.process(sMsg, rMsg);
+        List<SecureMessage> responses = messenger.processMessage(sMsg, rMsg);
         if (responses == null || responses.size() == 0) {
             // nothing to respond
             return null;
@@ -146,7 +148,7 @@ public class MessageProcessor implements Processor {
     }
 
     @Override
-    public List<SecureMessage> process(SecureMessage sMsg, ReliableMessage rMsg) {
+    public List<SecureMessage> processMessage(SecureMessage sMsg, ReliableMessage rMsg) {
         Messenger messenger = getMessenger();
         // 1. decrypt message
         InstantMessage iMsg = messenger.decryptMessage(sMsg);
@@ -156,7 +158,7 @@ public class MessageProcessor implements Processor {
             return null;
         }
         // 2. process message
-        List<InstantMessage> responses = messenger.process(iMsg, rMsg);
+        List<InstantMessage> responses = messenger.processMessage(iMsg, rMsg);
         if (responses == null || responses.size() == 0) {
             // nothing to respond
             return null;
@@ -176,18 +178,19 @@ public class MessageProcessor implements Processor {
     }
 
     @Override
-    public List<InstantMessage> process(InstantMessage iMsg, ReliableMessage rMsg) {
+    public List<InstantMessage> processMessage(InstantMessage iMsg, ReliableMessage rMsg) {
         Messenger messenger = getMessenger();
         // 1. process content
-        List<Content> responses = messenger.process(iMsg.getContent(), rMsg);
+        List<Content> responses = messenger.processContent(iMsg.getContent(), rMsg);
         if (responses == null || responses.size() == 0) {
             // nothing to respond
             return null;
         }
         // 2. select a local user to build message
+        Facebook facebook = getFacebook();
         ID sender = iMsg.getSender();
         ID receiver = iMsg.getReceiver();
-        User user = getFacebook().selectLocalUser(receiver);
+        User user = facebook.selectLocalUser(receiver);
         assert user != null : "receiver error: " + receiver;
         // 3. pack messages
         List<InstantMessage> messages = new ArrayList<>();
@@ -204,7 +207,7 @@ public class MessageProcessor implements Processor {
     }
 
     @Override
-    public List<Content> process(Content content, ReliableMessage rMsg) {
+    public List<Content> processContent(Content content, ReliableMessage rMsg) {
         // TODO: override to check group
         ContentProcessor cpu = getProcessor(content);
         return cpu.process(content, rMsg);

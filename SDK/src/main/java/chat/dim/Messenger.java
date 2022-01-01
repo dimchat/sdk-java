@@ -30,7 +30,6 @@
  */
 package chat.dim;
 
-import java.lang.ref.WeakReference;
 import java.util.List;
 
 import chat.dim.crypto.SymmetricKey;
@@ -40,71 +39,15 @@ import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 
-public abstract class Messenger extends Transceiver implements Packer, Processor, CipherKeyDelegate {
+public abstract class Messenger extends Transceiver implements CipherKeyDelegate, Packer, Processor, Transmitter {
 
-    private WeakReference<Facebook> facebookRef = null;
+    protected abstract CipherKeyDelegate getCipherKeyDelegate();
 
-    private WeakReference<CipherKeyDelegate> keyDelegateRef = null;
+    protected abstract Packer getPacker();
 
-    private WeakReference<Packer> packerRef = null;
-    private WeakReference<Processor> processorRef = null;
+    protected abstract Processor getProcessor();
 
-    protected Messenger() {
-        super();
-    }
-
-    /**
-     *  Delegate for User/Group
-     *
-     * @param barrack - entity delegate
-     */
-    public void setFacebook(Facebook barrack) {
-        facebookRef = new WeakReference<>(barrack);
-    }
-    public Facebook getFacebook() {
-        return facebookRef == null ? null : facebookRef.get();
-    }
-
-    @Override
-    protected Entity.Delegate getEntityDelegate() {
-        return getFacebook();
-    }
-
-    /**
-     *  Delegate for Cipher Key
-     *
-     * @param keyCache - key store
-     */
-    public void setCipherKeyDelegate(CipherKeyDelegate keyCache) {
-        keyDelegateRef = new WeakReference<>(keyCache);
-    }
-    protected CipherKeyDelegate getCipherKeyDelegate() {
-        return keyDelegateRef == null ? null : keyDelegateRef.get();
-    }
-
-    /**
-     *  Delegate for Packing Message
-     *
-     * @param packer - message packer
-     */
-    public void setPacker(Packer packer) {
-        packerRef = new WeakReference<>(packer);
-    }
-    protected Packer getPacker() {
-        return packerRef == null ? null : packerRef.get();
-    }
-
-    /**
-     *  Delegate for Processing Message
-     *
-     * @param processor - message processor
-     */
-    public void setProcessor(Processor processor) {
-        processorRef = new WeakReference<>(processor);
-    }
-    protected Processor getProcessor() {
-        return processorRef == null ? null : processorRef.get();
-    }
+    protected abstract Transmitter getTransmitter();
 
     //
     //  Interfaces for Cipher Key
@@ -161,28 +104,46 @@ public abstract class Messenger extends Transceiver implements Packer, Processor
     //  Interfaces for Processing Message
     //
     @Override
-    public List<byte[]> process(byte[] data) {
-        return getProcessor().process(data);
+    public List<byte[]> processPackage(byte[] data) {
+        return getProcessor().processPackage(data);
     }
 
     @Override
-    public List<ReliableMessage> process(ReliableMessage rMsg) {
-        return getProcessor().process(rMsg);
+    public List<ReliableMessage> processMessage(ReliableMessage rMsg) {
+        return getProcessor().processMessage(rMsg);
     }
 
     @Override
-    public List<SecureMessage> process(SecureMessage sMsg, ReliableMessage rMsg) {
-        return getProcessor().process(sMsg, rMsg);
+    public List<SecureMessage> processMessage(SecureMessage sMsg, ReliableMessage rMsg) {
+        return getProcessor().processMessage(sMsg, rMsg);
     }
 
     @Override
-    public List<InstantMessage> process(InstantMessage iMsg, ReliableMessage rMsg) {
-        return getProcessor().process(iMsg, rMsg);
+    public List<InstantMessage> processMessage(InstantMessage iMsg, ReliableMessage rMsg) {
+        return getProcessor().processMessage(iMsg, rMsg);
     }
 
     @Override
-    public List<Content> process(Content content, ReliableMessage rMsg) {
-        return getProcessor().process(content, rMsg);
+    public List<Content> processContent(Content content, ReliableMessage rMsg) {
+        return getProcessor().processContent(content, rMsg);
+    }
+
+    //
+    //  Interfaces for Transmitting Message
+    //
+    @Override
+    public boolean sendContent(ID sender, ID receiver, Content content, int priority) {
+        return getTransmitter().sendContent(sender, receiver, content, priority);
+    }
+
+    @Override
+    public boolean sendMessage(InstantMessage msg, int priority) {
+        return getTransmitter().sendMessage(msg, priority);
+    }
+
+    @Override
+    public boolean sendMessage(ReliableMessage msg, int priority) {
+        return getTransmitter().sendMessage(msg, priority);
     }
 
     //-------- SecureMessageDelegate
@@ -197,8 +158,6 @@ public abstract class Messenger extends Transceiver implements Packer, Processor
         }
     }
 
-    //-------- SecureMessageDelegate
-
     @Override
     public Content deserializeContent(byte[] data, SymmetricKey password, SecureMessage sMsg) {
         Content content = super.deserializeContent(data, password, sMsg);
@@ -206,17 +165,15 @@ public abstract class Messenger extends Transceiver implements Packer, Processor
 
         if (!isBroadcast(sMsg)) {
             // check and cache key for reuse
-            ID sender = sMsg.getSender();
             ID group = getOvertGroup(content);
             if (group == null) {
-                ID receiver = sMsg.getReceiver();
                 // personal message or (group) command
                 // cache key with direction (sender -> receiver)
-                cacheCipherKey(sender, receiver, password);
+                cacheCipherKey(sMsg.getSender(), sMsg.getReceiver(), password);
             } else {
                 // group message (excludes group command)
                 // cache the key with direction (sender -> group)
-                cacheCipherKey(sender, group, password);
+                cacheCipherKey(sMsg.getSender(), group, password);
             }
         }
 

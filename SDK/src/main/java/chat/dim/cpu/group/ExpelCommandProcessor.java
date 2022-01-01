@@ -49,8 +49,8 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
     public static String STR_EXPEL_NOT_ALLOWED = "Sorry, you are not allowed to expel member from this group.";
     public static String STR_CANNOT_EXPEL_OWNER = "Group owner cannot be expelled.";
 
-    public ExpelCommandProcessor(Messenger messenger) {
-        super(messenger);
+    public ExpelCommandProcessor(Facebook facebook, Messenger messenger) {
+        super(facebook, messenger);
     }
 
     @Override

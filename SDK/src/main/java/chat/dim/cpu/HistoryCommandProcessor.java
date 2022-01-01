@@ -32,6 +32,7 @@ package chat.dim.cpu;
 
 import java.util.List;
 
+import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
@@ -41,8 +42,8 @@ public class HistoryCommandProcessor extends CommandProcessor {
 
     public static String FMT_HIS_CMD_NOT_SUPPORT = "History command (name: %s) not support yet!";
 
-    public HistoryCommandProcessor(Messenger messenger) {
-        super(messenger);
+    public HistoryCommandProcessor(Facebook facebook, Messenger messenger) {
+        super(facebook, messenger);
     }
 
     @Override

@@ -49,8 +49,8 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
     public static String FMT_DOC_NOT_ACCEPTED = "Document not accept: %s";
     public static String FMT_DOC_ACCEPTED = "Document received: %s";
 
-    public DocumentCommandProcessor(Messenger messenger) {
-        super(messenger);
+    public DocumentCommandProcessor(Facebook facebook, Messenger messenger) {
+        super(facebook, messenger);
     }
 
     private List<Content> getDocument(ID identifier, String type) {

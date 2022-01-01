@@ -51,11 +51,12 @@ public class ContentProcessor {
     public static String FMT_CONTENT_NOT_SUPPORT = "Content (type: %d) not support yet!";
 
     private final WeakReference<Messenger> messengerRef;
+    private final WeakReference<Facebook> facebookRef;
 
-    public ContentProcessor(Messenger messenger) {
+    public ContentProcessor(Facebook facebook, Messenger messenger) {
         super();
-        assert messenger != null : "messenger should not be empty";
         messengerRef = new WeakReference<>(messenger);
+        facebookRef = new WeakReference<>(facebook);
     }
 
     protected Messenger getMessenger() {
@@ -63,7 +64,7 @@ public class ContentProcessor {
     }
 
     protected Facebook getFacebook() {
-        return getMessenger().getFacebook();
+        return facebookRef.get();
     }
 
     /**

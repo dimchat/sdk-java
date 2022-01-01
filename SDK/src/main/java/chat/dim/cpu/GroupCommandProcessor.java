@@ -33,6 +33,7 @@ package chat.dim.cpu;
 import java.util.ArrayList;
 import java.util.List;
 
+import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
@@ -45,8 +46,8 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
     public static String FMT_GRP_CMD_NOT_SUPPORT = "Group command (name: %s) not support yet!";
     public static String STR_GROUP_EMPTY = "Group empty.";
 
-    public GroupCommandProcessor(Messenger messenger) {
-        super(messenger);
+    public GroupCommandProcessor(Facebook facebook, Messenger messenger) {
+        super(facebook, messenger);
     }
 
     protected List<ID> getMembers(GroupCommand cmd) {

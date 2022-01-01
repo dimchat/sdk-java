@@ -50,12 +50,13 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
     public static String STR_RESET_CMD_ERROR = "Reset command error.";
     public static String STR_RESET_NOT_ALLOWED = "Sorry, you are not allowed to reset this group.";
 
-    public ResetCommandProcessor(Messenger messenger) {
-        super(messenger);
+    public ResetCommandProcessor(Facebook facebook, Messenger messenger) {
+        super(facebook, messenger);
     }
 
     protected void queryOwner(ID owner, ID group) {
-        // TODO: send QueryCommand to owner
+        QueryCommand query = new QueryCommand(group);
+        getMessenger().sendContent(null, owner, query, 1);
     }
 
     protected List<Content> temporarySave(GroupCommand cmd, ID sender) {

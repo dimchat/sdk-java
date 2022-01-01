@@ -48,17 +48,19 @@ import chat.dim.protocol.Visa;
 public class MessagePacker implements Packer {
 
     private final WeakReference<Messenger> messengerRef;
+    private final WeakReference<Facebook> facebookRef;
 
-    public MessagePacker(Messenger messenger) {
+    public MessagePacker(Facebook facebook, Messenger messenger) {
         super();
         messengerRef = new WeakReference<>(messenger);
+        facebookRef = new WeakReference<>(facebook);
     }
 
     protected Messenger getMessenger() {
         return messengerRef.get();
     }
     protected Facebook getFacebook() {
-        return getMessenger().getFacebook();
+        return facebookRef.get();
     }
 
     @Override
@@ -219,7 +221,7 @@ public class MessagePacker implements Packer {
         if (visa != null) {
             facebook.saveDocument(visa);
         }
-
+        // check message delegate
         if (rMsg.getDelegate() == null) {
             rMsg.setDelegate(getMessenger());
         }
@@ -237,13 +239,9 @@ public class MessagePacker implements Packer {
     @Override
     public InstantMessage decryptMessage(SecureMessage sMsg) {
         // TODO: make sure private key (decrypt key) exists before decrypting message
-        Messenger messenger = getMessenger();
-        // check message delegate
-        if (sMsg.getDelegate() == null) {
-            sMsg.setDelegate(messenger);
-        }
+        Facebook facebook = getFacebook();
         ID receiver = sMsg.getReceiver();
-        User user = getFacebook().selectLocalUser(receiver);
+        User user = facebook.selectLocalUser(receiver);
         SecureMessage trimmed;
         if (user == null) {
             // current users not match
@@ -258,9 +256,9 @@ public class MessagePacker implements Packer {
             // not for you?
             throw new NullPointerException("receiver error: " + sMsg);
         }
-
+        // check message delegate
         if (sMsg.getDelegate() == null) {
-            sMsg.setDelegate(messenger);
+            sMsg.setDelegate(getMessenger());
         }
         //
         //  NOTICE: make sure the receiver is YOU!

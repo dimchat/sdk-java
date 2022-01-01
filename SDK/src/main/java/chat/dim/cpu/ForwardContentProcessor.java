@@ -32,6 +32,7 @@ package chat.dim.cpu;
 
 import java.util.List;
 
+import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ForwardContent;
@@ -41,8 +42,8 @@ import chat.dim.protocol.SecureMessage;
 
 public class ForwardContentProcessor extends ContentProcessor {
 
-    public ForwardContentProcessor(Messenger messenger) {
-        super(messenger);
+    public ForwardContentProcessor(Facebook facebook, Messenger messenger) {
+        super(facebook, messenger);
     }
 
     @Override
@@ -66,6 +67,6 @@ public class ForwardContentProcessor extends ContentProcessor {
             return null;
         }
         // 3. process message content
-        return messenger.process(iMsg.getContent(), secret);
+        return messenger.processContent(iMsg.getContent(), secret);
     }
 }

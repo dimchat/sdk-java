@@ -47,8 +47,8 @@ public class InviteCommandProcessor extends ResetCommandProcessor {
     public static String STR_INVITE_CMD_ERROR = "Invite command error.";
     public static String STR_INVITE_NOT_ALLOWED = "Sorry, you are not allowed to invite new members into this group.";
 
-    public InviteCommandProcessor(Messenger messenger) {
-        super(messenger);
+    public InviteCommandProcessor(Facebook facebook, Messenger messenger) {
+        super(facebook, messenger);
     }
 
     @Override

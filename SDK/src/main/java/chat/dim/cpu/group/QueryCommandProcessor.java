@@ -48,8 +48,8 @@ public class QueryCommandProcessor extends GroupCommandProcessor {
 
     public static String STR_QUERY_NOT_ALLOWED = "Sorry, you are not allowed to query this group.";
 
-    public QueryCommandProcessor(Messenger messenger) {
-        super(messenger);
+    public QueryCommandProcessor(Facebook facebook, Messenger messenger) {
+        super(facebook, messenger);
     }
 
     @Override

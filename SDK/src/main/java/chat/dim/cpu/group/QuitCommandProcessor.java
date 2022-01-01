@@ -46,8 +46,8 @@ public class QuitCommandProcessor extends GroupCommandProcessor {
     public static String STR_OWNER_CANNOT_QUIT = "Sorry, owner cannot quit.";
     public static String STR_ASSISTANT_CANNOT_QUIT = "Sorry, assistant cannot quit.";
 
-    public QuitCommandProcessor(Messenger messenger) {
-        super(messenger);
+    public QuitCommandProcessor(Facebook facebook, Messenger messenger) {
+        super(facebook, messenger);
     }
 
     @SuppressWarnings("unused")
