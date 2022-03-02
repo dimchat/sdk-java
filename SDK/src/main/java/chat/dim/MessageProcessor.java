@@ -77,14 +77,22 @@ public class MessageProcessor implements Processor {
         return facebookRef.get();
     }
 
+    public ContentProcessor getProcessor(Content content) {
+        return factory.getProcessor(content);
+    }
+
     public ContentProcessor getProcessor(ContentType type) {
         return factory.getProcessor(type);
     }
     public ContentProcessor getProcessor(int type) {
         return factory.getProcessor(type);
     }
-    public ContentProcessor getProcessor(Content content) {
-        return factory.getProcessor(content);
+
+    public ContentProcessor getProcessor(ContentType type, String command) {
+        return factory.getProcessor(type, command);
+    }
+    public ContentProcessor getProcessor(int type, String command) {
+        return factory.getProcessor(type, command);
     }
 
     @Override
@@ -221,7 +229,8 @@ public class MessageProcessor implements Processor {
         //
         //  Register core factories
         //
-        Factories.registerCoreFactories();
+        Factories.registerContentFactories();
+        Factories.registerCommandFactories();
 
         //
         //  Register command factories

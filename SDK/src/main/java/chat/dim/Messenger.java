@@ -39,7 +39,7 @@ import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 
-public abstract class Messenger extends Transceiver implements CipherKeyDelegate, Packer, Processor, Transmitter {
+public abstract class Messenger extends Transceiver implements CipherKeyDelegate, Packer, Processor {
 
     protected abstract CipherKeyDelegate getCipherKeyDelegate();
 
@@ -47,7 +47,16 @@ public abstract class Messenger extends Transceiver implements CipherKeyDelegate
 
     protected abstract Processor getProcessor();
 
-    protected abstract Transmitter getTransmitter();
+    /**
+     *  Send content from sender to receiver with priority
+     *
+     * @param sender   - from where
+     * @param receiver - to where
+     * @param content  - message content
+     * @param priority - smaller is faster
+     * @return false on error
+     */
+    public abstract boolean sendContent(ID sender, ID receiver, Content content, int priority);
 
     //
     //  Interfaces for Cipher Key
@@ -126,24 +135,6 @@ public abstract class Messenger extends Transceiver implements CipherKeyDelegate
     @Override
     public List<Content> processContent(Content content, ReliableMessage rMsg) {
         return getProcessor().processContent(content, rMsg);
-    }
-
-    //
-    //  Interfaces for Transmitting Message
-    //
-    @Override
-    public boolean sendContent(ID sender, ID receiver, Content content, int priority) {
-        return getTransmitter().sendContent(sender, receiver, content, priority);
-    }
-
-    @Override
-    public boolean sendMessage(InstantMessage msg, int priority) {
-        return getTransmitter().sendMessage(msg, priority);
-    }
-
-    @Override
-    public boolean sendMessage(ReliableMessage msg, int priority) {
-        return getTransmitter().sendMessage(msg, priority);
     }
 
     //-------- SecureMessageDelegate

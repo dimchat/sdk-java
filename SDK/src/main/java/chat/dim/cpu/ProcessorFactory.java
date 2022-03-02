@@ -88,7 +88,6 @@ public class ProcessorFactory {
     public ContentProcessor getProcessor(ContentType type) {
         return getProcessor(type.value);
     }
-
     public ContentProcessor getProcessor(int type) {
         ContentProcessor cpu = contentProcessors.get(type);
         if (cpu == null) {
@@ -103,7 +102,6 @@ public class ProcessorFactory {
     public CommandProcessor getProcessor(ContentType type, String command) {
         return getProcessor(type.value, command);
     }
-
     public CommandProcessor getProcessor(int type, String command) {
         CommandProcessor cpu = commandProcessors.get(command);
         if (cpu == null) {
