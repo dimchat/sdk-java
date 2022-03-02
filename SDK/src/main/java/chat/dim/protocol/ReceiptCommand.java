@@ -32,6 +32,7 @@ package chat.dim.protocol;
 
 import java.util.Map;
 
+import chat.dim.dkd.BaseCommand;
 import chat.dim.format.Base64;
 
 /**
@@ -48,7 +49,7 @@ import chat.dim.format.Base64;
  *      signature : "..." // the same signature with the original message
  *  }
  */
-public class ReceiptCommand extends Command {
+public class ReceiptCommand extends BaseCommand {
 
     // original message info
     private Envelope envelope;

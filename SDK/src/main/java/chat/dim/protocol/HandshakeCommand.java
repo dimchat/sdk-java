@@ -32,6 +32,8 @@ package chat.dim.protocol;
 
 import java.util.Map;
 
+import chat.dim.dkd.BaseCommand;
+
 /**
  *  Command message: {
  *      type : 0x88,
@@ -42,7 +44,7 @@ import java.util.Map;
  *      session : "{SESSION_KEY}" // session key
  *  }
  */
-public class HandshakeCommand extends Command {
+public class HandshakeCommand extends BaseCommand {
 
     public final String message;
     public final String sessionKey;

@@ -33,6 +33,8 @@ package chat.dim.protocol;
 import java.util.List;
 import java.util.Map;
 
+import chat.dim.dkd.BaseCommand;
+
 /**
  *  Command message: {
  *      type : 0x88,
@@ -42,7 +44,7 @@ import java.util.Map;
  *      list    : []      // block-list
  *  }
  */
-public class BlockCommand extends Command {
+public class BlockCommand extends BaseCommand {
 
     public static final String BLOCK   = "block";
 

@@ -36,6 +36,7 @@ import java.util.Map;
 import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SymmetricKey;
+import chat.dim.dkd.BaseCommand;
 import chat.dim.format.Base64;
 import chat.dim.format.JSON;
 
@@ -54,7 +55,7 @@ import chat.dim.format.JSON;
  *      //...
  *  }
  */
-public class StorageCommand extends Command {
+public class StorageCommand extends BaseCommand {
 
     public static final String STORAGE = "storage";
 

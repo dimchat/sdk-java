@@ -33,6 +33,7 @@ package chat.dim.protocol;
 import java.util.HashMap;
 import java.util.Map;
 
+import chat.dim.dkd.BaseCommand;
 import chat.dim.network.ServiceProvider;
 import chat.dim.network.Station;
 
@@ -58,7 +59,7 @@ import chat.dim.network.Station;
  *      }
  *  }
  */
-public class LoginCommand extends Command {
+public class LoginCommand extends BaseCommand {
 
     public LoginCommand(Map<String, Object> dictionary) {
         super(dictionary);
