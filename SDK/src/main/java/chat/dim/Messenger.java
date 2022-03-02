@@ -47,17 +47,6 @@ public abstract class Messenger extends Transceiver implements CipherKeyDelegate
 
     protected abstract Processor getProcessor();
 
-    /**
-     *  Send content from sender to receiver with priority
-     *
-     * @param sender   - from where
-     * @param receiver - to where
-     * @param content  - message content
-     * @param priority - smaller is faster
-     * @return false on error
-     */
-    public abstract boolean sendContent(ID sender, ID receiver, Content content, int priority);
-
     //
     //  Interfaces for Cipher Key
     //
