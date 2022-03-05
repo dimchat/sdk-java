@@ -36,9 +36,7 @@ import java.util.List;
 import chat.dim.mtp.DataType;
 import chat.dim.mtp.Package;
 import chat.dim.mtp.PackageDocker;
-import chat.dim.net.Hub;
 import chat.dim.port.Docker;
-import chat.dim.port.Gate;
 import chat.dim.port.Ship;
 import chat.dim.type.Data;
 import chat.dim.udp.ClientHub;
@@ -63,17 +61,7 @@ public class UDPClientGate extends CommonGate<ClientHub> {
     @Override
     protected Docker createDocker(SocketAddress remote, SocketAddress local, List<byte[]> data) {
         // TODO: check data format before create docker
-        return new PackageDocker(remote, null, this) {
-            @Override
-            protected Hub getHub() {
-                Gate gate = getGate();
-                if (gate instanceof CommonGate) {
-                    //noinspection rawtypes
-                    return ((CommonGate) gate).getHub();
-                }
-                return null;
-            }
-        };
+        return new PackageDocker(remote, null, this);
     }
 
     public boolean send(Package pack, int priority, Ship.Delegate delegate) {

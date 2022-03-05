@@ -30,9 +30,20 @@
  */
 package chat.dim.mtp;
 
+import chat.dim.type.ByteArray;
+
 public class StreamArrival extends PackageArrival {
 
     public StreamArrival(Package pack) {
         super(pack);
+    }
+
+    public byte[] getPayload() {
+        Package pack = getPackage();
+        if (pack == null) {
+            return null;
+        }
+        ByteArray body = pack.body;
+        return body == null ? null : body.getBytes();
     }
 }

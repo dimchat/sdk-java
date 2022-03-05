@@ -39,7 +39,6 @@ import chat.dim.mtp.Package;
 import chat.dim.mtp.PackageDeparture;
 import chat.dim.net.ActiveConnection;
 import chat.dim.net.Connection;
-import chat.dim.net.ConnectionState;
 import chat.dim.net.Hub;
 import chat.dim.port.Departure;
 import chat.dim.port.Docker;
@@ -89,37 +88,9 @@ public abstract class CommonGate<H extends Hub> extends StarGate {
         }
     }
 
-    private void kill(SocketAddress remote, SocketAddress local, Connection connection) {
-        // if conn is null, disconnect with (remote, local);
-        // else, disconnect with connection when local address matched.
-        Connection conn = getHub().disconnect(remote, local, connection);
-        // if connection is not activated, means it's a server connection,
-        // remove the docker too.
-        if (conn != null && !(conn instanceof ActiveConnection)) {
-            // remove docker for server connection
-            remote = conn.getRemoteAddress();
-            local = conn.getLocalAddress();
-            removeDocker(remote, local, null);
-        }
-    }
-
-    @Override
-    public void onStateChanged(ConnectionState previous, ConnectionState current, Connection connection) {
-        super.onStateChanged(previous, current, connection);
-        if (current != null && current.equals(ConnectionState.ERROR)) {
-            kill(null, null, connection);
-        }
-    }
-
     @Override
     public void onError(Throwable error, byte[] data, SocketAddress source, SocketAddress destination, Connection connection) {
-        if (connection == null) {
-            // failed to receive data
-            kill(source, destination, null);
-        } else {
-            // failed to send data
-            kill(destination, source, connection);
-        }
+        // ignore
     }
 
     protected Docker getDocker(SocketAddress remote, SocketAddress local, List<byte[]> data) {

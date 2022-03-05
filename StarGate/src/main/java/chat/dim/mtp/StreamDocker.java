@@ -31,16 +31,16 @@
 package chat.dim.mtp;
 
 import java.net.SocketAddress;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import chat.dim.net.Hub;
+import chat.dim.net.ActiveConnection;
+import chat.dim.net.Connection;
 import chat.dim.port.Arrival;
 import chat.dim.port.Departure;
-import chat.dim.port.Gate;
 import chat.dim.port.Ship;
-import chat.dim.stargate.CommonGate;
 import chat.dim.startrek.StarGate;
 import chat.dim.stream.SeekerResult;
 import chat.dim.type.ByteArray;
@@ -52,24 +52,14 @@ public class StreamDocker extends PackageDocker {
         super(remote, local, gate);
     }
 
-    @Override
-    protected Hub getHub() {
-        Gate gate = getGate();
-        if (gate instanceof CommonGate) {
-            //noinspection rawtypes
-            return ((CommonGate) gate).getHub();
-        }
-        return null;
-    }
-
+    private final ReadWriteLock chunksLock = new ReentrantReadWriteLock();
     private ByteArray chunks = Data.ZERO;
-    private boolean received = false;
-    private final ReadWriteLock lock = new ReentrantReadWriteLock();
+    private boolean packageReceived = false;
 
     @Override
     protected Package parsePackage(final byte[] data) {
         Package pack;
-        Lock writeLock = lock.writeLock();
+        Lock writeLock = chunksLock.writeLock();
         writeLock.lock();
         try {
             // join the data to the memory cache
@@ -78,7 +68,7 @@ public class StreamDocker extends PackageDocker {
             // try to fetch a package
             SeekerResult<Package> result = MTPHelper.seekPackage(buffer);
             pack = result.value;
-            received = pack != null;
+            packageReceived = pack != null;
             int offset = result.offset;
             if (offset >= 0) {
                 // 'error part' + 'MTP package' + 'remaining data'
@@ -101,12 +91,29 @@ public class StreamDocker extends PackageDocker {
     public void processReceived(byte[] data) {
         // the cached data maybe contain sticky packages,
         // so we need to process them circularly here
-        received = true;
-        while (received) {
-            received = false;
+        packageReceived = true;
+        while (packageReceived) {
+            packageReceived = false;
             super.processReceived(data);
             data = new byte[0];
         }
+    }
+
+    @Override
+    protected Arrival checkArrival(Arrival income) {
+        StreamArrival ship = (StreamArrival) income;
+        Package pack = ship.getPackage();
+        if (pack == null) {
+            List<Package> fragments = ship.getFragments();
+            pack = fragments.get(fragments.size() - 1);
+        }
+        // check body length
+        if (pack.head.bodyLength != pack.body.getSize()) {
+            // sticky data?
+            return ship;
+        }
+        // check for response
+        return super.checkArrival(income);
     }
 
     @Override
@@ -137,7 +144,10 @@ public class StreamDocker extends PackageDocker {
 
     @Override
     public void heartbeat() {
-        Package pkg = MTPHelper.createCommand(PING);
-        appendDeparture(createDeparture(pkg, Departure.Priority.SLOWER.value, null));
+        Connection conn = getConnection();
+        if (conn instanceof ActiveConnection) {
+            Package pkg = MTPHelper.createCommand(PING);
+            appendDeparture(createDeparture(pkg, Departure.Priority.SLOWER.value, null));
+        }
     }
 }
