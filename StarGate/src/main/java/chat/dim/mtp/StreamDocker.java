@@ -57,7 +57,7 @@ public class StreamDocker extends PackageDocker {
     private boolean packageReceived = false;
 
     @Override
-    protected Package parsePackage(final byte[] data) {
+    protected Package parsePackage(byte[] data) {
         Package pack;
         Lock writeLock = chunksLock.writeLock();
         writeLock.lock();
@@ -117,7 +117,7 @@ public class StreamDocker extends PackageDocker {
     }
 
     @Override
-    protected Arrival createArrival(final Package pkg) {
+    protected Arrival createArrival(Package pkg) {
         return new StreamArrival(pkg);
     }
 

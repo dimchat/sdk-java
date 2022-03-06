@@ -37,7 +37,6 @@ import java.util.List;
 import chat.dim.mtp.MTPHelper;
 import chat.dim.mtp.Package;
 import chat.dim.mtp.PackageDeparture;
-import chat.dim.net.ActiveConnection;
 import chat.dim.net.Connection;
 import chat.dim.net.Hub;
 import chat.dim.port.Departure;
@@ -62,7 +61,12 @@ public abstract class CommonGate<H extends Hub> extends StarGate {
 
     @Override
     public Connection getConnection(SocketAddress remote, SocketAddress local) {
-        return getHub().connect(remote, local);
+        return getHub().connect(remote, null);
+    }
+
+    @Override
+    protected Docker getDocker(SocketAddress remote, SocketAddress local) {
+        return super.getDocker(remote, null);
     }
 
     @Override
@@ -79,7 +83,7 @@ public abstract class CommonGate<H extends Hub> extends StarGate {
     protected void clearAdvanceParty(SocketAddress source, SocketAddress destination, Connection connection) {
         // TODO: remove advance party for this connection
     }
-
+/*/
     @Override
     protected void heartbeat(Connection connection) {
         // let the client to do the job
@@ -87,7 +91,7 @@ public abstract class CommonGate<H extends Hub> extends StarGate {
             super.heartbeat(connection);
         }
     }
-
+/*/
     @Override
     public void onError(Throwable error, byte[] data, SocketAddress source, SocketAddress destination, Connection connection) {
         // ignore
