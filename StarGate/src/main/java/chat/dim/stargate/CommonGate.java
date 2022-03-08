@@ -61,7 +61,7 @@ public abstract class CommonGate<H extends Hub> extends StarGate {
 
     @Override
     public Connection getConnection(SocketAddress remote, SocketAddress local) {
-        return getHub().connect(remote, null);
+        return getHub().connect(remote, local);
     }
 
     @Override
@@ -102,7 +102,7 @@ public abstract class CommonGate<H extends Hub> extends StarGate {
         if (worker == null) {
             worker = createDocker(remote, local, data);
             if (worker != null) {
-                putDocker(worker);
+                setDocker(worker.getRemoteAddress(), worker.getLocalAddress(), worker);
             }
         }
         return worker;
