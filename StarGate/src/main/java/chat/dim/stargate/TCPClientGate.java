@@ -36,6 +36,7 @@ import java.util.List;
 import chat.dim.mtp.MTPHelper;
 import chat.dim.mtp.Package;
 import chat.dim.mtp.StreamDocker;
+import chat.dim.net.Connection;
 import chat.dim.port.Docker;
 import chat.dim.port.Ship;
 import chat.dim.tcp.ClientHub;
@@ -45,7 +46,7 @@ public class TCPClientGate extends CommonGate<ClientHub> {
     public final SocketAddress remoteAddress;
     public final SocketAddress localAddress;
 
-    public TCPClientGate(Delegate delegate, SocketAddress remote, SocketAddress local) {
+    public TCPClientGate(Docker.Delegate delegate, SocketAddress remote, SocketAddress local) {
         super(delegate);
         remoteAddress = remote;
         localAddress = local;
@@ -58,9 +59,10 @@ public class TCPClientGate extends CommonGate<ClientHub> {
     }
 
     @Override
-    protected Docker createDocker(SocketAddress remote, SocketAddress local, List<byte[]> data) {
+    protected Docker createDocker(List<byte[]> data,
+                                  SocketAddress remote, SocketAddress local, Connection conn) {
         // TODO: check data format before create docker
-        return new StreamDocker(remote, null, this);
+        return new StreamDocker(remote, null, conn, getDelegate());
     }
 
     public boolean send(Package pack, int priority, Ship.Delegate delegate) {

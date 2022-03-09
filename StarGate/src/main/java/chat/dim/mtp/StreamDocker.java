@@ -36,20 +36,19 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import chat.dim.net.ActiveConnection;
 import chat.dim.net.Connection;
 import chat.dim.port.Arrival;
 import chat.dim.port.Departure;
 import chat.dim.port.Ship;
-import chat.dim.startrek.StarGate;
+import chat.dim.socket.ActiveConnection;
 import chat.dim.stream.SeekerResult;
 import chat.dim.type.ByteArray;
 import chat.dim.type.Data;
 
 public class StreamDocker extends PackageDocker {
 
-    public StreamDocker(SocketAddress remote, SocketAddress local, StarGate gate) {
-        super(remote, local, gate);
+    public StreamDocker(SocketAddress remote, SocketAddress local, Connection conn, Delegate delegate) {
+        super(remote, local, conn, delegate);
     }
 
     private final ReadWriteLock chunksLock = new ReentrantReadWriteLock();

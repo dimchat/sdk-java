@@ -42,14 +42,24 @@ import chat.dim.net.Hub;
 import chat.dim.port.Departure;
 import chat.dim.port.Docker;
 import chat.dim.port.Ship;
+import chat.dim.skywalker.Runner;
 import chat.dim.startrek.StarGate;
+import chat.dim.threading.Daemon;
 
-public abstract class CommonGate<H extends Hub> extends StarGate {
+public abstract class CommonGate<H extends Hub> extends StarGate implements Runnable {
 
     private H hub = null;
 
-    protected CommonGate(Delegate delegate) {
+    private final Daemon daemon;
+    private boolean running;
+
+    public CommonGate(Docker.Delegate delegate, boolean isDaemon) {
         super(delegate);
+        daemon = new Daemon(this, isDaemon);
+        running = false;
+    }
+    protected CommonGate(Docker.Delegate delegate) {
+        this(delegate, true);
     }
 
     public H getHub() {
@@ -59,14 +69,64 @@ public abstract class CommonGate<H extends Hub> extends StarGate {
         hub = h;
     }
 
-    @Override
-    public Connection getConnection(SocketAddress remote, SocketAddress local) {
-        return getHub().connect(remote, local);
+    public boolean isRunning() {
+        return running;
+    }
+
+    public void start() {
+        stop();
+        running = true;
+        daemon.start();
+    }
+
+    public void stop() {
+        running = false;
+        daemon.stop();
     }
 
     @Override
-    protected Docker getDocker(SocketAddress remote, SocketAddress local) {
+    public void run() {
+        running = true;
+        while (isRunning()) {
+            if (!process()) {
+                idle();
+            }
+        }
+    }
+
+    protected void idle() {
+        Runner.idle(128);
+    }
+
+    @Override
+    public boolean process() {
+        try {
+            boolean incoming = getHub().process();
+            boolean outgoing = super.process();
+            return incoming || outgoing;
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    //
+    //  Docker
+    //
+
+    @Override
+    public Docker getDocker(SocketAddress remote, SocketAddress local) {
         return super.getDocker(remote, null);
+    }
+
+    @Override
+    protected void setDocker(SocketAddress remote, SocketAddress local, Docker docker) {
+        super.setDocker(remote, null, docker);
+    }
+
+    @Override
+    protected void removeDocker(SocketAddress remote, SocketAddress local, Docker docker) {
+        super.removeDocker(remote, null, docker);
     }
 
     @Override
@@ -98,14 +158,16 @@ public abstract class CommonGate<H extends Hub> extends StarGate {
     }
 
     protected Docker getDocker(SocketAddress remote, SocketAddress local, List<byte[]> data) {
-        Docker worker = getDocker(remote, local);
-        if (worker == null) {
-            worker = createDocker(remote, local, data);
-            if (worker != null) {
-                setDocker(worker.getRemoteAddress(), worker.getLocalAddress(), worker);
+        Docker docker = getDocker(remote, local);
+        if (docker == null) {
+            Connection conn = getHub().connect(remote, local);
+            if (conn != null) {
+                docker = createDocker(data, remote, local, conn);
+                assert docker != null : "failed to create docker: " + remote + ", " + local;
+                setDocker(docker.getRemoteAddress(), docker.getLocalAddress(), docker);
             }
         }
-        return worker;
+        return docker;
     }
 
     public boolean send(SocketAddress source, SocketAddress destination,
