@@ -31,83 +31,19 @@
 package chat.dim.stargate;
 
 import java.net.SocketAddress;
-import java.util.ArrayList;
-import java.util.List;
 
 import chat.dim.mtp.MTPHelper;
 import chat.dim.mtp.Package;
 import chat.dim.mtp.PackageDeparture;
-import chat.dim.net.Connection;
 import chat.dim.net.Hub;
 import chat.dim.port.Departure;
 import chat.dim.port.Docker;
 import chat.dim.port.Ship;
-import chat.dim.skywalker.Runner;
-import chat.dim.startrek.StarGate;
-import chat.dim.threading.Daemon;
 
-public abstract class CommonGate<H extends Hub> extends StarGate implements Runnable {
-
-    private H hub = null;
-
-    private final Daemon daemon;
-    private boolean running;
+public abstract class CommonGate<H extends Hub> extends AutoGate<H> {
 
     public CommonGate(Docker.Delegate delegate, boolean isDaemon) {
-        super(delegate);
-        daemon = new Daemon(this, isDaemon);
-        running = false;
-    }
-    protected CommonGate(Docker.Delegate delegate) {
-        this(delegate, true);
-    }
-
-    public H getHub() {
-        return hub;
-    }
-    public void setHub(H h) {
-        hub = h;
-    }
-
-    public boolean isRunning() {
-        return running;
-    }
-
-    public void start() {
-        stop();
-        running = true;
-        daemon.start();
-    }
-
-    public void stop() {
-        running = false;
-        daemon.stop();
-    }
-
-    @Override
-    public void run() {
-        running = true;
-        while (isRunning()) {
-            if (!process()) {
-                idle();
-            }
-        }
-    }
-
-    protected void idle() {
-        Runner.idle(128);
-    }
-
-    @Override
-    public boolean process() {
-        try {
-            boolean incoming = getHub().process();
-            boolean outgoing = super.process();
-            return incoming || outgoing;
-        } catch (Throwable e) {
-            e.printStackTrace();
-            return false;
-        }
+        super(delegate, isDaemon);
     }
 
     //
@@ -129,46 +65,9 @@ public abstract class CommonGate<H extends Hub> extends StarGate implements Runn
         super.removeDocker(remote, null, docker);
     }
 
-    @Override
-    protected List<byte[]> cacheAdvanceParty(byte[] data, SocketAddress source, SocketAddress destination, Connection connection) {
-        // TODO: cache the advance party before decide which docker to use
-        List<byte[]> array = new ArrayList<>();
-        if (data != null) {
-            array.add(data);
-        }
-        return array;
-    }
-
-    @Override
-    protected void clearAdvanceParty(SocketAddress source, SocketAddress destination, Connection connection) {
-        // TODO: remove advance party for this connection
-    }
-/*/
-    @Override
-    protected void heartbeat(Connection connection) {
-        // let the client to do the job
-        if (connection instanceof ActiveConnection) {
-            super.heartbeat(connection);
-        }
-    }
-/*/
-    @Override
-    public void onError(Throwable error, byte[] data, SocketAddress source, SocketAddress destination, Connection connection) {
-        // ignore
-    }
-
-    protected Docker getDocker(SocketAddress remote, SocketAddress local, List<byte[]> data) {
-        Docker docker = getDocker(remote, local);
-        if (docker == null) {
-            Connection conn = getHub().connect(remote, local);
-            if (conn != null) {
-                docker = createDocker(data, remote, local, conn);
-                assert docker != null : "failed to create docker: " + remote + ", " + local;
-                setDocker(docker.getRemoteAddress(), docker.getLocalAddress(), docker);
-            }
-        }
-        return docker;
-    }
+    //
+    //  Sending
+    //
 
     public boolean send(SocketAddress source, SocketAddress destination,
                         Departure ship) {

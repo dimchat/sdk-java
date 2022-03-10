@@ -47,7 +47,7 @@ public class TCPClientGate extends CommonGate<ClientHub> {
     public final SocketAddress localAddress;
 
     public TCPClientGate(Docker.Delegate delegate, SocketAddress remote, SocketAddress local) {
-        super(delegate);
+        super(delegate, true);
         remoteAddress = remote;
         localAddress = local;
         setHub(createClientHub());
@@ -64,6 +64,10 @@ public class TCPClientGate extends CommonGate<ClientHub> {
         // TODO: check data format before create docker
         return new StreamDocker(remote, null, conn, getDelegate());
     }
+
+    //
+    //  Sending
+    //
 
     public boolean send(Package pack, int priority, Ship.Delegate delegate) {
         return send(localAddress, remoteAddress, pack, priority, delegate);
