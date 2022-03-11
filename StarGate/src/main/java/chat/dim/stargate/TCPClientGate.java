@@ -38,7 +38,6 @@ import chat.dim.mtp.Package;
 import chat.dim.mtp.StreamDocker;
 import chat.dim.net.Connection;
 import chat.dim.port.Docker;
-import chat.dim.port.Ship;
 import chat.dim.tcp.ClientHub;
 
 public class TCPClientGate extends CommonGate<ClientHub> {
@@ -69,16 +68,16 @@ public class TCPClientGate extends CommonGate<ClientHub> {
     //  Sending
     //
 
-    public boolean send(Package pack, int priority, Ship.Delegate delegate) {
-        return send(localAddress, remoteAddress, pack, priority, delegate);
+    public boolean send(Package pack, int priority) {
+        return send(localAddress, remoteAddress, pack, priority);
     }
 
-    public boolean sendCommand(byte[] body, int priority, Ship.Delegate delegate) {
+    public boolean sendCommand(byte[] body, int priority) {
         Package pack = MTPHelper.createCommand(body);
-        return send(pack, priority, delegate);
+        return send(pack, priority);
     }
-    public boolean sendMessage(byte[] body, int priority, Ship.Delegate delegate) {
+    public boolean sendMessage(byte[] body, int priority) {
         Package pack = MTPHelper.createMessage(body);
-        return send(pack, priority, delegate);
+        return send(pack, priority);
     }
 }

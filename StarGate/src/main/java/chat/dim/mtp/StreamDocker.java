@@ -39,7 +39,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import chat.dim.net.Connection;
 import chat.dim.port.Arrival;
 import chat.dim.port.Departure;
-import chat.dim.port.Ship;
 import chat.dim.socket.ActiveConnection;
 import chat.dim.stream.SeekerResult;
 import chat.dim.type.ByteArray;
@@ -121,8 +120,8 @@ public class StreamDocker extends PackageDocker {
     }
 
     @Override
-    protected Departure createDeparture(Package pkg, int priority, Ship.Delegate delegate) {
-        return new StreamDeparture(pkg, priority, delegate);
+    protected Departure createDeparture(Package pkg, int priority) {
+        return new StreamDeparture(pkg, priority, 0);
     }
 
     @Override
@@ -136,9 +135,9 @@ public class StreamDocker extends PackageDocker {
     }
 
     @Override
-    public Departure pack(byte[] payload, int priority, Ship.Delegate delegate) {
+    public Departure pack(byte[] payload, int priority) {
         Package pkg = MTPHelper.createMessage(payload);
-        return createDeparture(pkg, priority, delegate);
+        return createDeparture(pkg, priority);
     }
 
     @Override
@@ -146,7 +145,7 @@ public class StreamDocker extends PackageDocker {
         Connection conn = getConnection();
         if (conn instanceof ActiveConnection) {
             Package pkg = MTPHelper.createCommand(PING);
-            appendDeparture(createDeparture(pkg, Departure.Priority.SLOWER.value, null));
+            appendDeparture(createDeparture(pkg, Departure.Priority.SLOWER.value));
         }
     }
 }

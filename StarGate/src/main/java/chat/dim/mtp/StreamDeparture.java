@@ -35,8 +35,8 @@ import java.util.List;
 
 public class StreamDeparture extends PackageDeparture {
 
-    public StreamDeparture(Package pack, int prior, Delegate delegate) {
-        super(pack, prior, delegate);
+    public StreamDeparture(Package pack, int prior, long now) {
+        super(pack, prior, now);
     }
 
     @Override

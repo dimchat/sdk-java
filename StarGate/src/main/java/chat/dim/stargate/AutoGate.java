@@ -118,7 +118,7 @@ public abstract class AutoGate<H extends Hub> extends StarGate implements Runnab
     }
 
     @Override
-    public void onError(Throwable error, byte[] data, SocketAddress source, SocketAddress destination, Connection connection) {
+    public void onConnectionError(Throwable error, byte[] data, SocketAddress source, SocketAddress destination, Connection connection) {
         // ignore
     }
 

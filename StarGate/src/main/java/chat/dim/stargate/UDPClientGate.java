@@ -38,7 +38,6 @@ import chat.dim.mtp.Package;
 import chat.dim.mtp.PackageDocker;
 import chat.dim.net.Connection;
 import chat.dim.port.Docker;
-import chat.dim.port.Ship;
 import chat.dim.type.Data;
 import chat.dim.udp.ClientHub;
 
@@ -70,16 +69,16 @@ public class UDPClientGate extends CommonGate<ClientHub> {
     //  Sending
     //
 
-    public boolean send(Package pack, int priority, Ship.Delegate delegate) {
-        return send(localAddress, remoteAddress, pack, priority, delegate);
+    public boolean send(Package pack, int priority) {
+        return send(localAddress, remoteAddress, pack, priority);
     }
 
-    public boolean sendCommand(byte[] body, int priority, Ship.Delegate delegate) {
+    public boolean sendCommand(byte[] body, int priority) {
         Package pack = Package.create(DataType.COMMAND, null, 1, 0, -1, new Data(body));
-        return send(pack, priority, delegate);
+        return send(pack, priority);
     }
-    public boolean sendMessage(byte[] body, int priority, Ship.Delegate delegate) {
+    public boolean sendMessage(byte[] body, int priority) {
         Package pack = Package.create(DataType.MESSAGE, null, 1, 0, -1, new Data(body));
-        return send(pack, priority, delegate);
+        return send(pack, priority);
     }
 }

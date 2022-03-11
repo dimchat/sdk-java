@@ -38,9 +38,9 @@ import chat.dim.mtp.PackageDeparture;
 import chat.dim.net.Hub;
 import chat.dim.port.Departure;
 import chat.dim.port.Docker;
-import chat.dim.port.Ship;
 
-public abstract class CommonGate<H extends Hub> extends AutoGate<H> {
+public abstract class CommonGate<H extends Hub>
+        extends AutoGate<H> {
 
     public CommonGate(Docker.Delegate delegate, boolean isDaemon) {
         super(delegate, isDaemon);
@@ -75,25 +75,21 @@ public abstract class CommonGate<H extends Hub> extends AutoGate<H> {
         return worker != null && worker.appendDeparture(ship);
     }
 
-    public boolean send(SocketAddress source, SocketAddress destination,
-                        Package pack, int priority, Ship.Delegate delegate) {
-        Departure ship = new PackageDeparture(pack, priority, delegate);
+    public boolean send(SocketAddress source, SocketAddress destination, Package pack, int priority) {
+        Departure ship = new PackageDeparture(pack, priority);
         return send(source, destination, ship);
     }
 
-    public boolean send(SocketAddress source, SocketAddress destination,
-                        byte[] payload, int priority, Ship.Delegate delegate) {
+    public boolean send(SocketAddress source, SocketAddress destination, byte[] payload, int priority) {
         Package pack = MTPHelper.createMessage(payload);
-        return send(source, destination, pack, priority, delegate);
+        return send(source, destination, pack, priority);
     }
 
-    public boolean send(SocketAddress source, SocketAddress destination,
-                        byte[] payload, Ship.Delegate delegate) {
-        return send(source, destination, payload, NORMAL, delegate);
+    public boolean send(SocketAddress source, SocketAddress destination, byte[] payload) {
+        return send(source, destination, payload, NORMAL);
     }
-    public boolean send(SocketAddress source, SocketAddress destination,
-                        Package pack) {
-        return send(source, destination, pack, NORMAL, getDelegate());
+    public boolean send(SocketAddress source, SocketAddress destination, Package pack) {
+        return send(source, destination, pack, NORMAL);
     }
     static final int NORMAL = Departure.Priority.NORMAL.value;
 }
