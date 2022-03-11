@@ -59,10 +59,9 @@ public class UDPClientGate extends CommonGate<ClientHub> {
     }
 
     @Override
-    protected Docker createDocker(List<byte[]> data,
-                                  SocketAddress remote, SocketAddress local, Connection conn) {
+    protected Docker createDocker(Connection conn, List<byte[]> data) {
         // TODO: check data format before create docker
-        return new PackageDocker(remote, null, conn, getDelegate());
+        return new PackageDocker(conn, getDelegate());
     }
 
     //

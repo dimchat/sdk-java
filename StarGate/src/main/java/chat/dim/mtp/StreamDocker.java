@@ -30,7 +30,6 @@
  */
 package chat.dim.mtp;
 
-import java.net.SocketAddress;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -46,8 +45,8 @@ import chat.dim.type.Data;
 
 public class StreamDocker extends PackageDocker {
 
-    public StreamDocker(SocketAddress remote, SocketAddress local, Connection conn, Delegate delegate) {
-        super(remote, local, conn, delegate);
+    public StreamDocker(Connection conn, Delegate delegate) {
+        super(conn, delegate);
     }
 
     private final ReadWriteLock chunksLock = new ReentrantReadWriteLock();
