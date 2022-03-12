@@ -35,12 +35,14 @@ import java.util.List;
 
 import chat.dim.mtp.MTPHelper;
 import chat.dim.mtp.Package;
+import chat.dim.mtp.PackageDeparture;
 import chat.dim.mtp.StreamDocker;
 import chat.dim.net.Connection;
+import chat.dim.port.Departure;
 import chat.dim.port.Docker;
 import chat.dim.tcp.ClientHub;
 
-public class TCPClientGate extends CommonGate<ClientHub> {
+public class TCPClientGate extends AutoGate<ClientHub> {
 
     public final SocketAddress remoteAddress;
     public final SocketAddress localAddress;
@@ -52,23 +54,35 @@ public class TCPClientGate extends CommonGate<ClientHub> {
         setHub(createClientHub());
     }
 
+    // override for user-customized hub
     protected ClientHub createClientHub() {
-        // override for user-customized hub
         return new ClientHub(this);
     }
 
     @Override
     protected Docker createDocker(Connection conn, List<byte[]> data) {
         // TODO: check data format before create docker
-        return new StreamDocker(conn, getDelegate());
+        StreamDocker docker = new StreamDocker(conn);
+        docker.setDelegate(getDelegate());
+        return docker;
     }
 
     //
     //  Sending
     //
 
+    @Override
+    public boolean send(Departure outgo, SocketAddress source, SocketAddress destination) {
+        Docker docker = getDocker(destination, source, null);
+        if (docker == null || !docker.isOpen()) {
+            return false;
+        }
+        return docker.appendDeparture(outgo);
+    }
+
     public boolean send(Package pack, int priority) {
-        return send(localAddress, remoteAddress, pack, priority);
+        Departure ship = new PackageDeparture(pack, priority);
+        return send(ship, localAddress, remoteAddress);
     }
 
     public boolean sendCommand(byte[] body, int priority) {

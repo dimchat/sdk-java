@@ -32,64 +32,42 @@ package chat.dim.stargate;
 
 import java.net.SocketAddress;
 
-import chat.dim.mtp.MTPHelper;
 import chat.dim.mtp.Package;
 import chat.dim.mtp.PackageDeparture;
 import chat.dim.net.Hub;
 import chat.dim.port.Departure;
 import chat.dim.port.Docker;
 
-public abstract class CommonGate<H extends Hub>
-        extends AutoGate<H> {
+public abstract class ClientGate<H extends Hub> extends AutoGate<H> {
 
-    public CommonGate(Docker.Delegate delegate, boolean isDaemon) {
-        super(delegate, isDaemon);
+    public final SocketAddress remoteAddress;
+    public final SocketAddress localAddress;
+
+    public ClientGate(Docker.Delegate delegate, SocketAddress remote, SocketAddress local) {
+        super(delegate, true);
+        remoteAddress = remote;
+        localAddress = local;
+        setHub(createClientHub());
     }
 
-    //
-    //  Docker
-    //
-
-    @Override
-    public Docker getDocker(SocketAddress remote, SocketAddress local) {
-        return super.getDocker(remote, null);
-    }
-
-    @Override
-    protected void setDocker(SocketAddress remote, SocketAddress local, Docker docker) {
-        super.setDocker(remote, null, docker);
-    }
-
-    @Override
-    protected void removeDocker(SocketAddress remote, SocketAddress local, Docker docker) {
-        super.removeDocker(remote, null, docker);
-    }
+    // override for user-customized hub
+    protected abstract H createClientHub();
 
     //
     //  Sending
     //
 
-    public boolean send(SocketAddress source, SocketAddress destination,
-                        Departure ship) {
-        Docker worker = getDocker(destination, source, null);
-        return worker != null && worker.appendDeparture(ship);
+    @Override
+    public boolean send(Departure outgo, SocketAddress source, SocketAddress destination) {
+        Docker docker = getDocker(destination, source, null);
+        if (docker == null || !docker.isOpen()) {
+            return false;
+        }
+        return docker.appendDeparture(outgo);
     }
 
-    public boolean send(SocketAddress source, SocketAddress destination, Package pack, int priority) {
+    public boolean send(Package pack, int priority) {
         Departure ship = new PackageDeparture(pack, priority);
-        return send(source, destination, ship);
+        return send(ship, localAddress, remoteAddress);
     }
-
-    public boolean send(SocketAddress source, SocketAddress destination, byte[] payload, int priority) {
-        Package pack = MTPHelper.createMessage(payload);
-        return send(source, destination, pack, priority);
-    }
-
-    public boolean send(SocketAddress source, SocketAddress destination, byte[] payload) {
-        return send(source, destination, payload, NORMAL);
-    }
-    public boolean send(SocketAddress source, SocketAddress destination, Package pack) {
-        return send(source, destination, pack, NORMAL);
-    }
-    static final int NORMAL = Departure.Priority.NORMAL.value;
 }

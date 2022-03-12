@@ -45,8 +45,8 @@ import chat.dim.type.Data;
 
 public class StreamDocker extends PackageDocker {
 
-    public StreamDocker(Connection conn, Delegate delegate) {
-        super(conn, delegate);
+    public StreamDocker(Connection conn) {
+        super(conn);
     }
 
     private final ReadWriteLock chunksLock = new ReentrantReadWriteLock();
@@ -131,12 +131,6 @@ public class StreamDocker extends PackageDocker {
     @Override
     protected void respondMessage(TransactionID sn, int pages, int index) {
         send(MTPHelper.respondMessage(sn, pages, index, OK));
-    }
-
-    @Override
-    public Departure pack(byte[] payload, int priority) {
-        Package pkg = MTPHelper.createMessage(payload);
-        return createDeparture(pkg, priority);
     }
 
     @Override
