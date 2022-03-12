@@ -72,8 +72,8 @@ public class TCPClientGate extends AutoGate<ClientHub> {
     //
 
     @Override
-    public boolean send(Departure outgo, SocketAddress source, SocketAddress destination) {
-        Docker docker = getDocker(destination, source, null);
+    public boolean send(Departure outgo, SocketAddress remote, SocketAddress local) {
+        Docker docker = getDocker(remote, local, null);
         if (docker == null || !docker.isOpen()) {
             return false;
         }
@@ -82,7 +82,7 @@ public class TCPClientGate extends AutoGate<ClientHub> {
 
     public boolean send(Package pack, int priority) {
         Departure ship = new PackageDeparture(pack, priority);
-        return send(ship, localAddress, remoteAddress);
+        return send(ship, remoteAddress, localAddress);
     }
 
     public boolean sendCommand(byte[] body, int priority) {
