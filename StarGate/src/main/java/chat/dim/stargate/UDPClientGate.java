@@ -43,13 +43,13 @@ import chat.dim.port.Docker;
 import chat.dim.type.Data;
 import chat.dim.udp.ClientHub;
 
-public class UDPClientGate extends AutoGate<ClientHub> {
+public class UDPClientGate extends BaseGate<ClientHub> {
 
     public final SocketAddress remoteAddress;
     public final SocketAddress localAddress;
 
     public UDPClientGate(Docker.Delegate delegate, SocketAddress remote, SocketAddress local) {
-        super(delegate, true);
+        super(delegate);
         remoteAddress = remote;
         localAddress = local;
         setHub(createClientHub());

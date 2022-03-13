@@ -42,13 +42,13 @@ import chat.dim.port.Departure;
 import chat.dim.port.Docker;
 import chat.dim.tcp.ClientHub;
 
-public class TCPClientGate extends AutoGate<ClientHub> {
+public class TCPClientGate extends BaseGate<ClientHub> {
 
     public final SocketAddress remoteAddress;
     public final SocketAddress localAddress;
 
     public TCPClientGate(Docker.Delegate delegate, SocketAddress remote, SocketAddress local) {
-        super(delegate, true);
+        super(delegate);
         remoteAddress = remote;
         localAddress = local;
         setHub(createClientHub());

@@ -38,13 +38,14 @@ import chat.dim.net.Hub;
 import chat.dim.port.Departure;
 import chat.dim.port.Docker;
 
-public abstract class ClientGate<H extends Hub> extends AutoGate<H> {
+public abstract class ClientGate<H extends Hub>
+        extends BaseGate<H> {
 
     public final SocketAddress remoteAddress;
     public final SocketAddress localAddress;
 
     public ClientGate(Docker.Delegate delegate, SocketAddress remote, SocketAddress local) {
-        super(delegate, true);
+        super(delegate);
         remoteAddress = remote;
         localAddress = local;
         setHub(createClientHub());

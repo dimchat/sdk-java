@@ -30,20 +30,14 @@
  */
 package chat.dim.stargate;
 
-import java.net.SocketAddress;
-import java.util.ArrayList;
-import java.util.List;
-
-import chat.dim.net.Connection;
 import chat.dim.net.Hub;
 import chat.dim.port.Docker;
 import chat.dim.skywalker.Runner;
-import chat.dim.startrek.StarGate;
 import chat.dim.threading.Daemon;
 
-public abstract class AutoGate<H extends Hub> extends StarGate implements Runnable {
-
-    private H hub = null;
+public abstract class AutoGate<H extends Hub>
+        extends BaseGate<H>
+        implements Runnable {
 
     private final Daemon daemon;
     private boolean running;
@@ -52,13 +46,6 @@ public abstract class AutoGate<H extends Hub> extends StarGate implements Runnab
         super(delegate);
         daemon = new Daemon(this, isDaemon);
         running = false;
-    }
-
-    public H getHub() {
-        return hub;
-    }
-    public void setHub(H h) {
-        hub = h;
     }
 
     //
@@ -104,76 +91,5 @@ public abstract class AutoGate<H extends Hub> extends StarGate implements Runnab
             e.printStackTrace();
             return false;
         }
-    }
-
-    /*/
-    @Override
-    protected void heartbeat(Connection connection) {
-        // let the client to do the job
-        if (connection instanceof ActiveConnection) {
-            super.heartbeat(connection);
-        }
-    }
-    /*/
-
-    //
-    //  Docker
-    //
-
-    public Docker getDocker(SocketAddress remote, SocketAddress local, List<byte[]> data) {
-        Docker docker = getDocker(remote, local);
-        if (docker == null) {
-            Connection conn = getHub().connect(remote, local);
-            if (conn != null) {
-                docker = createDocker(conn, data);
-                assert docker != null : "failed to create docker: " + remote + ", " + local;
-                setDocker(docker.getRemoteAddress(), docker.getLocalAddress(), docker);
-            }
-        }
-        return docker;
-    }
-
-    @Override
-    public Docker getDocker(SocketAddress remote, SocketAddress local) {
-        return super.getDocker(remote, null);
-    }
-
-    @Override
-    public void setDocker(SocketAddress remote, SocketAddress local, Docker docker) {
-        super.setDocker(remote, null, docker);
-    }
-
-    @Override
-    protected void removeDocker(SocketAddress remote, SocketAddress local, Docker docker) {
-        super.removeDocker(remote, null, docker);
-    }
-
-    //
-    //  Connection Delegate
-    //
-
-    @Override
-    public void onConnectionFailed(Throwable error, byte[] data, Connection connection) {
-        // ignore
-    }
-
-    @Override
-    public void onConnectionError(Throwable error, byte[] data, Connection connection) {
-        // ignore
-    }
-
-    @Override
-    protected List<byte[]> cacheAdvanceParty(byte[] data, Connection connection) {
-        // TODO: cache the advance party before decide which docker to use
-        List<byte[]> array = new ArrayList<>();
-        if (data != null) {
-            array.add(data);
-        }
-        return array;
-    }
-
-    @Override
-    protected void clearAdvanceParty(Connection connection) {
-        // TODO: remove advance party for this connection
     }
 }
