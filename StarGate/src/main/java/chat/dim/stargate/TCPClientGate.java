@@ -71,18 +71,13 @@ public class TCPClientGate extends BaseGate<ClientHub> {
     //  Sending
     //
 
-    @Override
-    public boolean sendShip(Departure outgo, SocketAddress remote, SocketAddress local) {
-        Docker docker = getDocker(remote, local, null);
+    public boolean sendPackage(Package pack, int priority) {
+        Docker docker = getDocker(remoteAddress, localAddress, null);
         if (docker == null || !docker.isOpen()) {
             return false;
         }
-        return docker.sendShip(outgo);
-    }
-
-    public boolean sendPackage(Package pack, int priority) {
         Departure ship = new PackageDeparture(pack, priority);
-        return sendShip(ship, remoteAddress, localAddress);
+        return docker.sendShip(ship);
     }
 
     public boolean sendCommand(byte[] body, int priority) {
