@@ -72,25 +72,25 @@ public class TCPClientGate extends BaseGate<ClientHub> {
     //
 
     @Override
-    public boolean send(Departure outgo, SocketAddress remote, SocketAddress local) {
+    public boolean sendShip(Departure outgo, SocketAddress remote, SocketAddress local) {
         Docker docker = getDocker(remote, local, null);
         if (docker == null || !docker.isOpen()) {
             return false;
         }
-        return docker.appendDeparture(outgo);
+        return docker.sendShip(outgo);
     }
 
-    public boolean send(Package pack, int priority) {
+    public boolean sendPackage(Package pack, int priority) {
         Departure ship = new PackageDeparture(pack, priority);
-        return send(ship, remoteAddress, localAddress);
+        return sendShip(ship, remoteAddress, localAddress);
     }
 
     public boolean sendCommand(byte[] body, int priority) {
         Package pack = MTPHelper.createCommand(body);
-        return send(pack, priority);
+        return sendPackage(pack, priority);
     }
     public boolean sendMessage(byte[] body, int priority) {
         Package pack = MTPHelper.createMessage(body);
-        return send(pack, priority);
+        return sendPackage(pack, priority);
     }
 }

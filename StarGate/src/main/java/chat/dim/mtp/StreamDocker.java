@@ -38,7 +38,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import chat.dim.net.Connection;
 import chat.dim.port.Arrival;
 import chat.dim.port.Departure;
-import chat.dim.socket.ActiveConnection;
 import chat.dim.stream.SeekerResult;
 import chat.dim.type.ByteArray;
 import chat.dim.type.Data;
@@ -123,22 +122,27 @@ public class StreamDocker extends PackageDocker {
         return new StreamDeparture(pkg, priority, 0);
     }
 
+    //
+    //  Packing
+    //
+
     @Override
-    protected void respondCommand(TransactionID sn, byte[] body) {
-        send(MTPHelper.respondCommand(sn, body));
+    protected Package createCommand(byte[] body) {
+        return MTPHelper.createCommand(body);
     }
 
     @Override
-    protected void respondMessage(TransactionID sn, int pages, int index) {
-        send(MTPHelper.respondMessage(sn, pages, index, OK));
+    protected Package createMessage(byte[] body) {
+        return MTPHelper.createMessage(body);
     }
 
     @Override
-    public void heartbeat() {
-        Connection conn = getConnection();
-        if (conn instanceof ActiveConnection) {
-            Package pkg = MTPHelper.createCommand(PING);
-            appendDeparture(createDeparture(pkg, Departure.Priority.SLOWER.value));
-        }
+    protected Package createCommandResponse(TransactionID sn, byte[] body) {
+        return MTPHelper.respondCommand(sn, body);
+    }
+
+    @Override
+    protected Package createMessageResponse(TransactionID sn, int pages, int index) {
+        return MTPHelper.respondMessage(sn, pages, index, OK);
     }
 }

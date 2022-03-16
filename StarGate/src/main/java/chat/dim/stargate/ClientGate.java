@@ -59,16 +59,16 @@ public abstract class ClientGate<H extends Hub>
     //
 
     @Override
-    public boolean send(Departure outgo, SocketAddress remote, SocketAddress local) {
+    public boolean sendShip(Departure outgo, SocketAddress remote, SocketAddress local) {
         Docker docker = getDocker(remote, local, null);
         if (docker == null || !docker.isOpen()) {
             return false;
         }
-        return docker.appendDeparture(outgo);
+        return docker.sendShip(outgo);
     }
 
-    public boolean send(Package pack, int priority) {
+    public boolean sendPackage(Package pack, int priority) {
         Departure ship = new PackageDeparture(pack, priority);
-        return send(ship, remoteAddress, localAddress);
+        return sendShip(ship, remoteAddress, localAddress);
     }
 }
