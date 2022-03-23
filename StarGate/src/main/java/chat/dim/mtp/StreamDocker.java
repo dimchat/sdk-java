@@ -38,6 +38,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import chat.dim.net.Connection;
 import chat.dim.port.Arrival;
 import chat.dim.port.Departure;
+import chat.dim.startrek.DepartureShip;
 import chat.dim.stream.SeekerResult;
 import chat.dim.type.ByteArray;
 import chat.dim.type.Data;
@@ -119,7 +120,14 @@ public class StreamDocker extends PackageDocker {
 
     @Override
     protected Departure createDeparture(Package pkg, int priority) {
-        return new StreamDeparture(pkg, priority, 0);
+        if (pkg.isResponse()) {
+            // response package needs no response again,
+            // so this ship will be removed immediately after sent.
+            return new StreamDeparture(pkg, priority, DepartureShip.DISPOSABLE);
+        } else {
+            // normal package
+            return new StreamDeparture(pkg, priority);
+        }
     }
 
     //
