@@ -37,6 +37,7 @@ import chat.dim.core.Factories;
 import chat.dim.cpu.ContentProcessor;
 import chat.dim.cpu.ContentProcessorCreator;
 import chat.dim.cpu.ContentProcessorFactory;
+import chat.dim.mkm.User;
 import chat.dim.protocol.BlockCommand;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;

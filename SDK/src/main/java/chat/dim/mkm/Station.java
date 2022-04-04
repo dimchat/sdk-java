@@ -28,30 +28,70 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.group;
+package chat.dim.mkm;
 
-import chat.dim.Group;
+import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.NetworkType;
 
 /**
- *  Simple group chat
+ *  DIM Server
  */
-public class Polylogue extends Group {
+public class Station extends User {
 
-    public Polylogue(ID identifier) {
-        super(identifier);
-        assert NetworkType.POLYLOGUE.equals(identifier.getType()) : "polylogue ID error: " + identifier;
+    private String host;
+    private int port;
+
+    public Station(ID identifier) {
+        this(identifier, null, 0);
     }
 
-    @Override
-    public ID getOwner() {
-        ID owner = super.getOwner();
-        if (owner != null) {
-            assert owner == getFounder() : "polylogue owner error: " + owner + ", " + getFounder();
-            return owner;
+    public Station(ID identifier, String host, int port) {
+        super(identifier);
+        assert NetworkType.STATION.equals(identifier.getType()) : "station ID error: " + identifier;
+        this.host = host;
+        this.port = port;
+    }
+
+    /**
+     *  Station IP
+     *
+     * @return IP address
+     */
+    public String getHost() {
+        if (host == null) {
+            Document doc = getDocument("*");
+            if (doc != null) {
+                Object value = doc.getProperty("host");
+                if (value != null) {
+                    host = (String) value;
+                }
+            }
+            if (host == null) {
+                host = "0.0.0.0";
+            }
         }
-        // polylogue's owner is its founder
-        return getFounder();
+        return host;
+    }
+
+    /**
+     *  Station Port
+     *
+     * @return port number
+     */
+    public int getPort() {
+        if (port == 0) {
+            Document doc = getDocument("*");
+            if (doc != null) {
+                Object value = doc.getProperty("port");
+                if (value != null) {
+                    port = (int) value;
+                }
+            }
+            if (port == 0) {
+                port = 9394;
+            }
+        }
+        return port;
     }
 }

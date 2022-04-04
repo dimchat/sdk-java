@@ -28,46 +28,18 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.group;
+package chat.dim.mkm;
 
-import java.util.List;
-
-import chat.dim.Group;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.NetworkType;
 
 /**
- *  Big group with admins
+ *  Robot User
  */
-public class Chatroom extends Group {
+public class Robot extends User {
 
-    public Chatroom(ID identifier) {
+    public Robot(ID identifier) {
         super(identifier);
-        assert NetworkType.CHATROOM.equals(identifier.getType()) : "chatroom ID error: " + identifier;
-    }
-
-    @Override
-    public DataSource getDataSource() {
-        return (DataSource) super.getDataSource();
-    }
-
-    public List<ID> getAdmins() {
-        DataSource dataSource = getDataSource();
-        return dataSource.getAdmins(identifier);
-    }
-
-    /**
-     *  This interface is for getting information for chatroom
-     *  Chatroom admins should be set complying with the consensus algorithm
-     */
-    public interface DataSource extends Group.DataSource {
-
-        /**
-         *  Get all admins in the chatroom
-         *
-         * @param chatroom - chatroom ID
-         * @return admin ID list
-         */
-        List<ID> getAdmins(ID chatroom);
+        assert NetworkType.ROBOT.equals(identifier.getType()) : "robot ID error: " + identifier;
     }
 }

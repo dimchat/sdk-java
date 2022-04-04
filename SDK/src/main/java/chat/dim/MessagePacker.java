@@ -35,6 +35,8 @@ import java.util.Map;
 
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.format.JSON;
+import chat.dim.mkm.Group;
+import chat.dim.mkm.User;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;

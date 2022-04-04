@@ -34,8 +34,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.dkd.BaseCommand;
-import chat.dim.network.ServiceProvider;
-import chat.dim.network.Station;
+import chat.dim.mkm.ServiceProvider;
+import chat.dim.mkm.Station;
 
 /**
  *  Command message: {

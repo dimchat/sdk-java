@@ -35,11 +35,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import chat.dim.group.Chatroom;
-import chat.dim.group.Polylogue;
-import chat.dim.network.Robot;
-import chat.dim.network.ServiceProvider;
-import chat.dim.network.Station;
+import chat.dim.mkm.Chatroom;
+import chat.dim.mkm.Group;
+import chat.dim.mkm.Polylogue;
+import chat.dim.mkm.Robot;
+import chat.dim.mkm.ServiceProvider;
+import chat.dim.mkm.Station;
+import chat.dim.mkm.User;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;

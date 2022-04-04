@@ -28,19 +28,29 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.network;
+package chat.dim.mkm;
 
-import chat.dim.User;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.NetworkType;
 
 /**
- *  Robot User
+ *  Simple group chat
  */
-public class Robot extends User {
+public class Polylogue extends Group {
 
-    public Robot(ID identifier) {
+    public Polylogue(ID identifier) {
         super(identifier);
-        assert NetworkType.ROBOT.equals(identifier.getType()) : "robot ID error: " + identifier;
+        assert NetworkType.POLYLOGUE.equals(identifier.getType()) : "polylogue ID error: " + identifier;
+    }
+
+    @Override
+    public ID getOwner() {
+        ID owner = super.getOwner();
+        if (owner != null) {
+            assert owner == getFounder() : "polylogue owner error: " + owner + ", " + getFounder();
+            return owner;
+        }
+        // polylogue's owner is its founder
+        return getFounder();
     }
 }

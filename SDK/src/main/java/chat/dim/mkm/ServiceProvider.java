@@ -28,71 +28,24 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.network;
+package chat.dim.mkm;
 
-import chat.dim.User;
-import chat.dim.protocol.Document;
+import java.util.List;
+
 import chat.dim.protocol.ID;
 import chat.dim.protocol.NetworkType;
 
 /**
- *  DIM Server
+ *  DIM Station Owner
  */
-public class Station extends User {
+public class ServiceProvider extends Group {
 
-    private String host;
-    private int port;
-
-    public Station(ID identifier) {
-        this(identifier, null, 0);
-    }
-
-    public Station(ID identifier, String host, int port) {
+    public ServiceProvider(ID identifier) {
         super(identifier);
-        assert NetworkType.STATION.equals(identifier.getType()) : "station ID error: " + identifier;
-        this.host = host;
-        this.port = port;
+        assert NetworkType.PROVIDER.equals(identifier.getType()) : "SP ID error: " + identifier;
     }
 
-    /**
-     *  Station IP
-     *
-     * @return IP address
-     */
-    public String getHost() {
-        if (host == null) {
-            Document doc = getDocument("*");
-            if (doc != null) {
-                Object value = doc.getProperty("host");
-                if (value != null) {
-                    host = (String) value;
-                }
-            }
-            if (host == null) {
-                host = "0.0.0.0";
-            }
-        }
-        return host;
-    }
-
-    /**
-     *  Station Port
-     *
-     * @return port number
-     */
-    public int getPort() {
-        if (port == 0) {
-            Document doc = getDocument("*");
-            if (doc != null) {
-                Object value = doc.getProperty("port");
-                if (value != null) {
-                    port = (int) value;
-                }
-            }
-            if (port == 0) {
-                port = 9394;
-            }
-        }
-        return port;
+    public List<ID> getStations() {
+        return getMembers();
     }
 }

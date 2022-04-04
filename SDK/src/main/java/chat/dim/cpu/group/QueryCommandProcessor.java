@@ -34,8 +34,8 @@ import java.util.List;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
-import chat.dim.User;
 import chat.dim.cpu.GroupCommandProcessor;
+import chat.dim.mkm.User;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.ID;

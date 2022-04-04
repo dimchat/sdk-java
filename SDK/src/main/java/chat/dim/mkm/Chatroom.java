@@ -28,25 +28,45 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.network;
+package chat.dim.mkm;
 
 import java.util.List;
 
-import chat.dim.Group;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.NetworkType;
 
 /**
- *  DIM Station Owner
+ *  Big group with admins
  */
-public class ServiceProvider extends Group {
+public class Chatroom extends Group {
 
-    public ServiceProvider(ID identifier) {
+    public Chatroom(ID identifier) {
         super(identifier);
-        assert NetworkType.PROVIDER.equals(identifier.getType()) : "SP ID error: " + identifier;
+        assert NetworkType.CHATROOM.equals(identifier.getType()) : "chatroom ID error: " + identifier;
     }
 
-    public List<ID> getStations() {
-        return getMembers();
+    @Override
+    public DataSource getDataSource() {
+        return (DataSource) super.getDataSource();
+    }
+
+    public List<ID> getAdmins() {
+        DataSource dataSource = getDataSource();
+        return dataSource.getAdmins(identifier);
+    }
+
+    /**
+     *  This interface is for getting information for chatroom
+     *  Chatroom admins should be set complying with the consensus algorithm
+     */
+    public interface DataSource extends Group.DataSource {
+
+        /**
+         *  Get all admins in the chatroom
+         *
+         * @param chatroom - chatroom ID
+         * @return admin ID list
+         */
+        List<ID> getAdmins(ID chatroom);
     }
 }
