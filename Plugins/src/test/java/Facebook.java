@@ -4,13 +4,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import chat.dim.Group;
-import chat.dim.User;
 import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
 import chat.dim.crypto.VerifyKey;
+import chat.dim.mkm.Group;
+import chat.dim.mkm.User;
 import chat.dim.protocol.Bulletin;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
@@ -18,16 +18,16 @@ import chat.dim.protocol.Meta;
 import chat.dim.protocol.Visa;
 
 public class Facebook implements User.DataSource, Group.DataSource {
-    private static Facebook ourInstance = new Facebook();
+    private static final Facebook ourInstance = new Facebook();
     public static Facebook getInstance() { return ourInstance; }
     private Facebook() {
         super();
     }
 
     // memory caches
-    private Map<ID, PrivateKey> privateKeyMap = new HashMap<>();
-    private Map<ID, Meta>       metaMap  = new HashMap<>();
-    private Map<ID, User>       userMap  = new HashMap<>();
+    private final Map<ID, PrivateKey> privateKeyMap = new HashMap<>();
+    private final Map<ID, Meta>       metaMap  = new HashMap<>();
+    private final Map<ID, User>       userMap  = new HashMap<>();
 
     public boolean cache(PrivateKey key, ID identifier) {
         if (key == null) {

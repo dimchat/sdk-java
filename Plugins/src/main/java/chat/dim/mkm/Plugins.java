@@ -59,11 +59,11 @@ public interface Plugins {
      */
     static void registerMetaFactories() {
 
-        Meta.register(MetaType.MKM, new MetaFactory(MetaType.MKM));
-        Meta.register(MetaType.BTC, new MetaFactory(MetaType.BTC));
-        Meta.register(MetaType.ExBTC, new MetaFactory(MetaType.ExBTC));
-        Meta.register(MetaType.ETH, new MetaFactory(MetaType.ETH));
-        Meta.register(MetaType.ExETH, new MetaFactory(MetaType.ExETH));
+        Meta.setFactory(MetaType.MKM, new MetaFactory(MetaType.MKM));
+        Meta.setFactory(MetaType.BTC, new MetaFactory(MetaType.BTC));
+        Meta.setFactory(MetaType.ExBTC, new MetaFactory(MetaType.ExBTC));
+        Meta.setFactory(MetaType.ETH, new MetaFactory(MetaType.ETH));
+        Meta.setFactory(MetaType.ExETH, new MetaFactory(MetaType.ExETH));
     }
 
     /*
@@ -71,9 +71,9 @@ public interface Plugins {
      */
     static void registerDocumentFactories() {
 
-        Document.register("*", new DocumentFactory("*"));
-        Document.register(Document.VISA, new DocumentFactory(Document.VISA));
-        Document.register(Document.PROFILE, new DocumentFactory(Document.PROFILE));
-        Document.register(Document.BULLETIN, new DocumentFactory(Document.BULLETIN));
+        Document.setFactory("*", new DocumentFactory("*"));
+        Document.setFactory(Document.VISA, new DocumentFactory(Document.VISA));
+        Document.setFactory(Document.PROFILE, new DocumentFactory(Document.PROFILE));
+        Document.setFactory(Document.BULLETIN, new DocumentFactory(Document.BULLETIN));
     }
 }

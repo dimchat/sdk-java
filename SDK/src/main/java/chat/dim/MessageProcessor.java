@@ -33,10 +33,10 @@ package chat.dim;
 import java.util.ArrayList;
 import java.util.List;
 
-import chat.dim.core.Factories;
 import chat.dim.cpu.ContentProcessor;
 import chat.dim.cpu.ContentProcessorCreator;
 import chat.dim.cpu.ContentProcessorFactory;
+import chat.dim.dkd.CoreFactories;
 import chat.dim.mkm.User;
 import chat.dim.protocol.BlockCommand;
 import chat.dim.protocol.Command;
@@ -222,22 +222,22 @@ public class MessageProcessor extends TwinsHelper implements Processor {
         //
         //  Register core factories
         //
-        Factories.registerContentFactories();
-        Factories.registerCommandFactories();
+        CoreFactories.registerContentFactories();
+        CoreFactories.registerCommandFactories();
 
         //
         //  Register command factories
         //
-        Command.register(Command.RECEIPT, ReceiptCommand::new);
-        Command.register(Command.HANDSHAKE, HandshakeCommand::new);
-        Command.register(Command.LOGIN, LoginCommand::new);
+        Command.setFactory(Command.RECEIPT, ReceiptCommand::new);
+        Command.setFactory(Command.HANDSHAKE, HandshakeCommand::new);
+        Command.setFactory(Command.LOGIN, LoginCommand::new);
 
-        Command.register(MuteCommand.MUTE, MuteCommand::new);
-        Command.register(BlockCommand.BLOCK, BlockCommand::new);
+        Command.setFactory(MuteCommand.MUTE, MuteCommand::new);
+        Command.setFactory(BlockCommand.BLOCK, BlockCommand::new);
 
         // storage (contacts, private_key)
-        Command.register(StorageCommand.STORAGE, StorageCommand::new);
-        Command.register(StorageCommand.CONTACTS, StorageCommand::new);
-        Command.register(StorageCommand.PRIVATE_KEY, StorageCommand::new);
+        Command.setFactory(StorageCommand.STORAGE, StorageCommand::new);
+        Command.setFactory(StorageCommand.CONTACTS, StorageCommand::new);
+        Command.setFactory(StorageCommand.PRIVATE_KEY, StorageCommand::new);
     }
 }

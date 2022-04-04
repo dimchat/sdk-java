@@ -1,4 +1,6 @@
 
+import chat.dim.mkm.Group;
+import chat.dim.mkm.User;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -7,8 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import chat.dim.Group;
-import chat.dim.User;
 import chat.dim.crypto.SignKey;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.Document;
@@ -19,8 +19,8 @@ import chat.dim.protocol.Visa;
 
 public class EntityTest {
 
-    private static Facebook facebook = Facebook.getInstance();
-    private static String satoshi = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa";
+    private static final Facebook facebook = Facebook.getInstance();
+    private static final String satoshi = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa";
 
     private String getAddressInfo(Address address) {
         Map<String, Object> info = new HashMap<>();

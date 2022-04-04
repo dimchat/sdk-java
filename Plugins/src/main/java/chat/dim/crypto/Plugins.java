@@ -39,7 +39,7 @@ public interface Plugins {
      */
     static void registerSymmetricKeyFactories() {
 
-        SymmetricKey.register(SymmetricKey.AES, new SymmetricKey.Factory() {
+        SymmetricKey.setFactory(SymmetricKey.AES, new SymmetricKey.Factory() {
 
             @Override
             public SymmetricKey generateSymmetricKey() {
@@ -58,7 +58,7 @@ public interface Plugins {
                 }
             }
         });
-        SymmetricKey.register(PlainKey.PLAIN, new SymmetricKey.Factory() {
+        SymmetricKey.setFactory(PlainKey.PLAIN, new SymmetricKey.Factory() {
 
             @Override
             public SymmetricKey generateSymmetricKey() {
@@ -80,7 +80,7 @@ public interface Plugins {
         /*
          *  Private Key Parsers
          */
-        PrivateKey.register(AsymmetricKey.RSA, new PrivateKey.Factory() {
+        PrivateKey.setFactory(AsymmetricKey.RSA, new PrivateKey.Factory() {
 
             @Override
             public PrivateKey generatePrivateKey() {
@@ -99,7 +99,7 @@ public interface Plugins {
                 }
             }
         });
-        PrivateKey.register(AsymmetricKey.ECC, new PrivateKey.Factory() {
+        PrivateKey.setFactory(AsymmetricKey.ECC, new PrivateKey.Factory() {
 
             @Override
             public PrivateKey generatePrivateKey() {
@@ -122,7 +122,7 @@ public interface Plugins {
         /*
          *  Public Key Parsers
          */
-        PublicKey.register(AsymmetricKey.RSA, new PublicKey.Factory() {
+        PublicKey.setFactory(AsymmetricKey.RSA, new PublicKey.Factory() {
 
             @Override
             public PublicKey parsePublicKey(Map<String, Object> key) {
@@ -134,7 +134,7 @@ public interface Plugins {
                 }
             }
         });
-        PublicKey.register(AsymmetricKey.ECC, new PublicKey.Factory() {
+        PublicKey.setFactory(AsymmetricKey.ECC, new PublicKey.Factory() {
             @Override
             public PublicKey parsePublicKey(Map<String, Object> key) {
                 try {
