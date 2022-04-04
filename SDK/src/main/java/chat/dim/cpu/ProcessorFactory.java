@@ -36,11 +36,6 @@ import java.util.Map;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
-import chat.dim.cpu.group.ExpelCommandProcessor;
-import chat.dim.cpu.group.InviteCommandProcessor;
-import chat.dim.cpu.group.QueryCommandProcessor;
-import chat.dim.cpu.group.QuitCommandProcessor;
-import chat.dim.cpu.group.ResetCommandProcessor;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
@@ -54,10 +49,17 @@ public class ProcessorFactory {
     private final WeakReference<Messenger> messengerRef;
     private final WeakReference<Facebook> facebookRef;
 
+    private final ProcessorCreator creator;
+
     public ProcessorFactory(Facebook facebook, Messenger messenger) {
         super();
         messengerRef = new WeakReference<>(messenger);
         facebookRef = new WeakReference<>(facebook);
+        creator = createCreator();
+    }
+
+    protected ProcessorCreator createCreator() {
+        return new ProcessorCreator(getFacebook(), getMessenger());
     }
 
     protected Messenger getMessenger() {
@@ -75,14 +77,29 @@ public class ProcessorFactory {
      * @return ContentProcessor
      */
     public ContentProcessor getProcessor(Content content) {
+        ContentProcessor cpu;
         int type = content.getType();
         if (content instanceof Command) {
-            Command cmd = (Command) content;
-            String name = cmd.getCommand();
-            return getProcessor(type, name);
-        } else {
-            return getProcessor(type);
+            String name = ((Command) content).getCommand();
+            // command processor
+            cpu = getProcessor(type, name);
+            if (cpu != null) {
+                return cpu;
+            } else if (content instanceof GroupCommand) {
+                // group command processor
+                cpu = getProcessor(type, "group");
+                if (cpu != null) {
+                    return cpu;
+                }
+            }
         }
+        // content processor
+        cpu = getProcessor(type);
+        if (cpu == null) {
+            // default content processor
+            cpu = getProcessor(0);
+        }
+        return cpu;
     }
 
     public ContentProcessor getProcessor(ContentType type) {
@@ -91,7 +108,7 @@ public class ProcessorFactory {
     public ContentProcessor getProcessor(int type) {
         ContentProcessor cpu = contentProcessors.get(type);
         if (cpu == null) {
-            cpu = createProcessor(type);
+            cpu = creator.createProcessor(type);
             if (cpu != null) {
                 contentProcessors.put(type, cpu);
             }
@@ -105,74 +122,11 @@ public class ProcessorFactory {
     public CommandProcessor getProcessor(int type, String command) {
         CommandProcessor cpu = commandProcessors.get(command);
         if (cpu == null) {
-            cpu = createProcessor(type, command);
+            cpu = creator.createProcessor(type, command);
             if (cpu != null) {
                 commandProcessors.put(command, cpu);
             }
         }
         return cpu;
-    }
-
-    /**
-     *  Create content processor with type
-     *
-     * @param type - content type
-     * @return ContentProcessor
-     */
-    protected ContentProcessor createProcessor(int type) {
-        // core contents
-        if (ContentType.FORWARD.equals(type)) {
-            return new ForwardContentProcessor(getFacebook(), getMessenger());
-        }
-        // unknown
-        return null;
-    }
-
-    /**
-     *  Create command processor with name
-     *
-     * @param command - command name
-     * @return CommandProcessor
-     */
-    protected CommandProcessor createProcessor(int type, String command) {
-        // meta
-        if (Command.META.equals(command)) {
-            return new MetaCommandProcessor(getFacebook(), getMessenger());
-        }
-        // document
-        if (Command.DOCUMENT.equals(command)) {
-            return new DocumentCommandProcessor(getFacebook(), getMessenger());
-        } else if ("profile".equals(command) || "visa".equals(command) || "bulletin".equals(command)) {
-            CommandProcessor cpu = commandProcessors.get(Command.DOCUMENT);
-            if (cpu == null) {
-                cpu = new DocumentCommandProcessor(getFacebook(), getMessenger());
-                commandProcessors.put(Command.DOCUMENT, cpu);
-            }
-            return cpu;
-        }
-        // group
-        switch (command) {
-            case "group":
-                return new GroupCommandProcessor(getFacebook(), getMessenger());
-            case GroupCommand.INVITE:
-                return new InviteCommandProcessor(getFacebook(), getMessenger());
-            case GroupCommand.EXPEL:
-                return new ExpelCommandProcessor(getFacebook(), getMessenger());
-            case GroupCommand.QUIT:
-                return new QuitCommandProcessor(getFacebook(), getMessenger());
-            case GroupCommand.QUERY:
-                return new QueryCommandProcessor(getFacebook(), getMessenger());
-            case GroupCommand.RESET:
-                return new ResetCommandProcessor(getFacebook(), getMessenger());
-        }
-        // others
-        if (ContentType.COMMAND.equals(type)) {
-            return new CommandProcessor(getFacebook(), getMessenger());
-        }
-        if (ContentType.HISTORY.equals(type)) {
-            return new HistoryCommandProcessor(getFacebook(), getMessenger());
-        }
-        // unknown
-        return null;
     }
 }
