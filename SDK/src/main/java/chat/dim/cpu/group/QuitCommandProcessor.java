@@ -35,8 +35,8 @@ import java.util.List;
 import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.cpu.GroupCommandProcessor;
-import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
+import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.group.QuitCommand;
@@ -57,8 +57,9 @@ public class QuitCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public List<Content> execute(Command cmd, ReliableMessage rMsg) {
-        assert cmd instanceof QuitCommand : "quit command error: " + cmd;
+    public List<Content> process(Content content, ReliableMessage rMsg) {
+        assert content instanceof QuitCommand : "quit command error: " + content;
+        GroupCommand cmd = (GroupCommand) content;
         Facebook facebook = getFacebook();
 
         // 0. check group

@@ -35,7 +35,6 @@ import java.util.List;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
-import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.ID;
@@ -52,8 +51,9 @@ public class InviteCommandProcessor extends ResetCommandProcessor {
     }
 
     @Override
-    public List<Content> execute(Command cmd, ReliableMessage rMsg) {
-        assert cmd instanceof InviteCommand : "invite command error: " + cmd;
+    public List<Content> process(Content content, ReliableMessage rMsg) {
+        assert content instanceof InviteCommand : "invite command error: " + content;
+        GroupCommand cmd = (GroupCommand) content;
         Facebook facebook = getFacebook();
 
         // 0. check group
@@ -63,7 +63,7 @@ public class InviteCommandProcessor extends ResetCommandProcessor {
         if (owner == null || members == null || members.size() == 0) {
             // NOTICE: group membership lost?
             //         reset group members
-            return temporarySave((GroupCommand) cmd, rMsg.getSender());
+            return temporarySave(cmd, rMsg.getSender());
         }
 
         // 1. check permission
@@ -77,7 +77,7 @@ public class InviteCommandProcessor extends ResetCommandProcessor {
         }
 
         // 2. inviting members
-        List<ID> inviteList = getMembers((GroupCommand) cmd);
+        List<ID> inviteList = getMembers(cmd);
         if (inviteList.size() == 0) {
             return respondText(STR_INVITE_CMD_ERROR, group);
         }
@@ -85,7 +85,7 @@ public class InviteCommandProcessor extends ResetCommandProcessor {
         if (sender.equals(owner) && inviteList.contains(owner)) {
             // NOTICE: owner invites owner?
             //         it means this should be a 'reset' command
-            return temporarySave((GroupCommand) cmd, rMsg.getSender());
+            return temporarySave(cmd, rMsg.getSender());
         }
         // 2.2. build invited-list
         List<String> addedList = new ArrayList<>();

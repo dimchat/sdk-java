@@ -34,8 +34,8 @@ import java.util.List;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
-import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
+import chat.dim.protocol.HistoryCommand;
 import chat.dim.protocol.ReliableMessage;
 
 public class HistoryCommandProcessor extends CommandProcessor {
@@ -47,7 +47,9 @@ public class HistoryCommandProcessor extends CommandProcessor {
     }
 
     @Override
-    public List<Content> execute(Command cmd, ReliableMessage rMsg) {
+    public List<Content> process(Content content, ReliableMessage rMsg) {
+        assert content instanceof HistoryCommand : "history command error: " + content;
+        HistoryCommand cmd = (HistoryCommand) content;
         String text = String.format(FMT_HIS_CMD_NOT_SUPPORT, cmd.getCommand());
         return respondText(text, cmd.getGroup());
     }

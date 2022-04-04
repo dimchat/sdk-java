@@ -36,7 +36,6 @@ import java.util.List;
 import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.cpu.GroupCommandProcessor;
-import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.ID;
@@ -54,8 +53,9 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
     }
 
     @Override
-    public List<Content> execute(Command cmd, ReliableMessage rMsg) {
-        assert cmd instanceof ExpelCommand : "expel command error: " + cmd;
+    public List<Content> process(Content content, ReliableMessage rMsg) {
+        assert content instanceof ExpelCommand : "expel command error: " + content;
+        GroupCommand cmd = (GroupCommand) content;
         Facebook facebook = getFacebook();
 
         // 0. check group
@@ -77,7 +77,7 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
         }
 
         // 2. expelling members
-        List<ID> expelList = getMembers((GroupCommand) cmd);
+        List<ID> expelList = getMembers(cmd);
         if (expelList.size() == 0) {
             return respondText(STR_EXPEL_CMD_ERROR, group);
         }

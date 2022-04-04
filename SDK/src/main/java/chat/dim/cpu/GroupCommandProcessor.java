@@ -35,7 +35,6 @@ import java.util.List;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
-import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.ID;
@@ -65,7 +64,9 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
     }
 
     @Override
-    public List<Content> execute(Command cmd, ReliableMessage rMsg) {
+    public List<Content> process(Content content, ReliableMessage rMsg) {
+        assert content instanceof GroupCommand : "group command error: " + content;
+        GroupCommand cmd = (GroupCommand) content;
         String text = String.format(FMT_GRP_CMD_NOT_SUPPORT, cmd.getCommand());
         return respondText(text, cmd.getGroup());
     }

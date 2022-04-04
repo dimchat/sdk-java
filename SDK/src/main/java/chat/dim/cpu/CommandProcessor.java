@@ -53,17 +53,7 @@ public class CommandProcessor extends ContentProcessor {
     @Override
     public List<Content> process(Content content, ReliableMessage rMsg) {
         assert content instanceof Command : "command error: " + content;
-        return execute((Command) content, rMsg);
-    }
-
-    /**
-     *  Execute command
-     *
-     * @param cmd  - command received
-     * @param rMsg - reliable message
-     * @return {Content} response to sender
-     */
-    public List<Content> execute(Command cmd, ReliableMessage rMsg) {
+        Command cmd = (Command) content;
         String text = String.format(FMT_CMD_NOT_SUPPORT, cmd.getCommand());
         return respondText(text, cmd.getGroup());
     }

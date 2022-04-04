@@ -34,7 +34,6 @@ import java.util.List;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
-import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.DocumentCommand;
@@ -85,12 +84,12 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
     }
 
     @Override
-    public List<Content> execute(Command cmd, ReliableMessage rMsg) {
-        assert cmd instanceof DocumentCommand : "document command error: " + cmd;
-        DocumentCommand dCmd = (DocumentCommand) cmd;
-        ID identifier = dCmd.getIdentifier();
+    public List<Content> process(Content content, ReliableMessage rMsg) {
+        assert content instanceof DocumentCommand : "document command error: " + content;
+        DocumentCommand cmd = (DocumentCommand) content;
+        ID identifier = cmd.getIdentifier();
         if (identifier != null) {
-            Document doc = dCmd.getDocument();
+            Document doc = cmd.getDocument();
             if (doc == null) {
                 // query entity document for ID
                 String type = (String) cmd.get("doc_type");
@@ -100,7 +99,7 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
                 return getDocument(identifier, type);
             } else if (identifier.equals(doc.getIdentifier())) {
                 // received a new document for ID
-                return putDocument(identifier, dCmd.getMeta(), doc);
+                return putDocument(identifier, cmd.getMeta(), doc);
             }
         }
         // error
