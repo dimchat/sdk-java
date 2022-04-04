@@ -40,7 +40,7 @@ import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 
-public class ForwardContentProcessor extends ContentProcessor {
+public class ForwardContentProcessor extends BaseContentProcessor {
 
     public ForwardContentProcessor(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);

@@ -44,7 +44,7 @@ import chat.dim.protocol.GroupCommand;
 public class ProcessorFactory extends TwinsHelper {
 
     protected final Map<Integer, ContentProcessor> contentProcessors = new HashMap<>();
-    protected final Map<String, CommandProcessor> commandProcessors = new HashMap<>();
+    protected final Map<String, ContentProcessor> commandProcessors = new HashMap<>();
 
     private ProcessorCreator creator;
 
@@ -106,11 +106,11 @@ public class ProcessorFactory extends TwinsHelper {
 
     //-------- Command Processor
 
-    public CommandProcessor getProcessor(ContentType type, String command) {
+    public ContentProcessor getProcessor(ContentType type, String command) {
         return getProcessor(type.value, command);
     }
-    public CommandProcessor getProcessor(int type, String command) {
-        CommandProcessor cpu = commandProcessors.get(command);
+    public ContentProcessor getProcessor(int type, String command) {
+        ContentProcessor cpu = commandProcessors.get(command);
         if (cpu == null) {
             cpu = creator.createProcessor(type, command);
             if (cpu != null) {

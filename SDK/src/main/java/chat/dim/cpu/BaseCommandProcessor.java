@@ -34,23 +34,27 @@ import java.util.List;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
+import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
-import chat.dim.protocol.HistoryCommand;
 import chat.dim.protocol.ReliableMessage;
 
-public class HistoryCommandProcessor extends BaseCommandProcessor {
+/**
+ *  Command Processing Unit
+ *  ~~~~~~~~~~~~~~~~~~~~~~~
+ */
+public class BaseCommandProcessor extends BaseContentProcessor {
 
-    public static String FMT_HIS_CMD_NOT_SUPPORT = "History command (name: %s) not support yet!";
+    public static String FMT_CMD_NOT_SUPPORT = "Command (name: %s) not support yet!";
 
-    public HistoryCommandProcessor(Facebook facebook, Messenger messenger) {
+    public BaseCommandProcessor(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
     }
 
     @Override
     public List<Content> process(Content content, ReliableMessage rMsg) {
-        assert content instanceof HistoryCommand : "history command error: " + content;
-        HistoryCommand cmd = (HistoryCommand) content;
-        String text = String.format(FMT_HIS_CMD_NOT_SUPPORT, cmd.getCommand());
+        assert content instanceof Command : "command error: " + content;
+        Command cmd = (Command) content;
+        String text = String.format(FMT_CMD_NOT_SUPPORT, cmd.getCommand());
         return respondText(text, cmd.getGroup());
     }
 }

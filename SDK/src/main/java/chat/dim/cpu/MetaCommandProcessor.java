@@ -40,7 +40,7 @@ import chat.dim.protocol.Meta;
 import chat.dim.protocol.MetaCommand;
 import chat.dim.protocol.ReliableMessage;
 
-public class MetaCommandProcessor extends CommandProcessor {
+public class MetaCommandProcessor extends BaseCommandProcessor {
 
     public static String STR_META_CMD_ERROR = "Meta command error.";
     public static String FMT_META_NOT_FOUND = "Sorry, meta not found for ID: %s";

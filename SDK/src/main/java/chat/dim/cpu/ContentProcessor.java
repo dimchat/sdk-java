@@ -30,42 +30,12 @@
  */
 package chat.dim.cpu;
 
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.List;
 
-import chat.dim.Facebook;
-import chat.dim.Messenger;
 import chat.dim.protocol.Content;
-import chat.dim.protocol.ID;
-import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.ReliableMessage;
-import chat.dim.protocol.TextContent;
 
-/**
- *  Content Processing Unit
- *  ~~~~~~~~~~~~~~~~~~~~~~~
- */
-public class ContentProcessor {
-
-    public static String FMT_CONTENT_NOT_SUPPORT = "Content (type: %d) not support yet!";
-
-    private final WeakReference<Messenger> messengerRef;
-    private final WeakReference<Facebook> facebookRef;
-
-    public ContentProcessor(Facebook facebook, Messenger messenger) {
-        super();
-        messengerRef = new WeakReference<>(messenger);
-        facebookRef = new WeakReference<>(facebook);
-    }
-
-    protected Messenger getMessenger() {
-        return messengerRef.get();
-    }
-
-    protected Facebook getFacebook() {
-        return facebookRef.get();
-    }
+public interface ContentProcessor {
 
     /**
      *  Process message content
@@ -74,35 +44,5 @@ public class ContentProcessor {
      * @param rMsg    - reliable message
      * @return {Content} response to sender
      */
-    public List<Content> process(Content content, ReliableMessage rMsg) {
-        String text = String.format(FMT_CONTENT_NOT_SUPPORT, content.getType());
-        return respondText(text, content.getGroup());
-    }
-
-    //
-    //  Convenient responding
-    //
-    protected List<Content> respondText(String text, ID group) {
-        TextContent res = new TextContent(text);
-        if (group != null) {
-            res.setGroup(group);
-        }
-        List<Content> responses = new ArrayList<>();
-        responses.add(res);
-        return responses;
-    }
-    protected List<Content> respondReceipt(String text) {
-        ReceiptCommand res = new ReceiptCommand(text);
-        List<Content> responses = new ArrayList<>();
-        responses.add(res);
-        return responses;
-    }
-    protected List<Content> respondContent(Content res) {
-        if (res == null) {
-            return null;
-        }
-        List<Content> responses = new ArrayList<>();
-        responses.add(res);
-        return responses;
-    }
+    List<Content> process(Content content, ReliableMessage rMsg);
 }

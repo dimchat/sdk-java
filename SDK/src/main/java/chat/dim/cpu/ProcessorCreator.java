@@ -55,9 +55,13 @@ public class ProcessorCreator extends TwinsHelper {
      * @return ContentProcessor
      */
     public ContentProcessor createProcessor(int type) {
-        // core contents
+        // forward
         if (ContentType.FORWARD.equals(type)) {
             return new ForwardContentProcessor(getFacebook(), getMessenger());
+        }
+        // default
+        if (0 == type) {
+            return new BaseContentProcessor(getFacebook(), getMessenger());
         }
         // unknown
         return null;
@@ -69,7 +73,7 @@ public class ProcessorCreator extends TwinsHelper {
      * @param command - command name
      * @return CommandProcessor
      */
-    public CommandProcessor createProcessor(int type, String command) {
+    public ContentProcessor createProcessor(int type, String command) {
         // meta
         if (Command.META.equals(command)) {
             return new MetaCommandProcessor(getFacebook(), getMessenger());
@@ -95,7 +99,7 @@ public class ProcessorCreator extends TwinsHelper {
         }
         // others
         if (ContentType.COMMAND.equals(type)) {
-            return new CommandProcessor(getFacebook(), getMessenger());
+            return new BaseCommandProcessor(getFacebook(), getMessenger());
         }
         if (ContentType.HISTORY.equals(type)) {
             return new HistoryCommandProcessor(getFacebook(), getMessenger());
