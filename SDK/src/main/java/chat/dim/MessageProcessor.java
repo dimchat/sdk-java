@@ -35,6 +35,7 @@ import java.util.List;
 
 import chat.dim.core.Factories;
 import chat.dim.cpu.ContentProcessor;
+import chat.dim.cpu.ProcessorCreator;
 import chat.dim.cpu.ProcessorFactory;
 import chat.dim.protocol.BlockCommand;
 import chat.dim.protocol.Command;
@@ -61,7 +62,12 @@ public class MessageProcessor extends TwinsHelper implements Processor {
     }
 
     protected ProcessorFactory createProcessorFactory() {
-        return new ProcessorFactory(getFacebook(), getMessenger());
+        ProcessorFactory factory = new ProcessorFactory(getFacebook(), getMessenger());
+        factory.setCreator(createProcessorCreator());
+        return factory;
+    }
+    protected ProcessorCreator createProcessorCreator() {
+        return new ProcessorCreator(getFacebook(), getMessenger());
     }
 
     public ContentProcessor getProcessor(Content content) {

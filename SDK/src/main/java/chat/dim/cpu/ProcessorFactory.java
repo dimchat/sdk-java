@@ -46,15 +46,14 @@ public class ProcessorFactory extends TwinsHelper {
     protected final Map<Integer, ContentProcessor> contentProcessors = new HashMap<>();
     protected final Map<String, CommandProcessor> commandProcessors = new HashMap<>();
 
-    private final ProcessorCreator creator;
+    private ProcessorCreator creator;
 
     public ProcessorFactory(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
-        creator = createProcessorCreator();
     }
 
-    protected ProcessorCreator createProcessorCreator() {
-        return new ProcessorCreator(getFacebook(), getMessenger());
+    public void setCreator(ProcessorCreator cpc) {
+        creator = cpc;
     }
 
     /**
