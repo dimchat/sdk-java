@@ -30,7 +30,6 @@
  */
 package chat.dim;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,29 +51,17 @@ import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 import chat.dim.protocol.StorageCommand;
 
-public class MessageProcessor implements Processor {
-
-    private final WeakReference<Messenger> messengerRef;
-    private final WeakReference<Facebook> facebookRef;
+public class MessageProcessor extends TwinsHelper implements Processor {
 
     private final ProcessorFactory factory;
 
     public MessageProcessor(Facebook facebook, Messenger messenger) {
-        super();
-        messengerRef = new WeakReference<>(messenger);
-        facebookRef = new WeakReference<>(facebook);
+        super(facebook, messenger);
         factory = createProcessorFactory();
     }
 
     protected ProcessorFactory createProcessorFactory() {
         return new ProcessorFactory(getFacebook(), getMessenger());
-    }
-
-    protected Messenger getMessenger() {
-        return messengerRef.get();
-    }
-    protected Facebook getFacebook() {
-        return facebookRef.get();
     }
 
     public ContentProcessor getProcessor(Content content) {

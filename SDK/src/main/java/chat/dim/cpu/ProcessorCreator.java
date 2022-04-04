@@ -30,10 +30,9 @@
  */
 package chat.dim.cpu;
 
-import java.lang.ref.WeakReference;
-
 import chat.dim.Facebook;
 import chat.dim.Messenger;
+import chat.dim.TwinsHelper;
 import chat.dim.cpu.group.ExpelCommandProcessor;
 import chat.dim.cpu.group.InviteCommandProcessor;
 import chat.dim.cpu.group.QueryCommandProcessor;
@@ -43,23 +42,10 @@ import chat.dim.protocol.Command;
 import chat.dim.protocol.ContentType;
 import chat.dim.protocol.GroupCommand;
 
-public class ProcessorCreator {
-
-    private final WeakReference<Messenger> messengerRef;
-    private final WeakReference<Facebook> facebookRef;
+public class ProcessorCreator extends TwinsHelper {
 
     public ProcessorCreator(Facebook facebook, Messenger messenger) {
-        super();
-        messengerRef = new WeakReference<>(messenger);
-        facebookRef = new WeakReference<>(facebook);
-    }
-
-    protected Messenger getMessenger() {
-        return messengerRef.get();
-    }
-
-    protected Facebook getFacebook() {
-        return facebookRef.get();
+        super(facebook, messenger);
     }
 
     /**

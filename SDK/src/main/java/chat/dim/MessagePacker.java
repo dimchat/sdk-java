@@ -30,7 +30,6 @@
  */
 package chat.dim;
 
-import java.lang.ref.WeakReference;
 import java.util.List;
 import java.util.Map;
 
@@ -45,22 +44,10 @@ import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 import chat.dim.protocol.Visa;
 
-public class MessagePacker implements Packer {
-
-    private final WeakReference<Messenger> messengerRef;
-    private final WeakReference<Facebook> facebookRef;
+public class MessagePacker extends TwinsHelper implements Packer {
 
     public MessagePacker(Facebook facebook, Messenger messenger) {
-        super();
-        messengerRef = new WeakReference<>(messenger);
-        facebookRef = new WeakReference<>(facebook);
-    }
-
-    protected Messenger getMessenger() {
-        return messengerRef.get();
-    }
-    protected Facebook getFacebook() {
-        return facebookRef.get();
+        super(facebook, messenger);
     }
 
     @Override

@@ -30,44 +30,31 @@
  */
 package chat.dim.cpu;
 
-import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
+import chat.dim.TwinsHelper;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
 import chat.dim.protocol.GroupCommand;
 
-public class ProcessorFactory {
+public class ProcessorFactory extends TwinsHelper {
 
     protected final Map<Integer, ContentProcessor> contentProcessors = new HashMap<>();
     protected final Map<String, CommandProcessor> commandProcessors = new HashMap<>();
 
-    private final WeakReference<Messenger> messengerRef;
-    private final WeakReference<Facebook> facebookRef;
-
     private final ProcessorCreator creator;
 
     public ProcessorFactory(Facebook facebook, Messenger messenger) {
-        super();
-        messengerRef = new WeakReference<>(messenger);
-        facebookRef = new WeakReference<>(facebook);
-        creator = createCreator();
+        super(facebook, messenger);
+        creator = createProcessorCreator();
     }
 
-    protected ProcessorCreator createCreator() {
+    protected ProcessorCreator createProcessorCreator() {
         return new ProcessorCreator(getFacebook(), getMessenger());
-    }
-
-    protected Messenger getMessenger() {
-        return messengerRef.get();
-    }
-
-    protected Facebook getFacebook() {
-        return facebookRef.get();
     }
 
     /**
@@ -102,6 +89,8 @@ public class ProcessorFactory {
         return cpu;
     }
 
+    //-------- Content Processor
+
     public ContentProcessor getProcessor(ContentType type) {
         return getProcessor(type.value);
     }
@@ -115,6 +104,8 @@ public class ProcessorFactory {
         }
         return cpu;
     }
+
+    //-------- Command Processor
 
     public CommandProcessor getProcessor(ContentType type, String command) {
         return getProcessor(type.value, command);
