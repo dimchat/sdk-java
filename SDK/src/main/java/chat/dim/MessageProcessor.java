@@ -35,8 +35,8 @@ import java.util.List;
 
 import chat.dim.core.Factories;
 import chat.dim.cpu.ContentProcessor;
-import chat.dim.cpu.ProcessorCreator;
-import chat.dim.cpu.ProcessorFactory;
+import chat.dim.cpu.ContentProcessorCreator;
+import chat.dim.cpu.ContentProcessorFactory;
 import chat.dim.protocol.BlockCommand;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
@@ -54,20 +54,19 @@ import chat.dim.protocol.StorageCommand;
 
 public class MessageProcessor extends TwinsHelper implements Processor {
 
-    private final ProcessorFactory factory;
+    private final ContentProcessor.Factory factory;
 
     public MessageProcessor(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
-        factory = createProcessorFactory();
+        factory = createFactory();
     }
 
-    protected ProcessorFactory createProcessorFactory() {
-        ProcessorFactory factory = new ProcessorFactory(getFacebook(), getMessenger());
-        factory.setCreator(createProcessorCreator());
-        return factory;
+    // override for creating customized CPUs
+    protected ContentProcessor.Creator createCreator() {
+        return new ContentProcessorCreator(getFacebook(), getMessenger());
     }
-    protected ProcessorCreator createProcessorCreator() {
-        return new ProcessorCreator(getFacebook(), getMessenger());
+    protected ContentProcessor.Factory createFactory() {
+        return new ContentProcessorFactory(getFacebook(), getMessenger(), createCreator());
     }
 
     public ContentProcessor getProcessor(Content content) {

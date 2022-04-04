@@ -33,8 +33,13 @@ package chat.dim.cpu;
 import java.util.List;
 
 import chat.dim.protocol.Content;
+import chat.dim.protocol.ContentType;
 import chat.dim.protocol.ReliableMessage;
 
+/**
+ *  CPU: Content Processing Unit
+ *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ */
 public interface ContentProcessor {
 
     /**
@@ -45,4 +50,50 @@ public interface ContentProcessor {
      * @return {Content} response to sender
      */
     List<Content> process(Content content, ReliableMessage rMsg);
+
+    /**
+     *  CPU Creator
+     *  ~~~~~~~~~~~
+     */
+    interface Creator {
+
+        /**
+         *  Create content processor with type
+         *
+         * @param type - content type
+         * @return ContentProcessor
+         */
+        ContentProcessor createProcessor(int type);
+
+        /**
+         *  Create command processor with name
+         *
+         * @param command - command name
+         * @return CommandProcessor
+         */
+        ContentProcessor createProcessor(int type, String command);
+    }
+
+    /**
+     *  CPU Factory
+     *  ~~~~~~~~~~~
+     */
+    interface Factory {
+
+        /**
+         *  Get content/command processor
+         *
+         * @param content - Content/Command
+         * @return ContentProcessor
+         */
+        ContentProcessor getProcessor(Content content);
+
+        //-------- Content Processor
+        ContentProcessor getProcessor(ContentType type);
+        ContentProcessor getProcessor(int type);
+
+        //-------- Command Processor
+        ContentProcessor getProcessor(ContentType type, String command);
+        ContentProcessor getProcessor(int type, String command);
+    }
 }

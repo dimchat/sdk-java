@@ -42,10 +42,6 @@ import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.TextContent;
 
-/**
- *  Content Processing Unit
- *  ~~~~~~~~~~~~~~~~~~~~~~~
- */
 public class BaseContentProcessor implements ContentProcessor {
 
     public static String FMT_CONTENT_NOT_SUPPORT = "Content (type: %d) not support yet!";

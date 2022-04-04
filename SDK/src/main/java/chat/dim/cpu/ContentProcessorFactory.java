@@ -41,27 +41,19 @@ import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
 import chat.dim.protocol.GroupCommand;
 
-public class ProcessorFactory extends TwinsHelper {
+public class ContentProcessorFactory extends TwinsHelper implements ContentProcessor.Factory {
 
     protected final Map<Integer, ContentProcessor> contentProcessors = new HashMap<>();
     protected final Map<String, ContentProcessor> commandProcessors = new HashMap<>();
 
-    private ProcessorCreator creator;
+    private final ContentProcessor.Creator creator;
 
-    public ProcessorFactory(Facebook facebook, Messenger messenger) {
+    public ContentProcessorFactory(Facebook facebook, Messenger messenger, ContentProcessor.Creator cpc) {
         super(facebook, messenger);
-    }
-
-    public void setCreator(ProcessorCreator cpc) {
         creator = cpc;
     }
 
-    /**
-     *  Get content/command processor
-     *
-     * @param content - Content/Command
-     * @return ContentProcessor
-     */
+    @Override
     public ContentProcessor getProcessor(Content content) {
         ContentProcessor cpu;
         int type = content.getType();
@@ -88,11 +80,11 @@ public class ProcessorFactory extends TwinsHelper {
         return cpu;
     }
 
-    //-------- Content Processor
-
+    @Override
     public ContentProcessor getProcessor(ContentType type) {
         return getProcessor(type.value);
     }
+    @Override
     public ContentProcessor getProcessor(int type) {
         ContentProcessor cpu = contentProcessors.get(type);
         if (cpu == null) {
@@ -104,11 +96,11 @@ public class ProcessorFactory extends TwinsHelper {
         return cpu;
     }
 
-    //-------- Command Processor
-
+    @Override
     public ContentProcessor getProcessor(ContentType type, String command) {
         return getProcessor(type.value, command);
     }
+    @Override
     public ContentProcessor getProcessor(int type, String command) {
         ContentProcessor cpu = commandProcessors.get(command);
         if (cpu == null) {

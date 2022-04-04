@@ -42,24 +42,25 @@ import chat.dim.protocol.Command;
 import chat.dim.protocol.ContentType;
 import chat.dim.protocol.GroupCommand;
 
-public class ProcessorCreator extends TwinsHelper {
+public class ContentProcessorCreator extends TwinsHelper implements ContentProcessor.Creator {
 
-    public ProcessorCreator(Facebook facebook, Messenger messenger) {
+    public ContentProcessorCreator(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
     }
 
-    /**
-     *  Create content processor with type
-     *
-     * @param type - content type
-     * @return ContentProcessor
-     */
+    @Override
     public ContentProcessor createProcessor(int type) {
-        // forward
+        // forward content
         if (ContentType.FORWARD.equals(type)) {
             return new ForwardContentProcessor(getFacebook(), getMessenger());
         }
-        // default
+        // default commands
+        if (ContentType.COMMAND.equals(type)) {
+            return new BaseCommandProcessor(getFacebook(), getMessenger());
+        } else if (ContentType.HISTORY.equals(type)) {
+            return new HistoryCommandProcessor(getFacebook(), getMessenger());
+        }
+        // default contents
         if (0 == type) {
             return new BaseContentProcessor(getFacebook(), getMessenger());
         }
@@ -67,23 +68,16 @@ public class ProcessorCreator extends TwinsHelper {
         return null;
     }
 
-    /**
-     *  Create command processor with name
-     *
-     * @param command - command name
-     * @return CommandProcessor
-     */
+    @Override
     public ContentProcessor createProcessor(int type, String command) {
-        // meta
-        if (Command.META.equals(command)) {
-            return new MetaCommandProcessor(getFacebook(), getMessenger());
-        }
-        // document
-        if (Command.DOCUMENT.equals(command)) {
-            return new DocumentCommandProcessor(getFacebook(), getMessenger());
-        }
-        // group
         switch (command) {
+            // meta command
+            case Command.META:
+                return new MetaCommandProcessor(getFacebook(), getMessenger());
+            // document command
+            case Command.DOCUMENT:
+                return new DocumentCommandProcessor(getFacebook(), getMessenger());
+            // group commands
             case "group":
                 return new GroupCommandProcessor(getFacebook(), getMessenger());
             case GroupCommand.INVITE:
@@ -96,15 +90,9 @@ public class ProcessorCreator extends TwinsHelper {
                 return new QueryCommandProcessor(getFacebook(), getMessenger());
             case GroupCommand.RESET:
                 return new ResetCommandProcessor(getFacebook(), getMessenger());
+            // unknown
+            default:
+                return null;
         }
-        // others
-        if (ContentType.COMMAND.equals(type)) {
-            return new BaseCommandProcessor(getFacebook(), getMessenger());
-        }
-        if (ContentType.HISTORY.equals(type)) {
-            return new HistoryCommandProcessor(getFacebook(), getMessenger());
-        }
-        // unknown
-        return null;
     }
 }
