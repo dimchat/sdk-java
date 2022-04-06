@@ -30,37 +30,24 @@
  */
 package chat.dim.cpu;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
+import chat.dim.TwinsHelper;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.TextContent;
 
-public class BaseContentProcessor implements ContentProcessor {
+public class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
 
     public static String FMT_CONTENT_NOT_SUPPORT = "Content (type: %d) not support yet!";
 
-    private final WeakReference<Messenger> messengerRef;
-    private final WeakReference<Facebook> facebookRef;
-
     public BaseContentProcessor(Facebook facebook, Messenger messenger) {
-        super();
-        messengerRef = new WeakReference<>(messenger);
-        facebookRef = new WeakReference<>(facebook);
-    }
-
-    protected Messenger getMessenger() {
-        return messengerRef.get();
-    }
-
-    protected Facebook getFacebook() {
-        return facebookRef.get();
+        super(facebook, messenger);
     }
 
     @Override
