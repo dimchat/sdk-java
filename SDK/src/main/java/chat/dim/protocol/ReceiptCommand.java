@@ -86,7 +86,6 @@ public class ReceiptCommand extends BaseCommand {
         return (String) get("message");
     }
 
-    @SuppressWarnings("unchecked")
     public Envelope getEnvelope() {
         if (envelope == null) {
             // envelope: { sender: "...", receiver: "...", time: 0 }
@@ -98,9 +97,7 @@ public class ReceiptCommand extends BaseCommand {
                     env = getMap();
                 }
             }
-            if (env instanceof Map) {
-                envelope = Envelope.parse((Map<String, Object>) env);
-            }
+            envelope = Envelope.parse(env);
         }
         return envelope;
     }

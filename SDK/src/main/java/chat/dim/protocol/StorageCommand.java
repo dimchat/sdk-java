@@ -204,7 +204,6 @@ public class StorageCommand extends BaseCommand {
         return decrypt(password);
     }
 
-    @SuppressWarnings("unchecked")
     private SymmetricKey decryptKey(DecryptKey privateKey) {
         byte[] data = getKey();
         if (data == null) {
@@ -215,9 +214,6 @@ public class StorageCommand extends BaseCommand {
             throw new NullPointerException("failed to decrypt key: " + Arrays.toString(data));
         }
         Object info = JSON.decode(key);
-        if (info instanceof Map) {
-            return SymmetricKey.parse((Map<String, Object>) info);
-        }
-        return null;
+        return SymmetricKey.parse(info);
     }
 }

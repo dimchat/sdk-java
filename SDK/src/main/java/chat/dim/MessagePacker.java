@@ -31,7 +31,6 @@
 package chat.dim;
 
 import java.util.List;
-import java.util.Map;
 
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.format.JSON;
@@ -176,10 +175,9 @@ public class MessagePacker extends TwinsHelper implements Packer {
     //  Data -> ReliableMessage -> SecureMessage -> InstantMessage
     //
 
-    @SuppressWarnings("unchecked")
     @Override
     public ReliableMessage deserializeMessage(byte[] data) {
-        Map<String, Object> dict = (Map<String, Object>) JSON.decode(data);
+        Object dict = JSON.decode(data);
         // TODO: translate short keys
         //       'S' -> 'sender'
         //       'R' -> 'receiver'

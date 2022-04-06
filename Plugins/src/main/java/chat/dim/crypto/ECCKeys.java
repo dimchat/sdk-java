@@ -65,7 +65,7 @@ public final class ECCKeys {
         }
     }
 
-    /*
+    /*/
     private static PrivateKey createPrivateKey(byte[] privateKey) {
         ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec(CryptoUtils.SECP256K1);
         return createPrivateKey(privateKey, ecSpec);
@@ -122,7 +122,7 @@ public final class ECCKeys {
         return new ECPoint(new BigInteger(1, x), new BigInteger(1, y));
     }
 
-    /*
+    /*/
     private static PublicKey createPublicKey(byte[] publicKey) {
         ECParameterSpec ecSpec = ECNamedCurveTable.getParameterSpec("secp256k1");
         return createPublicKey(publicKey, ecSpec);
@@ -150,7 +150,7 @@ public final class ECCKeys {
         }
     }
 
-    /*
+    /*/
     public static ECPublicKey generatePublicKey(ECPrivateKey privateKey) {
         // get curve name from private key
         String curveName;
@@ -214,7 +214,7 @@ public final class ECCKeys {
     public static KeyParser<PublicKey> publicKeyParser = new KeyParser<PublicKey>() {
         @Override
         public String encode(PublicKey key) {
-            /*
+            /*/
             byte[] data = ECCKeys.getPointData((ECPublicKey) key);
             return Hex.encode(data);
              */
@@ -237,7 +237,7 @@ public final class ECCKeys {
     public static KeyParser<PrivateKey> privateKeyParser = new KeyParser<PrivateKey>() {
         @Override
         public String encode(PrivateKey key) {
-            /*
+            /*/
             byte[] data = ECCKeys.getPointData((ECPrivateKey) key);
             return Hex.encode(data);
              */

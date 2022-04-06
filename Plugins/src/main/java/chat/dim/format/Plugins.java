@@ -59,7 +59,7 @@ public interface Plugins {
         JSON.parser = new DataParser<Object>() {
             @Override
             public byte[] encode(Object container) {
-                /*
+                /*/
                 String s = com.alibaba.fastjson.JSON.toJSONString(container);
                 return s.getBytes(Charset.forName("UTF-8"));
                 */
