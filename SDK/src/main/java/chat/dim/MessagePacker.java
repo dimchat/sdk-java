@@ -34,6 +34,7 @@ import java.util.List;
 
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.format.JSON;
+import chat.dim.format.UTF8;
 import chat.dim.mkm.Group;
 import chat.dim.mkm.User;
 import chat.dim.protocol.Command;
@@ -168,7 +169,7 @@ public class MessagePacker extends TwinsHelper implements Packer {
 
     @Override
     public byte[] serializeMessage(ReliableMessage rMsg) {
-        return JSON.encode(rMsg);
+        return UTF8.encode(JSON.encode(rMsg));
     }
 
     //
@@ -177,7 +178,7 @@ public class MessagePacker extends TwinsHelper implements Packer {
 
     @Override
     public ReliableMessage deserializeMessage(byte[] data) {
-        Object dict = JSON.decode(data);
+        Object dict = JSON.decode(UTF8.decode(data));
         // TODO: translate short keys
         //       'S' -> 'sender'
         //       'R' -> 'receiver'

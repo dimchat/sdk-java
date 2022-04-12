@@ -59,7 +59,7 @@ final class DocumentFactory implements Document.Factory {
     }
 
     @Override
-    public Document createDocument(ID identifier, byte[] data, byte[] signature) {
+    public Document createDocument(ID identifier, String data, byte[] signature) {
         String type = getType(version, identifier);
         if (Document.VISA.equals(type)) {
             return new BaseVisa(identifier, data, signature);

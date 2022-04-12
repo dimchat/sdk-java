@@ -56,18 +56,18 @@ public interface Plugins {
         };
 
         // JsON format
-        JSON.parser = new DataParser<Object>() {
+        JSON.parser = new ObjectCoder<Object>() {
             @Override
-            public byte[] encode(Object container) {
+            public String encode(Object container) {
                 /*/
                 String s = com.alibaba.fastjson.JSON.toJSONString(container);
                 return s.getBytes(Charset.forName("UTF-8"));
                 */
-                return com.alibaba.fastjson.JSON.toJSONBytes(container);
+                return com.alibaba.fastjson.JSON.toJSONString(container);
             }
 
             @Override
-            public Object decode(byte[] json) {
+            public Object decode(String json) {
                 return com.alibaba.fastjson.JSON.parse(json);
             }
         };

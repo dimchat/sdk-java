@@ -39,6 +39,7 @@ import chat.dim.crypto.SymmetricKey;
 import chat.dim.dkd.BaseCommand;
 import chat.dim.format.Base64;
 import chat.dim.format.JSON;
+import chat.dim.format.UTF8;
 
 /**
  *  Command message: {
@@ -192,7 +193,6 @@ public class StorageCommand extends BaseCommand {
         return plaintext;
     }
 
-    @SuppressWarnings("unchecked")
     public byte[] decrypt(PrivateKey privateKey) {
         if (password == null) {
             if (privateKey instanceof DecryptKey) {
@@ -213,7 +213,7 @@ public class StorageCommand extends BaseCommand {
         if (key == null) {
             throw new NullPointerException("failed to decrypt key: " + Arrays.toString(data));
         }
-        Object info = JSON.decode(key);
+        Object info = JSON.decode(UTF8.decode(key));
         return SymmetricKey.parse(info);
     }
 }

@@ -21,7 +21,7 @@ public class CryptoAESTest {
 
         SymmetricKey key = SymmetricKey.parse(dictionary);
         Log.info("key: " + key);
-        String json = UTF8.decode(JSON.encode(key));
+        String json = JSON.encode(key);
         Log.info("JSON(" + json.length() + " bytes): " + json);
         String algor = (String) key.get("A");
         if (algor == null) {
