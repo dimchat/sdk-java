@@ -34,7 +34,7 @@ import chat.dim.digest.Keccak256;
 import chat.dim.format.Hex;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.NetworkType;
-import chat.dim.type.StringWrapper;
+import chat.dim.type.ConstantString;
 
 /**
  *  Address like Ethereum
@@ -46,7 +46,7 @@ import chat.dim.type.StringWrapper;
  *          digest      = keccak256(fingerprint);
  *          address     = hex_encode(digest.suffix(20));
  */
-public final class ETHAddress extends StringWrapper implements Address {
+public final class ETHAddress extends ConstantString implements Address {
 
     private ETHAddress(String string) {
         super(string);
