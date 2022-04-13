@@ -69,7 +69,7 @@ final class AESKey extends Dictionary implements SymmetricKey {
 
     @Override
     public String getAlgorithm() {
-        return CryptographyKey.getAlgorithm(getMap());
+        return CryptographyKey.getAlgorithm(toMap());
     }
 
     private int getKeySize() {
