@@ -59,14 +59,26 @@ final class DocumentFactory implements Document.Factory {
     }
 
     @Override
-    public Document createDocument(ID identifier, String data, byte[] signature) {
+    public Document createDocument(ID identifier, String data, String signature) {
         String type = getType(version, identifier);
-        if (Document.VISA.equals(type)) {
-            return new BaseVisa(identifier, data, signature);
-        } else if (Document.BULLETIN.equals(type)) {
-            return new BaseBulletin(identifier, data, signature);
+        if (data == null || signature == null || data.length() == 0 || signature.length() == 0) {
+            // create empty document
+            if (Document.VISA.equals(type)) {
+                return new BaseVisa(identifier);
+            } else if (Document.BULLETIN.equals(type)) {
+                return new BaseBulletin(identifier);
+            } else {
+                return new BaseDocument(identifier, "");
+            }
         } else {
-            return new BaseDocument(identifier, data, signature);
+            // create document with data & signature from local storage
+            if (Document.VISA.equals(type)) {
+                return new BaseVisa(identifier, data, signature);
+            } else if (Document.BULLETIN.equals(type)) {
+                return new BaseBulletin(identifier, data, signature);
+            } else {
+                return new BaseDocument(identifier, data, signature);
+            }
         }
     }
 
