@@ -94,7 +94,7 @@ public class ReceiptCommand extends BaseCommand {
                 Object sender = get("sender");
                 Object receiver = get("receiver");
                 if (sender != null && receiver != null) {
-                    env = getMap();
+                    env = toMap();
                 }
             }
             envelope = Envelope.parse(env);

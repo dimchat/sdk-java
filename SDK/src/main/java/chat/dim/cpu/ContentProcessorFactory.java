@@ -48,9 +48,9 @@ public class ContentProcessorFactory extends TwinsHelper implements ContentProce
 
     private final ContentProcessor.Creator creator;
 
-    public ContentProcessorFactory(Facebook facebook, Messenger messenger, ContentProcessor.Creator cpc) {
+    public ContentProcessorFactory(Facebook facebook, Messenger messenger, ContentProcessor.Creator creator) {
         super(facebook, messenger);
-        creator = cpc;
+        this.creator = creator;
     }
 
     @Override
