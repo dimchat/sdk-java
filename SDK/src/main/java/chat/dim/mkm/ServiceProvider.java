@@ -38,7 +38,7 @@ import chat.dim.protocol.NetworkType;
 /**
  *  DIM Station Owner
  */
-public class ServiceProvider extends Group {
+public class ServiceProvider extends BaseGroup {
 
     public ServiceProvider(ID identifier) {
         super(identifier);

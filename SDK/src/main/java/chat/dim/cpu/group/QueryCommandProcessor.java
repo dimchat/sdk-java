@@ -80,7 +80,7 @@ public class QueryCommandProcessor extends GroupCommandProcessor {
         User user = facebook.getCurrentUser();
         assert user != null : "current user not set yet";
         Content res;
-        if (user.identifier.equals(owner)) {
+        if (user.getIdentifier().equals(owner)) {
             res = new ResetGroupCommand(group, members);
         } else {
             res = new InviteGroupCommand(group, members);

@@ -36,6 +36,8 @@ import java.util.List;
 import java.util.Map;
 
 import chat.dim.core.Barrack;
+import chat.dim.mkm.BaseGroup;
+import chat.dim.mkm.BaseUser;
 import chat.dim.mkm.Chatroom;
 import chat.dim.mkm.Group;
 import chat.dim.mkm.Polylogue;
@@ -84,14 +86,14 @@ public abstract class Facebook extends Barrack {
         if (user.getDataSource() == null) {
             user.setDataSource(this);
         }
-        userMap.put(user.identifier, user);
+        userMap.put(user.getIdentifier(), user);
     }
 
     private void cache(Group group) {
         if (group.getDataSource() == null) {
             group.setDataSource(this);
         }
-        groupMap.put(group.identifier, group);
+        groupMap.put(group.getIdentifier(), group);
     }
 
     /**
@@ -185,7 +187,7 @@ public abstract class Facebook extends Barrack {
     protected User createUser(ID identifier) {
         if (identifier.isBroadcast()) {
             // create user 'anyone@anywhere'
-            return new User(identifier);
+            return new BaseUser(identifier);
         }
         // make sure meta exists
         assert getMeta(identifier) != null : "meta not found for user: " + identifier;
@@ -193,7 +195,7 @@ public abstract class Facebook extends Barrack {
         // check user type
         byte type = identifier.getType();
         if (NetworkType.MAIN.equals(type) || NetworkType.BTC_MAIN.equals(type)) {
-            return new User(identifier);
+            return new BaseUser(identifier);
         }
         if (NetworkType.ROBOT.equals(type)) {
             return new Robot(identifier);
@@ -207,7 +209,7 @@ public abstract class Facebook extends Barrack {
     protected Group createGroup(ID identifier) {
         if (identifier.isBroadcast()) {
             // create group 'everyone@everywhere'
-            return new Group(identifier);
+            return new BaseGroup(identifier);
         }
         // make sure meta exists
         assert getMeta(identifier) != null : "meta not found for group: " + identifier;
@@ -267,7 +269,7 @@ public abstract class Facebook extends Barrack {
                 return null;
             }
             for (User item : users) {
-                if (members.contains(item.identifier)) {
+                if (members.contains(item.getIdentifier())) {
                     // DISCUSS: set this item to be current user?
                     return item;
                 }
@@ -276,7 +278,7 @@ public abstract class Facebook extends Barrack {
             // 1. personal message
             // 2. split group message
             for (User item : users) {
-                if (receiver.equals(item.identifier)) {
+                if (receiver.equals(item.getIdentifier())) {
                     // DISCUSS: set this item to be current user?
                     return item;
                 }

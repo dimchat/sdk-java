@@ -36,7 +36,7 @@ import chat.dim.protocol.NetworkType;
 /**
  *  Robot User
  */
-public class Robot extends User {
+public class Robot extends BaseUser {
 
     public Robot(ID identifier) {
         super(identifier);

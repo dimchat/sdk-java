@@ -37,7 +37,7 @@ import chat.dim.protocol.NetworkType;
 /**
  *  DIM Server
  */
-public class Station extends User {
+public class Station extends BaseUser {
 
     private String host;
     private int port;

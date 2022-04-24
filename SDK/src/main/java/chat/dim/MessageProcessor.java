@@ -194,7 +194,7 @@ public class MessageProcessor extends TwinsHelper implements Processor {
                 // should not happen
                 continue;
             }
-            env = Envelope.create(user.identifier, sender, null);
+            env = Envelope.create(user.getIdentifier(), sender, null);
             messages.add(InstantMessage.create(env, res));
         }
         return messages;

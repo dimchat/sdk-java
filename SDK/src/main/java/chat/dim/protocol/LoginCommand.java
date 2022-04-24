@@ -109,7 +109,7 @@ public class LoginCommand extends BaseCommand {
     }
     public void setStation(Station station) {
         Map<String, Object> info = new HashMap<>();
-        info.put("ID", station.identifier.toString());
+        info.put("ID", station.getIdentifier().toString());
         info.put("host", station.getHost());
         info.put("port", station.getPort());
         put("station", info);
@@ -125,7 +125,7 @@ public class LoginCommand extends BaseCommand {
     }
     public void setProvider(ServiceProvider provider) {
         Map<String, Object> info = new HashMap<>();
-        info.put("ID", provider.identifier.toString());
+        info.put("ID", provider.getIdentifier().toString());
         put("provider", info);
     }
 }

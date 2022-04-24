@@ -237,7 +237,7 @@ public class MessagePacker extends TwinsHelper implements Packer {
             trimmed = null;
         } else if (receiver.isGroup()) {
             // trim group message
-            trimmed = sMsg.trim(user.identifier);
+            trimmed = sMsg.trim(user.getIdentifier());
         } else {
             trimmed = sMsg;
         }

@@ -38,7 +38,7 @@ import chat.dim.protocol.NetworkType;
 /**
  *  Big group with admins
  */
-public class Chatroom extends Group {
+public class Chatroom extends BaseGroup {
 
     public Chatroom(ID identifier) {
         super(identifier);

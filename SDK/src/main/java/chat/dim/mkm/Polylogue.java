@@ -36,7 +36,7 @@ import chat.dim.protocol.NetworkType;
 /**
  *  Simple group chat
  */
-public class Polylogue extends Group {
+public class Polylogue extends BaseGroup {
 
     public Polylogue(ID identifier) {
         super(identifier);
