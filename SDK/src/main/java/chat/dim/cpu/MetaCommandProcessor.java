@@ -34,7 +34,6 @@ import java.util.List;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
-import chat.dim.dkd.BaseMetaCommand;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
@@ -58,7 +57,7 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
             String text = String.format(FMT_META_NOT_FOUND, identifier);
             return respondText(text, null);
         } else {
-            return respondContent(new BaseMetaCommand(identifier, meta));
+            return respondContent(MetaCommand.response(identifier, meta));
         }
     }
 
