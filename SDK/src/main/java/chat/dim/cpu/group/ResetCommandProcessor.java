@@ -36,12 +36,12 @@ import java.util.List;
 import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.cpu.GroupCommandProcessor;
+import chat.dim.dkd.group.QueryGroupCommand;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.group.InviteCommand;
-import chat.dim.protocol.group.QueryCommand;
 import chat.dim.protocol.group.ResetCommand;
 
 public class ResetCommandProcessor extends GroupCommandProcessor {
@@ -86,7 +86,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
         }
         // NOTICE: this is a partial member-list
         //         query the sender for full-list
-        return respondContent(new QueryCommand(group));
+        return respondContent(new QueryGroupCommand(group));
     }
 
     @Override

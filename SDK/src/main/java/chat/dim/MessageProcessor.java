@@ -33,25 +33,18 @@ package chat.dim;
 import java.util.ArrayList;
 import java.util.List;
 
+import chat.dim.core.Processor;
 import chat.dim.cpu.ContentProcessor;
 import chat.dim.cpu.ContentProcessorCreator;
 import chat.dim.cpu.ContentProcessorFactory;
-import chat.dim.dkd.CoreFactories;
 import chat.dim.mkm.User;
-import chat.dim.protocol.BlockCommand;
-import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
 import chat.dim.protocol.Envelope;
-import chat.dim.protocol.HandshakeCommand;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
-import chat.dim.protocol.LoginCommand;
-import chat.dim.protocol.MuteCommand;
-import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
-import chat.dim.protocol.StorageCommand;
 
 public class MessageProcessor extends TwinsHelper implements Processor {
 
@@ -213,31 +206,5 @@ public class MessageProcessor extends TwinsHelper implements Processor {
         ContentProcessor cpu = getProcessor(content);
         return cpu.process(content, rMsg);
         // TODO: override to filter the response
-    }
-
-    /**
-     *  Register All Content/Command Factories
-     */
-    public static void registerAllFactories() {
-        //
-        //  Register core factories
-        //
-        CoreFactories.registerContentFactories();
-        CoreFactories.registerCommandFactories();
-
-        //
-        //  Register command factories
-        //
-        Command.setFactory(Command.RECEIPT, ReceiptCommand::new);
-        Command.setFactory(Command.HANDSHAKE, HandshakeCommand::new);
-        Command.setFactory(Command.LOGIN, LoginCommand::new);
-
-        Command.setFactory(MuteCommand.MUTE, MuteCommand::new);
-        Command.setFactory(BlockCommand.BLOCK, BlockCommand::new);
-
-        // storage (contacts, private_key)
-        Command.setFactory(StorageCommand.STORAGE, StorageCommand::new);
-        Command.setFactory(StorageCommand.CONTACTS, StorageCommand::new);
-        Command.setFactory(StorageCommand.PRIVATE_KEY, StorageCommand::new);
     }
 }

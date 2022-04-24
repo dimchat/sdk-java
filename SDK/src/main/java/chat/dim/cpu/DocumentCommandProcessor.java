@@ -34,6 +34,7 @@ import java.util.List;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
+import chat.dim.dkd.BaseDocumentCommand;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.DocumentCommand;
@@ -60,7 +61,7 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
             return respondText(text, null);
         } else {
             Meta meta = facebook.getMeta(identifier);
-            return respondContent(new DocumentCommand(identifier, meta, doc));
+            return respondContent(new BaseDocumentCommand(identifier, meta, doc));
         }
     }
 

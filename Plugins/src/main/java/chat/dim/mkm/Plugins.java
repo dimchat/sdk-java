@@ -30,6 +30,7 @@
  */
 package chat.dim.mkm;
 
+import chat.dim.core.AddressFactory;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.Meta;

@@ -35,6 +35,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import chat.dim.core.Barrack;
 import chat.dim.mkm.Chatroom;
 import chat.dim.mkm.Group;
 import chat.dim.mkm.Polylogue;

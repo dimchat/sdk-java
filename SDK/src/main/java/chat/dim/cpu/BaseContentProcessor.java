@@ -36,6 +36,7 @@ import java.util.List;
 import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.TwinsHelper;
+import chat.dim.dkd.BaseTextContent;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.ReceiptCommand;
@@ -60,7 +61,7 @@ public class BaseContentProcessor extends TwinsHelper implements ContentProcesso
     //  Convenient responding
     //
     protected List<Content> respondText(String text, ID group) {
-        TextContent res = new TextContent(text);
+        TextContent res = new BaseTextContent(text);
         if (group != null) {
             res.setGroup(group);
         }
