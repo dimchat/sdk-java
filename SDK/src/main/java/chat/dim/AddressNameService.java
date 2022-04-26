@@ -30,16 +30,13 @@
  */
 package chat.dim;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import chat.dim.protocol.ID;
 
-public class AddressNameService {
+public interface AddressNameService {
 
-    public static final String[] KEYWORDS = {
+    String[] KEYWORDS = {
             "all", "everyone", "anyone", "owner", "founder",
             // --------------------------------
             "dkd", "mkm", "dimp", "dim", "dimt",
@@ -74,53 +71,13 @@ public class AddressNameService {
             "root", "supervisor",
     };
 
-    private final Map<String, Boolean> reserved = new HashMap<>();
-    private final Map<String, ID> caches = new HashMap<>();
-
-    protected AddressNameService() {
-        super();
-        // constant ANS records
-        caches.put("all", ID.EVERYONE);
-        caches.put("everyone", ID.EVERYONE);
-        caches.put("anyone", ID.ANYONE);
-        caches.put("owner", ID.ANYONE);
-        caches.put("founder", ID.FOUNDER);
-        // reserved names
-        for (String item : KEYWORDS) {
-            reserved.put(item, true);
-        }
-    }
-
-    protected boolean isReserved(String name) {
-        Boolean value = reserved.get(name);
-        if (value == null) {
-            return false;
-        }
-        return value;
-    }
-
-    protected boolean cache(String name, ID identifier) {
-        if (isReserved(name)) {
-            // this name is reserved, cannot register
-            return false;
-        }
-        if (identifier == null) {
-            caches.remove(name);
-        } else {
-            caches.put(name, identifier);
-        }
-        return true;
-    }
-
     /**
      *  Get ID by short name
      *
      * @param name - sort name
      * @return user ID
      */
-    public ID identifier(String name) {
-        return caches.get(name);
-    }
+    ID identifier(String name);
 
     /**
      *  Get all short names with the same ID
@@ -128,15 +85,7 @@ public class AddressNameService {
      * @param identifier - user ID
      * @return short name list
      */
-    public List<String> names(ID identifier) {
-        List<String> array = new ArrayList<>();
-        for (Map.Entry<String, ID> entry : caches.entrySet()) {
-            if (identifier.equals(entry.getValue())) {
-                array.add(entry.getKey());
-            }
-        }
-        return array;
-    }
+    List<String> names(ID identifier);
 
     /**
      *  Save ANS record
@@ -145,8 +94,5 @@ public class AddressNameService {
      * @param identifier - user ID; if empty, means delete this name
      * @return true on success
      */
-    public boolean save(String name, ID identifier) {
-        // override to save this record into local storage
-        return cache(name, identifier);
-    }
+    boolean save(String name, ID identifier);
 }
