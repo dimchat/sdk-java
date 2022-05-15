@@ -96,7 +96,7 @@ public class MessageProcessor extends TwinsHelper implements Processor {
             // nothing to respond
             return null;
         }
-        // 3. serialize message
+        // 3. serialize responses
         List<byte[]> packages = new ArrayList<>();
         byte[] pack;
         for (ReliableMessage res: responses) {
@@ -126,7 +126,7 @@ public class MessageProcessor extends TwinsHelper implements Processor {
             // nothing to respond
             return null;
         }
-        // 3. sign messages
+        // 3. sign responses
         List<ReliableMessage> messages = new ArrayList<>();
         ReliableMessage msg;
         for (SecureMessage res : responses) {
@@ -157,7 +157,7 @@ public class MessageProcessor extends TwinsHelper implements Processor {
             // nothing to respond
             return null;
         }
-        // 3. encrypt messages
+        // 3. encrypt responses
         List<SecureMessage> messages = new ArrayList<>();
         SecureMessage msg;
         for (InstantMessage res : responses) {
@@ -205,6 +205,6 @@ public class MessageProcessor extends TwinsHelper implements Processor {
         // TODO: override to check group
         ContentProcessor cpu = getProcessor(content);
         return cpu.process(content, rMsg);
-        // TODO: override to filter the response
+        // TODO: override to filter the responses
     }
 }

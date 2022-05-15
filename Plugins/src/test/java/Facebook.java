@@ -9,6 +9,7 @@ import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
 import chat.dim.crypto.VerifyKey;
+import chat.dim.mkm.BaseUser;
 import chat.dim.mkm.Group;
 import chat.dim.mkm.User;
 import chat.dim.protocol.Bulletin;
@@ -48,14 +49,14 @@ public class Facebook implements User.DataSource, Group.DataSource {
         if (user.getDataSource() == null) {
             user.setDataSource(this);
         }
-        userMap.put(user.identifier, user);
+        userMap.put(user.getIdentifier(), user);
         return true;
     }
 
     public User getUser(ID identifier) {
         User user = userMap.get(identifier);
         if (user == null) {
-            user = new User(identifier);
+            user = new BaseUser(identifier);
             cache(user);
         }
         return user;

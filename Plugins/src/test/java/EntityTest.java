@@ -1,6 +1,4 @@
 
-import chat.dim.mkm.Group;
-import chat.dim.mkm.User;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -10,6 +8,9 @@ import java.util.List;
 import java.util.Map;
 
 import chat.dim.crypto.SignKey;
+import chat.dim.mkm.BaseGroup;
+import chat.dim.mkm.Group;
+import chat.dim.mkm.User;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
@@ -170,7 +171,7 @@ public class EntityTest {
     @Test
     public void testGroup() {
         ID identifier = ID.parse("Group-1280719982@7oMeWadRw4qat2sL4mTdcQSDAqZSo7LH5G");
-        Group group = new Group(identifier);
+        Group group = new BaseGroup(identifier);
         group.setDataSource(facebook);
 
         Log.info("founder: " + group.getFounder());
