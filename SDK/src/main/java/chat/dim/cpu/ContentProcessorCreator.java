@@ -54,12 +54,21 @@ public class ContentProcessorCreator extends TwinsHelper implements ContentProce
         if (ContentType.FORWARD.equals(type)) {
             return new ForwardContentProcessor(getFacebook(), getMessenger());
         }
+
+        // application customized
+        if (ContentType.CUSTOMIZED.equals(type)) {
+            return new CustomizedContentProcessor(getFacebook(), getMessenger());
+        } else if (ContentType.APPLICATION.equals(type)) {
+            return new CustomizedContentProcessor(getFacebook(), getMessenger());
+        }
+
         // default commands
         if (ContentType.COMMAND.equals(type)) {
             return new BaseCommandProcessor(getFacebook(), getMessenger());
         } else if (ContentType.HISTORY.equals(type)) {
             return new HistoryCommandProcessor(getFacebook(), getMessenger());
         }
+
         // default contents
         if (0 == type) {
             return new BaseContentProcessor(getFacebook(), getMessenger());
@@ -77,6 +86,7 @@ public class ContentProcessorCreator extends TwinsHelper implements ContentProce
             // document command
             case Command.DOCUMENT:
                 return new DocumentCommandProcessor(getFacebook(), getMessenger());
+
             // group commands
             case "group":
                 return new GroupCommandProcessor(getFacebook(), getMessenger());
@@ -90,6 +100,7 @@ public class ContentProcessorCreator extends TwinsHelper implements ContentProce
                 return new QueryCommandProcessor(getFacebook(), getMessenger());
             case GroupCommand.RESET:
                 return new ResetCommandProcessor(getFacebook(), getMessenger());
+
             // unknown
             default:
                 return null;

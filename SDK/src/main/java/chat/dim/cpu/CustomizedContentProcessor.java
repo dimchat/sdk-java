@@ -2,12 +2,12 @@
  *
  *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
- *                                Written in 2019 by Moky <albert.moky@gmail.com>
+ *                                Written in 2022 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Albert Moky
+ * Copyright (c) 2022 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,61 +30,54 @@
  */
 package chat.dim.cpu;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
-import chat.dim.TwinsHelper;
-import chat.dim.dkd.BaseTextContent;
 import chat.dim.protocol.Content;
+import chat.dim.protocol.CustomizedContent;
 import chat.dim.protocol.ID;
-import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.ReliableMessage;
-import chat.dim.protocol.TextContent;
 
 /**
- *  Content Processing Unit
- *  ~~~~~~~~~~~~~~~~~~~~~~~
+ *  Customized Content Processing Unit
+ *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
-public class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
+public class CustomizedContentProcessor extends BaseContentProcessor {
 
-    public static String FMT_CONTENT_NOT_SUPPORT = "Content (type: %d) not support yet!";
+    public static String FMT_APP_NOT_SUPPORT = "Customized Content (app: %s) not support yet!";
+    public static String FMT_ACT_NOT_SUPPORT = "Customized Content (app: %s, act: %s) not support yet!";
 
-    public BaseContentProcessor(Facebook facebook, Messenger messenger) {
+    public CustomizedContentProcessor(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
     }
 
     @Override
     public List<Content> process(Content content, ReliableMessage rMsg) {
-        String text = String.format(FMT_CONTENT_NOT_SUPPORT, content.getType());
+        assert content instanceof CustomizedContent : "customized content error: " + content;
+        CustomizedContent customized = (CustomizedContent) content;
+        String app = customized.getApplication();
+        // check application name
+        List<Content> res = check(app, customized, rMsg);
+        if (res == null) {
+            // check OK, execute the action for sender
+            String act = customized.getAction();
+            ID sender = rMsg.getSender();
+            res = execute(act, sender, customized, rMsg);
+        }
+        return res;
+    }
+
+    // override for your applications
+    protected List<Content> check(String app, CustomizedContent content, ReliableMessage rMsg) {
+        String text = String.format(FMT_APP_NOT_SUPPORT, app);
         return respondText(text, content.getGroup());
     }
 
-    //
-    //  Convenient responding
-    //
-    protected List<Content> respondText(String text, ID group) {
-        TextContent res = new BaseTextContent(text);
-        if (group != null) {
-            res.setGroup(group);
-        }
-        List<Content> responses = new ArrayList<>();
-        responses.add(res);
-        return responses;
-    }
-    protected List<Content> respondReceipt(String text) {
-        ReceiptCommand res = new ReceiptCommand(text);
-        List<Content> responses = new ArrayList<>();
-        responses.add(res);
-        return responses;
-    }
-    protected List<Content> respondContent(Content res) {
-        if (res == null) {
-            return null;
-        }
-        List<Content> responses = new ArrayList<>();
-        responses.add(res);
-        return responses;
+    // override for customized actions
+    protected List<Content> execute(String action, ID user, CustomizedContent content, ReliableMessage rMsg) {
+        String app = content.getApplication();
+        String text = String.format(FMT_ACT_NOT_SUPPORT, app, action);
+        return respondText(text, content.getGroup());
     }
 }
