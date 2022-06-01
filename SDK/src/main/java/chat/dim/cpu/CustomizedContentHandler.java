@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  DIMP : Decentralized Instant Messaging Protocol
+ *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
  *                                Written in 2022 by Moky <albert.moky@gmail.com>
  *
@@ -28,54 +28,29 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.protocol;
+package chat.dim.cpu;
 
-import java.util.Map;
+import java.util.List;
 
-import chat.dim.dkd.BaseContent;
+import chat.dim.protocol.Content;
+import chat.dim.protocol.CustomizedContent;
+import chat.dim.protocol.ID;
+import chat.dim.protocol.ReliableMessage;
 
 /**
- *  Application Customized message: {
- *      type : 0xCC,
- *      sn   : 123,
- *
- *      app   : "{APP_ID}",  // app id
- *      mod   " "{MODULE}",  // module name
- *      act   : "{ACTION}",  // action name
- *      extra : info         // action parameters
- *  }
+ *  Handler for Customized Content
+ *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
-public class CustomizedContent extends BaseContent {
+public interface CustomizedContentHandler {
 
-    public CustomizedContent(Map<String, Object> dictionary) {
-        super(dictionary);
-    }
-
-    protected CustomizedContent(ContentType type, String app, String mod, String act) {
-        this(type.value, app, mod, act);
-    }
-    protected CustomizedContent(int type, String app, String mod, String act) {
-        super(type);
-        put("app", app);
-        put("mod", mod);
-        put("act", act);
-    }
-
-    public CustomizedContent(String app, String mod, String act) {
-        this(ContentType.CUSTOMIZED, app, mod, act);
-    }
-
-    //-------- getters --------
-
-    public String getApplication() {
-        return (String) get("app");
-    }
-
-    public String getModule() {
-        return (String) get("mod");
-    }
-
-    public String getAction() {
-        return (String) get("act");
-    }
+    /**
+     *  Do you job with action name
+     *
+     * @param act     - action name
+     * @param sender  - user ID
+     * @param content - customized content
+     * @param rMsg    - network message
+     * @return responses
+     */
+    List<Content> handle(String act, ID sender, CustomizedContent content, ReliableMessage rMsg);
 }

@@ -54,13 +54,14 @@ public class ContentProcessorCreator extends TwinsHelper implements ContentProce
         if (ContentType.FORWARD.equals(type)) {
             return new ForwardContentProcessor(getFacebook(), getMessenger());
         }
-
+        /*/
         // application customized
-        if (ContentType.CUSTOMIZED.equals(type)) {
+        if (ContentType.APPLICATION.equals(type)) {
             return new CustomizedContentProcessor(getFacebook(), getMessenger());
-        } else if (ContentType.APPLICATION.equals(type)) {
+        } else if (ContentType.CUSTOMIZED.equals(type)) {
             return new CustomizedContentProcessor(getFacebook(), getMessenger());
         }
+        /*/
 
         // default commands
         if (ContentType.COMMAND.equals(type)) {
@@ -68,11 +69,13 @@ public class ContentProcessorCreator extends TwinsHelper implements ContentProce
         } else if (ContentType.HISTORY.equals(type)) {
             return new HistoryCommandProcessor(getFacebook(), getMessenger());
         }
-
+        /*/
         // default contents
         if (0 == type) {
             return new BaseContentProcessor(getFacebook(), getMessenger());
         }
+        /*/
+
         // unknown
         return null;
     }

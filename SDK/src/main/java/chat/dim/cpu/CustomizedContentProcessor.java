@@ -43,10 +43,10 @@ import chat.dim.protocol.ReliableMessage;
  *  Customized Content Processing Unit
  *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
-public class CustomizedContentProcessor extends BaseContentProcessor {
+public class CustomizedContentProcessor extends BaseContentProcessor implements CustomizedContentHandler {
 
     public static String FMT_APP_NOT_SUPPORT = "Customized Content (app: %s) not support yet!";
-    public static String FMT_ACT_NOT_SUPPORT = "Customized Content (app: %s, act: %s) not support yet!";
+    public static String FMT_ACT_NOT_SUPPORT = "Customized Content (app: %s, mod: %s, act: %s) not support yet!";
 
     public CustomizedContentProcessor(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
@@ -56,28 +56,45 @@ public class CustomizedContentProcessor extends BaseContentProcessor {
     public List<Content> process(Content content, ReliableMessage rMsg) {
         assert content instanceof CustomizedContent : "customized content error: " + content;
         CustomizedContent customized = (CustomizedContent) content;
+        // 1. check app id
         String app = customized.getApplication();
-        // check application name
-        List<Content> res = check(app, customized, rMsg);
-        if (res == null) {
-            // check OK, execute the action for sender
-            String act = customized.getAction();
-            ID sender = rMsg.getSender();
-            res = execute(act, sender, customized, rMsg);
+        List<Content> res = filter(app, customized, rMsg);
+        if (res != null) {
+            // app id not found
+            return res;
         }
-        return res;
+        // 2. get handler with module name
+        String mod = customized.getModule();
+        CustomizedContentHandler handler = fetch(mod, customized, rMsg);
+        if (handler == null) {
+            // module not support
+            return null;
+        }
+        // 3. do the job with action name
+        String act = customized.getAction();
+        ID sender = rMsg.getSender();
+        return handler.handle(act, sender, customized, rMsg);
     }
 
-    // override for your applications
-    protected List<Content> check(String app, CustomizedContent content, ReliableMessage rMsg) {
+    // override for your application
+    protected List<Content> filter(String app, CustomizedContent content, ReliableMessage rMsg) {
         String text = String.format(FMT_APP_NOT_SUPPORT, app);
         return respondText(text, content.getGroup());
     }
 
+    // override for your module
+    protected CustomizedContentHandler fetch(String mod, CustomizedContent content, ReliableMessage rMsg) {
+        // if the application has too many modules, I suggest you to
+        // use different handler to do the jobs for each module.
+        return this;
+    }
+
     // override for customized actions
-    protected List<Content> execute(String action, ID user, CustomizedContent content, ReliableMessage rMsg) {
+    @Override
+    public List<Content> handle(String act, ID sender, CustomizedContent content, ReliableMessage rMsg) {
         String app = content.getApplication();
-        String text = String.format(FMT_ACT_NOT_SUPPORT, app, action);
+        String mod = content.getModule();
+        String text = String.format(FMT_ACT_NOT_SUPPORT, app, mod, act);
         return respondText(text, content.getGroup());
     }
 }
