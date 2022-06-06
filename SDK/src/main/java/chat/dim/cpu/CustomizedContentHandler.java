@@ -44,13 +44,13 @@ import chat.dim.protocol.ReliableMessage;
 public interface CustomizedContentHandler {
 
     /**
-     *  Do you job with action name
+     *  Do your job
      *
-     * @param act     - action name
+     * @param mod     - module name
      * @param sender  - user ID
      * @param content - customized content
      * @param rMsg    - network message
      * @return responses
      */
-    List<Content> handle(String act, ID sender, CustomizedContent content, ReliableMessage rMsg);
+    List<Content> handle(String mod, ID sender, CustomizedContent content, ReliableMessage rMsg);
 }

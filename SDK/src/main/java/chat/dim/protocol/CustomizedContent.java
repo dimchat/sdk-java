@@ -39,9 +39,9 @@ import chat.dim.dkd.BaseContent;
  *      type : 0xCC,
  *      sn   : 123,
  *
- *      app   : "{APP_ID}",  // app id
- *      mod   " "{MODULE}",  // module name
- *      act   : "{ACTION}",  // action name
+ *      app   : "{APP_ID}",  // application (e.g.: "chat.dim.sechat")
+ *      mod   " "{MODULE}",  // module name (e.g.: "drift_bottle")
+ *      act   : "{ACTION}",  // action name (3.g.: "throw")
  *      extra : info         // action parameters
  *  }
  */
@@ -51,18 +51,21 @@ public class CustomizedContent extends BaseContent {
         super(dictionary);
     }
 
-    protected CustomizedContent(ContentType type, String app, String mod, String act) {
-        this(type.value, app, mod, act);
+    protected CustomizedContent(ContentType type, String app, String mod) {
+        this(type.value, app, mod);
     }
-    protected CustomizedContent(int type, String app, String mod, String act) {
+    protected CustomizedContent(int type, String app, String mod) {
         super(type);
-        put("app", app);
-        put("mod", mod);
-        put("act", act);
+        if (app != null) {
+            put("app", app);
+        }
+        if (mod != null) {
+            put("mod", mod);
+        }
     }
 
-    public CustomizedContent(String app, String mod, String act) {
-        this(ContentType.CUSTOMIZED, app, mod, act);
+    public CustomizedContent(String app, String mod) {
+        this(ContentType.CUSTOMIZED, app, mod);
     }
 
     //-------- getters --------
@@ -75,7 +78,9 @@ public class CustomizedContent extends BaseContent {
         return (String) get("mod");
     }
 
+    /*/
     public String getAction() {
         return (String) get("act");
     }
+    /*/
 }

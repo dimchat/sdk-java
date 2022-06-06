@@ -69,13 +69,11 @@ public class ContentProcessorCreator extends TwinsHelper implements ContentProce
         } else if (ContentType.HISTORY.equals(type)) {
             return new HistoryCommandProcessor(getFacebook(), getMessenger());
         }
-        /*/
         // default contents
         if (0 == type) {
+            // must return a default processor for type==0
             return new BaseContentProcessor(getFacebook(), getMessenger());
         }
-        /*/
-
         // unknown
         return null;
     }
