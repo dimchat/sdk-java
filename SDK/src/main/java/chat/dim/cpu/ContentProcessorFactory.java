@@ -38,7 +38,6 @@ import chat.dim.Messenger;
 import chat.dim.TwinsHelper;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
-import chat.dim.protocol.ContentType;
 import chat.dim.protocol.GroupCommand;
 
 public class ContentProcessorFactory extends TwinsHelper implements ContentProcessor.Factory {
@@ -60,35 +59,34 @@ public class ContentProcessorFactory extends TwinsHelper implements ContentProce
         if (content instanceof Command) {
             String name = ((Command) content).getCommand();
             // command processor
-            cpu = getProcessor(type, name);
+            cpu = getCommandProcessor(type, name);
             if (cpu != null) {
                 return cpu;
             } else if (content instanceof GroupCommand) {
                 // group command processor
-                cpu = getProcessor(type, "group");
+                cpu = getCommandProcessor(type, "group");
                 if (cpu != null) {
                     return cpu;
                 }
             }
         }
         // content processor
-        cpu = getProcessor(type);
+        cpu = getContentProcessor(type);
+        assert cpu != null : "failed to get CPU for content type: " + type;
+        /*/
         if (cpu == null) {
             // default content processor
-            cpu = getProcessor(0);
+            cpu = getContentProcessor(0);
         }
+        /*/
         return cpu;
     }
 
     @Override
-    public ContentProcessor getProcessor(ContentType type) {
-        return getProcessor(type.value);
-    }
-    @Override
-    public ContentProcessor getProcessor(int type) {
+    public ContentProcessor getContentProcessor(int type) {
         ContentProcessor cpu = contentProcessors.get(type);
         if (cpu == null) {
-            cpu = creator.createProcessor(type);
+            cpu = creator.createContentProcessor(type);
             if (cpu != null) {
                 contentProcessors.put(type, cpu);
             }
@@ -97,14 +95,10 @@ public class ContentProcessorFactory extends TwinsHelper implements ContentProce
     }
 
     @Override
-    public ContentProcessor getProcessor(ContentType type, String command) {
-        return getProcessor(type.value, command);
-    }
-    @Override
-    public ContentProcessor getProcessor(int type, String command) {
+    public ContentProcessor getCommandProcessor(int type, String command) {
         ContentProcessor cpu = commandProcessors.get(command);
         if (cpu == null) {
-            cpu = creator.createProcessor(type, command);
+            cpu = creator.createCommandProcessor(type, command);
             if (cpu != null) {
                 commandProcessors.put(command, cpu);
             }

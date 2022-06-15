@@ -39,7 +39,6 @@ import chat.dim.cpu.ContentProcessorCreator;
 import chat.dim.cpu.ContentProcessorFactory;
 import chat.dim.mkm.User;
 import chat.dim.protocol.Content;
-import chat.dim.protocol.ContentType;
 import chat.dim.protocol.Envelope;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
@@ -67,18 +66,12 @@ public class MessageProcessor extends TwinsHelper implements Processor {
         return factory.getProcessor(content);
     }
 
-    public ContentProcessor getProcessor(ContentType type) {
-        return factory.getProcessor(type);
-    }
-    public ContentProcessor getProcessor(int type) {
-        return factory.getProcessor(type);
+    public ContentProcessor getContentProcessor(int type) {
+        return factory.getContentProcessor(type);
     }
 
-    public ContentProcessor getProcessor(ContentType type, String command) {
-        return factory.getProcessor(type, command);
-    }
-    public ContentProcessor getProcessor(int type, String command) {
-        return factory.getProcessor(type, command);
+    public ContentProcessor getCommandProcessor(int type, String command) {
+        return factory.getCommandProcessor(type, command);
     }
 
     @Override

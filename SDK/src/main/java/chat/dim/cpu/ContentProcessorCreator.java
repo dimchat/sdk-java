@@ -49,7 +49,7 @@ public class ContentProcessorCreator extends TwinsHelper implements ContentProce
     }
 
     @Override
-    public ContentProcessor createProcessor(int type) {
+    public ContentProcessor createContentProcessor(int type) {
         // forward content
         if (ContentType.FORWARD.equals(type)) {
             return new ForwardContentProcessor(getFacebook(), getMessenger());
@@ -69,17 +69,19 @@ public class ContentProcessorCreator extends TwinsHelper implements ContentProce
         } else if (ContentType.HISTORY.equals(type)) {
             return new HistoryCommandProcessor(getFacebook(), getMessenger());
         }
+        /*/
         // default contents
         if (0 == type) {
             // must return a default processor for type==0
             return new BaseContentProcessor(getFacebook(), getMessenger());
         }
+        /*/
         // unknown
         return null;
     }
 
     @Override
-    public ContentProcessor createProcessor(int type, String command) {
+    public ContentProcessor createCommandProcessor(int type, String command) {
         switch (command) {
             // meta command
             case Command.META:

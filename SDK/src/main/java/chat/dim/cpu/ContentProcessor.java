@@ -33,7 +33,6 @@ package chat.dim.cpu;
 import java.util.List;
 
 import chat.dim.protocol.Content;
-import chat.dim.protocol.ContentType;
 import chat.dim.protocol.ReliableMessage;
 
 /**
@@ -63,7 +62,7 @@ public interface ContentProcessor {
          * @param type - content type
          * @return ContentProcessor
          */
-        ContentProcessor createProcessor(int type);
+        ContentProcessor createContentProcessor(int type);
 
         /**
          *  Create command processor with name
@@ -71,7 +70,7 @@ public interface ContentProcessor {
          * @param command - command name
          * @return CommandProcessor
          */
-        ContentProcessor createProcessor(int type, String command);
+        ContentProcessor createCommandProcessor(int type, String command);
     }
 
     /**
@@ -88,12 +87,8 @@ public interface ContentProcessor {
          */
         ContentProcessor getProcessor(Content content);
 
-        //-------- Content Processor
-        ContentProcessor getProcessor(ContentType type);
-        ContentProcessor getProcessor(int type);
+        ContentProcessor getContentProcessor(int type);
 
-        //-------- Command Processor
-        ContentProcessor getProcessor(ContentType type, String command);
-        ContentProcessor getProcessor(int type, String command);
+        ContentProcessor getCommandProcessor(int type, String command);
     }
 }
