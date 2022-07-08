@@ -71,15 +71,7 @@ public class ContentProcessorFactory extends TwinsHelper implements ContentProce
             }
         }
         // content processor
-        cpu = getContentProcessor(type);
-        assert cpu != null : "failed to get CPU for content type: " + type;
-        /*/
-        if (cpu == null) {
-            // default content processor
-            cpu = getContentProcessor(0);
-        }
-        /*/
-        return cpu;
+        return getContentProcessor(type);
     }
 
     @Override

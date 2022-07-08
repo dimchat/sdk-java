@@ -2,12 +2,12 @@
  *
  *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
- *                                Written in 2019 by Moky <albert.moky@gmail.com>
+ *                                Written in 2022 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Albert Moky
+ * Copyright (c) 2022 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,43 +35,26 @@ import java.util.List;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
+import chat.dim.protocol.ArrayContent;
 import chat.dim.protocol.Content;
-import chat.dim.protocol.ForwardContent;
-import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
-import chat.dim.protocol.SecureMessage;
 
-public class ForwardContentProcessor extends BaseContentProcessor {
+public class ArrayContentProcessor extends BaseContentProcessor {
 
-    public ForwardContentProcessor(Facebook facebook, Messenger messenger) {
+    public ArrayContentProcessor(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
     }
 
     @Override
     public List<Content> process(Content content, ReliableMessage rMsg) {
-        assert content instanceof ForwardContent : "forward content error: " + content;
-        ForwardContent forward = (ForwardContent) content;
-        List<ReliableMessage> secrets = forward.getSecrets();
+        assert content instanceof ArrayContent : "array content error: " + content;
+        List<Content> array = ((ArrayContent) content).getContents();
         // call messenger to process it
         Messenger messenger = getMessenger();
         List<Content> responses = new ArrayList<>();
         List<Content> results;
-        for (ReliableMessage item : secrets) {
-            // 1. verify message
-            SecureMessage sMsg = messenger.verifyMessage(item);
-            if (sMsg == null) {
-                // waiting for sender's meta if not exists
-                continue;
-            }
-            // 2. decrypt message
-            InstantMessage iMsg = messenger.decryptMessage(sMsg);
-            if (iMsg == null) {
-                // NOTICE: decrypt failed, not for you?
-                //         it means you are asked to re-pack and forward this message
-                continue;
-            }
-            // 3. process message content
-            results = messenger.processContent(iMsg.getContent(), item);
+        for (Content item : array) {
+            results = messenger.processContent(item, rMsg);
             if (results != null/* && results.size() > 0*/) {
                 responses.addAll(results);
             }

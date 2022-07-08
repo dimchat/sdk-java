@@ -54,6 +54,10 @@ public class ContentProcessorCreator extends TwinsHelper implements ContentProce
         if (ContentType.FORWARD.equals(type)) {
             return new ForwardContentProcessor(getFacebook(), getMessenger());
         }
+        // array content
+        if (ContentType.ARRAY.equals(type)) {
+            return new ArrayContentProcessor(getFacebook(), getMessenger());
+        }
         /*/
         // application customized
         if (ContentType.APPLICATION.equals(type)) {

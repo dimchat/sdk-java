@@ -40,7 +40,7 @@ import chat.dim.dkd.BaseContent;
  *      sn   : 123,
  *
  *      app   : "{APP_ID}",  // application (e.g.: "chat.dim.sechat")
- *      mod   " "{MODULE}",  // module name (e.g.: "drift_bottle")
+ *      mod   : "{MODULE}",  // module name (e.g.: "drift_bottle")
  *      act   : "{ACTION}",  // action name (3.g.: "throw")
  *      extra : info         // action parameters
  *  }

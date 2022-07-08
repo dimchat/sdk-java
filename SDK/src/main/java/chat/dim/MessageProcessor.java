@@ -197,6 +197,11 @@ public class MessageProcessor extends TwinsHelper implements Processor {
     public List<Content> processContent(Content content, ReliableMessage rMsg) {
         // TODO: override to check group
         ContentProcessor cpu = getProcessor(content);
+        if (cpu == null) {
+            // default content processor
+            cpu = getContentProcessor(0);
+            assert cpu != null : "failed to get default CPU";
+        }
         return cpu.process(content, rMsg);
         // TODO: override to filter the responses
     }
