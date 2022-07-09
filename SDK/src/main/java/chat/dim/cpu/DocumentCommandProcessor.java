@@ -76,7 +76,7 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         // receive a document for ID
         if (facebook.saveDocument(doc))  {
             String text = String.format(FMT_DOC_ACCEPTED, identifier);
-            return respondReceipt(text);
+            return respondText(text, null);
         } else {
             String text = String.format(FMT_DOC_NOT_ACCEPTED, identifier);
             return respondText(text, null);

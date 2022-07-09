@@ -64,7 +64,7 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
     private List<Content> putMeta(ID identifier, Meta meta) {
         if (getFacebook().saveMeta(meta, identifier)) {
             String text = String.format(FMT_META_ACCEPTED, identifier);
-            return respondReceipt(text);
+            return respondText(text, null);
         } else {
             String text = String.format(FMT_META_NOT_ACCEPTED, identifier);
             return respondText(text, null);

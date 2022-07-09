@@ -39,9 +39,7 @@ import chat.dim.TwinsHelper;
 import chat.dim.dkd.BaseTextContent;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
-import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.ReliableMessage;
-import chat.dim.protocol.TextContent;
 
 /**
  *  Content Processing Unit
@@ -65,16 +63,10 @@ public class BaseContentProcessor extends TwinsHelper implements ContentProcesso
     //  Convenient responding
     //
     protected List<Content> respondText(String text, ID group) {
-        TextContent res = new BaseTextContent(text);
+        Content res = new BaseTextContent(text);
         if (group != null) {
             res.setGroup(group);
         }
-        List<Content> responses = new ArrayList<>();
-        responses.add(res);
-        return responses;
-    }
-    protected List<Content> respondReceipt(String text) {
-        ReceiptCommand res = new ReceiptCommand(text);
         List<Content> responses = new ArrayList<>();
         responses.add(res);
         return responses;

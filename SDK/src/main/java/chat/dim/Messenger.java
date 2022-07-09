@@ -46,7 +46,6 @@ import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.LoginCommand;
 import chat.dim.protocol.MuteCommand;
-import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 import chat.dim.protocol.StorageCommand;
@@ -193,7 +192,6 @@ public abstract class Messenger extends Transceiver implements CipherKeyDelegate
         //
         //  Register command factories
         //
-        Command.setFactory(Command.RECEIPT, ReceiptCommand::new);
         Command.setFactory(Command.HANDSHAKE, HandshakeCommand::new);
         Command.setFactory(Command.LOGIN, LoginCommand::new);
 
