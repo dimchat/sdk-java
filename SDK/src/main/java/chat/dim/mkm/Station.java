@@ -30,28 +30,145 @@
  */
 package chat.dim.mkm;
 
+import java.util.List;
+
+import chat.dim.protocol.Address;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
+import chat.dim.protocol.Meta;
 import chat.dim.protocol.NetworkType;
+import chat.dim.protocol.Visa;
 
 /**
  *  DIM Server
  */
-public class Station extends BaseUser {
+public class Station implements User {
+
+    public static ID ANY = ID.create("station", Address.ANYWHERE, null);
+
+    // inner user
+    private User user;
 
     private String host;
     private int port;
+
+    public Station(ID identifier, String host, int port) {
+        super();
+        assert NetworkType.STATION.equals(identifier.getType()) : "station ID error: " + identifier;
+        this.user = new BaseUser(identifier);
+        this.host = host;
+        this.port = port;
+    }
 
     public Station(ID identifier) {
         this(identifier, null, 0);
     }
 
-    public Station(ID identifier, String host, int port) {
-        super(identifier);
-        assert NetworkType.STATION.equals(identifier.getType()) : "station ID error: " + identifier;
+    public Station(String host, int port) {
+        super();
+        this.user = new BaseUser(ANY);
         this.host = host;
         this.port = port;
     }
+
+    @Override
+    public boolean equals(Object other) {
+        if (super.equals(other)) {
+            // same object
+            return true;
+        } else {
+            // check with inner user
+            return user.equals(other);
+        }
+    }
+
+    @Override
+    public String toString() {
+        String clazzName = getClass().getSimpleName();
+        return "<" + clazzName + "|" + getType() + " " + getIdentifier() + ">";
+    }
+
+    public void setIdentifier(ID identifier) {
+        DataSource delegate = getDataSource();
+        user = new BaseUser(identifier);
+        user.setDataSource(delegate);
+    }
+
+    //-------- Entity
+
+    @Override
+    public ID getIdentifier() {
+        return user.getIdentifier();
+    }
+
+    @Override
+    public byte getType() {
+        return user.getType();
+    }
+
+    @Override
+    public void setDataSource(Entity.DataSource dataSource) {
+        user.setDataSource(dataSource);
+    }
+
+    @Override
+    public User.DataSource getDataSource() {
+        return (DataSource) user.getDataSource();
+    }
+
+    @Override
+    public Meta getMeta() {
+        return user.getMeta();
+    }
+
+    @Override
+    public Document getDocument(String type) {
+        return user.getDocument(type);
+    }
+
+    //-------- User
+
+    @Override
+    public Visa getVisa() {
+        return user.getVisa();
+    }
+
+    @Override
+    public List<ID> getContacts() {
+        return user.getContacts();
+    }
+
+    @Override
+    public boolean verify(byte[] data, byte[] signature) {
+        return user.verify(data, signature);
+    }
+
+    @Override
+    public byte[] encrypt(byte[] plaintext) {
+        return user.encrypt(plaintext);
+    }
+
+    @Override
+    public byte[] sign(byte[] data) {
+        return user.sign(data);
+    }
+
+    @Override
+    public byte[] decrypt(byte[] ciphertext) {
+        return user.decrypt(ciphertext);
+    }
+
+    @Override
+    public Visa sign(Visa doc) {
+        return user.sign(doc);
+    }
+
+    @Override
+    public boolean verify(Visa doc) {
+        return user.verify(doc);
+    }
+
+    //-------- Server
 
     /**
      *  Station IP
@@ -68,7 +185,7 @@ public class Station extends BaseUser {
                 }
             }
             if (host == null) {
-                host = "0.0.0.0";
+                host = "127.0.0.1";
             }
         }
         return host;
