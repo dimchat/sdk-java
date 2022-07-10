@@ -36,7 +36,6 @@ import chat.dim.core.Packer;
 import chat.dim.core.Processor;
 import chat.dim.core.Transceiver;
 import chat.dim.crypto.SymmetricKey;
-import chat.dim.protocol.BlockCommand;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
@@ -44,11 +43,8 @@ import chat.dim.protocol.CustomizedContent;
 import chat.dim.protocol.HandshakeCommand;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
-import chat.dim.protocol.LoginCommand;
-import chat.dim.protocol.MuteCommand;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
-import chat.dim.protocol.StorageCommand;
 
 public abstract class Messenger extends Transceiver implements CipherKeyDelegate, Packer, Processor {
 
@@ -190,17 +186,8 @@ public abstract class Messenger extends Transceiver implements CipherKeyDelegate
         Content.setFactory(ContentType.APPLICATION, CustomizedContent::new);
 
         //
-        //  Register command factories
+        //  Register command factory
         //
         Command.setFactory(Command.HANDSHAKE, HandshakeCommand::new);
-        Command.setFactory(Command.LOGIN, LoginCommand::new);
-
-        Command.setFactory(MuteCommand.MUTE, MuteCommand::new);
-        Command.setFactory(BlockCommand.BLOCK, BlockCommand::new);
-
-        // storage (contacts, private_key)
-        Command.setFactory(StorageCommand.STORAGE, StorageCommand::new);
-        Command.setFactory(StorageCommand.CONTACTS, StorageCommand::new);
-        Command.setFactory(StorageCommand.PRIVATE_KEY, StorageCommand::new);
     }
 }
