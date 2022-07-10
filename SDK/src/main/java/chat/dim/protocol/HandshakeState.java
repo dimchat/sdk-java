@@ -30,43 +30,13 @@
  */
 package chat.dim.protocol;
 
-import chat.dim.dkd.BaseHandshakeCommand;
-
 /**
- *  Command message: {
- *      type : 0x88,
- *      sn   : 123,
- *
- *      command : "handshake",    // command name
- *      message : "Hello world!",
- *      session : "{SESSION_KEY}" // session key
- *  }
+ *  Handshake State
+ *  ~~~~~~~~~~~~~~~
  */
-public interface HandshakeCommand extends Command {
-
-    String getMessage();
-
-    String getSessionKey();
-
-    HandshakeState getState();
-
-    //
-    //  Factories
-    //
-
-    static HandshakeCommand start() {
-        return new BaseHandshakeCommand("Hello world!", null);
-    }
-
-    static HandshakeCommand restart(String sessionKey) {
-        return new BaseHandshakeCommand("Hello world!", sessionKey);
-    }
-
-    static HandshakeCommand again(String sessionKey) {
-        return new BaseHandshakeCommand("DIM?", sessionKey);
-    }
-
-    static HandshakeCommand success(String sessionKey) {
-        return new BaseHandshakeCommand("DIM!", sessionKey);
-    }
+public enum HandshakeState {
+    START,    // C -> S, without session key(or session expired)
+    AGAIN,    // S -> C, with new session key
+    RESTART,  // C -> S, with new session key
+    SUCCESS,  // S -> C, handshake accepted
 }

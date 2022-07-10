@@ -36,11 +36,11 @@ import chat.dim.core.Packer;
 import chat.dim.core.Processor;
 import chat.dim.core.Transceiver;
 import chat.dim.crypto.SymmetricKey;
+import chat.dim.dkd.AppCustomizedContent;
+import chat.dim.dkd.BaseHandshakeCommand;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
-import chat.dim.protocol.CustomizedContent;
-import chat.dim.protocol.HandshakeCommand;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
@@ -182,12 +182,12 @@ public abstract class Messenger extends Transceiver implements CipherKeyDelegate
         //
         //  Register content factories
         //
-        Content.setFactory(ContentType.CUSTOMIZED, CustomizedContent::new);
-        Content.setFactory(ContentType.APPLICATION, CustomizedContent::new);
+        Content.setFactory(ContentType.CUSTOMIZED, AppCustomizedContent::new);
+        Content.setFactory(ContentType.APPLICATION, AppCustomizedContent::new);
 
         //
         //  Register command factory
         //
-        Command.setFactory(Command.HANDSHAKE, HandshakeCommand::new);
+        Command.setFactory(Command.HANDSHAKE, BaseHandshakeCommand::new);
     }
 }

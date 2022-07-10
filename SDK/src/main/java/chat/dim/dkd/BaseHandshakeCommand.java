@@ -28,9 +28,12 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.protocol;
+package chat.dim.dkd;
 
-import chat.dim.dkd.BaseHandshakeCommand;
+import java.util.Map;
+
+import chat.dim.protocol.HandshakeCommand;
+import chat.dim.protocol.HandshakeState;
 
 /**
  *  Command message: {
@@ -42,31 +45,58 @@ import chat.dim.dkd.BaseHandshakeCommand;
  *      session : "{SESSION_KEY}" // session key
  *  }
  */
-public interface HandshakeCommand extends Command {
+public class BaseHandshakeCommand extends BaseCommand implements HandshakeCommand {
 
-    String getMessage();
+    private final String message;
+    private final String sessionKey;
+    private final HandshakeState state;
 
-    String getSessionKey();
-
-    HandshakeState getState();
-
-    //
-    //  Factories
-    //
-
-    static HandshakeCommand start() {
-        return new BaseHandshakeCommand("Hello world!", null);
+    public BaseHandshakeCommand(Map<String, Object> dictionary) {
+        super(dictionary);
+        message    = (String) dictionary.get("message");
+        sessionKey = (String) dictionary.get("session");
+        state      = getState(message, sessionKey);
     }
 
-    static HandshakeCommand restart(String sessionKey) {
-        return new BaseHandshakeCommand("Hello world!", sessionKey);
+    public BaseHandshakeCommand(String text, String session) {
+        super(HANDSHAKE);
+        // message
+        message = text;
+        put("message", text);
+        // session key
+        sessionKey = session;
+        if (session != null) {
+            put("session", session);
+        }
+        // state
+        state = getState(text, session);
     }
 
-    static HandshakeCommand again(String sessionKey) {
-        return new BaseHandshakeCommand("DIM?", sessionKey);
+    @Override
+    public String getMessage() {
+        return message;
     }
 
-    static HandshakeCommand success(String sessionKey) {
-        return new BaseHandshakeCommand("DIM!", sessionKey);
+    @Override
+    public String getSessionKey() {
+        return sessionKey;
+    }
+
+    @Override
+    public HandshakeState getState() {
+        return state;
+    }
+
+    private static HandshakeState getState(String text, String session) {
+        assert text != null : "handshake message should not be empty";
+        if (text.equals("DIM!") || text.equals("OK!")) {
+            return HandshakeState.SUCCESS;
+        } else if (text.equals("DIM?")) {
+            return HandshakeState.AGAIN;
+        } else if (session == null) {
+            return HandshakeState.START;
+        } else {
+            return HandshakeState.RESTART;
+        }
     }
 }

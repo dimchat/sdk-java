@@ -28,7 +28,12 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.protocol;
+package chat.dim.dkd;
+
+import java.util.Map;
+
+import chat.dim.protocol.ContentType;
+import chat.dim.protocol.CustomizedContent;
 
 /**
  *  Application Customized message: {
@@ -41,14 +46,45 @@ package chat.dim.protocol;
  *      extra : info         // action parameters
  *  }
  */
-public interface CustomizedContent extends Content {
+public class AppCustomizedContent extends BaseContent implements CustomizedContent {
 
-    // get App ID
-    String getApplication();
+    public AppCustomizedContent(Map<String, Object> dictionary) {
+        super(dictionary);
+    }
 
-    // get Module name
-    String getModule();
+    protected AppCustomizedContent(ContentType type, String app, String mod) {
+        this(type.value, app, mod);
+    }
+    protected AppCustomizedContent(int type, String app, String mod) {
+        super(type);
+        if (app != null) {
+            put("app", app);
+        }
+        if (mod != null) {
+            put("mod", mod);
+        }
+    }
 
-    // get Action name
-    //String getAction();
+    public AppCustomizedContent(String app, String mod) {
+        this(ContentType.CUSTOMIZED, app, mod);
+    }
+
+    //-------- getters --------
+
+    @Override
+    public String getApplication() {
+        return (String) get("app");
+    }
+
+    @Override
+    public String getModule() {
+        return (String) get("mod");
+    }
+
+    /*/
+    @Override
+    public String getAction() {
+        return (String) get("act");
+    }
+    /*/
 }
