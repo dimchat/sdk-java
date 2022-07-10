@@ -37,7 +37,7 @@ import chat.dim.dkd.BaseHandshakeCommand;
  *      type : 0x88,
  *      sn   : 123,
  *
- *      command : "handshake",    // command name
+ *      cmd     : "handshake",    // command name
  *      message : "Hello world!",
  *      session : "{SESSION_KEY}" // session key
  *  }

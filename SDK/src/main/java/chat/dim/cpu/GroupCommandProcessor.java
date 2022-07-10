@@ -49,13 +49,13 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
         super(facebook, messenger);
     }
 
-    protected List<ID> getMembers(GroupCommand cmd) {
+    protected List<ID> getMembers(GroupCommand command) {
         // get from 'members'
-        List<ID> members = cmd.getMembers();
+        List<ID> members = command.getMembers();
         if (members == null) {
             members = new ArrayList<>();
             // get from 'member'
-            ID member = cmd.getMember();
+            ID member = command.getMember();
             if (member != null) {
                 members.add(member);
             }
@@ -66,8 +66,8 @@ public class GroupCommandProcessor extends HistoryCommandProcessor {
     @Override
     public List<Content> process(Content content, ReliableMessage rMsg) {
         assert content instanceof GroupCommand : "group command error: " + content;
-        GroupCommand cmd = (GroupCommand) content;
-        String text = String.format(FMT_GRP_CMD_NOT_SUPPORT, cmd.getCommand());
-        return respondText(text, cmd.getGroup());
+        GroupCommand command = (GroupCommand) content;
+        String text = String.format(FMT_GRP_CMD_NOT_SUPPORT, command.getCmd());
+        return respondText(text, command.getGroup());
     }
 }

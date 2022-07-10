@@ -85,8 +85,8 @@ public class ContentProcessorCreator extends TwinsHelper implements ContentProce
     }
 
     @Override
-    public ContentProcessor createCommandProcessor(int type, String command) {
-        switch (command) {
+    public ContentProcessor createCommandProcessor(int type, String name) {
+        switch (name) {
             // meta command
             case Command.META:
                 return new MetaCommandProcessor(getFacebook(), getMessenger());

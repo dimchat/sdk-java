@@ -57,7 +57,7 @@ public class ContentProcessorFactory extends TwinsHelper implements ContentProce
         ContentProcessor cpu;
         int type = content.getType();
         if (content instanceof Command) {
-            String name = ((Command) content).getCommand();
+            String name = ((Command) content).getCmd();
             // command processor
             cpu = getCommandProcessor(type, name);
             if (cpu != null) {
@@ -87,12 +87,12 @@ public class ContentProcessorFactory extends TwinsHelper implements ContentProce
     }
 
     @Override
-    public ContentProcessor getCommandProcessor(int type, String command) {
-        ContentProcessor cpu = commandProcessors.get(command);
+    public ContentProcessor getCommandProcessor(int type, String name) {
+        ContentProcessor cpu = commandProcessors.get(name);
         if (cpu == null) {
-            cpu = creator.createCommandProcessor(type, command);
+            cpu = creator.createCommandProcessor(type, name);
             if (cpu != null) {
-                commandProcessors.put(command, cpu);
+                commandProcessors.put(name, cpu);
             }
         }
         return cpu;

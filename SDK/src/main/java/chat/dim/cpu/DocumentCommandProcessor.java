@@ -86,23 +86,23 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
     @Override
     public List<Content> process(Content content, ReliableMessage rMsg) {
         assert content instanceof DocumentCommand : "document command error: " + content;
-        DocumentCommand cmd = (DocumentCommand) content;
-        ID identifier = cmd.getIdentifier();
+        DocumentCommand command = (DocumentCommand) content;
+        ID identifier = command.getIdentifier();
         if (identifier != null) {
-            Document doc = cmd.getDocument();
+            Document doc = command.getDocument();
             if (doc == null) {
                 // query entity document for ID
-                String type = (String) cmd.get("doc_type");
+                String type = (String) command.get("doc_type");
                 if (type == null) {
                     type = "*";  // ANY
                 }
                 return getDocument(identifier, type);
             } else if (identifier.equals(doc.getIdentifier())) {
                 // received a new document for ID
-                return putDocument(identifier, cmd.getMeta(), doc);
+                return putDocument(identifier, command.getMeta(), doc);
             }
         }
         // error
-        return respondText(STR_DOC_CMD_ERROR, cmd.getGroup());
+        return respondText(STR_DOC_CMD_ERROR, command.getGroup());
     }
 }

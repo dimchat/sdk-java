@@ -49,8 +49,8 @@ public class HistoryCommandProcessor extends BaseCommandProcessor {
     @Override
     public List<Content> process(Content content, ReliableMessage rMsg) {
         assert content instanceof HistoryCommand : "history command error: " + content;
-        HistoryCommand cmd = (HistoryCommand) content;
-        String text = String.format(FMT_HIS_CMD_NOT_SUPPORT, cmd.getCommand());
-        return respondText(text, cmd.getGroup());
+        HistoryCommand command = (HistoryCommand) content;
+        String text = String.format(FMT_HIS_CMD_NOT_SUPPORT, command.getCmd());
+        return respondText(text, command.getGroup());
     }
 }

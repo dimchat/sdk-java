@@ -67,10 +67,10 @@ public interface ContentProcessor {
         /**
          *  Create command processor with name
          *
-         * @param command - command name
+         * @param name - command name
          * @return CommandProcessor
          */
-        ContentProcessor createCommandProcessor(int type, String command);
+        ContentProcessor createCommandProcessor(int type, String name);
     }
 
     /**
@@ -89,6 +89,6 @@ public interface ContentProcessor {
 
         ContentProcessor getContentProcessor(int type);
 
-        ContentProcessor getCommandProcessor(int type, String command);
+        ContentProcessor getCommandProcessor(int type, String name);
     }
 }

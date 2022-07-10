@@ -40,7 +40,7 @@ import chat.dim.protocol.HandshakeState;
  *      type : 0x88,
  *      sn   : 123,
  *
- *      command : "handshake",    // command name
+ *      cmd     : "handshake",    // command name
  *      message : "Hello world!",
  *      session : "{SESSION_KEY}" // session key
  *  }
@@ -51,10 +51,10 @@ public class BaseHandshakeCommand extends BaseCommand implements HandshakeComman
     private final String sessionKey;
     private final HandshakeState state;
 
-    public BaseHandshakeCommand(Map<String, Object> dictionary) {
-        super(dictionary);
-        message    = (String) dictionary.get("message");
-        sessionKey = (String) dictionary.get("session");
+    public BaseHandshakeCommand(Map<String, Object> command) {
+        super(command);
+        message    = (String) command.get("message");
+        sessionKey = (String) command.get("session");
         state      = getState(message, sessionKey);
     }
 

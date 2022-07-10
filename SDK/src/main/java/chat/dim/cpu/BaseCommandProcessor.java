@@ -53,8 +53,8 @@ public class BaseCommandProcessor extends BaseContentProcessor {
     @Override
     public List<Content> process(Content content, ReliableMessage rMsg) {
         assert content instanceof Command : "command error: " + content;
-        Command cmd = (Command) content;
-        String text = String.format(FMT_CMD_NOT_SUPPORT, cmd.getCommand());
-        return respondText(text, cmd.getGroup());
+        Command command = (Command) content;
+        String text = String.format(FMT_CMD_NOT_SUPPORT, command.getCmd());
+        return respondText(text, command.getGroup());
     }
 }

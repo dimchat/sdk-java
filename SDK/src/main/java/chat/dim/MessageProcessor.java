@@ -70,8 +70,8 @@ public class MessageProcessor extends TwinsHelper implements Processor {
         return factory.getContentProcessor(type);
     }
 
-    public ContentProcessor getCommandProcessor(int type, String command) {
-        return factory.getCommandProcessor(type, command);
+    public ContentProcessor getCommandProcessor(int type, String name) {
+        return factory.getCommandProcessor(type, name);
     }
 
     @Override

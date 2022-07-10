@@ -56,11 +56,11 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
         // TODO: send QueryCommand to owner
     }
 
-    protected List<Content> temporarySave(GroupCommand cmd, ID sender) {
+    protected List<Content> temporarySave(GroupCommand command, ID sender) {
         Facebook facebook = getFacebook();
-        ID group = cmd.getGroup();
+        ID group = command.getGroup();
         // check whether the owner contained in the new members
-        List<ID> newMembers = getMembers(cmd);
+        List<ID> newMembers = getMembers(command);
         if (newMembers.size() == 0) {
             return respondText(STR_RESET_CMD_ERROR, group);
         }
@@ -91,17 +91,17 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
     @Override
     public List<Content> process(Content content, ReliableMessage rMsg) {
         assert content instanceof ResetCommand || content instanceof InviteCommand : "reset command error: " + content;
-        GroupCommand cmd = (GroupCommand) content;
+        GroupCommand command = (GroupCommand) content;
         Facebook facebook = getFacebook();
 
         // 0. check group
-        ID group = cmd.getGroup();
+        ID group = command.getGroup();
         ID owner = facebook.getOwner(group);
         List<ID> members = facebook.getMembers(group);
         if (owner == null || members == null || members.size() == 0) {
             // FIXME: group info lost?
             // FIXME: how to avoid strangers impersonating group member?
-            return temporarySave(cmd, rMsg.getSender());
+            return temporarySave(command, rMsg.getSender());
         }
 
         // 1. check permission
@@ -115,7 +115,7 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
         }
 
         // 2. resetting members
-        List<ID> newMembers = getMembers(cmd);
+        List<ID> newMembers = getMembers(command);
         if (newMembers.size() == 0) {
             return respondText(STR_RESET_CMD_ERROR, group);
         }
@@ -145,10 +145,10 @@ public class ResetCommandProcessor extends GroupCommandProcessor {
         if (addedList.size() > 0 || removedList.size() > 0) {
             if (facebook.saveMembers(newMembers, group)) {
                 if (addedList.size() > 0) {
-                    cmd.put("added", addedList);
+                    command.put("added", addedList);
                 }
                 if (removedList.size() > 0) {
-                    cmd.put("removed", removedList);
+                    command.put("removed", removedList);
                 }
             }
         }

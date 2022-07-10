@@ -74,12 +74,12 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
     @Override
     public List<Content> process(Content content, ReliableMessage rMsg) {
         assert content instanceof MetaCommand : "meta command error: " + content;
-        MetaCommand cmd = (MetaCommand) content;
-        Meta meta = cmd.getMeta();
-        ID identifier = cmd.getIdentifier();
+        MetaCommand command = (MetaCommand) content;
+        Meta meta = command.getMeta();
+        ID identifier = command.getIdentifier();
         if (identifier == null) {
             // error
-            return respondText(STR_META_CMD_ERROR, cmd.getGroup());
+            return respondText(STR_META_CMD_ERROR, command.getGroup());
         } else if (meta == null) {
             // query meta for ID
             return getMeta(identifier);

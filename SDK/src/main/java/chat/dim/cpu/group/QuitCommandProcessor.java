@@ -51,19 +51,19 @@ public class QuitCommandProcessor extends GroupCommandProcessor {
     }
 
     @SuppressWarnings("unused")
-    protected List<Content> removeAssistant(QuitCommand cmd, ReliableMessage rMsg) {
+    protected List<Content> removeAssistant(QuitCommand command, ReliableMessage rMsg) {
         // NOTICE: group assistant should be retired by the owner
-        return respondText(STR_ASSISTANT_CANNOT_QUIT, cmd.getGroup());
+        return respondText(STR_ASSISTANT_CANNOT_QUIT, command.getGroup());
     }
 
     @Override
     public List<Content> process(Content content, ReliableMessage rMsg) {
         assert content instanceof QuitCommand : "quit command error: " + content;
-        GroupCommand cmd = (GroupCommand) content;
+        GroupCommand command = (GroupCommand) content;
         Facebook facebook = getFacebook();
 
         // 0. check group
-        ID group = cmd.getGroup();
+        ID group = command.getGroup();
         ID owner = facebook.getOwner(group);
         List<ID> members = facebook.getMembers(group);
         if (owner == null || members == null || members.size() == 0) {
@@ -77,7 +77,7 @@ public class QuitCommandProcessor extends GroupCommandProcessor {
         }
         List<ID> assistants = facebook.getAssistants(group);
         if (assistants != null && assistants.contains(sender)) {
-            return removeAssistant((QuitCommand) cmd, rMsg);
+            return removeAssistant((QuitCommand) command, rMsg);
         }
 
         // 2. remove the sender from group members

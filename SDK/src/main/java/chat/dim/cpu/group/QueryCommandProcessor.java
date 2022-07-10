@@ -53,11 +53,11 @@ public class QueryCommandProcessor extends GroupCommandProcessor {
     @Override
     public List<Content> process(Content content, ReliableMessage rMsg) {
         assert content instanceof QueryCommand : "query command error: " + content;
-        GroupCommand cmd = (GroupCommand) content;
+        GroupCommand command = (GroupCommand) content;
         Facebook facebook = getFacebook();
 
         // 0. check group
-        ID group = cmd.getGroup();
+        ID group = command.getGroup();
         ID owner = facebook.getOwner(group);
         List<ID> members = facebook.getMembers(group);
         if (owner == null || members == null || members.size() == 0) {

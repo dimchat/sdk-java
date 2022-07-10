@@ -53,17 +53,17 @@ public class InviteCommandProcessor extends ResetCommandProcessor {
     @Override
     public List<Content> process(Content content, ReliableMessage rMsg) {
         assert content instanceof InviteCommand : "invite command error: " + content;
-        GroupCommand cmd = (GroupCommand) content;
+        GroupCommand command = (GroupCommand) content;
         Facebook facebook = getFacebook();
 
         // 0. check group
-        ID group = cmd.getGroup();
+        ID group = command.getGroup();
         ID owner = facebook.getOwner(group);
         List<ID> members = facebook.getMembers(group);
         if (owner == null || members == null || members.size() == 0) {
             // NOTICE: group membership lost?
             //         reset group members
-            return temporarySave(cmd, rMsg.getSender());
+            return temporarySave(command, rMsg.getSender());
         }
 
         // 1. check permission
@@ -77,7 +77,7 @@ public class InviteCommandProcessor extends ResetCommandProcessor {
         }
 
         // 2. inviting members
-        List<ID> inviteList = getMembers(cmd);
+        List<ID> inviteList = getMembers(command);
         if (inviteList.size() == 0) {
             return respondText(STR_INVITE_CMD_ERROR, group);
         }
@@ -85,7 +85,7 @@ public class InviteCommandProcessor extends ResetCommandProcessor {
         if (sender.equals(owner) && inviteList.contains(owner)) {
             // NOTICE: owner invites owner?
             //         it means this should be a 'reset' command
-            return temporarySave(cmd, rMsg.getSender());
+            return temporarySave(command, rMsg.getSender());
         }
         // 2.2. build invited-list
         List<String> addedList = new ArrayList<>();
@@ -100,7 +100,7 @@ public class InviteCommandProcessor extends ResetCommandProcessor {
         // 2.3. do invite
         if (addedList.size() > 0) {
             if (facebook.saveMembers(members, group)) {
-                cmd.put("added", addedList);
+                command.put("added", addedList);
             }
         }
 

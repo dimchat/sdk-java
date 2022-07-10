@@ -48,8 +48,8 @@ import chat.dim.protocol.CustomizedContent;
  */
 public class AppCustomizedContent extends BaseContent implements CustomizedContent {
 
-    public AppCustomizedContent(Map<String, Object> dictionary) {
-        super(dictionary);
+    public AppCustomizedContent(Map<String, Object> content) {
+        super(content);
     }
 
     protected AppCustomizedContent(ContentType type, String app, String mod) {

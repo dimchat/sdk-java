@@ -55,11 +55,11 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
     @Override
     public List<Content> process(Content content, ReliableMessage rMsg) {
         assert content instanceof ExpelCommand : "expel command error: " + content;
-        GroupCommand cmd = (GroupCommand) content;
+        GroupCommand command = (GroupCommand) content;
         Facebook facebook = getFacebook();
 
         // 0. check group
-        ID group = cmd.getGroup();
+        ID group = command.getGroup();
         ID owner = facebook.getOwner(group);
         List<ID> members = facebook.getMembers(group);
         if (owner == null || members == null || members.size() == 0) {
@@ -77,7 +77,7 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
         }
 
         // 2. expelling members
-        List<ID> expelList = getMembers(cmd);
+        List<ID> expelList = getMembers(command);
         if (expelList.size() == 0) {
             return respondText(STR_EXPEL_CMD_ERROR, group);
         }
@@ -98,7 +98,7 @@ public class ExpelCommandProcessor extends GroupCommandProcessor {
         // 2.3. do expelling
         if (removedList.size() > 0) {
             if (facebook.saveMembers(members, group)) {
-                cmd.put("removed", removedList);
+                command.put("removed", removedList);
             }
         }
 
