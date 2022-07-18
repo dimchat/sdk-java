@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  DIMP : Decentralized Instant Messaging Protocol
+ *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
  *                                Written in 2019 by Moky <albert.moky@gmail.com>
  *
@@ -28,45 +28,29 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.protocol;
+package chat.dim.core;
 
-import chat.dim.dkd.BaseHandshakeCommand;
+import chat.dim.crypto.SymmetricKey;
+import chat.dim.protocol.ID;
 
-/**
- *  Command message: {
- *      type : 0x88,
- *      sn   : 123,
- *
- *      cmd     : "handshake",    // command name
- *      message : "Hello world!",
- *      session : "{SESSION_KEY}" // session key
- *  }
- */
-public interface HandshakeCommand extends Command {
+public interface CipherKeyDelegate {
 
-    String getMessage();
+    /**
+     *  Get cipher key for encrypt message from 'sender' to 'receiver'
+     *
+     * @param sender - from where (user or contact ID)
+     * @param receiver - to where (contact or user/group ID)
+     * @param generate - generate when key not exists
+     * @return cipher key
+     */
+    SymmetricKey getCipherKey(ID sender, ID receiver, boolean generate);
 
-    String getSessionKey();
-
-    HandshakeState getState();
-
-    //
-    //  Factories
-    //
-
-    static HandshakeCommand start() {
-        return new BaseHandshakeCommand("Hello world!", null);
-    }
-
-    static HandshakeCommand restart(String sessionKey) {
-        return new BaseHandshakeCommand("Hello world!", sessionKey);
-    }
-
-    static HandshakeCommand again(String sessionKey) {
-        return new BaseHandshakeCommand("DIM?", sessionKey);
-    }
-
-    static HandshakeCommand success(String sessionKey) {
-        return new BaseHandshakeCommand("DIM!", sessionKey);
-    }
+    /**
+     *  Cache cipher key for reusing, with the direction (from 'sender' to 'receiver')
+     *
+     * @param sender - from where (user or contact ID)
+     * @param receiver - to where (contact or user/group ID)
+     * @param key - cipher key
+     */
+    void cacheCipherKey(ID sender, ID receiver, SymmetricKey key);
 }

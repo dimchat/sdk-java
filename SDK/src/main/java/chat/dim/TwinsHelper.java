@@ -32,7 +32,7 @@ package chat.dim;
 
 import java.lang.ref.WeakReference;
 
-public class TwinsHelper {
+public abstract class TwinsHelper {
 
     private final WeakReference<Facebook> facebookRef;
     private final WeakReference<Messenger> messengerRef;

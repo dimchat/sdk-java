@@ -32,13 +32,12 @@ package chat.dim;
 
 import java.util.List;
 
+import chat.dim.core.CipherKeyDelegate;
 import chat.dim.core.Packer;
 import chat.dim.core.Processor;
 import chat.dim.core.Transceiver;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.dkd.AppCustomizedContent;
-import chat.dim.dkd.BaseHandshakeCommand;
-import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
 import chat.dim.protocol.ID;
@@ -180,14 +179,9 @@ public abstract class Messenger extends Transceiver implements CipherKeyDelegate
         registerCommandFactories();
 
         //
-        //  Register content factories
+        //  Register customized factories
         //
         Content.setFactory(ContentType.CUSTOMIZED, AppCustomizedContent::new);
         Content.setFactory(ContentType.APPLICATION, AppCustomizedContent::new);
-
-        //
-        //  Register command factory
-        //
-        Command.setFactory(Command.HANDSHAKE, BaseHandshakeCommand::new);
     }
 }
