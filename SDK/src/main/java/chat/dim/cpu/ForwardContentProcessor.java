@@ -52,14 +52,20 @@ public class ForwardContentProcessor extends BaseContentProcessor {
         List<ReliableMessage> secrets = forward.getSecrets();
         // call messenger to process it
         Messenger messenger = getMessenger();
-        List<ReliableMessage> responses = new ArrayList<>();
+        List<Content> responses = new ArrayList<>();
+        Content res;
         List<ReliableMessage> results;
         for (ReliableMessage item : secrets) {
             results = messenger.processMessage(item);
-            if (results != null/* && results.size() > 0*/) {
-                responses.addAll(results);
+            if (results == null) {
+               res = ForwardContent.forward(new ArrayList<>());
+            } else if (results.size() == 1) {
+                res = ForwardContent.forward(results.get(0));
+            } else {
+                res = ForwardContent.forward(results);
             }
+            responses.add(res);
         }
-        return respondContent(ForwardContent.forward(responses));
+        return responses.size() > 0 ? responses : null;
     }
 }

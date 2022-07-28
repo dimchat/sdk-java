@@ -35,6 +35,7 @@ import java.util.List;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
+import chat.dim.dkd.ListContent;
 import chat.dim.protocol.ArrayContent;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ReliableMessage;
@@ -52,12 +53,18 @@ public class ArrayContentProcessor extends BaseContentProcessor {
         // call messenger to process it
         Messenger messenger = getMessenger();
         List<Content> responses = new ArrayList<>();
+        Content res;
         List<Content> results;
         for (Content item : array) {
             results = messenger.processContent(item, rMsg);
-            if (results != null/* && results.size() > 0*/) {
-                responses.addAll(results);
+            if (results == null) {
+                res = new ListContent(new ArrayList<>());
+            } else if (results.size() == 1) {
+                res = results.get(0);
+            } else {
+                res = new ListContent(results);
             }
+            responses.add(res);
         }
         return responses.size() > 0 ? responses : null;
     }
