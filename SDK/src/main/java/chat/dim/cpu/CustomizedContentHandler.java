@@ -46,11 +46,11 @@ public interface CustomizedContentHandler {
     /**
      *  Do your job
      *
-     * @param mod     - module name
+     * @param act     - action
      * @param sender  - user ID
      * @param content - customized content
      * @param rMsg    - network message
      * @return responses
      */
-    List<Content> handle(String mod, ID sender, CustomizedContent content, ReliableMessage rMsg);
+    List<Content> handleAction(String act, ID sender, CustomizedContent content, ReliableMessage rMsg);
 }
