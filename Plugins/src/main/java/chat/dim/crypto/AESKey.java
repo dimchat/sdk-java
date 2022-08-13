@@ -107,9 +107,6 @@ final class AESKey extends Dictionary implements SymmetricKey {
 
     private byte[] getInitVector() {
         Object iv = get("iv");
-        if (iv == null) {
-            iv = get("I");
-        }
         if (iv != null) {
             return Base64.decode((String) iv);
         }
@@ -123,9 +120,6 @@ final class AESKey extends Dictionary implements SymmetricKey {
     @Override
     public byte[] getData() {
         Object data = get("data");
-        if (data == null) {
-            data = get("D");
-        }
         if (data != null) {
             return Base64.decode((String) data);
         }
