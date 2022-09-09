@@ -38,10 +38,10 @@ import java.util.Map;
 import chat.dim.core.Barrack;
 import chat.dim.mkm.BaseGroup;
 import chat.dim.mkm.BaseUser;
+import chat.dim.mkm.Bot;
 import chat.dim.mkm.Chatroom;
 import chat.dim.mkm.Group;
 import chat.dim.mkm.Polylogue;
-import chat.dim.mkm.Robot;
 import chat.dim.mkm.ServiceProvider;
 import chat.dim.mkm.Station;
 import chat.dim.mkm.User;
@@ -197,8 +197,8 @@ public abstract class Facebook extends Barrack {
         if (NetworkType.MAIN.equals(type) || NetworkType.BTC_MAIN.equals(type)) {
             return new BaseUser(identifier);
         }
-        if (NetworkType.ROBOT.equals(type)) {
-            return new Robot(identifier);
+        if (NetworkType.BOT.equals(type)) {
+            return new Bot(identifier);
         }
         if (NetworkType.STATION.equals(type)) {
             return new Station(identifier);

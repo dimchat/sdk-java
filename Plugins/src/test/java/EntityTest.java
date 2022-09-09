@@ -26,7 +26,7 @@ public class EntityTest {
     private String getAddressInfo(Address address) {
         Map<String, Object> info = new HashMap<>();
         info.put("type", address.getNetwork());
-        byte network = NetworkType.ROBOT.value;
+        byte network = NetworkType.BOT.value;
         int result = network & NetworkType.THING.value;
         Assert.assertEquals(result, NetworkType.THING.value);
         return info.toString();
@@ -71,10 +71,10 @@ public class EntityTest {
 //        address = BTCAddress.parse("4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ");
 //        Log.info("address: " + address + ", detail: " + getAddressInfo(address));
 
-        NetworkType robot = NetworkType.ROBOT;
-        Log.info("robot type: " + robot.value);
-        Log.info("robot type: " + robot.value);
-        Assert.assertEquals((byte) 0xC8, robot.value);
+        NetworkType bot = NetworkType.BOT;
+        Log.info("bot type: " + bot.value);
+        Log.info("bot type: " + bot.value);
+        Assert.assertEquals((byte) 0xC8, bot.value);
 
 //        address = BTCAddress.parse(satoshi);
 //        Log.info("satoshi: " + address);

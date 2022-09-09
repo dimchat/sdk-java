@@ -38,7 +38,7 @@ import java.util.Map;
 import chat.dim.core.AddressNameService;
 import chat.dim.protocol.ID;
 
-public class AddressNameServer implements AddressNameService {
+public abstract class AddressNameServer implements AddressNameService {
 
     private final Map<String, Boolean> reserved = new HashMap<>();
     private final Map<String, ID> caches = new HashMap<>();
@@ -103,10 +103,11 @@ public class AddressNameServer implements AddressNameService {
         }
         return array;
     }
-
+    /*/
     @Override
     public boolean save(String name, ID identifier) {
         // override to save this record into local storage
         return cache(name, identifier);
     }
+    /*/
 }

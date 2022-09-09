@@ -34,12 +34,12 @@ import chat.dim.protocol.ID;
 import chat.dim.protocol.NetworkType;
 
 /**
- *  Robot User
+ *  Bot User
  */
-public class Robot extends BaseUser {
+public class Bot extends BaseUser {
 
-    public Robot(ID identifier) {
+    public Bot(ID identifier) {
         super(identifier);
-        assert NetworkType.ROBOT.equals(identifier.getType()) : "robot ID error: " + identifier;
+        assert NetworkType.BOT.equals(identifier.getType()) : "bot ID error: " + identifier;
     }
 }
