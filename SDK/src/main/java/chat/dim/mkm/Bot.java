@@ -30,8 +30,8 @@
  */
 package chat.dim.mkm;
 
+import chat.dim.protocol.EntityType;
 import chat.dim.protocol.ID;
-import chat.dim.protocol.NetworkType;
 
 /**
  *  Bot User
@@ -40,6 +40,6 @@ public class Bot extends BaseUser {
 
     public Bot(ID identifier) {
         super(identifier);
-        assert NetworkType.BOT.equals(identifier.getType()) : "bot ID error: " + identifier;
+        assert EntityType.BOT.equals(identifier.getType()) : "bot ID error: " + identifier;
     }
 }

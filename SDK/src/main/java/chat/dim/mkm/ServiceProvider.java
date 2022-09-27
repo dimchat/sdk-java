@@ -32,8 +32,8 @@ package chat.dim.mkm;
 
 import java.util.List;
 
+import chat.dim.protocol.EntityType;
 import chat.dim.protocol.ID;
-import chat.dim.protocol.NetworkType;
 
 /**
  *  DIM Station Owner
@@ -42,7 +42,7 @@ public class ServiceProvider extends BaseGroup {
 
     public ServiceProvider(ID identifier) {
         super(identifier);
-        assert NetworkType.PROVIDER.equals(identifier.getType()) : "SP ID error: " + identifier;
+        assert EntityType.ISP.equals(identifier.getType()) : "SP ID error: " + identifier;
     }
 
     public List<ID> getStations() {

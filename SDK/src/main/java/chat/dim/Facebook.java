@@ -39,16 +39,14 @@ import chat.dim.core.Barrack;
 import chat.dim.mkm.BaseGroup;
 import chat.dim.mkm.BaseUser;
 import chat.dim.mkm.Bot;
-import chat.dim.mkm.Chatroom;
 import chat.dim.mkm.Group;
-import chat.dim.mkm.Polylogue;
 import chat.dim.mkm.ServiceProvider;
 import chat.dim.mkm.Station;
 import chat.dim.mkm.User;
 import chat.dim.protocol.Document;
+import chat.dim.protocol.EntityType;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
-import chat.dim.protocol.NetworkType;
 
 public abstract class Facebook extends Barrack {
 
@@ -142,7 +140,7 @@ public abstract class Facebook extends Barrack {
             // check by owner
             ID owner = getOwner(identifier);
             if (owner == null) {
-                if (NetworkType.POLYLOGUE.equals(identifier.getType())) {
+                if (EntityType.GROUP.equals(identifier.getType())) {
                     // NOTICE: if this is a polylogue document,
                     //             verify it with the founder's meta.key
                     //             (which equals to the group's meta.key)
@@ -178,7 +176,7 @@ public abstract class Facebook extends Barrack {
     }
 
     public boolean isOwner(ID member, ID group) {
-        if (NetworkType.POLYLOGUE.equals(group.getType())) {
+        if (EntityType.GROUP.equals(group.getType())) {
             return isFounder(member, group);
         }
         throw new UnsupportedOperationException("only Polylogue so far");
@@ -192,18 +190,16 @@ public abstract class Facebook extends Barrack {
         // make sure meta exists
         assert getMeta(identifier) != null : "meta not found for user: " + identifier;
         // TODO: make sure visa key exists before calling this
-        // check user type
         byte type = identifier.getType();
-        if (NetworkType.MAIN.equals(type) || NetworkType.BTC_MAIN.equals(type)) {
-            return new BaseUser(identifier);
-        }
-        if (NetworkType.BOT.equals(type)) {
-            return new Bot(identifier);
-        }
-        if (NetworkType.STATION.equals(type)) {
+        // check user type
+        if (EntityType.STATION.equals(type)) {
             return new Station(identifier);
         }
-        throw new TypeNotPresentException("Unsupported user type: " + type, null);
+        if (EntityType.BOT.equals(type)) {
+            return new Bot(identifier);
+        }
+        //assert EntityType.USER.equals(type) : "Unsupported user type: " + type;
+        return new BaseUser(identifier);
     }
 
     protected Group createGroup(ID identifier) {
@@ -213,18 +209,13 @@ public abstract class Facebook extends Barrack {
         }
         // make sure meta exists
         assert getMeta(identifier) != null : "meta not found for group: " + identifier;
-        // check group type
         byte type = identifier.getType();
-        if (NetworkType.POLYLOGUE.equals(type)) {
-            return new Polylogue(identifier);
-        }
-        if (NetworkType.CHATROOM.equals(type)) {
-            return new Chatroom(identifier);
-        }
-        if (NetworkType.PROVIDER.equals(type)) {
+        // check group type
+        if (EntityType.ISP.equals(type)) {
             return new ServiceProvider(identifier);
         }
-        throw new TypeNotPresentException("Unsupported group type: " + type, null);
+        //assert EntityType.GROUP.equals(type) : "Unsupported group type: " + type;
+        return new BaseGroup(identifier);
     }
 
     /**

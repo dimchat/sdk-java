@@ -34,9 +34,9 @@ import java.util.List;
 
 import chat.dim.protocol.Address;
 import chat.dim.protocol.Document;
+import chat.dim.protocol.EntityType;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
-import chat.dim.protocol.NetworkType;
 import chat.dim.protocol.Visa;
 
 /**
@@ -54,7 +54,7 @@ public class Station implements User {
 
     public Station(ID identifier, String host, int port) {
         super();
-        assert NetworkType.STATION.equals(identifier.getType()) : "station ID error: " + identifier;
+        assert EntityType.STATION.equals(identifier.getType()) : "station ID error: " + identifier;
         this.user = new BaseUser(identifier);
         this.host = host;
         this.port = port;
