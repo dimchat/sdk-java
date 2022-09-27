@@ -34,8 +34,8 @@ import java.util.Map;
 
 import chat.dim.crypto.VerifyKey;
 import chat.dim.protocol.Address;
+import chat.dim.protocol.EntityType;
 import chat.dim.protocol.MetaType;
-import chat.dim.protocol.NetworkType;
 
 /**
  *  Meta to build ETH address for ID
@@ -68,7 +68,7 @@ final class ETHMeta extends BaseMeta {
 
     @Override
     public Address generateAddress(byte type) {
-        assert NetworkType.MAIN.equals(type) : "ETH address type error: " + type;
+        assert EntityType.USER.equals(type) : "ETH address type error: " + type;
         assert MetaType.ETH.equals(getType()) || MetaType.ExETH.equals(getType()) : "meta version error";
         if (cachedAddress == null) {
             // generate and cache it

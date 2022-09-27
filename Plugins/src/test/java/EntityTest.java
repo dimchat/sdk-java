@@ -15,7 +15,7 @@ import chat.dim.protocol.Address;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
-import chat.dim.protocol.NetworkType;
+import chat.dim.protocol.NetworkID;
 import chat.dim.protocol.Visa;
 
 public class EntityTest {
@@ -25,10 +25,10 @@ public class EntityTest {
 
     private String getAddressInfo(Address address) {
         Map<String, Object> info = new HashMap<>();
-        info.put("type", address.getNetwork());
-        byte network = NetworkType.BOT.value;
-        int result = network & NetworkType.THING.value;
-        Assert.assertEquals(result, NetworkType.THING.value);
+        info.put("type", address.getType());
+        byte network = NetworkID.BOT.value;
+        int result = network & NetworkID.THING.value;
+        Assert.assertEquals(result, NetworkID.THING.value);
         return info.toString();
     }
 
@@ -71,7 +71,7 @@ public class EntityTest {
 //        address = BTCAddress.parse("4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ");
 //        Log.info("address: " + address + ", detail: " + getAddressInfo(address));
 
-        NetworkType bot = NetworkType.BOT;
+        NetworkID bot = NetworkID.BOT;
         Log.info("bot type: " + bot.value);
         Log.info("bot type: " + bot.value);
         Assert.assertEquals((byte) 0xC8, bot.value);
@@ -107,7 +107,7 @@ public class EntityTest {
 //        Log.info("meta: " + meta + ", detail: " + getMetaInfo(meta));
 //        Assert.assertTrue(meta.matches(pk));
 //
-//        ID identifier = meta.generateID(NetworkType.Main);
+//        ID identifier = meta.generateID(NetworkID.Main);
 //        Log.info("ID: " + identifier + ", detail: " + getIDInfo(identifier));
 //        Assert.assertTrue(meta.matches(identifier));
 //

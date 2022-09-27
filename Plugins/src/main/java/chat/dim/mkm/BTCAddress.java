@@ -36,7 +36,8 @@ import chat.dim.digest.RIPEMD160;
 import chat.dim.digest.SHA256;
 import chat.dim.format.Base58;
 import chat.dim.protocol.Address;
-import chat.dim.protocol.NetworkType;
+import chat.dim.protocol.EntityType;
+import chat.dim.protocol.NetworkID;
 import chat.dim.type.ConstantString;
 
 /**
@@ -55,16 +56,17 @@ import chat.dim.type.ConstantString;
  */
 public final class BTCAddress extends ConstantString implements Address {
 
-    private final byte network;
+    private final byte type;
 
     private BTCAddress(String string, byte network) {
         super(string);
-        this.network = network;
+        // compatible with MKM 0.9.*
+        type = NetworkID.getType(network);
     }
 
     @Override
-    public byte getNetwork() {
-        return network;
+    public byte getType() {
+        return type;
     }
 
     @Override
@@ -74,12 +76,12 @@ public final class BTCAddress extends ConstantString implements Address {
 
     @Override
     public boolean isUser() {
-        return NetworkType.isUser(network);
+        return EntityType.isUser(type);
     }
 
     @Override
     public boolean isGroup() {
-        return NetworkType.isGroup(network);
+        return EntityType.isGroup(type);
     }
 
     /**

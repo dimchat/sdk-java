@@ -33,7 +33,7 @@ package chat.dim.mkm;
 import chat.dim.digest.Keccak256;
 import chat.dim.format.Hex;
 import chat.dim.protocol.Address;
-import chat.dim.protocol.NetworkType;
+import chat.dim.protocol.EntityType;
 import chat.dim.type.ConstantString;
 
 /**
@@ -53,8 +53,8 @@ public final class ETHAddress extends ConstantString implements Address {
     }
 
     @Override
-    public byte getNetwork() {
-        return NetworkType.MAIN.value;
+    public byte getType() {
+        return EntityType.USER.value;
     }
 
     @Override

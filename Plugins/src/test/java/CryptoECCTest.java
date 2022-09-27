@@ -81,7 +81,7 @@ public class CryptoECCTest {
         byte[] pub = pKey.getData();
         Log.info("pub: " + Hex.encode(pub));
 
-//        BTCAddress btc = BTCAddress.generate(pub, NetworkType.BTCMain.value);
+//        BTCAddress btc = BTCAddress.generate(pub, NetworkID.BTCMain.value);
 //        Log.info("BTC address: " + btc.toString());
 //
 //        ETHAddress eth = ETHAddress.generate(pub);

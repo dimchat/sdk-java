@@ -12,7 +12,7 @@ import chat.dim.format.UTF8;
 
 public class CryptoTest {
 
-    private static Facebook facebook = Facebook.getInstance();
+    private static final Facebook facebook = Facebook.getInstance();
 
     @Test
     public void testHash() {
@@ -99,7 +99,7 @@ public class CryptoTest {
 //    private void checkX(String metaJson, String skJson) throws ClassNotFoundException {
 //        Object metaDict = JSON.decode(UTF8.encode(metaJson));
 //        Meta meta = Entity.parseMeta(metaDict);
-//        ID identifier = meta.generateID(NetworkType.Main);
+//        ID identifier = meta.generateID(NetworkID.Main);
 //        Log.info("meta: " + meta);
 //        Log.info("ID: " + identifier);
 //
