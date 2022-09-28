@@ -190,12 +190,11 @@ public abstract class Facebook extends Barrack {
         // make sure meta exists
         assert getMeta(identifier) != null : "meta not found for user: " + identifier;
         // TODO: make sure visa key exists before calling this
-        byte type = identifier.getType();
+        int type = identifier.getType();
         // check user type
         if (EntityType.STATION.equals(type)) {
             return new Station(identifier);
-        }
-        if (EntityType.BOT.equals(type)) {
+        } else if (EntityType.BOT.equals(type)) {
             return new Bot(identifier);
         }
         //assert EntityType.USER.equals(type) : "Unsupported user type: " + type;
@@ -209,7 +208,7 @@ public abstract class Facebook extends Barrack {
         }
         // make sure meta exists
         assert getMeta(identifier) != null : "meta not found for group: " + identifier;
-        byte type = identifier.getType();
+        int type = identifier.getType();
         // check group type
         if (EntityType.ISP.equals(type)) {
             return new ServiceProvider(identifier);

@@ -67,7 +67,7 @@ final class ETHMeta extends BaseMeta {
     private Address cachedAddress = null;
 
     @Override
-    public Address generateAddress(byte type) {
+    public Address generateAddress(int type) {
         assert EntityType.USER.equals(type) : "ETH address type error: " + type;
         assert MetaType.ETH.equals(getType()) || MetaType.ExETH.equals(getType()) : "meta version error";
         if (cachedAddress == null) {

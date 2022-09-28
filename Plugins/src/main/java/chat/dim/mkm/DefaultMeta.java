@@ -63,14 +63,15 @@ final class DefaultMeta extends BaseMeta {
     private final Map<Byte, Address> cachedAddresses = new HashMap<>();
 
     @Override
-    public Address generateAddress(byte type) {
+    public Address generateAddress(int type) {
         assert MetaType.MKM.equals(getType()) : "meta version error: " + getType();
+        byte network = (byte) type;
         // check caches
-        Address address = cachedAddresses.get(type);
+        Address address = cachedAddresses.get(network);
         if (address == null) {
             // generate and cache it
-            address = BTCAddress.generate(getFingerprint(), type);
-            cachedAddresses.put(type, address);
+            address = BTCAddress.generate(getFingerprint(), network);
+            cachedAddresses.put(network, address);
         }
         return address;
     }

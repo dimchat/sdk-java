@@ -68,14 +68,15 @@ final class BTCMeta extends BaseMeta {
     private Address cachedAddress = null;
 
     @Override
-    public Address generateAddress(byte type) {
+    public Address generateAddress(int type) {
         assert NetworkID.BTC_MAIN.equals(type) : "BTC address type error: " + type;
+        byte network = (byte) type;
         assert MetaType.BTC.equals(getType()) || MetaType.ExBTC.equals(getType()) : "meta version error";
         if (cachedAddress == null) {
             // generate and cache it
             VerifyKey key = getKey();
             byte[] data = key.getData();
-            cachedAddress = BTCAddress.generate(data, NetworkID.BTC_MAIN.value);
+            cachedAddress = BTCAddress.generate(data, network);
         }
         return cachedAddress;
     }

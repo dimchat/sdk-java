@@ -53,7 +53,7 @@ public final class ETHAddress extends ConstantString implements Address {
     }
 
     @Override
-    public byte getType() {
+    public int getType() {
         return EntityType.USER.value;
     }
 

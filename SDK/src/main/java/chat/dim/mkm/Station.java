@@ -102,7 +102,7 @@ public class Station implements User {
     }
 
     @Override
-    public byte getType() {
+    public int getType() {
         return user.getType();
     }
 

@@ -136,6 +136,9 @@ public enum NetworkID /*!!! Deprecated, use EntityType instead. !!!*/ {
     public boolean equals(byte other) {
         return value == other;
     }
+    public boolean equals(int other) {
+        return value == other;
+    }
 
     /*/
     public static boolean isUser(byte type) {
@@ -153,9 +156,9 @@ public enum NetworkID /*!!! Deprecated, use EntityType instead. !!!*/ {
      * @param network - network ID
      * @return entity type
      */
-    public static byte getType(byte network) {
+    public static int getType(byte network) {
         // compatible with MKM 0.9.*
-        if (network == MAIN.value || network == BTC_MAIN.value) {
+        if (network == MAIN.value) {
             return EntityType.USER.value;
         } else if (network == GROUP.value) {
             return EntityType.GROUP.value;

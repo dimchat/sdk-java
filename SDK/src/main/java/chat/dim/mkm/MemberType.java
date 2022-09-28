@@ -101,16 +101,13 @@ public enum MemberType {
     MemberWaiting  (Member.value | Waiting.value),
     MemberFreezing (Member.value | Freezing.value);
 
-    public final byte value;
+    public final int value;
 
-    MemberType(byte value) {
+    MemberType(int value) {
         this.value = value;
     }
-    MemberType(int value) {
-        this.value = (byte)value;
-    }
 
-    public boolean equals(byte other) {
+    public boolean equals(int other) {
         return this.value == other;
     }
 }
