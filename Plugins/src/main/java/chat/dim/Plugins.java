@@ -52,6 +52,7 @@ public interface Plugins {
         chat.dim.crypto.Plugins.registerSymmetricKeyFactories();
         chat.dim.crypto.Plugins.registerAsymmetricKeyFactories();
 
+        chat.dim.mkm.Plugins.registerIDFactory();
         chat.dim.mkm.Plugins.registerAddressFactory();
         chat.dim.mkm.Plugins.registerMetaFactories();
         chat.dim.mkm.Plugins.registerDocumentFactories();

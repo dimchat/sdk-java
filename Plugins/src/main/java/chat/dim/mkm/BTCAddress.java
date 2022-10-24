@@ -56,17 +56,16 @@ import chat.dim.type.ConstantString;
  */
 public final class BTCAddress extends ConstantString implements Address {
 
-    private final int type;
+    private final byte network;
 
     private BTCAddress(String string, byte network) {
         super(string);
-        // compatible with MKM 0.9.*
-        type = NetworkID.getType(network);
+        this.network = network;
     }
 
     @Override
     public int getType() {
-        return type;
+        return network;
     }
 
     @Override
@@ -76,11 +75,13 @@ public final class BTCAddress extends ConstantString implements Address {
 
     @Override
     public boolean isUser() {
+        int type = NetworkID.getType(network);
         return EntityType.isUser(type);
     }
 
     @Override
     public boolean isGroup() {
+        int type = NetworkID.getType(network);
         return EntityType.isGroup(type);
     }
 
