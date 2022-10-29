@@ -70,7 +70,8 @@ final class DefaultMeta extends BaseMeta {
         Address address = cachedAddresses.get(network);
         if (address == null) {
             // generate and cache it
-            address = BTCAddress.generate(getFingerprint(), network);
+            byte[] data = getFingerprint();
+            address = BTCAddress.generate(data, network);
             cachedAddresses.put(network, address);
         }
         return address;

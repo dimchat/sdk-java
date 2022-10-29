@@ -30,14 +30,14 @@
  */
 package chat.dim.mkm;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import chat.dim.protocol.Address;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 import chat.dim.protocol.NetworkID;
 import chat.dim.type.ConstantString;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  *  ID for entity (User/Group)

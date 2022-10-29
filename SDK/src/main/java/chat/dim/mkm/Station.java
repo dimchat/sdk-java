@@ -90,8 +90,9 @@ public class Station implements User {
 
     public void setIdentifier(ID identifier) {
         DataSource delegate = getDataSource();
-        user = new BaseUser(identifier);
-        user.setDataSource(delegate);
+        User usr = new BaseUser(identifier);
+        usr.setDataSource(delegate);
+        user = usr;
     }
 
     //-------- Entity
