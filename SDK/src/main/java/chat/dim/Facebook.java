@@ -31,10 +31,10 @@
 package chat.dim;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import chat.dim.core.AddressFactory;
 import chat.dim.core.Barrack;
 import chat.dim.mkm.BaseGroup;
 import chat.dim.mkm.BaseUser;
@@ -62,22 +62,9 @@ public abstract class Facebook extends Barrack {
      */
     public int reduceMemory() {
         int finger = 0;
-        finger = thanos(userMap, finger);
-        finger = thanos(groupMap, finger);
+        finger = AddressFactory.thanos(userMap, finger);
+        finger = AddressFactory.thanos(groupMap, finger);
         return finger >> 1;
-    }
-
-    public static <K, V> int thanos(Map<K, V> map, int finger) {
-        Iterator<Map.Entry<K, V>> iterator = map.entrySet().iterator();
-        while (iterator.hasNext()) {
-            iterator.next();
-            if ((++finger & 1) == 1) {
-                // kill it
-                iterator.remove();
-            }
-            // let it go
-        }
-        return finger;
     }
 
     private void cache(User user) {
@@ -163,20 +150,15 @@ public abstract class Facebook extends Barrack {
     public boolean isFounder(ID member, ID group) {
         // check member's public key with group's meta.key
         Meta gMeta = getMeta(group);
-        if (gMeta == null) {
-            // throw new AssertionError("failed to get meta for group: " + group);
-            return false;
-        }
+        assert gMeta != null : "failed to get meta for group: " + group;
         Meta mMeta = getMeta(member);
-        if (mMeta == null) {
-            // throw new AssertionError("failed to get meta for member: " + member);
-            return false;
-        }
+        assert mMeta != null : "failed to get meta for member: " + member;
         return Meta.matches(mMeta.getKey(), gMeta);
     }
 
     public boolean isOwner(ID member, ID group) {
         if (EntityType.GROUP.equals(group.getType())) {
+            // this is a polylogue
             return isFounder(member, group);
         }
         throw new UnsupportedOperationException("only Polylogue so far");

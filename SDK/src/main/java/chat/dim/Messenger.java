@@ -42,6 +42,7 @@ import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
+import chat.dim.protocol.MessageFactories;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 
@@ -169,12 +170,13 @@ public abstract class Messenger extends Transceiver implements CipherKeyDelegate
     }
 
     /**
-     *  Register All Content/Command Factories
+     *  Register All Message/Content/Command Factories
      */
-    public static void registerAllFactories() {
+    public static void registerCoreFactories() {
         //
         //  Register core factories
         //
+        MessageFactories.registerFactories();
         registerContentFactories();
         registerCommandFactories();
 

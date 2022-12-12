@@ -45,6 +45,7 @@ import chat.dim.protocol.Visa;
 public class Station implements User {
 
     public static ID ANY = ID.create("station", Address.ANYWHERE, null);
+    public static ID EVERY = ID.create("stations", Address.EVERYWHERE, null);
 
     // inner user
     private User user;
@@ -84,15 +85,18 @@ public class Station implements User {
 
     @Override
     public String toString() {
-        String clazzName = getClass().getSimpleName();
-        return "<" + clazzName + "|" + getType() + " " + getIdentifier() + ">";
+        String className = getClass().getSimpleName();
+        ID identifier = getIdentifier();
+        int network = identifier.getAddress().getType();
+        return "<" + className + " id=\"" + identifier + "\" network=" + network +
+                " host=\"" + getHost() + "\" port=" + getPort() + " />";
     }
 
     public void setIdentifier(ID identifier) {
         DataSource delegate = getDataSource();
-        User usr = new BaseUser(identifier);
-        usr.setDataSource(delegate);
-        user = usr;
+        User inner = new BaseUser(identifier);
+        inner.setDataSource(delegate);
+        user = inner;
     }
 
     //-------- Entity
@@ -113,7 +117,7 @@ public class Station implements User {
     }
 
     @Override
-    public User.DataSource getDataSource() {
+    public DataSource getDataSource() {
         return (DataSource) user.getDataSource();
     }
 
@@ -185,9 +189,6 @@ public class Station implements User {
                     host = (String) value;
                 }
             }
-            if (host == null) {
-                host = "127.0.0.1";
-            }
         }
         return host;
     }
@@ -205,9 +206,6 @@ public class Station implements User {
                 if (value != null) {
                     port = (int) value;
                 }
-            }
-            if (port == 0) {
-                port = 9394;
             }
         }
         return port;

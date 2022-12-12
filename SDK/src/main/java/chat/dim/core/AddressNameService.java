@@ -72,6 +72,14 @@ public interface AddressNameService {
     };
 
     /**
+     *  Check whether the alias is available
+     *
+     * @param name - alias
+     * @return true on reserved
+     */
+    boolean isReserved(String name);
+
+    /**
      *  Get ID by short name
      *
      * @param name - sort name
@@ -86,13 +94,4 @@ public interface AddressNameService {
      * @return short name list
      */
     List<String> names(ID identifier);
-
-    /**
-     *  Save ANS record
-     *
-     * @param name - username
-     * @param identifier - user ID; if empty, means delete this name
-     * @return true on success
-     */
-    boolean save(String name, ID identifier);
 }
