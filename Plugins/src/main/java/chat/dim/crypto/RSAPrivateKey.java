@@ -40,7 +40,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.format.RSAKeys;
-import chat.dim.type.Dictionary;
 
 /**
  *  RSA Private Key
@@ -50,7 +49,7 @@ import chat.dim.type.Dictionary;
  *          data      : "..." // base64_encode()
  *      }
  */
-final class RSAPrivateKey extends Dictionary implements PrivateKey, DecryptKey {
+final class RSAPrivateKey extends BasePrivateKey implements DecryptKey {
 
     private final java.security.interfaces.RSAPrivateKey privateKey;
     private final java.security.interfaces.RSAPublicKey publicKey;
@@ -60,11 +59,6 @@ final class RSAPrivateKey extends Dictionary implements PrivateKey, DecryptKey {
         KeyPair keyPair = getKeyPair();
         privateKey = (java.security.interfaces.RSAPrivateKey) keyPair.getPrivate();
         publicKey = (java.security.interfaces.RSAPublicKey) keyPair.getPublic();
-    }
-
-    @Override
-    public String getAlgorithm() {
-        return (String) get("algorithm");
     }
 
     private int keySize() {
@@ -169,7 +163,7 @@ final class RSAPrivateKey extends Dictionary implements PrivateKey, DecryptKey {
     }
 
     @Override
-    public boolean matches(EncryptKey pKey) {
+    public boolean match(EncryptKey pKey) {
         return SymmetricKey.matches(pKey, this);
     }
 }

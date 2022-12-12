@@ -38,7 +38,6 @@ import java.util.Map;
 import java.util.Random;
 
 import chat.dim.format.Base64;
-import chat.dim.type.Dictionary;
 
 /**
  *  AES Key
@@ -50,7 +49,7 @@ import chat.dim.type.Dictionary;
  *          iv       : "{BASE64_ENCODE}", // initialization vector
  *      }
  */
-final class AESKey extends Dictionary implements SymmetricKey {
+final class AESKey extends BaseSymmetricKey {
 
     private final Cipher cipher;
 
@@ -65,11 +64,6 @@ final class AESKey extends Dictionary implements SymmetricKey {
         cipher = CryptoUtils.getCipher(CryptoUtils.AES_CBC_PKCS7);
         keySpec = new SecretKeySpec(getData(), "AES");
         ivSpec = new IvParameterSpec(getInitVector());
-    }
-
-    @Override
-    public String getAlgorithm() {
-        return CryptographyKey.getAlgorithm(toMap());
     }
 
     private int getKeySize() {
@@ -171,10 +165,5 @@ final class AESKey extends Dictionary implements SymmetricKey {
             e.printStackTrace();
             return null;
         }
-    }
-
-    @Override
-    public boolean matches(EncryptKey pKey) {
-        return SymmetricKey.matches(pKey, this);
     }
 }

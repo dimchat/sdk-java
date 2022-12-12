@@ -32,8 +32,6 @@ import java.security.SignatureException;
 import java.security.interfaces.ECPublicKey;
 import java.util.Map;
 
-import chat.dim.type.Dictionary;
-
 /**
  *  ECC Public Key
  *
@@ -43,18 +41,13 @@ import chat.dim.type.Dictionary;
  *          data         : "..." // base64_encode()
  *      }
  */
-final class ECCPublicKey extends Dictionary implements PublicKey {
+final class ECCPublicKey extends BasePublicKey {
 
     private final ECPublicKey publicKey;
 
     ECCPublicKey(Map<String, Object> dictionary) throws NoSuchFieldException {
         super(dictionary);
         publicKey = getKey();
-    }
-
-    @Override
-    public String getAlgorithm() {
-        return (String) get("algorithm");
     }
 
     private ECPublicKey getKey() throws NoSuchFieldException {
@@ -84,10 +77,5 @@ final class ECCPublicKey extends Dictionary implements PublicKey {
             e.printStackTrace();
             return false;
         }
-    }
-
-    @Override
-    public boolean matches(SignKey sKey) {
-        return AsymmetricKey.matches(sKey, this);
     }
 }

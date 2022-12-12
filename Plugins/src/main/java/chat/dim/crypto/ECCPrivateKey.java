@@ -39,8 +39,6 @@ import java.security.spec.ECGenParameterSpec;
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.type.Dictionary;
-
 /**
  *  ECC Private Key
  *
@@ -50,7 +48,7 @@ import chat.dim.type.Dictionary;
  *          data         : "..." // base64_encode()
  *      }
  */
-final class ECCPrivateKey extends Dictionary implements PrivateKey {
+final class ECCPrivateKey extends BasePrivateKey {
 
     private final ECPrivateKey privateKey;
     private ECPublicKey publicKey;
@@ -60,11 +58,6 @@ final class ECCPrivateKey extends Dictionary implements PrivateKey {
         KeyPair keyPair = getKeyPair();
         privateKey = (ECPrivateKey) keyPair.getPrivate();
         publicKey = (ECPublicKey) keyPair.getPublic();
-    }
-
-    @Override
-    public String getAlgorithm() {
-        return (String) get("algorithm");
     }
 
     private String getCurveName() {

@@ -56,10 +56,16 @@ public interface Plugins {
             @Override
             public Address createAddress(String address) {
                 int len = address.length();
-                if (len == 42) {
+                if (len == 8 && address.equalsIgnoreCase("anywhere")) {
+                    return Address.ANYWHERE;
+                } else if (len == 10 && address.equalsIgnoreCase("everywhere")) {
+                    return Address.EVERYWHERE;
+                } else if (len == 42) {
                     return ETHAddress.parse(address);
+                } else if (26 <= len && len <= 35) {
+                    return BTCAddress.parse(address);
                 }
-                return BTCAddress.parse(address);
+                throw new AssertionError("invalid address: " + address);
             }
         });
     }

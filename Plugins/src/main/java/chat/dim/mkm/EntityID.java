@@ -30,14 +30,10 @@
  */
 package chat.dim.mkm;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import chat.dim.core.IDFactory;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.ID;
-import chat.dim.protocol.Meta;
 import chat.dim.protocol.NetworkID;
-import chat.dim.type.ConstantString;
 
 /**
  *  ID for entity (User/Group)
@@ -49,32 +45,10 @@ import chat.dim.type.ConstantString;
  *          address  - a string to identify an entity
  *          terminal - entity login resource(device), OPTIONAL
  */
-final class EntityID extends ConstantString implements ID {
-
-    private final String name;
-    private final Address address;
-    private final String terminal;
+final class EntityID extends Identifier {
 
     public EntityID(String identifier, String name, Address address, String terminal) {
-        super(identifier);
-        this.name = name;
-        this.address = address;
-        this.terminal = terminal;
-    }
-
-    @Override
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public Address getAddress() {
-        return address;
-    }
-
-    @Override
-    public String getTerminal() {
-        return terminal;
+        super(identifier, name, address, terminal);
     }
 
     /**
@@ -84,110 +58,16 @@ final class EntityID extends ConstantString implements ID {
      */
     @Override
     public int getType() {
-        assert address != null : "ID.address should not be empty: " + toString();
-        byte network = (byte) address.getType();
+        byte network = (byte) getAddress().getType();
         // compatible with MKM 0.9.*
         return NetworkID.getType(network);
     }
-
-    @Override
-    public boolean isBroadcast() {
-        assert address != null : "ID.address should not be empty: " + toString();
-        return address.isBroadcast();
-    }
-
-    @Override
-    public boolean isUser() {
-        assert address != null : "ID.address should not be empty: " + toString();
-        return address.isUser();
-    }
-
-    @Override
-    public boolean isGroup() {
-        assert address != null : "ID.address should not be empty: " + toString();
-        return address.isGroup();
-    }
 }
 
-final class EntityIDFactory implements ID.Factory {
-
-    private final Map<String, ID> identifiers = new HashMap<>();
+final class EntityIDFactory extends IDFactory {
 
     @Override
-    public ID generateID(Meta meta, int network, String terminal) {
-        Address address = Address.generate(meta, network);
-        assert address != null : "failed to generate ID with meta: " + meta.toMap();
-        return ID.create(meta.getSeed(), address, terminal);
-    }
-
-    @Override
-    public ID createID(String name, Address address, String terminal) {
-        String identifier = concat(name, address, terminal);
-        ID id = identifiers.get(identifier);
-        if (id == null) {
-            id = new EntityID(identifier, name, address, terminal);
-            identifiers.put(identifier, id);
-        }
-        return id;
-    }
-
-    @Override
-    public ID parseID(String identifier) {
-        ID id = identifiers.get(identifier);
-        if (id == null) {
-            id = parse(identifier);
-            if (id != null) {
-                identifiers.put(identifier, id);
-            }
-        }
-        return id;
-    }
-
-    private static String concat(String name, Address address, String terminal) {
-        String string = address.toString();
-        if (name != null && name.length() > 0) {
-            string = name + "@" + string;
-        }
-        if (terminal != null && terminal.length() > 0) {
-            string = string + "/" + terminal;
-        }
-        return string;
-    }
-
-    private static ID parse(final String string) {
-        String name;
-        Address address;
-        String terminal;
-        // split ID string
-        String[] pair = string.split("/");
-        // terminal
-        if (pair.length == 1) {
-            // no terminal
-            terminal = null;
-        } else {
-            // got terminal
-            assert pair.length == 2 : "ID error: " + string;
-            assert pair[1].length() > 0 : "ID.terminal error: " + string;
-            terminal = pair[1];
-        }
-        // name @ address
-        assert pair[0].length() > 0 : "ID error: " + string;
-        pair = pair[0].split("@");
-        assert pair[0].length() > 0 : "ID error: " + string;
-        if (pair.length == 1) {
-            // got address without name
-            name = null;
-            address = Address.parse(pair[0]);
-        } else {
-            // got name & address
-            assert pair.length == 2 : "ID error: " + string;
-            assert pair[1].length() > 0 : "ID.address error: " + string;
-            name = pair[0];
-            address = Address.parse(pair[1]);
-        }
-        if (address == null) {
-            return null;
-        }
-        return new EntityID(string, name, address, terminal);
+    protected ID newID(String identifier, String name, Address address, String terminal) {
+        return new EntityID(identifier, name, address, terminal);
     }
 }

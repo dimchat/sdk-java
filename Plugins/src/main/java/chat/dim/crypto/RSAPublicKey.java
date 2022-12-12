@@ -37,7 +37,6 @@ import java.security.SignatureException;
 import java.util.Map;
 
 import chat.dim.format.RSAKeys;
-import chat.dim.type.Dictionary;
 
 /**
  *  RSA Public Key
@@ -47,18 +46,13 @@ import chat.dim.type.Dictionary;
  *          data      : "..." // base64_encode()
  *      }
  */
-final class RSAPublicKey extends Dictionary implements PublicKey, EncryptKey {
+final class RSAPublicKey extends BasePublicKey implements EncryptKey {
 
     private final java.security.interfaces.RSAPublicKey publicKey;
 
     RSAPublicKey(Map<String, Object> dictionary) throws NoSuchFieldException {
         super(dictionary);
         publicKey = getKey();
-    }
-
-    @Override
-    public String getAlgorithm() {
-        return (String) get("algorithm");
     }
 
     private int keySize() {
@@ -112,10 +106,5 @@ final class RSAPublicKey extends Dictionary implements PublicKey, EncryptKey {
             e.printStackTrace();
             return false;
         }
-    }
-
-    @Override
-    public boolean matches(SignKey sKey) {
-        return AsymmetricKey.matches(sKey, this);
     }
 }

@@ -2,7 +2,7 @@
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Albert Moky
+ * Copyright (c) 2022 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,46 +25,31 @@
  */
 package chat.dim.crypto;
 
-import java.util.HashMap;
 import java.util.Map;
 
-/**
- *  Symmetric key for broadcast message,
- *  which will do nothing when en/decoding message data
- */
-public final class PlainKey extends BaseSymmetricKey {
+import chat.dim.type.Dictionary;
 
-    final static String PLAIN = "PLAIN";
+abstract class BasePrivateKey extends Dictionary implements PrivateKey {
 
-    private PlainKey(Map<String, Object> dictionary) {
+    BasePrivateKey(Map<String, Object> dictionary) {
         super(dictionary);
     }
 
     @Override
-    public byte[] getData() {
-        return new byte[0];
-    }
-
-    @Override
-    public byte[] encrypt(byte[] plaintext) {
-        return plaintext;
-    }
-
-    @Override
-    public byte[] decrypt(byte[] ciphertext) {
-        return ciphertext;
-    }
-
-    //-------- Runtime --------
-
-    private static SymmetricKey ourInstance = null;
-
-    public static SymmetricKey getInstance() {
-        if (ourInstance == null) {
-            Map<String, Object> dictionary = new HashMap<>();
-            dictionary.put("algorithm", PLAIN);
-            ourInstance = new PlainKey(dictionary);
+    public boolean equals(Object other) {
+        if (super.equals(other)) {
+            return true;
+        } else if (other instanceof SignKey) {
+            PublicKey verifyKey = getPublicKey();
+            assert verifyKey != null : "failed to get public key: " + this;
+            return verifyKey.match((SignKey) other);
+        } else {
+            return false;
         }
-        return ourInstance;
+    }
+
+    @Override
+    public String getAlgorithm() {
+        return CryptographyKey.getAlgorithm(toMap());
     }
 }

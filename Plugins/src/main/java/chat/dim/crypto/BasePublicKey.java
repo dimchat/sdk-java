@@ -2,7 +2,7 @@
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Albert Moky
+ * Copyright (c) 2022 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,46 +25,23 @@
  */
 package chat.dim.crypto;
 
-import java.util.HashMap;
 import java.util.Map;
 
-/**
- *  Symmetric key for broadcast message,
- *  which will do nothing when en/decoding message data
- */
-public final class PlainKey extends BaseSymmetricKey {
+import chat.dim.type.Dictionary;
 
-    final static String PLAIN = "PLAIN";
+abstract class BasePublicKey extends Dictionary implements PublicKey {
 
-    private PlainKey(Map<String, Object> dictionary) {
+    BasePublicKey(Map<String, Object> dictionary) {
         super(dictionary);
     }
 
     @Override
-    public byte[] getData() {
-        return new byte[0];
+    public String getAlgorithm() {
+        return CryptographyKey.getAlgorithm(toMap());
     }
 
     @Override
-    public byte[] encrypt(byte[] plaintext) {
-        return plaintext;
-    }
-
-    @Override
-    public byte[] decrypt(byte[] ciphertext) {
-        return ciphertext;
-    }
-
-    //-------- Runtime --------
-
-    private static SymmetricKey ourInstance = null;
-
-    public static SymmetricKey getInstance() {
-        if (ourInstance == null) {
-            Map<String, Object> dictionary = new HashMap<>();
-            dictionary.put("algorithm", PLAIN);
-            ourInstance = new PlainKey(dictionary);
-        }
-        return ourInstance;
+    public boolean match(SignKey sKey) {
+        return AsymmetricKey.matches(sKey, this);
     }
 }

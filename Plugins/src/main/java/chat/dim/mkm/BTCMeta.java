@@ -35,7 +35,6 @@ import java.util.Map;
 import chat.dim.crypto.VerifyKey;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.MetaType;
-import chat.dim.protocol.NetworkID;
 
 /**
  *  Meta to build BTC address for ID
@@ -70,7 +69,7 @@ final class BTCMeta extends BaseMeta {
     @Override
     public Address generateAddress(int type) {
         assert MetaType.BTC.equals(getType()) || MetaType.ExBTC.equals(getType()) : "meta version error";
-        assert NetworkID.BTC_MAIN.equals(type) : "BTC address type error: " + type;
+        //assert NetworkID.BTC_MAIN.equals(type) : "BTC address type error: " + type;
         byte network = (byte) type;
         if (cachedAddress == null) {
             // generate and cache it
