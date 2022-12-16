@@ -114,18 +114,18 @@ public abstract class Messenger extends Transceiver implements CipherKeyDelegate
     }
 
     @Override
-    public List<ReliableMessage> processMessage(ReliableMessage rMsg) {
-        return getProcessor().processMessage(rMsg);
+    public List<ReliableMessage> processReliableMessage(ReliableMessage rMsg) {
+        return getProcessor().processReliableMessage(rMsg);
     }
 
     @Override
-    public List<SecureMessage> processMessage(SecureMessage sMsg, ReliableMessage rMsg) {
-        return getProcessor().processMessage(sMsg, rMsg);
+    public List<SecureMessage> processSecureMessage(SecureMessage sMsg, ReliableMessage rMsg) {
+        return getProcessor().processSecureMessage(sMsg, rMsg);
     }
 
     @Override
-    public List<InstantMessage> processMessage(InstantMessage iMsg, ReliableMessage rMsg) {
-        return getProcessor().processMessage(iMsg, rMsg);
+    public List<InstantMessage> processInstantMessage(InstantMessage iMsg, ReliableMessage rMsg) {
+        return getProcessor().processInstantMessage(iMsg, rMsg);
     }
 
     @Override

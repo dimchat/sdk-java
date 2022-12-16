@@ -56,7 +56,7 @@ public class ForwardContentProcessor extends BaseContentProcessor {
         Content res;
         List<ReliableMessage> results;
         for (ReliableMessage item : secrets) {
-            results = messenger.processMessage(item);
+            results = messenger.processReliableMessage(item);
             if (results == null) {
                res = ForwardContent.create(new ArrayList<>());
             } else if (results.size() == 1) {

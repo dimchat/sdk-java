@@ -84,7 +84,7 @@ public class MessageProcessor extends TwinsHelper implements Processor {
             return null;
         }
         // 2. process message
-        List<ReliableMessage> responses = messenger.processMessage(rMsg);
+        List<ReliableMessage> responses = messenger.processReliableMessage(rMsg);
         if (responses == null || responses.size() == 0) {
             // nothing to respond
             return null;
@@ -104,7 +104,7 @@ public class MessageProcessor extends TwinsHelper implements Processor {
     }
 
     @Override
-    public List<ReliableMessage> processMessage(ReliableMessage rMsg) {
+    public List<ReliableMessage> processReliableMessage(ReliableMessage rMsg) {
         // TODO: override to check broadcast message before calling it
         Messenger messenger = getMessenger();
         // 1. verify message
@@ -114,7 +114,7 @@ public class MessageProcessor extends TwinsHelper implements Processor {
             return null;
         }
         // 2. process message
-        List<SecureMessage> responses = messenger.processMessage(sMsg, rMsg);
+        List<SecureMessage> responses = messenger.processSecureMessage(sMsg, rMsg);
         if (responses == null || responses.size() == 0) {
             // nothing to respond
             return null;
@@ -135,7 +135,7 @@ public class MessageProcessor extends TwinsHelper implements Processor {
     }
 
     @Override
-    public List<SecureMessage> processMessage(SecureMessage sMsg, ReliableMessage rMsg) {
+    public List<SecureMessage> processSecureMessage(SecureMessage sMsg, ReliableMessage rMsg) {
         Messenger messenger = getMessenger();
         // 1. decrypt message
         InstantMessage iMsg = messenger.decryptMessage(sMsg);
@@ -145,7 +145,7 @@ public class MessageProcessor extends TwinsHelper implements Processor {
             return null;
         }
         // 2. process message
-        List<InstantMessage> responses = messenger.processMessage(iMsg, rMsg);
+        List<InstantMessage> responses = messenger.processInstantMessage(iMsg, rMsg);
         if (responses == null || responses.size() == 0) {
             // nothing to respond
             return null;
@@ -165,7 +165,7 @@ public class MessageProcessor extends TwinsHelper implements Processor {
     }
 
     @Override
-    public List<InstantMessage> processMessage(InstantMessage iMsg, ReliableMessage rMsg) {
+    public List<InstantMessage> processInstantMessage(InstantMessage iMsg, ReliableMessage rMsg) {
         Messenger messenger = getMessenger();
         // 1. process content
         List<Content> responses = messenger.processContent(iMsg.getContent(), rMsg);
