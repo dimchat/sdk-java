@@ -206,11 +206,7 @@ public abstract class Facebook extends Barrack {
      */
     public abstract List<User> getLocalUsers();
 
-    /**
-     *  Get current user (for signing and sending message)
-     *
-     * @return User
-     */
+    /*/
     public User getCurrentUser() {
         List<User> users = getLocalUsers();
         if (users == null || users.size() == 0) {
@@ -218,6 +214,7 @@ public abstract class Facebook extends Barrack {
         }
         return users.get(0);
     }
+    /*/
 
     /**
      *  Select local user for receiver
