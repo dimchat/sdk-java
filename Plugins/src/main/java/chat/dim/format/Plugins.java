@@ -43,17 +43,7 @@ public interface Plugins {
         };
 
         // HEX coding
-        Hex.coder = new DataCoder() {
-            @Override
-            public String encode(byte[] data) {
-                return org.bouncycastle.util.encoders.Hex.toHexString(data);
-            }
-
-            @Override
-            public byte[] decode(String string) {
-                return org.bouncycastle.util.encoders.Hex.decode(string);
-            }
-        };
+        Hex.coder = new HexCoder();
 
         // JsON format
         JSON.parser = new ObjectCoder<Object>() {
