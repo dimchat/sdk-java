@@ -27,24 +27,11 @@ package chat.dim;
 
 import java.security.Security;
 
-import com.alibaba.fastjson.serializer.SerializeConfig;
-import com.alibaba.fastjson.serializer.ToStringSerializer;
-
-import chat.dim.protocol.Address;
-import chat.dim.protocol.ID;
-
 public interface Plugins {
 
     static void registerAllPlugins() {
 
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-
-        /*
-         *  JsON
-         */
-        SerializeConfig serializeConfig = SerializeConfig.getGlobalInstance();
-        serializeConfig.put(Address.class, ToStringSerializer.instance);
-        serializeConfig.put(ID.class, ToStringSerializer.instance);
 
         chat.dim.format.Plugins.registerDataCoders();
         chat.dim.digest.Plugins.registerDataDigesters();
