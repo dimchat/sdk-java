@@ -25,7 +25,7 @@
  */
 package chat.dim.format;
 
-final class HexCoder implements DataCoder {
+public final class HexCoder implements DataCoder {
 
     @Override
     public String encode(byte[] data) {

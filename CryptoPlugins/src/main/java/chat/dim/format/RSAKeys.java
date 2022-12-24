@@ -28,6 +28,8 @@ package chat.dim.format;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 
+import chat.dim.crypto.AsymmetricKey;
+
 public final class RSAKeys {
 
     public static String encodePublicKey(PublicKey key) {
@@ -51,12 +53,12 @@ public final class RSAKeys {
 
         @Override
         public String encode(PublicKey key) {
-            return PEM.encodePublicKey(key, "RSA");
+            return PEM.encodePublicKey(key, AsymmetricKey.RSA);
         }
 
         @Override
         public PublicKey decode(String pem) {
-            return PEM.decodePublicKey(pem, "RSA");
+            return PEM.decodePublicKey(pem, AsymmetricKey.RSA);
         }
     };
 
@@ -64,12 +66,12 @@ public final class RSAKeys {
     public static KeyParser<PrivateKey> privateKeyParser = new KeyParser<PrivateKey>() {
         @Override
         public String encode(PrivateKey key) {
-            return PEM.encodePrivateKey(key, "RSA");
+            return PEM.encodePrivateKey(key, AsymmetricKey.RSA);
         }
 
         @Override
         public PrivateKey decode(String pem) {
-            return PEM.decodePrivateKey(pem, "RSA");
+            return PEM.decodePrivateKey(pem, AsymmetricKey.RSA);
         }
     };
 }

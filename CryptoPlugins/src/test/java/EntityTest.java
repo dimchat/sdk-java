@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import chat.dim.crypto.SignKey;
 import chat.dim.mkm.BaseGroup;
 import chat.dim.mkm.Group;
 import chat.dim.mkm.User;
@@ -123,6 +124,32 @@ public class EntityTest {
 //        Assert.assertArrayEquals(data, plaintext);
 //        Log.info("decryption OK!");
 //    }
+
+    @Test
+    public void testProfile() {
+        Map<String, Object> dict = new HashMap<>();
+        dict.put("ID", "moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
+        dict.put("data", "{\"name\":\"齐天大圣\"}");
+        dict.put("signature", "oMdD4Ssop/gOpzwAYpt+Cp3tVJswm+u5i1bu1UlEzzFt+g3ohmE1z018WmSgsBpCls6vXwJEhKS1O5gN9N8XCYhnYx/Q56M0n2NOSifcbQuZciOfQU1c2RMXgUEizIwL2tiFoam22qxyScKIjXcu7rD4XhBC0Gn/EhQpJCqWTMo=");
+        Document doc = Document.parse(dict);
+        Log.info("profile: " + doc);
+
+        ID identifier = ID.parse("moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
+        Meta meta = facebook.getMeta(identifier);
+        if (meta != null && Meta.check(meta)) {
+            doc.verify(meta.getKey());
+        }
+        Log.info("profile: " + doc);
+
+        doc.setProperty("age", 18);
+        Log.info("profile: " + doc);
+
+        SignKey key = facebook.getPrivateKeyForVisaSignature(identifier);
+        if (key != null) {
+            doc.sign(key);
+        }
+        Log.info("profile: " + doc);
+    }
 
     @Test
     public void testEntity() {

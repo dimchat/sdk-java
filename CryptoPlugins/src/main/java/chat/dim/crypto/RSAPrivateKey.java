@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.format.RSAKeys;
+import chat.dim.utils.CryptoUtils;
 
 /**
  *  RSA Private Key
@@ -49,12 +50,12 @@ import chat.dim.format.RSAKeys;
  *          data      : "..." // base64_encode()
  *      }
  */
-final class RSAPrivateKey extends BasePrivateKey implements DecryptKey {
+public final class RSAPrivateKey extends BasePrivateKey implements DecryptKey {
 
     private final java.security.interfaces.RSAPrivateKey privateKey;
     private final java.security.interfaces.RSAPublicKey publicKey;
 
-    RSAPrivateKey(Map<String, Object> dictionary) throws NoSuchAlgorithmException {
+    public RSAPrivateKey(Map<String, Object> dictionary) throws NoSuchAlgorithmException {
         super(dictionary);
         KeyPair keyPair = getKeyPair();
         privateKey = (java.security.interfaces.RSAPrivateKey) keyPair.getPrivate();
@@ -86,7 +87,7 @@ final class RSAPrivateKey extends BasePrivateKey implements DecryptKey {
     }
 
     private KeyPair generateKeyPair(int sizeInBits) throws NoSuchAlgorithmException {
-        KeyPairGenerator generator = CryptoUtils.getKeyPairGenerator("RSA");
+        KeyPairGenerator generator = CryptoUtils.getKeyPairGenerator(AsymmetricKey.RSA);
         generator.initialize(sizeInBits);
         KeyPair keyPair = generator.generateKeyPair();
 

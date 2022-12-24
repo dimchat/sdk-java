@@ -34,7 +34,8 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
-import chat.dim.crypto.CryptoUtils;
+import chat.dim.crypto.AsymmetricKey;
+import chat.dim.utils.CryptoUtils;
 
 public final class PEM {
 
@@ -56,15 +57,17 @@ public final class PEM {
         }
     }
 
-    public static PublicKey decodePublicKey(String pem, String algorithm) {
-        byte[] keyData;
+    public static byte[] decodePublicKeyData(String pem, String algorithm) {
         try {
             PEMContent file = new PEMContent(pem, algorithm);
-            keyData = file.publicKeyData;
+            return file.publicKeyData;
         } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
             e.printStackTrace();
             return null;
         }
+    }
+    public static PublicKey decodePublicKey(String pem, String algorithm) {
+        byte[] keyData = decodePublicKeyData(pem, algorithm);
         if (keyData != null) {
             // X.509
             X509EncodedKeySpec keySpec = new X509EncodedKeySpec(keyData);
@@ -78,15 +81,17 @@ public final class PEM {
         return null;
     }
 
-    public static PrivateKey decodePrivateKey(String pem, String algorithm) {
-        byte[] keyData;
+    public static byte[] decodePrivateKeyData(String pem, String algorithm) {
         try {
             PEMContent file = new PEMContent(pem, algorithm);
-            keyData = file.privateKeyData;
+            return file.privateKeyData;
         } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
             e.printStackTrace();
             return null;
         }
+    }
+    public static PrivateKey decodePrivateKey(String pem, String algorithm) {
+        byte[] keyData = decodePrivateKeyData(pem, algorithm);
         if (keyData != null) {
             // PKCS#8
             PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyData);
@@ -144,7 +149,7 @@ public final class PEM {
             byte[] data = publicKey.getEncoded();
             String format = publicKey.getFormat();
             if (format.equals("X.509")) {
-                if (algorithm.equals("RSA")) {
+                if (algorithm.equals(AsymmetricKey.RSA)) {
                     // convert to PKCS#1
                     data = (new X509(data)).toPKCS1();
                     format = "PKCS#1";
@@ -165,7 +170,7 @@ public final class PEM {
             byte[] data = privateKey.getEncoded();
             String format = privateKey.getFormat();
             if (format.equals("PKCS#8")) {
-                if (algorithm.equals("RSA")) {
+                if (algorithm.equals(AsymmetricKey.RSA)) {
                     // convert to PKCS#1
                     data = (new PKCS8(data)).toPKCS1();
                     format = "PKCS#1";
@@ -194,7 +199,7 @@ public final class PEM {
                 isPrivate = true;
             }
             byte[] data = Base64.decode(keyContent);
-            if (algorithm.equals("RSA")) {
+            if (algorithm.equals(AsymmetricKey.RSA)) {
                 try {
                     // convert from "PKCS#1" to "X.509"
                     data = (new PKCS1(data, isPrivate)).toX509();
@@ -214,7 +219,7 @@ public final class PEM {
                 return null;
             }
             byte[] data = Base64.decode(keyContent);
-            if (algorithm.equals("RSA")) {
+            if (algorithm.equals(AsymmetricKey.RSA)) {
                 try {
                     // convert from "PKCS#1" to "PKCS#8"
                     data = (new PKCS1(data, true)).toPKCS8();

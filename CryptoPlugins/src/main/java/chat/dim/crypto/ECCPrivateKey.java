@@ -39,6 +39,9 @@ import java.security.spec.ECGenParameterSpec;
 import java.util.HashMap;
 import java.util.Map;
 
+import chat.dim.ecc.ECCKeys;
+import chat.dim.utils.CryptoUtils;
+
 /**
  *  ECC Private Key
  *
@@ -48,12 +51,12 @@ import java.util.Map;
  *          data         : "..." // base64_encode()
  *      }
  */
-final class ECCPrivateKey extends BasePrivateKey {
+public final class ECCPrivateKey extends BasePrivateKey {
 
     private final ECPrivateKey privateKey;
     private ECPublicKey publicKey;
 
-    ECCPrivateKey(Map<String, Object> dictionary) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
+    public ECCPrivateKey(Map<String, Object> dictionary) throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
         super(dictionary);
         KeyPair keyPair = getKeyPair();
         privateKey = (ECPrivateKey) keyPair.getPrivate();
@@ -94,7 +97,6 @@ final class ECCPrivateKey extends BasePrivateKey {
         // other parameters
         put("curve", curveName);
         put("digest", "SHA256");
-
         return keyPair;
     }
 

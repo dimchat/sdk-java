@@ -23,7 +23,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.crypto;
+package chat.dim.ecc;
 
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
@@ -36,6 +36,8 @@ import java.security.spec.ECParameterSpec;
 import java.security.spec.ECPoint;
 import java.security.spec.ECPublicKeySpec;
 import java.security.spec.EllipticCurve;
+
+import chat.dim.utils.CryptoUtils;
 
 final class ECCGenerator {
 

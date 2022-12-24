@@ -2,7 +2,7 @@
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Albert Moky
+ * Copyright (c) 2020 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,85 +25,59 @@
  */
 package chat.dim.crypto;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
 import java.security.InvalidKeyException;
-import java.security.InvalidParameterException;
 import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.security.interfaces.ECPublicKey;
 import java.util.Map;
 
-import chat.dim.format.RSAKeys;
+import chat.dim.ecc.ECCKeys;
+import chat.dim.utils.CryptoUtils;
 
 /**
- *  RSA Public Key
+ *  ECC Public Key
  *
  *      keyInfo format: {
- *          algorithm : "RSA",
- *          data      : "..." // base64_encode()
+ *          algorithm    : "ECC",
+ *          curve        : "secp256k1",
+ *          data         : "..." // base64_encode()
  *      }
  */
-final class RSAPublicKey extends BasePublicKey implements EncryptKey {
+public final class ECCPublicKey extends BasePublicKey {
 
-    private final java.security.interfaces.RSAPublicKey publicKey;
+    private final ECPublicKey publicKey;
 
-    RSAPublicKey(Map<String, Object> dictionary) throws NoSuchFieldException {
+    public ECCPublicKey(Map<String, Object> dictionary) throws NoSuchFieldException {
         super(dictionary);
         publicKey = getKey();
     }
 
-    private int keySize() {
-        // TODO: get from key
-
-        Object size = get("keySize");
-        if (size == null) {
-            return 1024 / 8; // 128
-        } else  {
-            return (int) size;
-        }
-    }
-
-    private java.security.interfaces.RSAPublicKey getKey() throws NoSuchFieldException {
+    private ECPublicKey getKey() throws NoSuchFieldException {
         String data = (String) get("data");
         if (data == null) {
-            throw new NoSuchFieldException("RSA public key data not found");
+            throw new NoSuchFieldException("ECC public key data not found");
         }
-        return (java.security.interfaces.RSAPublicKey) RSAKeys.decodePublicKey(data);
+        return (ECPublicKey) ECCKeys.decodePublicKey(data);
     }
 
     @Override
     public byte[] getData() {
-        return publicKey == null ? null : publicKey.getEncoded();
-    }
-
-    @Override
-    public byte[] encrypt(byte[] plaintext) {
-        if (plaintext.length > (keySize() - 11)) {
-            throw new InvalidParameterException("RSA plain text length error: " + plaintext.length);
-        }
-        try {
-            Cipher cipher = CryptoUtils.getCipher(CryptoUtils.RSA_ECB_PKCS1);
-            cipher.init(Cipher.ENCRYPT_MODE, publicKey);
-            return cipher.doFinal(plaintext);
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException |
-                IllegalBlockSizeException | BadPaddingException e) {
-            e.printStackTrace();
+        if (publicKey == null) {
             return null;
         }
+        return ECCKeys.getPointData(publicKey);
     }
 
     @Override
     public boolean verify(byte[] data, byte[] signature) {
         try {
-            Signature signer = CryptoUtils.getSignature(CryptoUtils.RSA_SHA256);
+            Signature signer = CryptoUtils.getSignature(CryptoUtils.ECDSA_SHA256);
             signer.initVerify(publicKey);
             signer.update(data);
             return signer.verify(signature);
         } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
-            //e.printStackTrace();
+            e.printStackTrace();
             return false;
         }
     }

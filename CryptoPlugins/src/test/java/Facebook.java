@@ -23,6 +23,9 @@ public class Facebook implements User.DataSource, Group.DataSource {
     public static Facebook getInstance() { return ourInstance; }
     private Facebook() {
         super();
+
+        chat.dim.Plugins.registerPlugins();
+        chat.dim.CryptoPlugins.registerNativePlugins();
     }
 
     // memory caches
@@ -171,9 +174,5 @@ public class Facebook implements User.DataSource, Group.DataSource {
         }
         // TODO: get group bots from SP configuration
         return null;
-    }
-
-    static {
-        chat.dim.Plugins.registerPlugins();
     }
 }

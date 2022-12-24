@@ -23,7 +23,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.crypto;
+package chat.dim.utils;
 
 import javax.crypto.Cipher;
 import javax.crypto.NoSuchPaddingException;
@@ -40,14 +40,12 @@ public final class CryptoUtils {
     //  Algorithms
     //
 
-    final static String AES_CBC_PKCS7 = "AES/CBC/PKCS7Padding";
+    public final static String EC = "EC";
+    public final static String SECP256K1 = "secp256k1";
+    public final static String ECDSA_SHA256 = "SHA256withECDSA";
 
-    final static String EC = "EC";
-    final static String SECP256K1 = "secp256k1";
-    final static String ECDSA_SHA256 = "SHA256withECDSA";
-
-    final static String RSA_SHA256 = "SHA256withRSA";
-    final static String RSA_ECB_PKCS1 = "RSA/ECB/PKCS1Padding";
+    public final static String RSA_SHA256 = "SHA256withRSA";
+    public final static String RSA_ECB_PKCS1 = "RSA/ECB/PKCS1Padding";
 
     //
     //  Factories

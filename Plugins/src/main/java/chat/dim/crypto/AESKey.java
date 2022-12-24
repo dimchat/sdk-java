@@ -49,20 +49,22 @@ import chat.dim.format.Base64;
  *          iv       : "{BASE64_ENCODE}", // initialization vector
  *      }
  */
-final class AESKey extends BaseSymmetricKey {
+public final class AESKey extends BaseSymmetricKey {
+
+    public final static String AES_CBC_PKCS7 = "AES/CBC/PKCS7Padding";
 
     private final Cipher cipher;
 
     private final SecretKeySpec keySpec;
     private final IvParameterSpec ivSpec;
 
-    AESKey(Map<String, Object> dictionary) throws NoSuchPaddingException, NoSuchAlgorithmException {
+    public AESKey(Map<String, Object> dictionary) throws NoSuchPaddingException, NoSuchAlgorithmException {
         super(dictionary);
         // TODO: check algorithm parameters
         // 1. check mode = 'CBC'
         // 2. check padding = 'PKCS7Padding'
-        cipher = CryptoUtils.getCipher(CryptoUtils.AES_CBC_PKCS7);
-        keySpec = new SecretKeySpec(getData(), "AES");
+        cipher = Cipher.getInstance(AES_CBC_PKCS7);
+        keySpec = new SecretKeySpec(getData(), SymmetricKey.AES);
         ivSpec = new IvParameterSpec(getInitVector());
     }
 
@@ -142,7 +144,7 @@ final class AESKey extends BaseSymmetricKey {
     @Override
     public byte[] encrypt(byte[] plaintext) {
         try {
-            Cipher cipher = CryptoUtils.getCipher(CryptoUtils.AES_CBC_PKCS7);
+            Cipher cipher = Cipher.getInstance(AES_CBC_PKCS7);
             cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
             return cipher.doFinal(plaintext);
         } catch (InvalidKeyException | InvalidAlgorithmParameterException |
@@ -156,7 +158,7 @@ final class AESKey extends BaseSymmetricKey {
     @Override
     public byte[] decrypt(byte[] ciphertext) {
         try {
-            Cipher cipher = CryptoUtils.getCipher(CryptoUtils.AES_CBC_PKCS7);
+            Cipher cipher = Cipher.getInstance(AES_CBC_PKCS7);
             cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
             return cipher.doFinal(ciphertext);
         } catch (InvalidKeyException | InvalidAlgorithmParameterException |

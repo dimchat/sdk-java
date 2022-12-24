@@ -13,6 +13,8 @@ import chat.dim.format.Hex;
 
 public class CryptoECCTest {
 
+    private static final Facebook facebook = Facebook.getInstance();
+
     private static PublicKey getPublicKey(String pem) {
         Map<String, Object> dictionary = new HashMap<>();
         dictionary.put("algorithm", "ECC");

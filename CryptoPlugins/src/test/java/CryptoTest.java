@@ -2,9 +2,12 @@
 import org.junit.Assert;
 import org.junit.Test;
 
+import chat.dim.digest.Keccak256;
+import chat.dim.digest.RIPEMD160;
 import chat.dim.digest.SHA256;
 import chat.dim.format.Base58;
 import chat.dim.format.Base64;
+import chat.dim.format.Hex;
 import chat.dim.format.UTF8;
 
 public class CryptoTest {
@@ -28,6 +31,38 @@ public class CryptoTest {
         exp = "cb98b739dd699aa44bb6ebba128d20f2d1e10bb3b4aa5ff4e79295b47e9ed76d";
         Log.info("sha256(" + string + ") = " + res);
         Assert.assertEquals(exp, res);
+
+        // ripemd160(moky) = 44bd174123aee452c6ec23a6ab7153fa30fa3b91
+        hash = RIPEMD160.digest(data);
+        res = Utils.hexEncode(hash);
+        exp = "44bd174123aee452c6ec23a6ab7153fa30fa3b91";
+        Log.info("ripemd160(" + string + ") = " + res);
+        Assert.assertEquals(exp, res);
+    }
+
+    private void testKeccak(String string, String exp) {
+        byte[] data = UTF8.encode(string);
+        byte[] hash = Keccak256.digest(data);
+        String res = Hex.encode(hash);
+        Log.info("Keccak256 ( " + string + " ):\n\t" + res);
+        Assert.assertEquals(exp, res);
+    }
+
+    @Test
+    public void testKeccak() {
+        // https://keccak-256.cloxy.net
+
+        Log.info("test Keccak");
+
+        testKeccak("moky", "96b07f3103d45cc7df2dd6e597922a17f48c86257dffe790d442bbd1ff46514d");
+        testKeccak("hello", "1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8");
+        testKeccak("abc", "4e03657aea45a94fc7d47ba826c8d667c0d1e6e33a64a036ec44f58fa12d6c45");
+
+        testKeccak("0450863ad64a87ae8a2fe83c1af1a8403cb53f53e486d8511dad8a04887e5b23522cd470243453a299fa9e77237716103abc11a1df38855ed6f2ee187e9c582ba6",
+                "fc12ad814631ba689f7abe671016f75c54c607f082ae6b0881fac0abeda21781");
+
+//        testKeccak("044a18c2c740f49a77b289e9270c39948b9410a1b0c981d9af068c06239363d72682fdb022fef67f4f8a69582f983ab394ab5f06854c25f33d8ef1352fe7fe504d",
+//                "24602722816b6cad0e143ce9fabf31f6026ec622");
     }
 
     @Test

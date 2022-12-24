@@ -1,8 +1,13 @@
 /* license: https://mit-license.org
+ *
+ *  Ming-Ke-Ming : Decentralized User Identity Authentication
+ *
+ *                                Written in 2022 by Moky <albert.moky@gmail.com>
+ *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Albert Moky
+ * Copyright (c) 2022 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,40 +28,46 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.digest;
+package chat.dim.mkm;
 
-import org.bouncycastle.crypto.digests.KeccakDigest;
-import org.bouncycastle.crypto.digests.RIPEMD160Digest;
+import chat.dim.core.IDFactory;
+import chat.dim.protocol.Address;
+import chat.dim.protocol.ID;
+import chat.dim.protocol.NetworkID;
 
-public interface Plugins {
+/**
+ *  ID for entity (User/Group)
+ *
+ *      data format: "name@address[/terminal]"
+ *
+ *      fields:
+ *          name     - entity name, the seed of fingerprint to build address
+ *          address  - a string to identify an entity
+ *          terminal - entity login resource(device), OPTIONAL
+ */
+final class EntityID extends Identifier {
 
-    /*
-     *  Data Digesters
+    public EntityID(String identifier, String name, Address address, String terminal) {
+        super(identifier, name, address, terminal);
+    }
+
+    /**
+     *  Get Network ID
+     *
+     * @return address type as network ID
      */
-    static void registerDataDigesters() {
+    @Override
+    public int getType() {
+        byte network = (byte) getAddress().getType();
+        // compatible with MKM 0.9.*
+        return NetworkID.getType(network);
+    }
+}
 
-        /*
-         *  Digest
-         */
-        RIPEMD160.digester = new DataDigester() {
-            @Override
-            public byte[] digest(byte[] data) {
-                RIPEMD160Digest digest = new RIPEMD160Digest();
-                digest.update(data, 0, data.length);
-                byte[] out = new byte[20];
-                digest.doFinal(out, 0);
-                return out;
-            }
-        };
-        Keccak256.digester = new DataDigester() {
-            @Override
-            public byte[] digest(byte[] data) {
-                KeccakDigest digest = new KeccakDigest(256);
-                digest.update(data, 0, data.length);
-                byte[] out = new byte[digest.getDigestSize()];
-                digest.doFinal(out, 0);
-                return out;
-            }
-        };
+public final class EntityIDFactory extends IDFactory {
+
+    @Override
+    protected ID newID(String identifier, String name, Address address, String terminal) {
+        return new EntityID(identifier, name, address, terminal);
     }
 }

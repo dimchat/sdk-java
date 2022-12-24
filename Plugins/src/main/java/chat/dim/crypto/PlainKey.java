@@ -34,7 +34,7 @@ import java.util.Map;
  */
 public final class PlainKey extends BaseSymmetricKey {
 
-    final static String PLAIN = "PLAIN";
+    public final static String PLAIN = "PLAIN";
 
     private PlainKey(Map<String, Object> dictionary) {
         super(dictionary);

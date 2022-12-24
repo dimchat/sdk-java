@@ -39,11 +39,11 @@ import chat.dim.format.UTF8;
 import chat.dim.protocol.Meta;
 import chat.dim.protocol.MetaType;
 
-final class MetaFactory implements Meta.Factory {
+public final class MetaFactory implements Meta.Factory {
 
     private final int version;
 
-    MetaFactory(MetaType type) {
+    public MetaFactory(MetaType type) {
         super();
         version = type.value;
     }

@@ -25,23 +25,154 @@
  */
 package chat.dim;
 
-import java.security.Security;
+import javax.crypto.NoSuchPaddingException;
+import java.security.NoSuchAlgorithmException;
+import java.util.HashMap;
+import java.util.Map;
+
+import chat.dim.core.AddressFactory;
+import chat.dim.crypto.AESKey;
+import chat.dim.crypto.PlainKey;
+import chat.dim.crypto.SymmetricKey;
+import chat.dim.format.Base58;
+import chat.dim.format.DataCoder;
+import chat.dim.format.Hex;
+import chat.dim.format.HexCoder;
+import chat.dim.mkm.BTCAddress;
+import chat.dim.mkm.DocumentFactory;
+import chat.dim.mkm.ETHAddress;
+import chat.dim.mkm.EntityIDFactory;
+import chat.dim.mkm.MetaFactory;
+import chat.dim.protocol.Address;
+import chat.dim.protocol.Document;
+import chat.dim.protocol.ID;
+import chat.dim.protocol.Meta;
+import chat.dim.protocol.MetaType;
 
 public interface Plugins {
 
-    static void registerAllPlugins() {
+    static void registerDataCoders() {
 
-        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+        // Base58 coding
+        Base58.coder = new DataCoder() {
 
-        chat.dim.format.Plugins.registerDataCoders();
-        chat.dim.digest.Plugins.registerDataDigesters();
+            @Override
+            public String encode(byte[] data) {
+                return chat.dim.bitcoinj.Base58.encode(data);
+            }
 
-        chat.dim.crypto.Plugins.registerSymmetricKeyFactories();
-        chat.dim.crypto.Plugins.registerAsymmetricKeyFactories();
+            @Override
+            public byte[] decode(String string) {
+                return chat.dim.bitcoinj.Base58.decode(string);
+            }
+        };
 
-        chat.dim.mkm.Plugins.registerIDFactory();
-        chat.dim.mkm.Plugins.registerAddressFactory();
-        chat.dim.mkm.Plugins.registerMetaFactories();
-        chat.dim.mkm.Plugins.registerDocumentFactories();
+        // HEX coding
+        Hex.coder = new HexCoder();
+
+    }
+
+    /*
+     *  Symmetric Key Parsers
+     */
+    static void registerSymmetricKeyFactories() {
+
+        SymmetricKey.setFactory(SymmetricKey.AES, new SymmetricKey.Factory() {
+
+            @Override
+            public SymmetricKey generateSymmetricKey() {
+                Map<String, Object> key = new HashMap<>();
+                key.put("algorithm", SymmetricKey.AES);
+                return parseSymmetricKey(key);
+            }
+
+            @Override
+            public SymmetricKey parseSymmetricKey(Map<String, Object> key) {
+                try {
+                    return new AESKey(key);
+                } catch (NoSuchPaddingException | NoSuchAlgorithmException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+        });
+        SymmetricKey.setFactory(PlainKey.PLAIN, new SymmetricKey.Factory() {
+
+            @Override
+            public SymmetricKey generateSymmetricKey() {
+                return PlainKey.getInstance();
+            }
+
+            @Override
+            public SymmetricKey parseSymmetricKey(Map<String, Object> key) {
+                return PlainKey.getInstance();
+            }
+        });
+    }
+
+    /*
+     *  ID factory
+     */
+    static void registerIDFactory() {
+
+        ID.setFactory(new EntityIDFactory());
+    }
+
+    /*
+     *  Address factory
+     */
+    static void registerAddressFactory() {
+
+        Address.setFactory(new AddressFactory() {
+            @Override
+            public Address createAddress(String address) {
+                int len = address.length();
+                if (len == 8 && address.equalsIgnoreCase("anywhere")) {
+                    return Address.ANYWHERE;
+                } else if (len == 10 && address.equalsIgnoreCase("everywhere")) {
+                    return Address.EVERYWHERE;
+                } else if (len == 42) {
+                    return ETHAddress.parse(address);
+                } else if (26 <= len && len <= 35) {
+                    return BTCAddress.parse(address);
+                }
+                throw new AssertionError("invalid address: " + address);
+            }
+        });
+    }
+
+    /*
+     *  Meta factories
+     */
+    static void registerMetaFactories() {
+
+        Meta.setFactory(MetaType.MKM, new MetaFactory(MetaType.MKM));
+        Meta.setFactory(MetaType.BTC, new MetaFactory(MetaType.BTC));
+        Meta.setFactory(MetaType.ExBTC, new MetaFactory(MetaType.ExBTC));
+        Meta.setFactory(MetaType.ETH, new MetaFactory(MetaType.ETH));
+        Meta.setFactory(MetaType.ExETH, new MetaFactory(MetaType.ExETH));
+    }
+
+    /*
+     *  Document factories
+     */
+    static void registerDocumentFactories() {
+
+        Document.setFactory("*", new DocumentFactory("*"));
+        Document.setFactory(Document.VISA, new DocumentFactory(Document.VISA));
+        Document.setFactory(Document.PROFILE, new DocumentFactory(Document.PROFILE));
+        Document.setFactory(Document.BULLETIN, new DocumentFactory(Document.BULLETIN));
+    }
+
+    static void registerPlugins() {
+
+        registerDataCoders();
+
+        registerSymmetricKeyFactories();
+
+        registerIDFactory();
+        registerAddressFactory();
+        registerMetaFactories();
+        registerDocumentFactories();
     }
 }

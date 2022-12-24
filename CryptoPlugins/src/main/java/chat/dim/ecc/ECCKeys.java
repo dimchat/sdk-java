@@ -23,7 +23,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.crypto;
+package chat.dim.ecc;
 
 import java.math.BigInteger;
 import java.security.AlgorithmParameters;
@@ -46,6 +46,7 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import chat.dim.format.Hex;
 import chat.dim.format.KeyParser;
 import chat.dim.format.PEM;
+import chat.dim.utils.CryptoUtils;
 
 public final class ECCKeys {
 

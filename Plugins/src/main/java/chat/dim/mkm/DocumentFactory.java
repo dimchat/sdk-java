@@ -35,11 +35,11 @@ import java.util.Map;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 
-final class DocumentFactory implements Document.Factory {
+public final class DocumentFactory implements Document.Factory {
 
     private final String version;
 
-    DocumentFactory(String type) {
+    public DocumentFactory(String type) {
         super();
         version = type;
     }

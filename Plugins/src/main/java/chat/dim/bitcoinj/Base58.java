@@ -107,7 +107,7 @@ public class Base58 {
             char c = input.charAt(i);
             int digit = c < 128 ? INDEXES[c] : -1;
             if (digit < 0) {
-                throw new IllegalArgumentException("Invalid character '" + Character.toString(c) + "' at position " + i);
+                throw new IllegalArgumentException("Invalid character '" + c + "' at position " + i);
             }
             input58[i] = (byte) digit;
         }

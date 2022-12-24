@@ -2,7 +2,7 @@
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Albert Moky
+ * Copyright (c) 2022 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,63 +23,79 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.crypto;
+package chat.dim;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
+import java.security.Security;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.crypto.NoSuchPaddingException;
+import org.bouncycastle.crypto.digests.KeccakDigest;
+import org.bouncycastle.crypto.digests.RIPEMD160Digest;
 
-public interface Plugins {
+import chat.dim.crypto.AsymmetricKey;
+import chat.dim.crypto.ECCPrivateKey;
+import chat.dim.crypto.ECCPublicKey;
+import chat.dim.crypto.PrivateKey;
+import chat.dim.crypto.PublicKey;
+import chat.dim.crypto.RSAPrivateKey;
+import chat.dim.crypto.RSAPublicKey;
+import chat.dim.digest.DataDigester;
+import chat.dim.digest.Keccak256;
+import chat.dim.digest.RIPEMD160;
+import chat.dim.format.JSON;
+import chat.dim.format.ObjectCoder;
 
-    /*
-     *  Symmetric Key Parsers
-     */
-    static void registerSymmetricKeyFactories() {
+public class CryptoPlugins {
 
-        SymmetricKey.setFactory(SymmetricKey.AES, new SymmetricKey.Factory() {
+    static void registerDataDigesters() {
 
+        RIPEMD160.digester = new DataDigester() {
             @Override
-            public SymmetricKey generateSymmetricKey() {
-                Map<String, Object> key = new HashMap<>();
-                key.put("algorithm", SymmetricKey.AES);
-                return parseSymmetricKey(key);
+            public byte[] digest(byte[] data) {
+                RIPEMD160Digest digest = new RIPEMD160Digest();
+                digest.update(data, 0, data.length);
+                byte[] out = new byte[20];
+                digest.doFinal(out, 0);
+                return out;
             }
-
+        };
+        Keccak256.digester = new DataDigester() {
             @Override
-            public SymmetricKey parseSymmetricKey(Map<String, Object> key) {
-                try {
-                    return new AESKey(key);
-                } catch (NoSuchPaddingException | NoSuchAlgorithmException e) {
-                    e.printStackTrace();
-                    return null;
-                }
+            public byte[] digest(byte[] data) {
+                KeccakDigest digest = new KeccakDigest(256);
+                digest.update(data, 0, data.length);
+                byte[] out = new byte[digest.getDigestSize()];
+                digest.doFinal(out, 0);
+                return out;
             }
-        });
-        SymmetricKey.setFactory(PlainKey.PLAIN, new SymmetricKey.Factory() {
-
-            @Override
-            public SymmetricKey generateSymmetricKey() {
-                return PlainKey.getInstance();
-            }
-
-            @Override
-            public SymmetricKey parseSymmetricKey(Map<String, Object> key) {
-                return PlainKey.getInstance();
-            }
-        });
+        };
     }
 
-    /*
-     *  Asymmetric Key Parsers
-     */
+    static void registerDataCoders() {
+
+        JSON.parser = new ObjectCoder<Object>() {
+
+            @Override
+            public String encode(Object container) {
+                /*/
+                String s = com.alibaba.fastjson.JSON.toJSONString(container);
+                return s.getBytes(Charset.forName("UTF-8"));
+                */
+                return com.alibaba.fastjson.JSON.toJSONString(container);
+            }
+
+            @Override
+            public Object decode(String json) {
+                return com.alibaba.fastjson.JSON.parse(json);
+            }
+        };
+
+    }
+
     static void registerAsymmetricKeyFactories() {
 
-        /*
-         *  Private Key Parsers
-         */
         PrivateKey.setFactory(AsymmetricKey.RSA, new PrivateKey.Factory() {
 
             @Override
@@ -119,9 +135,6 @@ public interface Plugins {
             }
         });
 
-        /*
-         *  Public Key Parsers
-         */
         PublicKey.setFactory(AsymmetricKey.RSA, new PublicKey.Factory() {
 
             @Override
@@ -135,6 +148,7 @@ public interface Plugins {
             }
         });
         PublicKey.setFactory(AsymmetricKey.ECC, new PublicKey.Factory() {
+
             @Override
             public PublicKey parsePublicKey(Map<String, Object> key) {
                 try {
@@ -146,5 +160,16 @@ public interface Plugins {
             }
         });
 
+    }
+
+    public static void registerNativePlugins() {
+
+        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+
+        registerDataDigesters();
+
+        registerDataCoders();
+
+        registerAsymmetricKeyFactories();
     }
 }
