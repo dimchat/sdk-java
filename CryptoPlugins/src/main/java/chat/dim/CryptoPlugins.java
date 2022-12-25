@@ -162,7 +162,7 @@ public class CryptoPlugins {
 
     }
 
-    public static void registerNativePlugins() {
+    public static void registerCryptoPlugins() {
 
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
 

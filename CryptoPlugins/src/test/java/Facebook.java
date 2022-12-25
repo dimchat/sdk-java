@@ -25,7 +25,7 @@ public class Facebook implements User.DataSource, Group.DataSource {
         super();
 
         chat.dim.Plugins.registerPlugins();
-        chat.dim.CryptoPlugins.registerNativePlugins();
+        chat.dim.CryptoPlugins.registerCryptoPlugins();
     }
 
     // memory caches
