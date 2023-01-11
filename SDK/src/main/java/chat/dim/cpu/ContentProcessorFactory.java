@@ -35,7 +35,7 @@ import java.util.Map;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
-import chat.dim.TwinsHelper;
+import chat.dim.core.TwinsHelper;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;

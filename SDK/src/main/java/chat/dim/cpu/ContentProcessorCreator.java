@@ -32,7 +32,7 @@ package chat.dim.cpu;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
-import chat.dim.TwinsHelper;
+import chat.dim.core.TwinsHelper;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.ContentType;
 

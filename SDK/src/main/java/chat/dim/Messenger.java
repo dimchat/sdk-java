@@ -33,9 +33,7 @@ package chat.dim;
 import java.util.List;
 
 import chat.dim.crypto.SymmetricKey;
-import chat.dim.dkd.AppCustomizedContent;
 import chat.dim.protocol.Content;
-import chat.dim.protocol.ContentType;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
@@ -162,23 +160,5 @@ public abstract class Messenger extends Transceiver implements CipherKeyDelegate
         // NOTICE: check attachment for File/Image/Audio/Video message content
         //         after deserialize content, this job should be do in subclass
         return content;
-    }
-
-    /**
-     *  Register All Message/Content/Command Factories
-     */
-    public static void registerCoreFactories() {
-        //
-        //  Register core factories
-        //
-        registerMessageFactories();
-        registerContentFactories();
-        registerCommandFactories();
-
-        //
-        //  Register customized factories
-        //
-        Content.setFactory(ContentType.CUSTOMIZED, AppCustomizedContent::new);
-        Content.setFactory(ContentType.APPLICATION, AppCustomizedContent::new);
     }
 }

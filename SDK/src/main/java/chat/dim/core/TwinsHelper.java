@@ -28,9 +28,12 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim;
+package chat.dim.core;
 
 import java.lang.ref.WeakReference;
+
+import chat.dim.Facebook;
+import chat.dim.Messenger;
 
 public abstract class TwinsHelper {
 
