@@ -71,22 +71,22 @@ public final class AESKey extends BaseSymmetricKey {
     private int getKeySize() {
         // TODO: get from key data
 
-        Object size = get("keySize");
-        if (size == null) {
+        int size = getInt("keySize");
+        if (size <= 0) {
             return 32;
         } else {
-            return (int) size;
+            return size;
         }
     }
 
     private int getBlockSize() {
         // TODO: get from iv data
 
-        Object size = get("blockSize");
-        if (size == null) {
+        int size = getInt("blockSize");
+        if (size <= 0) {
             return cipher.getBlockSize();
         } else {
-            return (int) size;
+            return size;
         }
     }
 
@@ -102,9 +102,9 @@ public final class AESKey extends BaseSymmetricKey {
     }
 
     private byte[] getInitVector() {
-        Object iv = get("iv");
+        String iv = getString("iv");
         if (iv != null) {
-            return Base64.decode((String) iv);
+            return Base64.decode(iv);
         }
         // zero iv
         int blockSize = getBlockSize();
@@ -115,9 +115,9 @@ public final class AESKey extends BaseSymmetricKey {
 
     @Override
     public byte[] getData() {
-        Object data = get("data");
+        String data = getString("data");
         if (data != null) {
-            return Base64.decode((String) data);
+            return Base64.decode(data);
         }
 
         //

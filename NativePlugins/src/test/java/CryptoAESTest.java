@@ -23,9 +23,9 @@ public class CryptoAESTest {
         Log.info("key: " + key);
         String json = JSON.encode(key);
         Log.info("JSON(" + json.length() + " bytes): " + json);
-        String algor = (String) key.get("A");
+        String algor = key.getString("A");
         if (algor == null) {
-            algor = (String) key.get("algorithm");
+            algor = key.getString("algorithm");
         }
         Log.info("A: " + algor);
 

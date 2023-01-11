@@ -61,16 +61,16 @@ public final class RSAPublicKey extends BasePublicKey implements EncryptKey {
     private int keySize() {
         // TODO: get from key
 
-        Object size = get("keySize");
-        if (size == null) {
+        int size = getInt("keySize");
+        if (size <= 0) {
             return 1024 / 8; // 128
         } else  {
-            return (int) size;
+            return size;
         }
     }
 
     private java.security.interfaces.RSAPublicKey getKey() throws NoSuchFieldException {
-        String data = (String) get("data");
+        String data = getString("data");
         if (data == null) {
             throw new NoSuchFieldException("RSA public key data not found");
         }

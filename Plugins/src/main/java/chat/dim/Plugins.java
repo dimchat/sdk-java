@@ -26,18 +26,27 @@
 package chat.dim;
 
 import javax.crypto.NoSuchPaddingException;
+import java.nio.charset.Charset;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.core.AddressFactory;
 import chat.dim.crypto.AESKey;
 import chat.dim.crypto.PlainKey;
 import chat.dim.crypto.SymmetricKey;
+import chat.dim.digest.DataDigester;
+import chat.dim.digest.MD5;
+import chat.dim.digest.SHA1;
+import chat.dim.digest.SHA256;
 import chat.dim.format.Base58;
+import chat.dim.format.Base64;
 import chat.dim.format.DataCoder;
 import chat.dim.format.Hex;
 import chat.dim.format.HexCoder;
+import chat.dim.format.StringCoder;
+import chat.dim.format.UTF8;
+import chat.dim.mkm.AddressFactory;
 import chat.dim.mkm.BTCAddress;
 import chat.dim.mkm.DocumentFactory;
 import chat.dim.mkm.ETHAddress;
@@ -67,9 +76,95 @@ public interface Plugins {
             }
         };
 
+        // Base64 coding
+        Base64.coder = new DataCoder() {
+
+            @Override
+            public String encode(byte[] data) {
+                return java.util.Base64.getEncoder().encodeToString(data);
+            }
+
+            @Override
+            public byte[] decode(String string) {
+                return java.util.Base64.getDecoder().decode(string);
+            }
+        };
+
         // HEX coding
         Hex.coder = new HexCoder();
 
+        // UTF8
+        UTF8.coder = new StringCoder() {
+
+            @SuppressWarnings("CharsetObjectCanBeUsed")
+            @Override
+            public byte[] encode(String string) {
+                return string.getBytes(Charset.forName("UTF-8"));
+            }
+
+            @SuppressWarnings("CharsetObjectCanBeUsed")
+            @Override
+            public String decode(byte[] utf8) {
+                return new String(utf8, Charset.forName("UTF-8"));
+            }
+        };
+    }
+
+    static void registerDataDigesters() {
+
+        // MD5
+        MD5.digester = new DataDigester() {
+
+            @Override
+            public byte[] digest(byte[] data) {
+                MessageDigest md;
+                try {
+                    md = MessageDigest.getInstance("MD5");
+                } catch (NoSuchAlgorithmException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+                md.reset();
+                md.update(data);
+                return md.digest();
+            }
+        };
+
+        // SHA1
+        SHA1.digester = new DataDigester() {
+
+            @Override
+            public byte[] digest(byte[] data) {
+                MessageDigest md;
+                try {
+                    md = MessageDigest.getInstance("SHA-1");
+                } catch (NoSuchAlgorithmException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+                md.reset();
+                md.update(data);
+                return md.digest();
+            }
+        };
+
+        // SHA256
+        SHA256.digester = new DataDigester() {
+
+            @Override
+            public byte[] digest(byte[] data) {
+                MessageDigest md;
+                try {
+                    md = MessageDigest.getInstance("SHA-256");
+                } catch (NoSuchAlgorithmException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+                md.reset();
+                md.update(data);
+                return md.digest();
+            }
+        };
     }
 
     /*
@@ -167,6 +262,7 @@ public interface Plugins {
     static void registerPlugins() {
 
         registerDataCoders();
+        registerDataDigesters();
 
         registerSymmetricKeyFactories();
 

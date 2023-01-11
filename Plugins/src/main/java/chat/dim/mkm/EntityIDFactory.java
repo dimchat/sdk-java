@@ -30,10 +30,10 @@
  */
 package chat.dim.mkm;
 
-import chat.dim.core.IDFactory;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.NetworkID;
+import chat.dim.type.ConstantString;
 
 /**
  *  ID for entity (User/Group)
@@ -45,10 +45,32 @@ import chat.dim.protocol.NetworkID;
  *          address  - a string to identify an entity
  *          terminal - entity login resource(device), OPTIONAL
  */
-final class EntityID extends Identifier {
+final class EntityID extends ConstantString implements ID {
+
+    private final String name;
+    private final Address address;
+    private final String terminal;
 
     public EntityID(String identifier, String name, Address address, String terminal) {
-        super(identifier, name, address, terminal);
+        super(identifier);
+        this.name = name;
+        this.address = address;
+        this.terminal = terminal;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public Address getAddress() {
+        return address;
+    }
+
+    @Override
+    public String getTerminal() {
+        return terminal;
     }
 
     /**
@@ -58,9 +80,28 @@ final class EntityID extends Identifier {
      */
     @Override
     public int getType() {
-        byte network = (byte) getAddress().getType();
+        assert address != null : "ID.address should not be empty: " + toString();
+        byte network = (byte) address.getType();
         // compatible with MKM 0.9.*
         return NetworkID.getType(network);
+    }
+
+    @Override
+    public boolean isBroadcast() {
+        assert address != null : "ID.address should not be empty: " + toString();
+        return address.isBroadcast();
+    }
+
+    @Override
+    public boolean isUser() {
+        assert address != null : "ID.address should not be empty: " + toString();
+        return address.isUser();
+    }
+
+    @Override
+    public boolean isGroup() {
+        assert address != null : "ID.address should not be empty: " + toString();
+        return address.isGroup();
     }
 }
 

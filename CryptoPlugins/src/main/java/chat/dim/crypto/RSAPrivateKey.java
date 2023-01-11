@@ -65,16 +65,16 @@ public final class RSAPrivateKey extends BasePrivateKey implements DecryptKey {
     private int keySize() {
         // TODO: get from key
 
-        Object size = get("keySize");
-        if (size == null) {
+        int size = getInt("keySize");
+        if (size <= 0) {
             return 1024 / 8; // 128
         } else  {
-            return (int) size;
+            return size;
         }
     }
 
     private KeyPair getKeyPair() throws NoSuchAlgorithmException {
-        String data = (String) get("data");
+        String data = getString("data");
         if (data == null) {
             // generate key
             return generateKeyPair(keySize() * 8);
@@ -165,6 +165,7 @@ public final class RSAPrivateKey extends BasePrivateKey implements DecryptKey {
 
     @Override
     public boolean match(EncryptKey pKey) {
-        return SymmetricKey.matches(pKey, this);
+        FactoryManager man = FactoryManager.getInstance();
+        return man.generalFactory.matches(pKey, this);
     }
 }

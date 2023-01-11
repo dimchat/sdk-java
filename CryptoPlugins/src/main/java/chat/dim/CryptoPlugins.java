@@ -75,7 +75,7 @@ public class CryptoPlugins {
 
     static void registerDataCoders() {
 
-        JSON.parser = new ObjectCoder<Object>() {
+        JSON.coder = new ObjectCoder<Object>() {
 
             @Override
             public String encode(Object container) {
