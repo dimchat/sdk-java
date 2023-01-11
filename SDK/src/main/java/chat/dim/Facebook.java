@@ -34,8 +34,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import chat.dim.core.AddressFactory;
-import chat.dim.core.Barrack;
+import chat.dim.mkm.AddressFactory;
 import chat.dim.mkm.BaseGroup;
 import chat.dim.mkm.BaseUser;
 import chat.dim.mkm.Bot;

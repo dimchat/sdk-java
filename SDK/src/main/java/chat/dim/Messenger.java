@@ -32,17 +32,12 @@ package chat.dim;
 
 import java.util.List;
 
-import chat.dim.core.CipherKeyDelegate;
-import chat.dim.core.Packer;
-import chat.dim.core.Processor;
-import chat.dim.core.Transceiver;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.dkd.AppCustomizedContent;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
-import chat.dim.protocol.MessageFactories;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 
@@ -176,7 +171,7 @@ public abstract class Messenger extends Transceiver implements CipherKeyDelegate
         //
         //  Register core factories
         //
-        MessageFactories.registerFactories();
+        registerMessageFactories();
         registerContentFactories();
         registerCommandFactories();
 

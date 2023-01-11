@@ -28,29 +28,29 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.cpu;
+package chat.dim;
 
-import java.util.List;
+import chat.dim.crypto.SymmetricKey;
+import chat.dim.protocol.ID;
 
-import chat.dim.Facebook;
-import chat.dim.Messenger;
-import chat.dim.protocol.Content;
-import chat.dim.protocol.HistoryCommand;
-import chat.dim.protocol.ReliableMessage;
+public interface CipherKeyDelegate {
 
-public class HistoryCommandProcessor extends BaseCommandProcessor {
+    /**
+     *  Get cipher key for encrypt message from 'sender' to 'receiver'
+     *
+     * @param sender - from where (user or contact ID)
+     * @param receiver - to where (contact or user/group ID)
+     * @param generate - generate when key not exists
+     * @return cipher key
+     */
+    SymmetricKey getCipherKey(ID sender, ID receiver, boolean generate);
 
-    public static String FMT_HIS_CMD_NOT_SUPPORT = "History command (name: %s) not support yet!";
-
-    public HistoryCommandProcessor(Facebook facebook, Messenger messenger) {
-        super(facebook, messenger);
-    }
-
-    @Override
-    public List<Content> process(Content content, ReliableMessage rMsg) {
-        assert content instanceof HistoryCommand : "history command error: " + content;
-        HistoryCommand command = (HistoryCommand) content;
-        String text = String.format(FMT_HIS_CMD_NOT_SUPPORT, command.getCmd());
-        return respondText(text, command.getGroup());
-    }
+    /**
+     *  Cache cipher key for reusing, with the direction (from 'sender' to 'receiver')
+     *
+     * @param sender - from where (user or contact ID)
+     * @param receiver - to where (contact or user/group ID)
+     * @param key - cipher key
+     */
+    void cacheCipherKey(ID sender, ID receiver, SymmetricKey key);
 }

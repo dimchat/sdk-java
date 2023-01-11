@@ -33,14 +33,8 @@ package chat.dim.cpu;
 import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.TwinsHelper;
-import chat.dim.cpu.group.ExpelCommandProcessor;
-import chat.dim.cpu.group.InviteCommandProcessor;
-import chat.dim.cpu.group.QueryCommandProcessor;
-import chat.dim.cpu.group.QuitCommandProcessor;
-import chat.dim.cpu.group.ResetCommandProcessor;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.ContentType;
-import chat.dim.protocol.GroupCommand;
 
 public class ContentProcessorCreator extends TwinsHelper implements ContentProcessor.Creator {
 
@@ -70,8 +64,6 @@ public class ContentProcessorCreator extends TwinsHelper implements ContentProce
         // default commands
         if (ContentType.COMMAND.equals(type)) {
             return new BaseCommandProcessor(getFacebook(), getMessenger());
-        } else if (ContentType.HISTORY.equals(type)) {
-            return new HistoryCommandProcessor(getFacebook(), getMessenger());
         }
         /*/
         // default contents
@@ -93,20 +85,6 @@ public class ContentProcessorCreator extends TwinsHelper implements ContentProce
             // document command
             case Command.DOCUMENT:
                 return new DocumentCommandProcessor(getFacebook(), getMessenger());
-
-            // group commands
-            case "group":
-                return new GroupCommandProcessor(getFacebook(), getMessenger());
-            case GroupCommand.INVITE:
-                return new InviteCommandProcessor(getFacebook(), getMessenger());
-            case GroupCommand.EXPEL:
-                return new ExpelCommandProcessor(getFacebook(), getMessenger());
-            case GroupCommand.QUIT:
-                return new QuitCommandProcessor(getFacebook(), getMessenger());
-            case GroupCommand.QUERY:
-                return new QueryCommandProcessor(getFacebook(), getMessenger());
-            case GroupCommand.RESET:
-                return new ResetCommandProcessor(getFacebook(), getMessenger());
 
             // unknown
             default:

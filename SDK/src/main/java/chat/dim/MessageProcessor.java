@@ -33,7 +33,6 @@ package chat.dim;
 import java.util.ArrayList;
 import java.util.List;
 
-import chat.dim.core.Processor;
 import chat.dim.cpu.ContentProcessor;
 import chat.dim.cpu.ContentProcessorCreator;
 import chat.dim.cpu.ContentProcessorFactory;
