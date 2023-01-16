@@ -27,12 +27,14 @@ package chat.dim;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
+import java.security.Provider;
 import java.security.Security;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.bouncycastle.crypto.digests.KeccakDigest;
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import chat.dim.crypto.AsymmetricKey;
 import chat.dim.crypto.ECCPrivateKey;
@@ -164,7 +166,14 @@ public class CryptoPlugins {
 
     public static void registerCryptoPlugins() {
 
-        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+        Provider provider = Security.getProvider(BouncyCastleProvider.PROVIDER_NAME);
+        if (provider != null) {
+            System.out.println(BouncyCastleProvider.PROVIDER_NAME + " old version: " + provider.getVersion());
+            Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
+        }
+        provider = new BouncyCastleProvider();
+        System.out.println(BouncyCastleProvider.PROVIDER_NAME + " new version: " + provider.getVersion());
+        Security.addProvider(provider);
 
         registerDataDigesters();
 
