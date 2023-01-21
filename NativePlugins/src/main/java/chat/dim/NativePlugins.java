@@ -96,7 +96,7 @@ public class NativePlugins {
 
     static void registerAsymmetricKeyFactories() {
 
-        PrivateKey.setFactory(AsymmetricKey.RSA, new PrivateKey.Factory() {
+        PrivateKey.Factory rsaPri = new PrivateKey.Factory() {
 
             @Override
             public PrivateKey generatePrivateKey() {
@@ -114,7 +114,11 @@ public class NativePlugins {
                     return null;
                 }
             }
-        });
+        };
+        PrivateKey.setFactory(AsymmetricKey.RSA, rsaPri);
+        PrivateKey.setFactory("SHA256withRSA", rsaPri);
+        PrivateKey.setFactory("RSA/ECB/PKCS1Padding", rsaPri);
+
         PrivateKey.setFactory(AsymmetricKey.ECC, new PrivateKey.Factory() {
 
             @Override
@@ -135,7 +139,7 @@ public class NativePlugins {
             }
         });
 
-        PublicKey.setFactory(AsymmetricKey.RSA, new PublicKey.Factory() {
+        PublicKey.Factory rsaPub = new PublicKey.Factory() {
 
             @Override
             public PublicKey parsePublicKey(Map<String, Object> key) {
@@ -146,7 +150,11 @@ public class NativePlugins {
                     return null;
                 }
             }
-        });
+        };
+        PublicKey.setFactory(AsymmetricKey.RSA, rsaPub);
+        PublicKey.setFactory("SHA256withRSA", rsaPub);
+        PublicKey.setFactory("RSA/ECB/PKCS1Padding", rsaPub);
+
         PublicKey.setFactory(AsymmetricKey.ECC, new PublicKey.Factory() {
 
             @Override

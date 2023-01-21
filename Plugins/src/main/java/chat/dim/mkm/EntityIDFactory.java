@@ -111,4 +111,18 @@ public final class EntityIDFactory extends IDFactory {
     protected ID newID(String identifier, String name, Address address, String terminal) {
         return new EntityID(identifier, name, address, terminal);
     }
+
+    @Override
+    protected ID parse(String identifier) {
+        if (identifier == null || identifier.length() == 0) {
+            throw new NullPointerException("ID empty");
+        } else if (ID.ANYONE.equalsIgnoreCase(identifier)) {
+            return ID.ANYONE;
+        } else if (ID.EVERYONE.equalsIgnoreCase(identifier)) {
+            return ID.EVERYONE;
+        } else if (ID.FOUNDER.equalsIgnoreCase(identifier)) {
+            return ID.FOUNDER;
+        }
+        return super.parse(identifier);
+    }
 }

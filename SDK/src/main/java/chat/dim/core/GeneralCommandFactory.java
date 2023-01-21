@@ -48,11 +48,11 @@ public class GeneralCommandFactory implements Content.Factory, Command.Factory {
         FactoryManager man = FactoryManager.getInstance();
         String cmd = man.generalFactory.getCmd(content);
         // get factory by command name
-        Command.Factory factory = man.generalFactory.commandFactories.get(cmd);
+        Command.Factory factory = man.generalFactory.getCommandFactory(cmd);
         if (factory == null) {
             // check for group command
             if (content.get("group") != null) {
-                factory = man.generalFactory.commandFactories.get("group");
+                factory = man.generalFactory.getCommandFactory("group");
             }
             if (factory == null) {
                 factory = this;

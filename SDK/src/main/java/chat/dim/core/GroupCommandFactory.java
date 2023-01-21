@@ -44,7 +44,7 @@ public class GroupCommandFactory extends HistoryCommandFactory {
         FactoryManager man = FactoryManager.getInstance();
         String cmd = man.generalFactory.getCmd(content);
         // get factory by command name
-        Command.Factory factory = man.generalFactory.commandFactories.get(cmd);
+        Command.Factory factory = man.generalFactory.getCommandFactory(cmd);
         if (factory == null) {
             factory = this;
         }

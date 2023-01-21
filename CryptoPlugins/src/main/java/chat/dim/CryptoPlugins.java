@@ -32,6 +32,7 @@ import java.security.Security;
 import java.util.HashMap;
 import java.util.Map;
 
+import chat.dim.utils.CryptoUtils;
 import org.bouncycastle.crypto.digests.KeccakDigest;
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -98,7 +99,7 @@ public class CryptoPlugins {
 
     static void registerAsymmetricKeyFactories() {
 
-        PrivateKey.setFactory(AsymmetricKey.RSA, new PrivateKey.Factory() {
+        PrivateKey.Factory rsaPri = new PrivateKey.Factory() {
 
             @Override
             public PrivateKey generatePrivateKey() {
@@ -116,7 +117,11 @@ public class CryptoPlugins {
                     return null;
                 }
             }
-        });
+        };
+        PrivateKey.setFactory(AsymmetricKey.RSA, rsaPri);
+        PrivateKey.setFactory(CryptoUtils.RSA_SHA256, rsaPri);
+        PrivateKey.setFactory(CryptoUtils.RSA_ECB_PKCS1, rsaPri);
+
         PrivateKey.setFactory(AsymmetricKey.ECC, new PrivateKey.Factory() {
 
             @Override
@@ -137,7 +142,7 @@ public class CryptoPlugins {
             }
         });
 
-        PublicKey.setFactory(AsymmetricKey.RSA, new PublicKey.Factory() {
+        PublicKey.Factory rsaPub = new PublicKey.Factory() {
 
             @Override
             public PublicKey parsePublicKey(Map<String, Object> key) {
@@ -148,7 +153,11 @@ public class CryptoPlugins {
                     return null;
                 }
             }
-        });
+        };
+        PublicKey.setFactory(AsymmetricKey.RSA, rsaPub);
+        PublicKey.setFactory(CryptoUtils.RSA_SHA256, rsaPub);
+        PublicKey.setFactory(CryptoUtils.RSA_ECB_PKCS1, rsaPub);
+
         PublicKey.setFactory(AsymmetricKey.ECC, new PublicKey.Factory() {
 
             @Override

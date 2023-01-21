@@ -221,12 +221,15 @@ public interface Plugins {
         Address.setFactory(new AddressFactory() {
             @Override
             public Address createAddress(String address) {
-                int len = address.length();
-                if (len == 8 && address.equalsIgnoreCase("anywhere")) {
+                if (address == null || address.length() == 0) {
+                    throw new NullPointerException("address empty");
+                } else if (Address.ANYWHERE.equalsIgnoreCase(address)) {
                     return Address.ANYWHERE;
-                } else if (len == 10 && address.equalsIgnoreCase("everywhere")) {
+                } else if (Address.EVERYWHERE.equalsIgnoreCase(address)) {
                     return Address.EVERYWHERE;
-                } else if (len == 42) {
+                }
+                int len = address.length();
+                if (len == 42) {
                     return ETHAddress.parse(address);
                 } else if (26 <= len && len <= 35) {
                     return BTCAddress.parse(address);
