@@ -2,12 +2,12 @@
  *
  *  LNC: Local Notification Center
  *
- *                                Written in 2019 by Moky <albert.moky@gmail.com>
+ *                                Written in 2022 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Albert Moky
+ * Copyright (c) 2022 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,21 +30,30 @@
  */
 package chat.dim.notification;
 
-import java.util.Map;
-
 /**
- *  Notification object with name, sender and extra info
+ *  Default Notification Center
+ *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *
+ *  call for each observers immediately
  */
-public class Notification {
+public final class DefaultCenter extends BaseCenter {
 
-    public final String name;
-    public final Object sender;
-    public final Map<String, Object> userInfo;
-
-    public Notification(String name, Object sender, Map<String, Object> userInfo) {
-        super();
-        this.name = name;
-        this.sender = sender;
-        this.userInfo = userInfo;
+    @Override
+    public void postNotification(Notification notification) {
+        Observer[] observers = getObservers(notification.name);
+        if (observers == null) {
+            // no observer for this notification
+            return;
+        }
+        for (Observer item : observers) {
+            if (item == null) {
+                continue;
+            }
+            try {
+                item.onReceiveNotification(notification);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

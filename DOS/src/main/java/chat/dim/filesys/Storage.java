@@ -43,8 +43,7 @@ public class Storage extends Resource implements Writable {
 
     @Override
     public boolean exists(String path) {
-        File file = new File(path);
-        return file.exists();
+        return Paths.exists(path);
     }
 
     @Override
@@ -91,10 +90,10 @@ public class Storage extends Resource implements Writable {
 
     @Override
     public boolean remove(String path) throws IOException {
-        File file = new File(path);
-        if (!file.exists()) {
-            throw new IOException("file not found: " + path);
+        if (Paths.delete(path)) {
+            return true;
+        } else {
+            throw new IOException("failed to remove: " + path);
         }
-        return file.delete();
     }
 }

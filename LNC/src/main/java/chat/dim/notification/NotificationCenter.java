@@ -30,25 +30,20 @@
  */
 package chat.dim.notification;
 
-import java.lang.ref.WeakReference;
-import java.util.Hashtable;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.Vector;
 
 /**
  *  Notification center
  */
-public final class NotificationCenter {
-    private static final NotificationCenter ourInstance = new NotificationCenter();
+public enum NotificationCenter {
+
+    INSTANCE;
+
     public static NotificationCenter getInstance() {
-        return ourInstance;
-    }
-    private NotificationCenter() {
+        return INSTANCE;
     }
 
-    private Map<String, List<WeakReference>> observerMap = new Hashtable<>();
+    BaseCenter center = new DefaultCenter();
 
     /**
      *  Add observer with notification name
@@ -56,20 +51,8 @@ public final class NotificationCenter {
      * @param observer - who will receive notification
      * @param name - notification name
      */
-    public synchronized void addObserver(Observer observer, String name) {
-        List<WeakReference> list = observerMap.get(name);
-        if (list == null) {
-            list = new Vector<>();
-            observerMap.put(name, list);
-        } else {
-            for (WeakReference ref : list) {
-                if (observer == ref.get()) {
-                    // already exists
-                    return;
-                }
-            }
-        }
-        list.add(new WeakReference<>(observer));
+    public void addObserver(Observer observer, String name) {
+        center.addObserver(observer, name);
     }
 
     /**
@@ -78,18 +61,8 @@ public final class NotificationCenter {
      * @param observer - who will receive notification
      * @param name - notification name
      */
-    public synchronized void removeObserver(Observer observer, String name) {
-        List<WeakReference> list = observerMap.get(name);
-        if (list == null) {
-            return;
-        }
-        for (WeakReference ref : list) {
-            if (observer == ref.get()) {
-                // got it
-                list.remove(ref);
-                break;
-            }
-        }
+    public void removeObserver(Observer observer, String name) {
+        center.removeObserver(observer, name);
     }
 
     /**
@@ -97,11 +70,8 @@ public final class NotificationCenter {
      *
      * @param observer - who will receive notification
      */
-    public synchronized void removeObserver(Observer observer) {
-        Set<String> keys = observerMap.keySet();
-        for (String name : keys) {
-            removeObserver(observer, name);
-        }
+    public void removeObserver(Observer observer) {
+        center.removeObserver(observer);
     }
 
     /**
@@ -111,7 +81,7 @@ public final class NotificationCenter {
      * @param sender - who post this notification
      */
     public void postNotification(String name, Object sender) {
-        postNotification(name, sender, null);
+        center.postNotification(name, sender);
     }
 
     /**
@@ -121,9 +91,8 @@ public final class NotificationCenter {
      * @param sender - who post this notification
      * @param userInfo - extra info
      */
-    public void postNotification(String name, Object sender, Map userInfo) {
-        Notification notification = new Notification(name, sender, userInfo);
-        postNotification(notification);
+    public void postNotification(String name, Object sender, Map<String, Object> userInfo) {
+        center.postNotification(name, sender, userInfo);
     }
 
     /**
@@ -131,29 +100,7 @@ public final class NotificationCenter {
      *
      * @param notification - notification object
      */
-    private void postNotification(Notification notification) {
-        // a temporary array buffer, used as a snapshot of the state of current observers
-        Object[] array;
-
-        synchronized (this) {
-            List list = observerMap.get(notification.name);
-            if (list == null) {
-                array = null;
-            } else  {
-                array = list.toArray();
-            }
-        }
-        if (array == null) {
-            return;
-        }
-
-        Observer observer;
-        for (Object item : array) {
-            observer = (Observer) ((WeakReference) item).get();
-            if (observer == null) {
-                continue;
-            }
-            observer.onReceiveNotification(notification);
-        }
+    public void postNotification(Notification notification) {
+        center.postNotification(notification);
     }
 }

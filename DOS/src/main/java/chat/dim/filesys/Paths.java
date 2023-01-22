@@ -31,10 +31,12 @@
 package chat.dim.filesys;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
-public abstract class Paths {
+import chat.dim.utils.ArrayUtils;
 
-    public static String separator = File.separator;
+public interface Paths {
 
     /**
      *  Append all components to the path with separator
@@ -43,11 +45,11 @@ public abstract class Paths {
      * @param components - sub-dir or filename
      * @return new path
      */
-    public static String appendPathComponent(String path, String... components) {
+    static String append(String path, String... components) {
         StringBuilder sb = new StringBuilder();
         sb.append(path);
         for (String item: components) {
-            sb.append(separator);
+            sb.append(File.separator);
             sb.append(item);
         }
         return sb.toString();
@@ -59,7 +61,7 @@ public abstract class Paths {
      * @param path - uri string
      * @return filename
      */
-    public static String getFilename(String path) {
+    static String filename(String path) {
         int pos;
         // ignore URI query string
         pos = path.indexOf("?");
@@ -76,9 +78,11 @@ public abstract class Paths {
         if (pos < 0) {
             pos = path.lastIndexOf("\\");
             if (pos < 0) {
+                // only filename
                 return path;
             }
         }
+        // cut parent
         return path.substring(pos + 1);
     }
 
@@ -88,11 +92,157 @@ public abstract class Paths {
      * @param filename - file name
      * @return file extension
      */
-    public static String getExtension(String filename) {
+    static String extension(String filename) {
         int pos = filename.lastIndexOf(".");
         if (pos < 0) {
+            // no extension
             return null;
         }
         return filename.substring(pos + 1);
+    }
+
+    /**
+     *  Get parent directory
+     *
+     * @param path - full path
+     * @return parent path
+     */
+    static String parent(String path) {
+        int pos;
+        if (path.endsWith("/")) {
+            pos = path.lastIndexOf("/", path.length() - 2);
+        } else if (path.endsWith("\\")) {
+            pos = path.lastIndexOf("\\", path.length() - 2);
+        } else {
+            pos = path.lastIndexOf("/");
+            if (pos < 0) {
+                pos = path.lastIndexOf("\\");
+            }
+        }
+        if (pos < 0) {
+            // relative path?
+            return null;
+        } else if (pos == 0) {
+            // root dir: "/"
+            return "/";
+        }
+        return path.substring(0, pos);
+    }
+
+    /**
+     *  Get absolute path
+     *
+     * @param relative - relative path
+     * @param base     - base directory
+     * @return absolute path
+     */
+    static String abs(String relative, String base) {
+        assert base.length() > 0 && relative.length() > 0 : "paths error: " + base + ", " + relative;
+        if (relative.startsWith("/") || relative.indexOf(":") > 0) {
+            // Linux   - "/filename"
+            // Windows - "C:\\filename"
+            // URL     - "file://filename"
+            return relative;
+        }
+        String path;
+        if (base.endsWith("/") || base.endsWith("\\")) {
+            path = base + relative;
+        } else {
+            String separator = base.contains("\\") ? "\\" : "/";
+            path = base + separator + relative;
+        }
+        if (path.contains("./")) {
+            return tidy(path, "/");
+        } else if (path.contains(".\\")) {
+            return tidy(path, "\\");
+        } else {
+            return path;
+        }
+    }
+
+    /**
+     *  Remove relative components in full path
+     *
+     * @param path      - full path
+     * @param separator - file separator
+     * @return absolute path
+     */
+    static String tidy(String path, final String separator) {
+        final String parent = ".." + separator;
+        final String current = "." + separator;
+        List<String> array = new ArrayList<>();
+        String next;
+        int left, right = 0;
+        while (right >= 0) {
+            left = right;
+            right = path.indexOf(separator, left);
+            if (right < 0) {
+                // last component
+                next = path.substring(left);
+            } else {
+                // next component (ends with the separator)
+                right += separator.length();
+                next = path.substring(left, right);
+            }
+            if (next.equals(parent)) {
+                // backward
+                assert array.size() > 0 : "path error: " + path;
+                array.remove(array.size() - 1);
+            } else if (!next.equals(current)) {
+                array.add(next);
+            }
+        }
+        return ArrayUtils.join("", array);
+    }
+
+    //
+    //  Read
+    //
+
+    /**
+     *  Check whether file exists
+     *
+     * @param path - file path
+     * @return true on exists
+     */
+    static boolean exists(String path) {
+        File file = new File(path);
+        return file.exists();
+    }
+
+    //
+    //  Write
+    //
+
+    /**
+     *  Create directory
+     *
+     * @param path - dir path
+     * @return false on error
+     */
+    static boolean mkdirs(String path) {
+        File file = new File(path);
+        if (file.exists()) {
+            // already exists
+            return file.isDirectory();
+        } else {
+            return file.mkdirs();
+        }
+    }
+
+    /**
+     *  Delete file
+     *
+     * @param path - file path
+     * @return false on error
+     */
+    static boolean delete(String path) {
+        File file = new File(path);
+        if (file.exists()) {
+            return file.delete();
+        } else {
+            // not exists
+            return true;
+        }
     }
 }
