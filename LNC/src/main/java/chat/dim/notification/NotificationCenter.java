@@ -81,7 +81,7 @@ public enum NotificationCenter {
      * @param sender - who post this notification
      */
     public void postNotification(String name, Object sender) {
-        center.postNotification(name, sender);
+        center.postNotification(name, sender, null);
     }
 
     /**

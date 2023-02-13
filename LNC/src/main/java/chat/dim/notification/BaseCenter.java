@@ -46,6 +46,12 @@ public abstract class BaseCenter {
     private final Map<String, Set<Observer>> allObservers = new Hashtable<>();
     private final ReadWriteLock observerLock = new ReentrantReadWriteLock();
 
+    /**
+     *  Add observer with notification name
+     *
+     * @param observer - listener
+     * @param name     - notification name
+     */
     public void addObserver(Observer observer, String name) {
         Lock writeLock = observerLock.writeLock();
         writeLock.lock();
@@ -64,6 +70,12 @@ public abstract class BaseCenter {
         }
     }
 
+    /**
+     *  Remove observer from notification center
+     *
+     * @param observer - listener
+     * @param name     - notification name
+     */
     public void removeObserver(Observer observer, String name) {
         Lock writeLock = observerLock.writeLock();
         writeLock.lock();
@@ -80,6 +92,11 @@ public abstract class BaseCenter {
         }
     }
 
+    /**
+     *  Remove observer from notification center
+     *
+     * @param observer - listener
+     */
     public void removeObserver(Observer observer) {
         Lock writeLock = observerLock.writeLock();
         writeLock.lock();
@@ -102,7 +119,7 @@ public abstract class BaseCenter {
         }
     }
 
-    protected Observer[] getObservers(String name) {
+    private Observer[] getObservers(String name) {
         Observer[] observers = null;
         Lock writeLock = observerLock.writeLock();
         writeLock.lock();
@@ -118,13 +135,40 @@ public abstract class BaseCenter {
         return observers;
     }
 
-    public void postNotification(String name, Object sender) {
-        postNotification(new Notification(name, sender, null));
-    }
-
+    /**
+     *  Post notification with name
+     *
+     * @param name     - notification name
+     * @param sender   - notification sender
+     * @param userInfo - extra info
+     */
     public void postNotification(String name, Object sender, Map<String, Object> userInfo) {
         postNotification(new Notification(name, sender, userInfo));
     }
 
+    /**
+     *  Post the notification
+     *
+     * @param notification - notification
+     */
     public abstract void postNotification(Notification notification);
+
+    // do posting
+    protected void post(Notification notification) {
+        Observer[] observers = getObservers(notification.name);
+        if (observers == null) {
+            // no observer for this notification
+            return;
+        }
+        for (Observer item : observers) {
+            if (item == null) {
+                continue;
+            }
+            try {
+                item.onReceiveNotification(notification);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

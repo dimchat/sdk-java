@@ -40,20 +40,6 @@ public final class DefaultCenter extends BaseCenter {
 
     @Override
     public void postNotification(Notification notification) {
-        Observer[] observers = getObservers(notification.name);
-        if (observers == null) {
-            // no observer for this notification
-            return;
-        }
-        for (Observer item : observers) {
-            if (item == null) {
-                continue;
-            }
-            try {
-                item.onReceiveNotification(notification);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+        post(notification);
     }
 }

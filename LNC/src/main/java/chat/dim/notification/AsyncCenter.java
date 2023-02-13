@@ -125,23 +125,11 @@ public class AsyncCenter extends BaseCenter implements Runnable {
     protected boolean process() {
         Notification notification = nextNotification();
         if (notification == null) {
+            // nothing to do now,
+            // return false to have a rest ^_^
             return false;
         }
-        Observer[] observers = getObservers(notification.name);
-        if (observers == null) {
-            // no observer for this notification
-            return true;
-        }
-        for (Observer item : observers) {
-            if (item == null) {
-                continue;
-            }
-            try {
-                item.onReceiveNotification(notification);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
+        post(notification);
         return true;
     }
 }
