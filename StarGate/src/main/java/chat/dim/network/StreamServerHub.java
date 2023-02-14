@@ -1,13 +1,13 @@
 /* license: https://mit-license.org
  *
- *  MTP: Message Transfer Protocol
+ *  Star Gate: Network Connection Module
  *
- *                                Written in 2021 by Moky <albert.moky@gmail.com>
+ *                                Written in 2022 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2021 Albert Moky
+ * Copyright (c) 2022 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,23 +28,40 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.mtp;
+package chat.dim.network;
 
-public final class StreamArrival extends PackageArrival {
+import java.net.SocketAddress;
 
-    public StreamArrival(Package pack, long now) {
-        super(pack, now);
+import chat.dim.net.Connection;
+import chat.dim.tcp.ServerHub;
+import chat.dim.tcp.StreamChannel;
+
+public final class StreamServerHub extends ServerHub {
+
+    public StreamServerHub(Connection.Delegate delegate, boolean isDaemon) {
+        super(delegate, isDaemon);
     }
 
-    public StreamArrival(Package pack) {
-        super(pack);
+    public StreamServerHub(Connection.Delegate delegate) {
+        super(delegate);
     }
 
-    public byte[] getPayload() {
-        Package pack = getPackage();
-        if (pack == null || pack.body == null) {
-            return null;
-        }
-        return pack.body.getBytes();
+    public void putChannel(StreamChannel channel) {
+        setChannel(channel.getRemoteAddress(), channel.getLocalAddress(), channel);
+    }
+
+    @Override
+    protected Connection getConnection(SocketAddress remote, SocketAddress local) {
+        return super.getConnection(remote, null);
+    }
+
+    @Override
+    protected void setConnection(SocketAddress remote, SocketAddress local, Connection conn) {
+        super.setConnection(remote, null, conn);
+    }
+
+    @Override
+    protected void removeConnection(SocketAddress remote, SocketAddress local, Connection conn) {
+        super.removeConnection(remote, null, conn);
     }
 }

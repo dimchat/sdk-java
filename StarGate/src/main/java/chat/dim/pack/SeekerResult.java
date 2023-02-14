@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  MTP: Message Transfer Protocol
+ *  Star Gate: Network Connection Module
  *
  *                                Written in 2021 by Moky <albert.moky@gmail.com>
  *
@@ -28,23 +28,14 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.mtp;
+package chat.dim.pack;
 
-public final class StreamArrival extends PackageArrival {
+public class SeekerResult<V> {
+    public final V value;
+    public final int offset;
 
-    public StreamArrival(Package pack, long now) {
-        super(pack, now);
-    }
-
-    public StreamArrival(Package pack) {
-        super(pack);
-    }
-
-    public byte[] getPayload() {
-        Package pack = getPackage();
-        if (pack == null || pack.body == null) {
-            return null;
-        }
-        return pack.body.getBytes();
+    public SeekerResult(V res, int pos) {
+        value = res;
+        offset = pos;
     }
 }

@@ -28,7 +28,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.stargate;
+package chat.dim.network;
 
 import java.net.SocketAddress;
 import java.util.ArrayList;
@@ -37,21 +37,22 @@ import java.util.List;
 import chat.dim.net.Connection;
 import chat.dim.net.Hub;
 import chat.dim.port.Docker;
+import chat.dim.socket.ActiveConnection;
 import chat.dim.startrek.StarGate;
 
-public abstract class BaseGate<H extends Hub>
-        extends StarGate {
+public abstract class BaseGate extends StarGate {
 
-    private H hub = null;
+    private Hub hub;
 
-    protected BaseGate(Docker.Delegate delegate) {
+    public BaseGate(Docker.Delegate delegate) {
         super(delegate);
     }
 
-    public H getHub() {
+    public Hub getHub() {
         return hub;
     }
-    public void setHub(H h) {
+
+    public void setHub(Hub h) {
         hub = h;
     }
 
@@ -59,14 +60,14 @@ public abstract class BaseGate<H extends Hub>
     //  Docker
     //
 
-    public Docker getDocker(SocketAddress remote, SocketAddress local, List<byte[]> data) {
+    public Docker getDocker(SocketAddress remote, SocketAddress local, List<byte[]> advanceParty) {
         Docker docker = getDocker(remote, local);
         if (docker == null) {
-            Connection conn = getHub().connect(remote, local);
+            Connection conn = hub.connect(remote, local);
             if (conn != null) {
-                docker = createDocker(conn, data);
+                docker = createDocker(conn, advanceParty);
                 assert docker != null : "failed to create docker: " + remote + ", " + local;
-                setDocker(docker.getRemoteAddress(), docker.getLocalAddress(), docker);
+                setDocker(remote, local, docker);
             }
         }
         return docker;
@@ -87,7 +88,6 @@ public abstract class BaseGate<H extends Hub>
         super.removeDocker(remote, null, docker);
     }
 
-    /*/
     @Override
     protected void heartbeat(Connection connection) {
         // let the client to do the job
@@ -95,13 +95,12 @@ public abstract class BaseGate<H extends Hub>
             super.heartbeat(connection);
         }
     }
-    /*/
 
     @Override
     protected List<byte[]> cacheAdvanceParty(byte[] data, Connection connection) {
         // TODO: cache the advance party before decide which docker to use
         List<byte[]> array = new ArrayList<>();
-        if (data != null) {
+        if (data != null && data.length > 0) {
             array.add(data);
         }
         return array;

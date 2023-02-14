@@ -28,14 +28,24 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.stream;
+package chat.dim.network;
 
-public class SeekerResult<V> {
-    public final V value;
-    public final int offset;
+import java.util.List;
 
-    public SeekerResult(V res, int pos) {
-        value = res;
-        offset = pos;
+import chat.dim.mtp.StreamDocker;
+import chat.dim.net.Connection;
+import chat.dim.port.Docker;
+
+public final class TCPClientGate extends CommonGate {
+
+    public TCPClientGate(Docker.Delegate delegate) {
+        super(delegate);
+    }
+
+    @Override
+    protected Docker createDocker(Connection conn, List<byte[]> data) {
+        StreamDocker docker = new StreamDocker(conn);
+        docker.setDelegate(getDelegate());
+        return docker;
     }
 }

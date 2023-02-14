@@ -30,35 +30,12 @@
  */
 package chat.dim.mtp;
 
-import chat.dim.stream.PackageSeeker;
-import chat.dim.stream.SeekerResult;
+import chat.dim.pack.SeekerResult;
 import chat.dim.type.ByteArray;
-import chat.dim.type.Data;
 
-public class MTPHelper {
+public final class MTPHelper {
 
-    public static PackageSeeker<Header, Package> seeker
-            = new PackageSeeker<Header, Package>(Header.MAGIC_CODE, 0, 24) {
-        @Override
-        public Header parseHeader(ByteArray data) {
-            return Header.parse(data);
-        }
-
-        @Override
-        protected int getHeadLength(Header head) {
-            return head.getSize();
-        }
-
-        @Override
-        protected int getBodyLength(Header head) {
-            return head.bodyLength;
-        }
-
-        @Override
-        protected Package newPackage(ByteArray data, Header head, ByteArray body) {
-            return new Package(data, head, body);
-        }
-    };
+    private static final MTPSeeker seeker = new MTPSeeker();
 
     public static SeekerResult<Header> seekHeader(ByteArray data) {
         return seeker.seekHeader(data);
@@ -68,19 +45,19 @@ public class MTPHelper {
         return seeker.seekPackage(data);
     }
 
-    public static Package createCommand(byte[] body) {
-        return Package.create(DataType.COMMAND, null, 1, 0, body.length, new Data(body));
+    public static Package createCommand(ByteArray body) {
+        return Package.create(DataType.COMMAND, null, 1, 0, body.getSize(), body);
     }
 
-    public static Package createMessage(byte[] body) {
-        return Package.create(DataType.MESSAGE, null, 1, 0, body.length, new Data(body));
+    public static Package createMessage(TransactionID sn, ByteArray body) {
+        return Package.create(DataType.MESSAGE, sn, 1, 0, body.getSize(), body);
     }
 
-    public static Package respondCommand(TransactionID sn , byte[] body) {
-        return Package.create(DataType.COMMAND_RESPONSE, sn, 1, 0, body.length, new Data(body));
+    public static Package respondCommand(TransactionID sn, ByteArray body) {
+        return Package.create(DataType.COMMAND_RESPONSE, sn, 1, 0, body.getSize(), body);
     }
 
-    public static Package respondMessage(TransactionID sn, int pages, int index, byte[] body) {
-        return Package.create(DataType.MESSAGE_RESPONSE, sn, pages, index, body.length, new Data(body));
+    public static Package respondMessage(TransactionID sn, int pages, int index, ByteArray body) {
+        return Package.create(DataType.MESSAGE_RESPONSE, sn, pages, index, body.getSize(), body);
     }
 }

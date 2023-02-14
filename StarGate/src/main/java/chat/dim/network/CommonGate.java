@@ -28,68 +28,82 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.stargate;
+package chat.dim.network;
 
+import java.net.SocketAddress;
+
+import chat.dim.mtp.MTPHelper;
+import chat.dim.mtp.Package;
+import chat.dim.mtp.StreamArrival;
+import chat.dim.mtp.StreamDocker;
+import chat.dim.mtp.TransactionID;
+import chat.dim.net.Channel;
 import chat.dim.net.Hub;
+import chat.dim.port.Arrival;
 import chat.dim.port.Docker;
-import chat.dim.skywalker.Runner;
-import chat.dim.threading.Daemon;
+import chat.dim.type.Data;
 
-public abstract class AutoGate<H extends Hub>
-        extends BaseGate<H>
-        implements Runnable {
+/**
+ *  Gate with hub for connection
+ */
+public abstract class CommonGate extends BaseGate /*implements Runnable */{
 
-    private final Daemon daemon;
     private boolean running;
 
-    public AutoGate(Docker.Delegate delegate, boolean isDaemon) {
+    public CommonGate(Docker.Delegate delegate) {
         super(delegate);
-        daemon = new Daemon(this, isDaemon);
         running = false;
-    }
-
-    //
-    //  Threading
-    //
-
-    public boolean isRunning() {
-        return running;
     }
 
     public void start() {
-        stop();
         running = true;
-        daemon.start();
     }
-
     public void stop() {
         running = false;
-        daemon.stop();
     }
-
+    public boolean isRunning() {
+        return running;
+    }
+    /*/
     @Override
     public void run() {
-        running = true;
+        //running = true;
         while (isRunning()) {
             if (!process()) {
                 idle();
             }
         }
+        // gate closing
     }
 
     protected void idle() {
-        Runner.idle(128);
+        idle(256);
     }
 
-    @Override
-    public boolean process() {
+    public static void idle(long millis) {
         try {
-            boolean incoming = getHub().process();
-            boolean outgoing = super.process();
-            return incoming || outgoing;
-        } catch (Throwable e) {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
             e.printStackTrace();
-            return false;
         }
+    }
+    /*/
+
+    public Channel getChannel(SocketAddress remote, SocketAddress local) {
+        Hub hub = getHub();
+        assert hub != null : "no hub for channel: " + remote + ", " + local;
+        return hub.open(remote, local);
+    }
+
+    public boolean sendResponse(byte[] payload, Arrival ship, SocketAddress remote, SocketAddress local) {
+        assert ship instanceof StreamArrival : "arrival ship error: " + ship;
+        //MTPStreamArrival arrival = (MTPStreamArrival) ship;
+        Docker docker = getDocker(remote, local, null);
+        assert docker instanceof StreamDocker : "docker error: " + docker;
+        StreamDocker worker = (StreamDocker) docker;
+        //TransactionID sn = TransactionID.from(new Data(arrival.getSN()));
+        TransactionID sn = TransactionID.generate();
+        Package pack = MTPHelper.createMessage(sn, new Data(payload));
+        return worker.sendPackage(pack);
     }
 }

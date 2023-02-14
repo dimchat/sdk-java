@@ -2,12 +2,12 @@
  *
  *  Star Gate: Network Connection Module
  *
- *                                Written in 2021 by Moky <albert.moky@gmail.com>
+ *                                Written in 2022 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2021 Albert Moky
+ * Copyright (c) 2022 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,42 +28,36 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.stargate;
+package chat.dim.network;
 
 import java.net.SocketAddress;
 
-import chat.dim.mtp.Package;
-import chat.dim.mtp.PackageDeparture;
-import chat.dim.net.Hub;
-import chat.dim.port.Departure;
-import chat.dim.port.Docker;
+import chat.dim.net.Connection;
+import chat.dim.tcp.ClientHub;
+import chat.dim.tcp.StreamChannel;
 
-public abstract class ClientGate<H extends Hub>
-        extends BaseGate<H> {
+public final class StreamClientHub extends ClientHub {
 
-    public final SocketAddress remoteAddress;
-    public final SocketAddress localAddress;
-
-    public ClientGate(Docker.Delegate delegate, SocketAddress remote, SocketAddress local) {
+    public StreamClientHub(Connection.Delegate delegate) {
         super(delegate);
-        remoteAddress = remote;
-        localAddress = local;
-        setHub(createClientHub());
     }
 
-    // override for user-customized hub
-    protected abstract H createClientHub();
+    public void putChannel(StreamChannel channel) {
+        setChannel(channel.getRemoteAddress(), channel.getLocalAddress(), channel);
+    }
 
-    //
-    //  Sending
-    //
+    @Override
+    protected Connection getConnection(SocketAddress remote, SocketAddress local) {
+        return super.getConnection(remote, null);
+    }
 
-    public boolean sendPackage(Package pack, int priority) {
-        Docker docker = getDocker(remoteAddress, localAddress, null);
-        if (docker == null || !docker.isOpen()) {
-            return false;
-        }
-        Departure ship = new PackageDeparture(pack, priority);
-        return docker.sendShip(ship);
+    @Override
+    protected void setConnection(SocketAddress remote, SocketAddress local, Connection conn) {
+        super.setConnection(remote, null, conn);
+    }
+
+    @Override
+    protected void removeConnection(SocketAddress remote, SocketAddress local, Connection conn) {
+        super.removeConnection(remote, null, conn);
     }
 }

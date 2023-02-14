@@ -2,12 +2,12 @@
  *
  *  MTP: Message Transfer Protocol
  *
- *                                Written in 2021 by Moky <albert.moky@gmail.com>
+ *                                Written in 2022 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2021 Albert Moky
+ * Copyright (c) 2022 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,21 +30,37 @@
  */
 package chat.dim.mtp;
 
-public final class StreamArrival extends PackageArrival {
+import chat.dim.pack.PackageSeeker;
+import chat.dim.type.ByteArray;
 
-    public StreamArrival(Package pack, long now) {
-        super(pack, now);
+public final class MTPSeeker extends PackageSeeker<Header, Package> {
+
+    public MTPSeeker() {
+        super(Header.MAGIC_CODE, 0, 24);
     }
 
-    public StreamArrival(Package pack) {
-        super(pack);
-    }
-
-    public byte[] getPayload() {
-        Package pack = getPackage();
-        if (pack == null || pack.body == null) {
-            return null;
+    @Override
+    public Header parseHeader(ByteArray data) {
+        try {
+            return Header.parse(data);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        return pack.body.getBytes();
+        return null;
+    }
+
+    @Override
+    public int getHeaderLength(Header head) {
+        return head.getSize();
+    }
+
+    @Override
+    public int getBodyLength(Header head) {
+        return head.bodyLength;
+    }
+
+    @Override
+    public Package createPackage(ByteArray data, Header head, ByteArray body) {
+        return new Package(data, head, body);
     }
 }

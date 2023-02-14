@@ -33,11 +33,12 @@ package chat.dim.mtp;
 import java.util.ArrayList;
 import java.util.List;
 
-public class StreamDeparture extends PackageDeparture {
+public final class StreamDeparture extends PackageDeparture {
 
     public StreamDeparture(Package pack, int prior, int maxTries) {
         super(pack, prior, maxTries);
     }
+
     public StreamDeparture(Package pack, int prior) {
         super(pack, prior);
     }
@@ -45,8 +46,8 @@ public class StreamDeparture extends PackageDeparture {
     @Override
     protected List<Package> split(Package pack) {
         // stream docker will not separate packages
-        List<Package> array = new ArrayList<>();
-        array.add(pack);
-        return array;
+        List<Package> packages = new ArrayList<>();
+        packages.add(pack);
+        return packages;
     }
 }

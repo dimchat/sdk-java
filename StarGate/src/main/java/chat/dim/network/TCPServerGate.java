@@ -1,13 +1,13 @@
 /* license: https://mit-license.org
  *
- *  MTP: Message Transfer Protocol
+ *  Star Gate: Network Connection Module
  *
- *                                Written in 2021 by Moky <albert.moky@gmail.com>
+ *                                Written in 2022 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2021 Albert Moky
+ * Copyright (c) 2022 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,23 +28,41 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.mtp;
+package chat.dim.network;
 
-public final class StreamArrival extends PackageArrival {
+import java.util.List;
 
-    public StreamArrival(Package pack, long now) {
-        super(pack, now);
+import chat.dim.mtp.StreamDocker;
+import chat.dim.net.Connection;
+import chat.dim.port.Docker;
+import chat.dim.type.ByteArray;
+import chat.dim.type.Data;
+
+public final class TCPServerGate extends CommonGate {
+
+    public TCPServerGate(Docker.Delegate delegate) {
+        super(delegate);
     }
 
-    public StreamArrival(Package pack) {
-        super(pack);
-    }
-
-    public byte[] getPayload() {
-        Package pack = getPackage();
-        if (pack == null || pack.body == null) {
+    @Override
+    protected Docker createDocker(Connection conn, List<byte[]> advanceParty) {
+        int count = advanceParty == null ? 0 : advanceParty.size();
+        if (count == 0) {
             return null;
         }
-        return pack.body.getBytes();
+        ByteArray data = new Data(advanceParty.get(0));
+        for (int i = 1; i < count; ++i) {
+            data = data.concat(advanceParty.get(i));
+        }
+        if (data.getSize() == 0) {
+            return null;
+        }
+        // check data format before creating docker
+        if (StreamDocker.check(data)) {
+            StreamDocker docker = new StreamDocker(conn);
+            docker.setDelegate(getDelegate());
+            return docker;
+        }
+        throw new AssertionError("failed to create docker: " + data);
     }
 }

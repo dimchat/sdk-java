@@ -36,22 +36,25 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import chat.dim.net.Connection;
+import chat.dim.pack.DeparturePacker;
+import chat.dim.pack.SeekerResult;
 import chat.dim.port.Arrival;
 import chat.dim.port.Departure;
-import chat.dim.startrek.DepartureShip;
-import chat.dim.stream.SeekerResult;
 import chat.dim.type.ByteArray;
 import chat.dim.type.Data;
 
-public class StreamDocker extends PackageDocker {
+/**
+ *  Docker for MTP packages
+ */
+public class StreamDocker extends PackageDocker implements DeparturePacker {
+
+    private ByteArray chunks = Data.ZERO;
+    private final ReadWriteLock chunksLock = new ReentrantReadWriteLock();
+    private boolean packageReceived = false;
 
     public StreamDocker(Connection conn) {
         super(conn);
     }
-
-    private final ReadWriteLock chunksLock = new ReentrantReadWriteLock();
-    private ByteArray chunks = Data.ZERO;
-    private boolean packageReceived = false;
 
     @Override
     protected Package parsePackage(byte[] data) {
@@ -65,8 +68,8 @@ public class StreamDocker extends PackageDocker {
             // try to fetch a package
             SeekerResult<Package> result = MTPHelper.seekPackage(buffer);
             pack = result.value;
-            packageReceived = pack != null;
             int offset = result.offset;
+            packageReceived = pack != null;
             if (offset >= 0) {
                 // 'error part' + 'MTP package' + 'remaining data'
                 if (pack != null) {
@@ -75,7 +78,8 @@ public class StreamDocker extends PackageDocker {
                 if (offset == 0) {
                     chunks = buffer.concat(chunks);
                 } else if (offset < buffer.getSize()) {
-                    chunks = buffer.slice(offset).concat(chunks);
+                    buffer = buffer.slice(offset);
+                    chunks = buffer.concat(chunks);
                 }
             }
         } finally {
@@ -98,14 +102,18 @@ public class StreamDocker extends PackageDocker {
 
     @Override
     protected Arrival checkArrival(Arrival income) {
+        assert income instanceof StreamArrival : "arrival ship error: " + income;
         StreamArrival ship = (StreamArrival) income;
         Package pack = ship.getPackage();
         if (pack == null) {
             List<Package> fragments = ship.getFragments();
-            pack = fragments.get(fragments.size() - 1);
+            int count = fragments.size();
+            assert count > 0 : "fragments empty: " + ship;
+            pack = fragments.get(count - 1);
         }
+        Header head = pack.head;
         // check body length
-        if (pack.head.bodyLength != pack.body.getSize()) {
+        if (head.bodyLength != pack.body.getSize()) {
             // sticky data?
             return ship;
         }
@@ -120,13 +128,13 @@ public class StreamDocker extends PackageDocker {
 
     @Override
     protected Departure createDeparture(Package pkg, int priority) {
-        if (pkg.isResponse()) {
-            // response package needs no response again,
-            // so this ship will be removed immediately after sent.
-            return new StreamDeparture(pkg, priority, DepartureShip.DISPOSABLE);
-        } else {
+        if (pkg.isMessage()) {
             // normal package
             return new StreamDeparture(pkg, priority);
+        } else {
+            // response package needs no response again,
+            // so this ship will be removed immediately after sent.
+            return new StreamDeparture(pkg, priority, 1);
         }
     }
 
@@ -134,23 +142,35 @@ public class StreamDocker extends PackageDocker {
     //  Packing
     //
 
+
     @Override
     protected Package createCommand(byte[] body) {
-        return MTPHelper.createCommand(body);
+        return MTPHelper.createCommand(new Data(body));
     }
 
     @Override
     protected Package createMessage(byte[] body) {
-        return MTPHelper.createMessage(body);
+        return MTPHelper.createMessage(null, new Data(body));
     }
 
     @Override
     protected Package createCommandResponse(TransactionID sn, byte[] body) {
-        return MTPHelper.respondCommand(sn, body);
+        return MTPHelper.respondCommand(sn, new Data(body));
     }
 
     @Override
     protected Package createMessageResponse(TransactionID sn, int pages, int index) {
-        return MTPHelper.respondMessage(sn, pages, index, OK);
+        return MTPHelper.respondMessage(sn, pages, index, new Data(OK));
+    }
+
+    @Override
+    public Departure packData(byte[] payload, int priority) {
+        Package pack = MTPHelper.createMessage(null, new Data(payload));
+        return createDeparture(pack, priority);
+    }
+
+    public static boolean check(ByteArray data) {
+        SeekerResult<Header> result = MTPHelper.seekHeader(data);
+        return result.value != null;
     }
 }

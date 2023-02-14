@@ -28,98 +28,122 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.stream;
+package chat.dim.pack;
 
 import chat.dim.type.ByteArray;
 
 public abstract class PackageSeeker<H, P> {
 
     private final byte[] MAGIC_CODE;
-    private final int MAGIC_CODE_OFFSET;
+    private final int MAGIC_OFFSET;
     private final int MAX_HEAD_LENGTH;
 
-    protected PackageSeeker(byte[] magicCode, int magicOffset, int maxHeadLen) {
+    public PackageSeeker(byte[] magicCode, int magicOffset, int maxHeadLen) {
         super();
         MAGIC_CODE = magicCode;
-        MAGIC_CODE_OFFSET = magicOffset;
+        MAGIC_OFFSET = magicOffset;
         MAX_HEAD_LENGTH = maxHeadLen;
     }
 
     /**
      *  Get package header from data buffer
      *
-     * @param data - received data
-     * @return header
+     * @param data - data received
+     * @return Header
      */
     public abstract H parseHeader(ByteArray data);
 
     /**
      *  Get length of header
      *
-     * @param head - header
+     * @param head - package header
      * @return header length
      */
-    protected abstract int getHeadLength(H head);
+    public abstract int getHeaderLength(H head);
 
     /**
      *  Get body length from header
      *
-     * @param head - header
+     * @param head - package header
      * @return body length
      */
-    protected abstract int getBodyLength(H head);
+    public abstract int getBodyLength(H head);
 
     /**
      *  Create package with buffer, head & body
      *
-     * @param data - buffer
-     * @param head - header
-     * @param body - body
-     * @return package
+     * @param data - data buffer
+     * @param head - package head
+     * @param body - package body
+     * @return Package
      */
-    protected abstract P newPackage(ByteArray data, H head, ByteArray body);
+    public abstract P createPackage(ByteArray data, H head, ByteArray body);
 
     /**
      *  Seek package header in received data buffer
      *
-     * @param data - data buffer
-     * @return header and it's offset, -1 on data error
+     * @param data - received data buffer
+     * @return header & it's offset, -1 on data error
      */
     public SeekerResult<H> seekHeader(ByteArray data) {
-        H head = parseHeader(data);
-        if (head != null) {
-            // got it (offset = 0)
-            return new SeekerResult<>(head, 0);
-        }
         int dataLen = data.getSize();
-        if (dataLen < MAX_HEAD_LENGTH) {
-            // waiting for more data
-            return new SeekerResult<>(null, 0);
-        }
-        // locate next header
-        int offset = data.find(MAGIC_CODE, MAGIC_CODE_OFFSET + 1);
-        if (offset < 0) {
-            if (dataLen < 65536) {
-                // waiting for more data
-                return new SeekerResult<>(null, 0);
+        int start = 0;
+        int offset;
+        int remaining;
+        H head;
+        while (start < dataLen) {
+            // try to parse header
+            head = parseHeader(data.slice(start));
+            if (head != null) {
+                // got header with start position
+                return new SeekerResult<>(head, start);
             }
-            // skip the whole buffer
-            return new SeekerResult<>(null, -1);
+            // header not found, check remaining data
+            remaining = dataLen - start;
+            if (remaining < MAX_HEAD_LENGTH) {
+                // waiting for more data
+                break;
+            }
+            // data error, locate next header
+            offset = nextOffset(data, start + 1);
+            if (offset < 0) {
+                // header not found
+                if (remaining < 65536) {
+                    // waiting for more data
+                    break;
+                }
+                // skip the whole buffer
+                return new SeekerResult<>(null, -1);
+            }
+            // try again from new offset
+            start += offset;
         }
-        assert offset > MAGIC_CODE_OFFSET : "magic code error";
-        // found next header, skip data before it
-        offset -= MAGIC_CODE_OFFSET;
-        data = data.slice(offset);
-        // try again from new offset
-        head = parseHeader(data);
-        return new SeekerResult<>(head, offset);
+        // header not found, waiting for more data
+        return new SeekerResult<>(null, start);
+    }
+
+    // locate next header
+    private int nextOffset(ByteArray data, int start) {
+        start = MAGIC_OFFSET + start;
+        int end = start + MAGIC_CODE.length;
+        if (end > data.getSize()) {
+            // not enough data
+            return -1;
+        }
+        int offset = data.find(MAGIC_CODE, start);
+        if (offset < 0) {
+            // header not found
+            return -1;
+        }
+        //assert offset > magicOffset : "magic code error: " + data;
+        return offset - MAGIC_OFFSET;
     }
 
     /**
      *  Seek data package from received data buffer
      *
-     * @param data - data buffer
-     * @return package and it's offset, -1 on data error
+     * @param data - received data buffer
+     * @return package & it's offset, -1 on data error
      */
     public SeekerResult<P> seekPackage(ByteArray data) {
         // 1. seek header in received data
@@ -133,12 +157,12 @@ public abstract class PackageSeeker<H, P> {
             // header not found
             return new SeekerResult<>(null, offset);
         } else if (offset > 0) {
-            // drop the error part
+            // skip the error part
             data = data.slice(offset);
         }
         // 2. check length
         int dataLen = data.getSize();
-        int headLen = getHeadLength(head);
+        int headLen = getHeaderLength(head);
         int bodyLen = getBodyLength(head);
         int packLen;
         if (bodyLen < 0) {
@@ -146,7 +170,7 @@ public abstract class PackageSeeker<H, P> {
         } else {
             packLen = headLen + bodyLen;
         }
-
+        // check data buffer
         if (dataLen < packLen) {
             // package not completed, waiting for more data
             return new SeekerResult<>(null, offset);
@@ -156,7 +180,7 @@ public abstract class PackageSeeker<H, P> {
         }
         // OK
         ByteArray body = data.slice(headLen);
-        P pack = newPackage(data, head, body);
+        P pack = createPackage(data, head, body);
         return new SeekerResult<>(pack, offset);
     }
 }
