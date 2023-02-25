@@ -37,22 +37,21 @@ import java.util.List;
 import chat.dim.net.Connection;
 import chat.dim.net.Hub;
 import chat.dim.port.Docker;
-import chat.dim.socket.ActiveConnection;
 import chat.dim.startrek.StarGate;
 
-public abstract class BaseGate extends StarGate {
+public abstract class BaseGate<H extends Hub>
+        extends StarGate {
 
-    private Hub hub;
+    private H hub;
 
     public BaseGate(Docker.Delegate delegate) {
         super(delegate);
     }
 
-    public Hub getHub() {
+    public H getHub() {
         return hub;
     }
-
-    public void setHub(Hub h) {
+    public void setHub(H h) {
         hub = h;
     }
 
@@ -63,7 +62,7 @@ public abstract class BaseGate extends StarGate {
     public Docker getDocker(SocketAddress remote, SocketAddress local, List<byte[]> advanceParty) {
         Docker docker = getDocker(remote, local);
         if (docker == null) {
-            Connection conn = hub.connect(remote, local);
+            Connection conn = getHub().connect(remote, local);
             if (conn != null) {
                 docker = createDocker(conn, advanceParty);
                 assert docker != null : "failed to create docker: " + remote + ", " + local;
@@ -88,6 +87,7 @@ public abstract class BaseGate extends StarGate {
         super.removeDocker(remote, null, docker);
     }
 
+    /*/
     @Override
     protected void heartbeat(Connection connection) {
         // let the client to do the job
@@ -95,6 +95,7 @@ public abstract class BaseGate extends StarGate {
             super.heartbeat(connection);
         }
     }
+    /*/
 
     @Override
     protected List<byte[]> cacheAdvanceParty(byte[] data, Connection connection) {

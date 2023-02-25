@@ -57,7 +57,7 @@ public final class CryptoUtils {
             try {
                 return AlgorithmParameters.getInstance(algorithm, "BC");
             } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-                //e.printStackTrace();
+                e.printStackTrace();
             }
         }
         return AlgorithmParameters.getInstance(algorithm);
@@ -69,7 +69,7 @@ public final class CryptoUtils {
             try {
                 return KeyFactory.getInstance(algorithm, "BC");
             } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-                //e.printStackTrace();
+                e.printStackTrace();
             }
         }
         return KeyFactory.getInstance(algorithm);
@@ -81,7 +81,7 @@ public final class CryptoUtils {
             try {
                 return KeyPairGenerator.getInstance(algorithm, "BC");
             } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-                //e.printStackTrace();
+                e.printStackTrace();
             }
         }
         return KeyPairGenerator.getInstance(algorithm);
@@ -97,7 +97,7 @@ public final class CryptoUtils {
             try {
                 return Signature.getInstance(algorithm, "BC");
             } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
-                //e.printStackTrace();
+                e.printStackTrace();
             }
         }
         return Signature.getInstance(algorithm);

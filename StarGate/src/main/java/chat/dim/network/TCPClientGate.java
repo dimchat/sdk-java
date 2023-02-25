@@ -35,6 +35,7 @@ import java.util.List;
 import chat.dim.mtp.StreamDocker;
 import chat.dim.net.Connection;
 import chat.dim.port.Docker;
+import chat.dim.socket.ActiveConnection;
 
 public final class TCPClientGate extends CommonGate {
 
@@ -47,5 +48,13 @@ public final class TCPClientGate extends CommonGate {
         StreamDocker docker = new StreamDocker(conn);
         docker.setDelegate(getDelegate());
         return docker;
+    }
+
+    @Override
+    protected void heartbeat(Connection connection) {
+        // let the client to do the job
+        if (connection instanceof ActiveConnection) {
+            super.heartbeat(connection);
+        }
     }
 }

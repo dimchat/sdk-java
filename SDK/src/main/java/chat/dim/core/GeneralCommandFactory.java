@@ -62,7 +62,7 @@ public class GeneralCommandFactory implements Content.Factory, Command.Factory {
     }
 
     @Override
-    public Command parseCommand(Map<String, Object> command) {
-        return new BaseCommand(command);
+    public Command parseCommand(Map<String, Object> content) {
+        return new BaseCommand(content);
     }
 }

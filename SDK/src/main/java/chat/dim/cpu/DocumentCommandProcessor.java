@@ -92,7 +92,7 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
             Document doc = command.getDocument();
             if (doc == null) {
                 // query entity document for ID
-                String type = (String) command.get("doc_type");
+                String type = command.getString("doc_type");
                 if (type == null) {
                     type = "*";  // ANY
                 }

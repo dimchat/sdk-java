@@ -41,12 +41,13 @@ import chat.dim.net.Channel;
 import chat.dim.net.Hub;
 import chat.dim.port.Arrival;
 import chat.dim.port.Docker;
+import chat.dim.tcp.StreamHub;
 import chat.dim.type.Data;
 
 /**
  *  Gate with hub for connection
  */
-public abstract class CommonGate extends BaseGate /*implements Runnable */{
+public abstract class CommonGate extends BaseGate<StreamHub> /*implements Runnable */{
 
     private boolean running;
 

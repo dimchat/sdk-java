@@ -52,7 +52,7 @@ public class GroupCommandFactory extends HistoryCommandFactory {
     }
 
     @Override
-    public Command parseCommand(Map<String, Object> command) {
-        return new BaseGroupCommand(command);
+    public Command parseCommand(Map<String, Object> content) {
+        return new BaseGroupCommand(content);
     }
 }

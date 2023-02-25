@@ -38,7 +38,7 @@ import chat.dim.protocol.Command;
 public class HistoryCommandFactory extends GeneralCommandFactory {
 
     @Override
-    public Command parseCommand(Map<String, Object> command) {
-        return new BaseHistoryCommand(command);
+    public Command parseCommand(Map<String, Object> content) {
+        return new BaseHistoryCommand(content);
     }
 }
