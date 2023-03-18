@@ -98,15 +98,6 @@ public abstract class Facebook extends Barrack {
     public abstract boolean saveDocument(Document doc);
 
     /**
-     *  Save members of group
-     *
-     * @param members - member ID list
-     * @param group - group ID
-     * @return true on success
-     */
-    public abstract boolean saveMembers(List<ID> members, ID group);
-
-    /**
      *  Document checking
      *
      * @param doc - entity document
@@ -145,13 +136,9 @@ public abstract class Facebook extends Barrack {
     }
 
     protected User createUser(ID identifier) {
-        if (identifier.isBroadcast()) {
-            // create user 'anyone@anywhere'
-            return new BaseUser(identifier);
-        }
-        // make sure meta exists
-        assert getMeta(identifier) != null : "meta not found for user: " + identifier;
-        // TODO: make sure visa key exists before calling this
+        // make sure visa key exists before calling this
+        assert identifier.isBroadcast() || getPublicKeyForEncryption(identifier) != null
+                : "visa key not found for user: " + identifier;
         int type = identifier.getType();
         // check user type
         if (EntityType.STATION.equals(type)) {
@@ -159,23 +146,20 @@ public abstract class Facebook extends Barrack {
         } else if (EntityType.BOT.equals(type)) {
             return new Bot(identifier);
         }
-        //assert EntityType.USER.equals(type) : "Unsupported user type: " + type;
+        // general user, or 'anyone@anywhere'
         return new BaseUser(identifier);
     }
 
     protected Group createGroup(ID identifier) {
-        if (identifier.isBroadcast()) {
-            // create group 'everyone@everywhere'
-            return new BaseGroup(identifier);
-        }
-        // make sure meta exists
-        assert getMeta(identifier) != null : "meta not found for group: " + identifier;
+        // make sure meta exists before calling this
+        assert identifier.isBroadcast() || getMeta(identifier) != null
+                : "meta not found for group: " + identifier;
         int type = identifier.getType();
         // check group type
         if (EntityType.ISP.equals(type)) {
             return new ServiceProvider(identifier);
         }
-        //assert EntityType.GROUP.equals(type) : "Unsupported group type: " + type;
+        // general group, or 'everyone@everywhere'
         return new BaseGroup(identifier);
     }
 
@@ -185,16 +169,6 @@ public abstract class Facebook extends Barrack {
      * @return users with private key
      */
     public abstract List<User> getLocalUsers();
-
-    /*/
-    public User getCurrentUser() {
-        List<User> users = getLocalUsers();
-        if (users == null || users.size() == 0) {
-            return null;
-        }
-        return users.get(0);
-    }
-    /*/
 
     /**
      *  Select local user for receiver
@@ -209,21 +183,7 @@ public abstract class Facebook extends Barrack {
         } else if (receiver.isBroadcast()) {
             // broadcast message can decrypt by anyone, so just return current user
             return users.get(0);
-        }
-        if (receiver.isGroup()) {
-            // group message (recipient not designated)
-            List<ID> members = getMembers(receiver);
-            if (members == null || members.size() == 0) {
-                // TODO: group not ready, waiting for group info
-                return null;
-            }
-            for (User item : users) {
-                if (members.contains(item.getIdentifier())) {
-                    // DISCUSS: set this item to be current user?
-                    return item;
-                }
-            }
-        } else {
+        } else if (receiver.isUser()) {
             // 1. personal message
             // 2. split group message
             for (User item : users) {
@@ -231,6 +191,21 @@ public abstract class Facebook extends Barrack {
                     // DISCUSS: set this item to be current user?
                     return item;
                 }
+            }
+            return null;
+        }
+        // group message (recipient not designated)
+        assert receiver.isGroup() : "receiver error: " + receiver;
+        // the messenger will check group info before decrypting message,
+        // so we can trust that the group's meta & members MUST exist here.
+        Group grp = getGroup(receiver);
+        assert grp != null : "group not ready: " + receiver;
+        List<ID> members = grp.getMembers();
+        assert members != null/* && members.size() > 0*/ : "members not found: " + receiver;
+        for (User item : users) {
+            if (members.contains(item.getIdentifier())) {
+                // DISCUSS: set this item to be current user?
+                return item;
             }
         }
         return null;

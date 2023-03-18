@@ -118,17 +118,13 @@ public class MessagePacker extends TwinsHelper implements Packer {
         if (receiver.isGroup()) {
             // group message
             Group grp = getFacebook().getGroup(receiver);
-            if (grp == null) {
-                // group not ready
-                // TODO: suspend this message for waiting group's meta
-                return null;
-            }
+            // a station will never send group message, so here must be a client;
+            // and the client messenger should check the group's meta & members
+            // before encrypting message, so we can trust that the group can be
+            // created and its members MUST exist here.
+            assert grp != null : "group not ready: " + receiver;
             List<ID> members = grp.getMembers();
-            if (members == null || members.size() == 0) {
-                // group members not found
-                // TODO: suspend this message for waiting group's membership
-                return null;
-            }
+            assert members != null && members.size() > 0: "group members not found";
             sMsg = iMsg.encrypt(password, members);
         } else {
             // personal message (or split group message)
