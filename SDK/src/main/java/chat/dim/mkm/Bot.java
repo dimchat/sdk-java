@@ -30,6 +30,7 @@
  */
 package chat.dim.mkm;
 
+import chat.dim.protocol.Document;
 import chat.dim.protocol.EntityType;
 import chat.dim.protocol.ID;
 
@@ -41,5 +42,18 @@ public class Bot extends BaseUser {
     public Bot(ID identifier) {
         super(identifier);
         assert EntityType.BOT.equals(identifier.getType()) : "bot ID error: " + identifier;
+    }
+
+    /**
+     *  Get provider ID
+     *
+     * @return ICP ID, bot group
+     */
+    public ID getProvider() {
+        Document doc = getDocument("*");
+        if (doc == null) {
+            return null;
+        }
+        return ID.parse(doc.getProperty("ICP"));
     }
 }

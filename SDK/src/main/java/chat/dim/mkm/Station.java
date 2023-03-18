@@ -210,4 +210,16 @@ public class Station implements User {
         }
         return port;
     }
-}
+
+    /**
+     *  Get provider ID
+     *
+     * @return ISP ID, station group
+     */
+    public ID getProvider() {
+        Document doc = getDocument("*");
+        if (doc == null) {
+            return null;
+        }
+        return ID.parse(doc.getProperty("ISP"));
+    }}

@@ -144,25 +144,6 @@ public abstract class Facebook extends Barrack {
         return meta != null && doc.verify(meta.getKey());
     }
 
-    //-------- group membership
-
-    public boolean isFounder(ID member, ID group) {
-        // check member's public key with group's meta.key
-        Meta gMeta = getMeta(group);
-        assert gMeta != null : "failed to get meta for group: " + group;
-        Meta mMeta = getMeta(member);
-        assert mMeta != null : "failed to get meta for member: " + member;
-        return Meta.matches(mMeta.getKey(), gMeta);
-    }
-
-    public boolean isOwner(ID member, ID group) {
-        if (EntityType.GROUP.equals(group.getType())) {
-            // this is a polylogue
-            return isFounder(member, group);
-        }
-        throw new UnsupportedOperationException("only Polylogue so far");
-    }
-
     protected User createUser(ID identifier) {
         if (identifier.isBroadcast()) {
             // create user 'anyone@anywhere'
