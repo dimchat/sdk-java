@@ -124,7 +124,7 @@ public class MessagePacker extends TwinsHelper implements Packer {
             // created and its members MUST exist here.
             assert grp != null : "group not ready: " + receiver;
             List<ID> members = grp.getMembers();
-            assert members != null && members.size() > 0: "group members not found";
+            assert members != null && members.size() > 0: "group members not found: " + receiver;
             sMsg = iMsg.encrypt(password, members);
         } else {
             // personal message (or split group message)
@@ -212,7 +212,7 @@ public class MessagePacker extends TwinsHelper implements Packer {
             rMsg.setDelegate(getMessenger());
         }
         //
-        //  TODO: check [Visa Protocol]
+        //  TODO: check [Visa Protocol] before calling this
         //        make sure the sender's meta(visa) exists
         //        (do in by application)
         //
@@ -230,7 +230,7 @@ public class MessagePacker extends TwinsHelper implements Packer {
         User user = facebook.selectLocalUser(receiver);
         SecureMessage trimmed;
         if (user == null) {
-            // current users not match
+            // local users not match
             trimmed = null;
         } else if (receiver.isGroup()) {
             // trim group message

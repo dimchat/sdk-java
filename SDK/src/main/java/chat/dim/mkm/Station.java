@@ -55,7 +55,8 @@ public class Station implements User {
 
     public Station(ID identifier, String host, int port) {
         super();
-        assert EntityType.STATION.equals(identifier.getType()) : "station ID error: " + identifier;
+        assert EntityType.STATION.equals(identifier.getType()) || EntityType.ANY.equals(identifier.getType())
+                : "station ID error: " + identifier;
         this.user = new BaseUser(identifier);
         this.host = host;
         this.port = port;
@@ -66,21 +67,21 @@ public class Station implements User {
     }
 
     public Station(String host, int port) {
-        super();
-        this.user = new BaseUser(ANY);
-        this.host = host;
-        this.port = port;
+        this(ANY, host, port);
     }
 
     @Override
     public boolean equals(Object other) {
-        if (super.equals(other)) {
-            // same object
-            return true;
-        } else {
-            // check with inner user
-            return user.equals(other);
+        if (other instanceof Station) {
+            if (other == this) {
+                // same object
+                return true;
+            }
+            Station server = (Station) other;
+            return server.port == port && server.host.equals(host);
         }
+        // others?
+        return false;
     }
 
     @Override

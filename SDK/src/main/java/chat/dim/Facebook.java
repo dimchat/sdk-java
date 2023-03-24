@@ -114,20 +114,18 @@ public abstract class Facebook extends Barrack {
         //             verify it with the user's meta.key
         Meta meta;
         if (identifier.isGroup()) {
-            // check by owner
             ID owner = getOwner(identifier);
-            if (owner == null) {
-                if (EntityType.GROUP.equals(identifier.getType())) {
-                    // NOTICE: if this is a polylogue document,
-                    //             verify it with the founder's meta.key
-                    //             (which equals to the group's meta.key)
-                    meta = getMeta(identifier);
-                } else {
-                    // FIXME: owner not found for this group
-                    return false;
-                }
-            } else {
+            if (owner != null) {
+                // check by owner's meta.key
                 meta = getMeta(owner);
+            } else if (EntityType.GROUP.equals(identifier.getType())) {
+                // NOTICE: if this is a polylogue document,
+                //             verify it with the founder's meta.key
+                //             (which equals to the group's meta.key)
+                meta = getMeta(identifier);
+            } else {
+                // FIXME: owner not found for this group
+                return false;
             }
         } else {
             meta = getMeta(identifier);
