@@ -111,16 +111,16 @@ public final class BTCAddress extends ConstantString implements Address {
     /**
      *  Parse a string for BTC address
      *
-     * @param string - address string
+     * @param address - address string
      * @return null on error
      */
-    public static BTCAddress parse(String string) {
-        int len = string.length();
-        if (len < 26/* || len > 34*/) {
+    public static BTCAddress parse(String address) {
+        int len = address.length();
+        if (len < 26 || len > 35) {
             return null;
         }
         // decode
-        byte[] data = Base58.decode(string);
+        byte[] data = Base58.decode(address);
         if (data.length != 25) {
             return null;
         }
@@ -131,7 +131,7 @@ public final class BTCAddress extends ConstantString implements Address {
         System.arraycopy(data, 21, suffix, 0, 4);
         byte[] cc = checkCode(prefix);
         if (Arrays.equals(cc, suffix)) {
-            return new BTCAddress(string, data[0]);
+            return new BTCAddress(address, data[0]);
         } else {
             return null;
         }

@@ -61,7 +61,7 @@ public abstract class BaseGate<H extends Hub>
 
     public Docker getDocker(SocketAddress remote, SocketAddress local, List<byte[]> advanceParty) {
         Docker docker = getDocker(remote, local);
-        if (docker == null) {
+        if (docker == null && advanceParty != null) {
             Connection conn = getHub().connect(remote, local);
             if (conn != null) {
                 docker = createDocker(conn, advanceParty);

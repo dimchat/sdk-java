@@ -80,27 +80,26 @@ final class EntityID extends ConstantString implements ID {
      */
     @Override
     public int getType() {
-        assert address != null : "ID.address should not be empty: " + toString();
-        byte network = (byte) address.getType();
+        assert address != null : "ID.address should not be empty: " + this;
         // compatible with MKM 0.9.*
-        return NetworkID.getType(network);
+        return NetworkID.getType(address.getType());
     }
 
     @Override
     public boolean isBroadcast() {
-        assert address != null : "ID.address should not be empty: " + toString();
+        assert address != null : "ID.address should not be empty: " + this;
         return address.isBroadcast();
     }
 
     @Override
     public boolean isUser() {
-        assert address != null : "ID.address should not be empty: " + toString();
+        assert address != null : "ID.address should not be empty: " + this;
         return address.isUser();
     }
 
     @Override
     public boolean isGroup() {
-        assert address != null : "ID.address should not be empty: " + toString();
+        assert address != null : "ID.address should not be empty: " + this;
         return address.isGroup();
     }
 }

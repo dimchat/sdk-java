@@ -153,17 +153,18 @@ public enum NetworkID /*!!! Deprecated, use EntityType instead. !!!*/ {
     /**
      *  Convert entity type from network ID (MKM 0.9.*)
      *
-     * @param network - network ID
+     * @param type - network ID
      * @return entity type
      */
-    public static int getType(byte network) {
+    public static int getType(int type) {
         // compatible with MKM 0.9.*
+        byte network = (byte) type;
         if (network == MAIN.value) {
             return EntityType.USER.value;
         } else if (network == GROUP.value) {
             return EntityType.GROUP.value;
         } else if (network == CHATROOM.value) {
-            return (byte) (EntityType.GROUP.value | CHATROOM.value);
+            return EntityType.GROUP.value | CHATROOM.value;
         } else if (network == STATION.value) {
             return EntityType.STATION.value;
         } else if (network == PROVIDER.value) {
@@ -171,6 +172,6 @@ public enum NetworkID /*!!! Deprecated, use EntityType instead. !!!*/ {
         } else if (network == BOT.value) {
             return EntityType.BOT.value;
         }
-        return network;
+        return type;
     }
 }

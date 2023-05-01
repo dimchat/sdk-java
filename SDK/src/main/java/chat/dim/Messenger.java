@@ -141,9 +141,9 @@ public abstract class Messenger extends Transceiver implements CipherKeyDelegate
     @Override
     public Content deserializeContent(byte[] data, SymmetricKey password, SecureMessage sMsg) {
         Content content = super.deserializeContent(data, password, sMsg);
-        assert content != null : "content error: " + data.length;
+        // assert content != null : "content error: " + data.length;
 
-        if (!isBroadcast(sMsg)) {
+        if (!isBroadcast(sMsg) && content != null) {
             // check and cache key for reuse
             ID group = getOvertGroup(content);
             if (group == null) {

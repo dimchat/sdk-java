@@ -70,12 +70,11 @@ final class BTCMeta extends BaseMeta {
     public Address generateAddress(int type) {
         assert MetaType.BTC.equals(getType()) || MetaType.ExBTC.equals(getType()) : "meta version error";
         //assert NetworkID.BTC_MAIN.equals(type) : "BTC address type error: " + type;
-        byte network = (byte) type;
-        if (cachedAddress == null) {
+        if (cachedAddress == null/* || cachedAddress.getType() != type*/) {
             // generate and cache it
             VerifyKey key = getKey();
             byte[] data = key.getData();
-            cachedAddress = BTCAddress.generate(data, network);
+            cachedAddress = BTCAddress.generate(data, (byte) type);
         }
         return cachedAddress;
     }

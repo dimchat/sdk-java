@@ -31,6 +31,7 @@
 package chat.dim.network;
 
 import java.net.SocketAddress;
+import java.util.ArrayList;
 
 import chat.dim.mtp.MTPHelper;
 import chat.dim.mtp.Package;
@@ -99,7 +100,7 @@ public abstract class CommonGate extends BaseGate<StreamHub> /*implements Runnab
     public boolean sendResponse(byte[] payload, Arrival ship, SocketAddress remote, SocketAddress local) {
         assert ship instanceof StreamArrival : "arrival ship error: " + ship;
         //MTPStreamArrival arrival = (MTPStreamArrival) ship;
-        Docker docker = getDocker(remote, local, null);
+        Docker docker = getDocker(remote, local, new ArrayList<>());
         assert docker instanceof StreamDocker : "docker error: " + docker;
         StreamDocker worker = (StreamDocker) docker;
         //TransactionID sn = TransactionID.from(new Data(arrival.getSN()));
