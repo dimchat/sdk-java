@@ -33,6 +33,7 @@ package chat.dim;
 import java.util.List;
 
 import chat.dim.crypto.SymmetricKey;
+import chat.dim.msg.BaseMessage;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
@@ -143,7 +144,7 @@ public abstract class Messenger extends Transceiver implements CipherKeyDelegate
         Content content = super.deserializeContent(data, password, sMsg);
         // assert content != null : "content error: " + data.length;
 
-        if (!isBroadcast(sMsg) && content != null) {
+        if (!BaseMessage.isBroadcast(sMsg) && content != null) {
             // check and cache key for reuse
             ID group = getOvertGroup(content);
             if (group == null) {

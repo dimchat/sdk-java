@@ -32,8 +32,8 @@ package chat.dim.core;
 
 import java.util.Map;
 
-import chat.dim.dkd.cmd.BaseGroupCommand;
 import chat.dim.dkd.cmd.FactoryManager;
+import chat.dim.dkd.group.BaseGroupCommand;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 

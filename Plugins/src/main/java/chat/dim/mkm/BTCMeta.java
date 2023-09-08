@@ -72,7 +72,7 @@ final class BTCMeta extends BaseMeta {
         //assert NetworkID.BTC_MAIN.equals(type) : "BTC address type error: " + type;
         if (cachedAddress == null/* || cachedAddress.getType() != type*/) {
             // generate and cache it
-            VerifyKey key = getKey();
+            VerifyKey key = getPublicKey();
             byte[] data = key.getData();
             cachedAddress = BTCAddress.generate(data, (byte) type);
         }

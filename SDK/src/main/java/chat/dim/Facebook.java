@@ -130,7 +130,7 @@ public abstract class Facebook extends Barrack {
         } else {
             meta = getMeta(identifier);
         }
-        return meta != null && doc.verify(meta.getKey());
+        return meta != null && doc.verify(meta.getPublicKey());
     }
 
     protected User createUser(ID identifier) {

@@ -72,7 +72,7 @@ final class ETHMeta extends BaseMeta {
         assert EntityType.USER.equals(type) : "ETH address type error: " + type;
         if (cachedAddress == null) {
             // generate and cache it
-            VerifyKey key = getKey();
+            VerifyKey key = getPublicKey();
             byte[] data = key.getData();
             cachedAddress = ETHAddress.generate(data);
         }

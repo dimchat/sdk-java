@@ -38,6 +38,9 @@ import chat.dim.format.JSON;
 import chat.dim.format.UTF8;
 import chat.dim.mkm.Group;
 import chat.dim.mkm.User;
+import chat.dim.msg.EncryptedMessagePacker;
+import chat.dim.msg.NetworkMessagePacker;
+import chat.dim.msg.PlainMessagePacker;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
@@ -49,8 +52,15 @@ import chat.dim.protocol.Visa;
 
 public class MessagePacker extends TwinsHelper implements Packer {
 
+    private final PlainMessagePacker instantPacker;
+    private final EncryptedMessagePacker securePacker;
+    private final NetworkMessagePacker reliablePacker;
+
     public MessagePacker(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
+        instantPacker = new PlainMessagePacker(messenger);
+        securePacker = new EncryptedMessagePacker(messenger);
+        reliablePacker = new NetworkMessagePacker(messenger);
     }
 
     @Override
@@ -78,10 +88,6 @@ public class MessagePacker extends TwinsHelper implements Packer {
     @Override
     public SecureMessage encryptMessage(InstantMessage iMsg) {
         Messenger messenger = getMessenger();
-        // check message delegate
-        if (iMsg.getDelegate() == null) {
-            iMsg.setDelegate(messenger);
-        }
         ID sender = iMsg.getSender();
         ID receiver = iMsg.getReceiver();
         // if 'group' exists and the 'receiver' is a group ID,
@@ -125,10 +131,10 @@ public class MessagePacker extends TwinsHelper implements Packer {
             assert grp != null : "group not ready: " + receiver;
             List<ID> members = grp.getMembers();
             assert members != null && members.size() > 0: "group members not found: " + receiver;
-            sMsg = iMsg.encrypt(password, members);
+            sMsg = instantPacker.encrypt(iMsg, password, members);
         } else {
             // personal message (or split group message)
-            sMsg = iMsg.encrypt(password);
+            sMsg = instantPacker.encrypt(iMsg, password);
         }
         if (sMsg == null) {
             // public key for encryption not found
@@ -155,13 +161,9 @@ public class MessagePacker extends TwinsHelper implements Packer {
 
     @Override
     public ReliableMessage signMessage(SecureMessage sMsg) {
-        // check message delegate
-        if (sMsg.getDelegate() == null) {
-            sMsg.setDelegate(getMessenger());
-        }
         assert sMsg.getData() != null : "message data cannot be empty";
         // sign 'data' by sender
-        return sMsg.sign();
+        return securePacker.sign(sMsg);
     }
 
     @Override
@@ -207,10 +209,6 @@ public class MessagePacker extends TwinsHelper implements Packer {
         if (visa != null) {
             facebook.saveDocument(visa);
         }
-        // check message delegate
-        if (rMsg.getDelegate() == null) {
-            rMsg.setDelegate(getMessenger());
-        }
         //
         //  TODO: check [Visa Protocol] before calling this
         //        make sure the sender's meta(visa) exists
@@ -219,7 +217,7 @@ public class MessagePacker extends TwinsHelper implements Packer {
 
         assert rMsg.getSignature() != null : "message signature cannot be empty";
         // verify 'data' with 'signature'
-        return rMsg.verify();
+        return reliablePacker.verify(rMsg);
     }
 
     @Override
@@ -234,17 +232,13 @@ public class MessagePacker extends TwinsHelper implements Packer {
             trimmed = null;
         } else if (receiver.isGroup()) {
             // trim group message
-            trimmed = sMsg.trim(user.getIdentifier());
+            trimmed = securePacker.trim(sMsg, user.getIdentifier());
         } else {
             trimmed = sMsg;
         }
         if (trimmed == null) {
             // not for you?
             throw new NullPointerException("receiver error: " + sMsg);
-        }
-        // check message delegate
-        if (sMsg.getDelegate() == null) {
-            sMsg.setDelegate(getMessenger());
         }
         //
         //  NOTICE: make sure the receiver is YOU!
@@ -254,7 +248,7 @@ public class MessagePacker extends TwinsHelper implements Packer {
 
         assert sMsg.getData() != null : "message data cannot be empty";
         // decrypt 'data' to 'content'
-        return sMsg.decrypt();
+        return securePacker.decrypt(sMsg);
 
         // TODO: check top-secret message
         //       (do it by application)

@@ -90,10 +90,11 @@ public final class Password {
         if (key1 == null || !key1.equals(key2)) {
             throw new AssertionError("keys not equals: " + key1 + ", " + key2);
         }
+        Map<String, Object> extra = new HashMap<>();
 
         byte[] data = UTF8.encode(text);
-        byte[] ct = key1.encrypt(data);
-        byte[] pt = key2.decrypt(ct);
+        byte[] ct = key1.encrypt(data, extra);
+        byte[] pt = key2.decrypt(ct, extra);
 
         String base64 = Base64.encode(ct);
         String res = UTF8.decode(pt);

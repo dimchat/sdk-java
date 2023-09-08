@@ -37,7 +37,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.Random;
 
-import chat.dim.format.Base64;
+import chat.dim.format.TransportableData;
 
 /**
  *  AES Key
@@ -55,8 +55,11 @@ public final class AESKey extends BaseSymmetricKey {
 
     private final Cipher cipher;
 
-    private final SecretKeySpec keySpec;
-    private final IvParameterSpec ivSpec;
+    private TransportableData keyData;
+    private TransportableData ivData;
+
+//    private final SecretKeySpec keySpec;
+//    private final IvParameterSpec ivSpec;
 
     public AESKey(Map<String, Object> dictionary) throws NoSuchPaddingException, NoSuchAlgorithmException {
         super(dictionary);
@@ -64,30 +67,41 @@ public final class AESKey extends BaseSymmetricKey {
         // 1. check mode = 'CBC'
         // 2. check padding = 'PKCS7Padding'
         cipher = Cipher.getInstance(AES_CBC_PKCS7);
-        keySpec = new SecretKeySpec(getData(), SymmetricKey.AES);
-        ivSpec = new IvParameterSpec(getInitVector());
+//        keySpec = new SecretKeySpec(getData(), SymmetricKey.AES);
+//        ivSpec = new IvParameterSpec(getInitVector());
+        keyData = null;
+        ivData = null;
+        if (!containsKey("data")) {
+            generate();
+        }
+    }
+
+    private void generate() {
+        // random key data
+        int keySize = getKeySize();
+        byte[] pw = randomData(keySize);
+        keyData = TransportableData.create(pw);
+        put("data", keyData.toObject());
+
+        // random initialization vector
+        int blockSize = getBlockSize();
+        byte[] iv = randomData(blockSize);
+        ivData = TransportableData.create(iv);
+        put("iv", ivData.toObject());
+
+        // other parameters
+        //put("mode", "CBC");
+        //put("padding", "PKCS7");
     }
 
     private int getKeySize() {
         // TODO: get from key data
-
-        int size = getInt("keySize");
-        if (size <= 0) {
-            return 32;
-        } else {
-            return size;
-        }
+        return getInt("keySize", 32);
     }
 
     private int getBlockSize() {
         // TODO: get from iv data
-
-        int size = getInt("blockSize");
-        if (size <= 0) {
-            return cipher.getBlockSize();
-        } else {
-            return size;
-        }
+        return getInt("blockSize", cipher.getBlockSize());
     }
 
     private static byte[] randomData(int size) {
@@ -102,49 +116,49 @@ public final class AESKey extends BaseSymmetricKey {
     }
 
     private byte[] getInitVector() {
-        String iv = getString("iv");
-        if (iv != null) {
-            return Base64.decode(iv);
+        TransportableData ted = ivData;
+        if (ted == null) {
+            Object iv = get("iv");
+            if (iv == null) {
+                // zero iv
+                byte[] zeros = zeroData(getBlockSize());
+                ivData = ted = TransportableData.create(zeros);
+            } else {
+                ivData = ted = TransportableData.parse(iv);
+                assert ivData != null : "IV error: " + iv;
+            }
         }
-        // zero iv
-        int blockSize = getBlockSize();
-        byte[] zeros = zeroData(blockSize);
-        put("iv", Base64.encode(zeros));
-        return zeros;
+        return ted.getData();
+    }
+    private void setInitVector(Object iv) {
+        ivData = TransportableData.parse(iv);
     }
 
     @Override
     public byte[] getData() {
-        String data = getString("data");
-        if (data != null) {
-            return Base64.decode(data);
+        TransportableData ted = keyData;
+        if (ted == null) {
+            Object data = get("data");
+            assert data != null : "key data not found: " + toMap();
+            keyData = ted = TransportableData.parse(data);
+            assert keyData != null : "key data error: " + data;
         }
-
-        //
-        // key data empty? generate new key info
-        //
-
-        // random key data
-        int keySize = getKeySize();
-        byte[] pw = randomData(keySize);
-        put("data", Base64.encode(pw));
-
-        // random initialization vector
-        int blockSize = getBlockSize();
-        byte[] iv = randomData(blockSize);
-        put("iv", Base64.encode(iv));
-
-        // other parameters
-        //put("mode", "CBC");
-        //put("padding", "PKCS7");
-
-        return pw;
+        return ted.getData();
     }
 
     @Override
-    public byte[] encrypt(byte[] plaintext) {
+    public byte[] encrypt(byte[] plaintext, Map<String, Object> extra) {
+        // 0. TODO: random new 'IV'
+        // 1. get key data & initial vector
+        byte[] data = getData();
+        byte[] iv = getInitVector();
+        assert data != null && iv != null : "key error: " + toMap();
+        extra.put("IV", ivData.toObject());
+        // 2. try to encrypt
         try {
             Cipher cipher = Cipher.getInstance(AES_CBC_PKCS7);
+            SecretKeySpec keySpec = new SecretKeySpec(data, SymmetricKey.AES);
+            IvParameterSpec ivSpec = new IvParameterSpec(iv);
             cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
             return cipher.doFinal(plaintext);
         } catch (InvalidKeyException | InvalidAlgorithmParameterException |
@@ -156,9 +170,18 @@ public final class AESKey extends BaseSymmetricKey {
     }
 
     @Override
-    public byte[] decrypt(byte[] ciphertext) {
+    public byte[] decrypt(byte[] ciphertext, Map<String, Object> params) {
+        // 0. get 'IV' from extra params
+        setInitVector(params.get("IV"));
+        // 1. get key data & initial vector
+        byte[] data = getData();
+        byte[] iv = getInitVector();
+        assert data != null && iv != null : "key error: " + toMap();
+        // 2. try to decrypt
         try {
             Cipher cipher = Cipher.getInstance(AES_CBC_PKCS7);
+            SecretKeySpec keySpec = new SecretKeySpec(data, SymmetricKey.AES);
+            IvParameterSpec ivSpec = new IvParameterSpec(iv);
             cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
             return cipher.doFinal(ciphertext);
         } catch (InvalidKeyException | InvalidAlgorithmParameterException |

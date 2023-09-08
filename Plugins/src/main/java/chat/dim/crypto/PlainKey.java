@@ -46,12 +46,12 @@ public final class PlainKey extends BaseSymmetricKey {
     }
 
     @Override
-    public byte[] encrypt(byte[] plaintext) {
+    public byte[] encrypt(byte[] plaintext, Map<String, Object> extra) {
         return plaintext;
     }
 
     @Override
-    public byte[] decrypt(byte[] ciphertext) {
+    public byte[] decrypt(byte[] ciphertext, Map<String, Object> params) {
         return ciphertext;
     }
 
