@@ -75,8 +75,9 @@ public class Base64Data extends Dictionary implements TransportableData {
                 base64 = Base64.encode(binary);
                 put("data", base64);
             }
+            assert base64 != null : "TED data should not be empty";
         }
-        assert base64 != null : "TED data should not be empty";
+        // return encoded data string
         return base64;
     }
 

@@ -130,12 +130,12 @@ public abstract class Messenger extends Transceiver implements CipherKeyDelegate
     //-------- SecureMessageDelegate
 
     @Override
-    public SymmetricKey deserializeKey(byte[] key, ID sender, ID receiver, SecureMessage sMsg) {
+    public SymmetricKey deserializeKey(byte[] key, ID receiver, SecureMessage sMsg) {
         if (key == null) {
             // get key from cache
-            return getCipherKey(sender, receiver, false);
+            return getCipherKey(sMsg.getSender(), receiver, false);
         } else {
-            return super.deserializeKey(key, sender, receiver, sMsg);
+            return super.deserializeKey(key, receiver, sMsg);
         }
     }
 

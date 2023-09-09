@@ -34,26 +34,39 @@ import chat.dim.type.Dictionary;
 
 public class BaseNetworkFile extends Dictionary implements PortableNetworkFile {
 
+    private URI remoteURL;                // download from CDN
     private TransportableData attachment; // file content (not encrypted)
     private DecryptKey password;          // key to decrypt data
 
     public BaseNetworkFile(Map<String, Object> dictionary) {
         super(dictionary);
         // lazy load
+        remoteURL = null;
         attachment = null;
         password = null;
     }
 
-    public BaseNetworkFile(URI url, byte[] data, String filename, DecryptKey key) {
+    //
+    //  Create PNF with remote URL & decrypt key
+    //
+
+    public BaseNetworkFile(URI url, DecryptKey key) {
         super();
-        // remote URL
         setURL(url);
-        // file data (lazy encode)
-        attachment = TransportableData.create(data);
-        // file name
-        setFilename(filename);
-        // decrypt key
+        attachment = null;
         setPassword(key);
+    }
+
+    //
+    //  Create PNF with file data & filename
+    //
+
+    public BaseNetworkFile(byte[] data, String filename) {
+        super();
+        remoteURL = null;
+        setData(data);
+        setFilename(filename);
+        password = null;
     }
 
     @Override
@@ -63,24 +76,33 @@ public class BaseNetworkFile extends Dictionary implements PortableNetworkFile {
         } else {
             put("URL", url.toString());
         }
+        remoteURL = url;
     }
 
     @Override
     public URI getURL() {
-        String url = getString("URL", null);
-        return url == null ? null : URI.create(url);
+        URI url = remoteURL;
+        if (url == null) {
+            String remote = getString("URL", null);
+            if (remote != null) {
+                remoteURL = url = URI.create(remote);
+            }
+        }
+        return url;
     }
 
     @Override
     public void setData(byte[] data) {
-        if (data != null && data.length > 0) {
-            attachment = TransportableData.create(data);
+        TransportableData ted;
+        if (data != null/* && data.length > 0*/) {
+            ted = TransportableData.create(data);
             // lazy encode
-            // put("data", attachment.toObject());
+            // put("data", ted.toObject());
         } else {
-            attachment = null;
+            ted = null;
             remove("data");
         }
+        attachment = ted;
     }
 
     @Override
@@ -122,25 +144,25 @@ public class BaseNetworkFile extends Dictionary implements PortableNetworkFile {
         return password;
     }
 
-    private boolean dataExists() {
-        if (get("data") != null) {
-            // data encoded already
-            return true;
+    private Object encodeData() {
+        Object base64 = get("data");
+        if (base64 == null) {
+            // 'data' not exists, check attachment
+            TransportableData ted = attachment;
+            if (ted != null) {
+                // encode data string
+                base64 = ted.toObject();
+                put("data", base64);
+            }
         }
-        TransportableData ted = attachment;
-        if (ted != null) {
-            // encode data string
-            put("data", ted.toObject());
-            return true;
-        }
-        // data not exists
-        return false;
+        // return encoded data string
+        return base64;
     }
 
     @Override
     public String toString() {
         // check 'data' and 'key'
-        if (dataExists() || getPassword() != null) {
+        if (encodeData() != null || getPassword() != null) {
             // not a single URL, encode the entire dictionary
             return JSONMap.encode(toMap());
         }

@@ -46,8 +46,8 @@ public class GeneralCommandFactory implements Content.Factory, Command.Factory {
     @Override
     public Content parseContent(Map<String, Object> content) {
         FactoryManager man = FactoryManager.getInstance();
-        String cmd = man.generalFactory.getCmd(content);
         // get factory by command name
+        String cmd = man.generalFactory.getCmd(content, "*");
         Command.Factory factory = man.generalFactory.getCommandFactory(cmd);
         if (factory == null) {
             // check for group command

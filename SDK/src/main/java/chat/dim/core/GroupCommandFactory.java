@@ -42,8 +42,8 @@ public class GroupCommandFactory extends HistoryCommandFactory {
     @Override
     public Content parseContent(Map<String, Object> content) {
         FactoryManager man = FactoryManager.getInstance();
-        String cmd = man.generalFactory.getCmd(content);
         // get factory by command name
+        String cmd = man.generalFactory.getCmd(content, "*");
         Command.Factory factory = man.generalFactory.getCommandFactory(cmd);
         if (factory == null) {
             factory = this;

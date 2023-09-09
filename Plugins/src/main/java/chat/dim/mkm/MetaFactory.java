@@ -85,7 +85,7 @@ public final class MetaFactory implements Meta.Factory {
     public Meta parseMeta(Map<String, Object> meta) {
         Meta out;
         FactoryManager man = FactoryManager.getInstance();
-        int type = man.generalFactory.getMetaType(meta);
+        int type = man.generalFactory.getMetaType(meta, 0);
         if (MetaType.MKM.equals(type)) {
             // MKM
             out = new DefaultMeta(meta);
