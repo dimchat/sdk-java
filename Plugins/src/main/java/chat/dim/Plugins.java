@@ -26,6 +26,7 @@
 package chat.dim;
 
 import javax.crypto.NoSuchPaddingException;
+import java.net.URI;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -33,6 +34,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.crypto.AESKey;
+import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.PlainKey;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.digest.DataDigester;
@@ -41,10 +43,14 @@ import chat.dim.digest.SHA1;
 import chat.dim.digest.SHA256;
 import chat.dim.format.Base58;
 import chat.dim.format.Base64;
+import chat.dim.format.Base64Data;
+import chat.dim.format.BaseNetworkFile;
 import chat.dim.format.DataCoder;
 import chat.dim.format.Hex;
 import chat.dim.format.HexCoder;
+import chat.dim.format.PortableNetworkFile;
 import chat.dim.format.StringCoder;
+import chat.dim.format.TransportableData;
 import chat.dim.format.UTF8;
 import chat.dim.mkm.AddressFactory;
 import chat.dim.mkm.BTCAddress;
@@ -108,6 +114,37 @@ public interface Plugins {
                 return new String(utf8, Charset.forName("UTF-8"));
             }
         };
+
+        // PNF
+        PortableNetworkFile.setFactory(new PortableNetworkFile.Factory() {
+
+            @Override
+            public PortableNetworkFile createPortableNetworkFile(URI url, byte[] data, String filename, DecryptKey key) {
+                return new BaseNetworkFile(url, data, filename, key);
+            }
+
+            @Override
+            public PortableNetworkFile parsePortableNetworkFile(Map<String, Object> pnf) {
+                return new BaseNetworkFile(pnf);
+            }
+        });
+
+        // TED
+        TransportableData.Factory tedFactory = new TransportableData.Factory() {
+
+            @Override
+            public TransportableData createTransportableData(byte[] data) {
+                return new Base64Data(TransportableData.BASE_64, data);
+            }
+
+            @Override
+            public TransportableData parseTransportableData(Map<String, Object> ted) {
+                return new Base64Data(ted);
+            }
+        };
+        TransportableData.setFactory(TransportableData.BASE_64, tedFactory);
+        TransportableData.setFactory(TransportableData.DEFAULT, tedFactory);
+        TransportableData.setFactory("*", tedFactory);
     }
 
     static void registerDataDigesters() {

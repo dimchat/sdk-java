@@ -59,11 +59,7 @@ public final class ECCPrivateKey extends BasePrivateKey {
     }
 
     private String getCurveName() {
-        String curve = getString("curve");
-        if (curve == null) {
-            curve = "secp256k1";
-        }
-        return curve;
+        return getString("curve", "secp256k1");
     }
 
     private void copyPublicKeyData(byte[] keyBuffer) {
@@ -92,7 +88,7 @@ public final class ECCPrivateKey extends BasePrivateKey {
     @Override
     public byte[] getData() {
         if (privateKeyData == null) {
-            String pem = getString("data");
+            String pem = getString("data", null);
             if (pem != null) {
                 if (pem.length() == 64) {
                     // decode from Hex string

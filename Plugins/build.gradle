@@ -9,13 +9,16 @@ group 'chat.dim'
 //version '1.0-SNAPSHOT'
 version '1.0.0'
 
+def mod = 'Plugins'
+def desc = 'Extensions for cryptography and user identity'
+
+def gitUrl = 'https://github.com/dimchat/sdk-java.git'
+def siteUrl = 'https://github.com/dimchat/sdk-java'
+
 sourceCompatibility = 1.8
 
 repositories {
     mavenLocal()
-    maven { url 'https://maven.aliyun.com/repository/google' }
-    maven { url 'https://maven.aliyun.com/repository/jcenter' }
-    maven { url 'https://maven.aliyun.com/nexus/content/groups/public' }
     mavenCentral()
     google()
 }
@@ -32,17 +35,14 @@ tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
-def gitUrl = 'https://github.com/dimchat/sdk-java.git'
-def siteUrl = 'https://github.com/dimchat/sdk-java'
-
 install {
     repositories.mavenInstaller {
         // This generates POM.xml with proper parameters
         pom {
             project {
                 packaging 'jar'
-                name 'Plugins'
-                description 'Extensions for cryptography and user identity'
+                name mod
+                description desc
                 url siteUrl
                 licenses {
                     license {
@@ -121,8 +121,8 @@ uploadArchives {
 
             pom.project {
                 packaging 'jar'
-                name 'Plugins'
-                description 'Extensions for cryptography and user identity'
+                name mod
+                description desc
                 url siteUrl
                 licenses {
                     license {

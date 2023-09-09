@@ -44,7 +44,7 @@ public class EntityTest {
     private String getMetaInfo(Meta meta) {
         Map<String, Object> info = new HashMap<>();
         info.put("version", meta.getType());
-        info.put("key", meta.getKey());
+        info.put("key", meta.getPublicKey());
         info.put("seed", meta.getSeed());
         info.put("fingerprint", meta.getFingerprint());
         return info.toString();
@@ -137,7 +137,7 @@ public class EntityTest {
         ID identifier = ID.parse("moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
         Meta meta = facebook.getMeta(identifier);
         if (meta != null && Meta.check(meta)) {
-            doc.verify(meta.getKey());
+            doc.verify(meta.getPublicKey());
         }
         Log.info("profile: " + doc);
 

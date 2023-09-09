@@ -21,12 +21,14 @@ public class CryptoRSATest {
         PublicKey pk = sk.getPublicKey();
         Log.info("RSA public key: " + pk);
 
+        Map<String, Object> extra = new HashMap<>();
+
         String text = "moky";
         byte[] plaintext = UTF8.encode(text);
-        byte[] ciphertext = ((EncryptKey) pk).encrypt(plaintext);
+        byte[] ciphertext = ((EncryptKey) pk).encrypt(plaintext, extra);
         Log.info("RSA encrypt(\"" + text + "\") = " + Utils.hexEncode(ciphertext));
 
-        byte[] data = ((DecryptKey) sk).decrypt(ciphertext);
+        byte[] data = ((DecryptKey) sk).decrypt(ciphertext, extra);
         String decrypt = new String(data);
         Log.info("decrypt to " + decrypt);
 

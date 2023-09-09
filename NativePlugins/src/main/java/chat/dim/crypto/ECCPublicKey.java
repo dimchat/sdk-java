@@ -49,7 +49,7 @@ public final class ECCPublicKey extends BasePublicKey {
 
     @Override
     public byte[] getData() {
-        String pem = getString("data");
+        String pem = getString("data", null);
         if (pem == null || pem.length() == 0) {
             throw new AssertionError("ECC public key data not found");
         }

@@ -64,17 +64,11 @@ public final class RSAPrivateKey extends BasePrivateKey implements DecryptKey {
 
     private int keySize() {
         // TODO: get from key
-
-        int size = getInt("keySize");
-        if (size <= 0) {
-            return 1024 / 8; // 128
-        } else  {
-            return size;
-        }
+        return getInt("keySize", 1024 / 8); // 128
     }
 
     private KeyPair getKeyPair() throws NoSuchAlgorithmException {
-        String data = getString("data");
+        String data = getString("data", null);
         if (data == null) {
             // generate key
             return generateKeyPair(keySize() * 8);
@@ -135,7 +129,7 @@ public final class RSAPrivateKey extends BasePrivateKey implements DecryptKey {
     }
 
     @Override
-    public byte[] decrypt(byte[] ciphertext) {
+    public byte[] decrypt(byte[] ciphertext, Map<String, Object> params) {
         if (ciphertext.length != keySize()) {
             throw new InvalidParameterException("RSA cipher text length error: " + ciphertext.length);
         }

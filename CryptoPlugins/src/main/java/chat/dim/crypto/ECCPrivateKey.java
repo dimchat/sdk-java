@@ -64,15 +64,11 @@ public final class ECCPrivateKey extends BasePrivateKey {
     }
 
     private String getCurveName() {
-        String curve = getString("curve");
-        if (curve == null) {
-            curve = CryptoUtils.SECP256K1;
-        }
-        return curve;
+        return getString("curve", CryptoUtils.SECP256K1);
     }
 
     private KeyPair getKeyPair() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
-        String data = getString("data");
+        String data = getString("data", null);
         if (data == null) {
             // generate key
             return generateKeyPair(getCurveName());

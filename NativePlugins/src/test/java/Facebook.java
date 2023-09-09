@@ -89,7 +89,7 @@ public class Facebook implements User.DataSource, Group.DataSource {
         // 1. get key from visa
         Document doc = getDocument(user, Document.VISA);
         if (doc instanceof Visa) {
-            EncryptKey key = ((Visa) doc).getKey();
+            EncryptKey key = ((Visa) doc).getPublicKey();
             if (key != null) {
                 return key;
             }
@@ -97,7 +97,7 @@ public class Facebook implements User.DataSource, Group.DataSource {
         // 2. get key from meta
         Meta meta = getMeta(user);
         if (meta != null) {
-            Object key = meta.getKey();
+            Object key = meta.getPublicKey();
             if (key instanceof EncryptKey) {
                 return (EncryptKey) key;
             }
@@ -111,7 +111,7 @@ public class Facebook implements User.DataSource, Group.DataSource {
         // 1. get key from visa
         Document doc = getDocument(user, Document.VISA);
         if (doc instanceof Visa) {
-            Object key = ((Visa) doc).getKey();
+            Object key = ((Visa) doc).getPublicKey();
             if (key instanceof VerifyKey) {
                 // the sender may use communication key to sign message.data,
                 // so try to verify it with visa.key here
@@ -123,7 +123,7 @@ public class Facebook implements User.DataSource, Group.DataSource {
         if (meta != null) {
             // the sender may use identity key to sign message.data,
             // try to verify it with meta.key
-            keys.add(meta.getKey());
+            keys.add(meta.getPublicKey());
         }
         return keys;
     }

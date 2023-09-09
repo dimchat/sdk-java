@@ -23,9 +23,9 @@ public class CryptoAESTest {
         Log.info("key: " + key);
         String json = JSON.encode(key);
         Log.info("JSON(" + json.length() + " bytes): " + json);
-        String algor = key.getString("A");
+        String algor = key.getString("A", null);
         if (algor == null) {
-            algor = key.getString("algorithm");
+            algor = key.getString("algorithm", null);
         }
         Log.info("A: " + algor);
 
@@ -35,13 +35,15 @@ public class CryptoAESTest {
         byte[] data;
         String decrypt;
 
+        Map<String, Object> extra = new HashMap<>();
+
         text = "moky";
         plaintext = UTF8.encode(text);
-        ciphertext = key.encrypt(plaintext);
+        ciphertext = key.encrypt(plaintext, extra);
         Log.info("encrypt(\"" + text + "\") = " + Utils.hexEncode(ciphertext));
         Log.info("encrypt(\"" + text + "\") = " + Base64.encode(ciphertext));
 
-        data = key.decrypt(ciphertext);
+        data = key.decrypt(ciphertext, extra);
         decrypt = UTF8.decode(data);
         Log.info("decrypt to " + decrypt);
         Log.info(text + " -> " + Base64.encode(ciphertext) + " -> " + decrypt);
@@ -56,7 +58,7 @@ public class CryptoAESTest {
 //        text = "XX5qfromb3R078VVK7LwVA=="; // NoPadding
         text = "0xtbqZN6x2aWTZn0DpCoCA==";
         ciphertext = Base64.decode(text);
-        plaintext = key2.decrypt(ciphertext);
+        plaintext = key2.decrypt(ciphertext, extra);
         Log.info("FIXED: " + text + " -> " + (plaintext == null ? null : new String(plaintext)));
 //        plaintext = key2.decrypt(ciphertext);
 //        log("FIXED: " + text + " -> " + (plaintext == null ? null : new String(plaintext)));
@@ -67,11 +69,11 @@ public class CryptoAESTest {
 
         text = "moky";
         plaintext = UTF8.encode(text);
-        ciphertext = key.encrypt(plaintext);
+        ciphertext = key.encrypt(plaintext, extra);
         Log.info("encrypt(\"" + text + "\") = " + Utils.hexEncode(ciphertext));
         Log.info("encrypt(\"" + text + "\") = " + Base64.encode(ciphertext));
 
-        data = key.decrypt(ciphertext);
+        data = key.decrypt(ciphertext, extra);
         decrypt = UTF8.decode(data);
         Log.info("decrypt to " + decrypt);
 
