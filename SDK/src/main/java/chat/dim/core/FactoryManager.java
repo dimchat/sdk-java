@@ -41,16 +41,12 @@ import chat.dim.dkd.TransferMoneyContent;
 import chat.dim.dkd.WebPageContent;
 import chat.dim.dkd.cmd.BaseDocumentCommand;
 import chat.dim.dkd.cmd.BaseMetaCommand;
+import chat.dim.dkd.cmd.BaseReceiptCommand;
 import chat.dim.dkd.file.AudioFileContent;
 import chat.dim.dkd.file.BaseFileContent;
 import chat.dim.dkd.file.ImageFileContent;
 import chat.dim.dkd.file.VideoFileContent;
-import chat.dim.dkd.group.ExpelGroupCommand;
-import chat.dim.dkd.group.InviteGroupCommand;
-import chat.dim.dkd.group.JoinGroupCommand;
-import chat.dim.dkd.group.QueryGroupCommand;
-import chat.dim.dkd.group.QuitGroupCommand;
-import chat.dim.dkd.group.ResetGroupCommand;
+import chat.dim.dkd.group.*;
 import chat.dim.msg.EnvelopeFactory;
 import chat.dim.msg.MessageFactory;
 import chat.dim.protocol.Command;
@@ -143,6 +139,9 @@ public enum FactoryManager {
         // Document Command
         Command.setFactory(Command.DOCUMENT, BaseDocumentCommand::new);
 
+        // Receipt Command
+        Command.setFactory(Command.RECEIPT, BaseReceiptCommand::new);
+
         // Group Commands
         Command.setFactory("group", new GroupCommandFactory());
         Command.setFactory(GroupCommand.INVITE, InviteGroupCommand::new);
@@ -151,6 +150,10 @@ public enum FactoryManager {
         Command.setFactory(GroupCommand.QUIT, QuitGroupCommand::new);
         Command.setFactory(GroupCommand.QUERY, QueryGroupCommand::new);
         Command.setFactory(GroupCommand.RESET, ResetGroupCommand::new);
+        // Group Admin Commands
+        Command.setFactory(GroupCommand.HIRE, HireGroupCommand::new);
+        Command.setFactory(GroupCommand.FIRE, FireGroupCommand::new);
+        Command.setFactory(GroupCommand.RESIGN, ResignGroupCommand::new);
     }
 
 
