@@ -31,15 +31,17 @@
 package chat.dim.cpu;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.core.TwinsHelper;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
+import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.ReliableMessage;
-import chat.dim.protocol.TextContent;
 
 /**
  *  Content Processing Unit
@@ -47,30 +49,37 @@ import chat.dim.protocol.TextContent;
  */
 public class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
 
-    public static String FMT_CONTENT_NOT_SUPPORT = "Content (type: %d) not support yet!";
-
     public BaseContentProcessor(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
     }
 
     @Override
     public List<Content> process(Content content, ReliableMessage rMsg) {
-        String text = String.format(FMT_CONTENT_NOT_SUPPORT, content.getType());
-        return respondText(text, content.getGroup());
+        return respondReceipt("Content not support.", rMsg, content.getGroup(), newMap(
+                "template", "Content (type: ${type}) not support yet!",
+                "replacements", newMap(
+                        "type", content.getType()
+                )
+        ));
     }
 
     //
     //  Convenient responding
     //
-    protected List<Content> respondText(String text, ID group) {
-        Content res = TextContent.create(text);
+
+    protected List<Content> respondReceipt(String text, ReliableMessage rMsg,ID group,  Map<String, Object> extra) {
+        // create base receipt command with text & original envelope
+        ReceiptCommand res = ReceiptCommand.create(text, rMsg);
         if (group != null) {
             res.setGroup(group);
         }
-        List<Content> responses = new ArrayList<>();
-        responses.add(res);
-        return responses;
+        // add extra key-values
+        if (extra != null) {
+            rMsg.putAll(extra);
+        }
+        return respondContent(res);
     }
+
     protected List<Content> respondContent(Content res) {
         if (res == null) {
             return null;
@@ -78,5 +87,27 @@ public class BaseContentProcessor extends TwinsHelper implements ContentProcesso
         List<Content> responses = new ArrayList<>();
         responses.add(res);
         return responses;
+    }
+
+    //
+    //  Mapping
+    //
+
+    /**
+     *  Create a new map with key values
+     *
+     * @param keyValues - key1, value1, key2, value2, ...
+     * @return map
+     */
+    protected static Map<String, Object> newMap(Object... keyValues) {
+        Map<String, Object> info = new HashMap<>();
+        Object key, value;
+        for (int i = 1; i < keyValues.length; i += 2) {
+            key = keyValues[i - 1];
+            assert key instanceof String : "key error: " + key;
+            value = keyValues[i];
+            info.put((String) key, value);
+        }
+        return info;
     }
 }

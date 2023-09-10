@@ -42,33 +42,8 @@ import chat.dim.protocol.ReliableMessage;
 
 public class MetaCommandProcessor extends BaseCommandProcessor {
 
-    public static String STR_META_CMD_ERROR = "Meta command error.";
-    public static String FMT_META_NOT_FOUND = "Sorry, meta not found for ID: %s";
-    public static String FMT_META_NOT_ACCEPTED = "Meta not accepted: %s";
-    public static String FMT_META_ACCEPTED = "Meta received: %s";
-
     public MetaCommandProcessor(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
-    }
-
-    private List<Content> getMeta(ID identifier) {
-        Meta meta = getFacebook().getMeta(identifier);
-        if (meta == null) {
-            String text = String.format(FMT_META_NOT_FOUND, identifier);
-            return respondText(text, null);
-        } else {
-            return respondContent(MetaCommand.response(identifier, meta));
-        }
-    }
-
-    private List<Content> putMeta(ID identifier, Meta meta) {
-        if (getFacebook().saveMeta(meta, identifier)) {
-            String text = String.format(FMT_META_ACCEPTED, identifier);
-            return respondText(text, null);
-        } else {
-            String text = String.format(FMT_META_NOT_ACCEPTED, identifier);
-            return respondText(text, null);
-        }
     }
 
     @Override
@@ -78,14 +53,47 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
         Meta meta = command.getMeta();
         ID identifier = command.getIdentifier();
         if (identifier == null) {
-            // error
-            return respondText(STR_META_CMD_ERROR, command.getGroup());
+            assert false : "meta ID cannot be empty: " + content;
+            return respondReceipt("Meta command error.", rMsg, null, null);
         } else if (meta == null) {
             // query meta for ID
-            return getMeta(identifier);
+            return getMeta(identifier, rMsg);
         } else {
             // received a meta for ID
-            return putMeta(identifier, meta);
+            return putMeta(identifier, meta, rMsg);
         }
     }
+
+    private List<Content> getMeta(ID identifier, ReliableMessage rMsg) {
+        Meta meta = getFacebook().getMeta(identifier);
+        if (meta == null) {
+            return respondReceipt("Meta not found.", rMsg, null, newMap(
+                    "template", "Meta not found: ${ID}.",
+                    "replacements", newMap(
+                            "ID", identifier.toString()
+                    )
+            ));
+        } else {
+            return respondContent(MetaCommand.response(identifier, meta));
+        }
+    }
+
+    private List<Content> putMeta(ID identifier, Meta meta, ReliableMessage rMsg) {
+        if (getFacebook().saveMeta(meta, identifier)) {
+            return respondReceipt("Meta received.", rMsg, null, newMap(
+                    "template", "Meta received: ${ID}.",
+                    "replacements", newMap(
+                            "ID", identifier.toString()
+                    )
+            ));
+        } else {
+            return respondReceipt("Meta not accepted.", rMsg, null, newMap(
+                    "template", "Meta not accepted: ${ID}.",
+                    "replacements", newMap(
+                            "ID", identifier.toString()
+                    )
+            ));
+        }
+    }
+
 }

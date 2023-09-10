@@ -197,9 +197,14 @@ public abstract class Facebook extends Barrack {
         // the messenger will check group info before decrypting message,
         // so we can trust that the group's meta & members MUST exist here.
         Group grp = getGroup(receiver);
-        assert grp != null : "group not ready: " + receiver;
+        if (grp == null) {
+            assert false : "group not ready: " + receiver;
+            return null;
+        }
+        // if a group can be create, means its meta, bulletin document,
+        // and owner, members are all ready, so members should not be empty here.
         List<ID> members = grp.getMembers();
-        assert members != null/* && members.size() > 0*/ : "members not found: " + receiver;
+        assert members.size() > 0 : "members not found: " + receiver;
         for (User item : users) {
             if (members.contains(item.getIdentifier())) {
                 // DISCUSS: set this item to be current user?

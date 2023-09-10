@@ -110,7 +110,7 @@ public class MessageProcessor extends TwinsHelper implements Processor {
         // 1. verify message
         SecureMessage sMsg = messenger.verifyMessage(rMsg);
         if (sMsg == null) {
-            // waiting for sender's meta if not exists
+            // TODO: suspend and waiting for sender's meta if not exists
             return null;
         }
         // 2. process message
@@ -178,21 +178,18 @@ public class MessageProcessor extends TwinsHelper implements Processor {
         ID sender = iMsg.getSender();
         ID receiver = iMsg.getReceiver();
         User user = facebook.selectLocalUser(receiver);
-        assert user != null : "receiver error: " + receiver;
+        if (user == null) {
+            assert false : "receiver error: " + receiver;
+            return null;
+        }
         // 3. pack messages
         List<InstantMessage> messages = new ArrayList<>();
         Envelope env;
         for (Content res : responses) {
-            if (res == null) {
-                // should not happen
-                continue;
-            }
+            // assert res != null : "should not happen";
             env = Envelope.create(user.getIdentifier(), sender, null);
             iMsg = InstantMessage.create(env, res);
-            if (iMsg == null) {
-                // should not happen
-                continue;
-            }
+            // assert iMsg != null : "should not happen";
             messages.add(iMsg);
         }
         return messages;

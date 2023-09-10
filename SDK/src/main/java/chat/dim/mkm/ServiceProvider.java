@@ -31,7 +31,9 @@
 package chat.dim.mkm;
 
 import java.util.List;
+import java.util.Map;
 
+import chat.dim.protocol.Document;
 import chat.dim.protocol.EntityType;
 import chat.dim.protocol.ID;
 
@@ -45,7 +47,52 @@ public class ServiceProvider extends BaseGroup {
         assert EntityType.ISP.equals(identifier.getType()) : "SP ID error: " + identifier;
     }
 
-    public List<ID> getStations() {
-        return getMembers();
+    @SuppressWarnings("unchecked")
+    public List<Map<String, Object>> getStations() {
+        Document doc = getDocument("*");
+        if (doc != null) {
+            Object stations = doc.getProperty("stations");
+            if (stations instanceof List) {
+                return (List<Map<String, Object>>) stations;
+            }
+        }
+        // TODO: load from local storage
+        return null;
+    }
+
+    //
+    //  Comparison
+    //
+
+    public static boolean sameStation(Station a, Station b) {
+        if (a == b) {
+            // same object
+            return true;
+        }
+        return checkIdentifiers(a.getIdentifier(), b.getIdentifier()) &&
+                checkHosts(a.getHost(), b.getHost()) &&
+                checkPorts(a.getPort(), b.getPort());
+    }
+
+    private static boolean checkIdentifiers(ID a, ID b) {
+        if (a == b) {
+            // same object
+            return true;
+        } else if (a.isBroadcast() || b.isBroadcast()) {
+            return true;
+        }
+        return a.equals(b);
+    }
+    private static boolean checkHosts(String a, String b) {
+        if (a == null || b == null) {
+            return true;
+        }
+        return a.equals(b);
+    }
+    private static boolean checkPorts(int a, int b) {
+        if (a == 0 || b == 0) {
+            return true;
+        }
+        return a == b;
     }
 }

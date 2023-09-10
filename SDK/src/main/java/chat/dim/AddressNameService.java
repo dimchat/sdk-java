@@ -44,7 +44,8 @@ public interface AddressNameService {
             // --------------------------------
             "crypto", "key", "symmetric", "asymmetric",
             "public", "private", "secret", "password",
-            "id", "address", "meta", "profile", "document",
+            "id", "address", "meta",
+            "tai", "document", "profile", "visa", "bulletin",
             "entity", "user", "group", "contact",
             // --------------------------------
             "member", "admin", "administrator", "assistant",

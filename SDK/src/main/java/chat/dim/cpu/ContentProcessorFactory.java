@@ -40,6 +40,10 @@ import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
 
+/**
+ *  Base ContentProcessor Factory
+ *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ */
 public class ContentProcessorFactory extends TwinsHelper implements ContentProcessor.Factory {
 
     protected final Map<Integer, ContentProcessor> contentProcessors = new HashMap<>();
@@ -58,11 +62,15 @@ public class ContentProcessorFactory extends TwinsHelper implements ContentProce
         int type = content.getType();
         if (content instanceof Command) {
             String name = ((Command) content).getCmd();
+            if (name == null) {
+                name = "*";
+            }
             // command processor
             cpu = getCommandProcessor(type, name);
             if (cpu != null) {
                 return cpu;
             } else if (content instanceof GroupCommand) {
+                assert !name.equals("group") : "command name error: " + content;
                 // group command processor
                 cpu = getCommandProcessor(type, "group");
                 if (cpu != null) {

@@ -44,8 +44,6 @@ import chat.dim.protocol.ReliableMessage;
  */
 public class BaseCommandProcessor extends BaseContentProcessor {
 
-    public static String FMT_CMD_NOT_SUPPORT = "Command (name: %s) not support yet!";
-
     public BaseCommandProcessor(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
     }
@@ -54,7 +52,11 @@ public class BaseCommandProcessor extends BaseContentProcessor {
     public List<Content> process(Content content, ReliableMessage rMsg) {
         assert content instanceof Command : "command error: " + content;
         Command command = (Command) content;
-        String text = String.format(FMT_CMD_NOT_SUPPORT, command.getCmd());
-        return respondText(text, command.getGroup());
+        return respondReceipt("Command not support.", rMsg, command.getGroup(), newMap(
+                "template", "Command (name: ${command}) not support yet!",
+                "replacements", newMap(
+                        "command", command.getCmd()
+                )
+        ));
     }
 }

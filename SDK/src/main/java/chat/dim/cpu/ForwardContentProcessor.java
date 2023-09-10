@@ -48,8 +48,7 @@ public class ForwardContentProcessor extends BaseContentProcessor {
     @Override
     public List<Content> process(Content content, ReliableMessage rMsg) {
         assert content instanceof ForwardContent : "forward content error: " + content;
-        ForwardContent forward = (ForwardContent) content;
-        List<ReliableMessage> secrets = forward.getSecrets();
+        List<ReliableMessage> secrets = ((ForwardContent) content).getSecrets();
         // call messenger to process it
         Messenger messenger = getMessenger();
         List<Content> responses = new ArrayList<>();
@@ -66,6 +65,6 @@ public class ForwardContentProcessor extends BaseContentProcessor {
             }
             responses.add(res);
         }
-        return responses.size() > 0 ? responses : null;
+        return responses;
     }
 }

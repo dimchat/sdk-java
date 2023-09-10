@@ -87,6 +87,10 @@ public class MessagePacker extends TwinsHelper implements Packer {
 
     @Override
     public SecureMessage encryptMessage(InstantMessage iMsg) {
+        // TODO: check receiver before calling this, make sure the visa.key exists;
+        //       otherwise, suspend this message for waiting receiver's visa/meta;
+        //       if receiver is a group, query all members' visa too!
+
         Messenger messenger = getMessenger();
         ID sender = iMsg.getSender();
         ID receiver = iMsg.getReceiver();
@@ -177,7 +181,12 @@ public class MessagePacker extends TwinsHelper implements Packer {
 
     @Override
     public ReliableMessage deserializeMessage(byte[] data) {
-        Object dict = JSON.decode(UTF8.decode(data));
+        String json = UTF8.decode(data);
+        if (json == null) {
+            assert false : "message data error: " + data.length;
+            return null;
+        }
+        Object dict = JSON.decode(json);
         // TODO: translate short keys
         //       'S' -> 'sender'
         //       'R' -> 'receiver'

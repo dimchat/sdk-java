@@ -45,9 +45,6 @@ import chat.dim.protocol.ReliableMessage;
  */
 public class CustomizedContentProcessor extends BaseContentProcessor implements CustomizedContentHandler {
 
-    public static String FMT_APP_NOT_SUPPORT = "Customized Content (app: %s) not support yet!";
-    public static String FMT_ACT_NOT_SUPPORT = "Customized Content (app: %s, mod: %s, act: %s) not support yet!";
-
     public CustomizedContentProcessor(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
     }
@@ -78,8 +75,12 @@ public class CustomizedContentProcessor extends BaseContentProcessor implements 
 
     // override for your application
     protected List<Content> filter(String app, CustomizedContent content, ReliableMessage rMsg) {
-        String text = String.format(FMT_APP_NOT_SUPPORT, app);
-        return respondText(text, content.getGroup());
+        return respondReceipt("Content not support.", rMsg, content.getGroup(), newMap(
+                "template", "Customized content (app: ${app}) not support yet!",
+                "replacements", newMap(
+                        "app", app
+                )
+        ));
     }
 
     // override for your module
@@ -94,7 +95,13 @@ public class CustomizedContentProcessor extends BaseContentProcessor implements 
     public List<Content> handleAction(String act, ID sender, CustomizedContent content, ReliableMessage rMsg) {
         String app = content.getApplication();
         String mod = content.getModule();
-        String text = String.format(FMT_ACT_NOT_SUPPORT, app, mod, act);
-        return respondText(text, content.getGroup());
+        return respondReceipt("Content not support.", rMsg, content.getGroup(), newMap(
+                "template", "Customized content (app: ${app}, mod: ${mod}, act: ${act}) not support yet!",
+                "replacements", newMap(
+                        "app", app,
+                        "mod", mod,
+                        "act", act
+                )
+        ));
     }
 }

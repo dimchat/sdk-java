@@ -65,6 +65,6 @@ public class ArrayContentProcessor extends BaseContentProcessor {
             }
             responses.add(res);
         }
-        return responses.size() > 0 ? responses : null;
+        return responses;
     }
 }

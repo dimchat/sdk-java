@@ -1,13 +1,13 @@
 /* license: https://mit-license.org
  *
- *  DIMP : Decentralized Instant Messaging Protocol
+ *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
- *                                Written in 2020 by Moky <albert.moky@gmail.com>
+ *                                Written in 2019 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Albert Moky
+ * Copyright (c) 2019 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,41 +28,27 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.core;
+package chat.dim.cpu;
 
-import java.util.Map;
+import java.util.List;
 
-import chat.dim.dkd.cmd.BaseCommand;
-import chat.dim.dkd.cmd.FactoryManager;
-import chat.dim.protocol.Command;
+import chat.dim.Facebook;
+import chat.dim.Messenger;
 import chat.dim.protocol.Content;
+import chat.dim.protocol.ReceiptCommand;
+import chat.dim.protocol.ReliableMessage;
 
-/**
- *  General Command Factory
- *  ~~~~~~~~~~~~~~~~~~~~~~~
- */
-public class GeneralCommandFactory implements Content.Factory, Command.Factory {
+public class ReceiptCommandProcessor extends BaseCommandProcessor {
 
-    @Override
-    public Content parseContent(Map<String, Object> content) {
-        FactoryManager man = FactoryManager.getInstance();
-        // get factory by command name
-        String cmd = man.generalFactory.getCmd(content, "*");
-        Command.Factory factory = man.generalFactory.getCommandFactory(cmd);
-        if (factory == null) {
-            // check for group command
-            if (content.containsKey("group")/* && !cmd.equals("group")*/) {
-                factory = man.generalFactory.getCommandFactory("group");
-            }
-            if (factory == null) {
-                factory = this;
-            }
-        }
-        return factory.parseCommand(content);
+    public ReceiptCommandProcessor(Facebook facebook, Messenger messenger) {
+        super(facebook, messenger);
     }
 
     @Override
-    public Command parseCommand(Map<String, Object> content) {
-        return new BaseCommand(content);
+    public List<Content> process(Content content, ReliableMessage rMsg) {
+        assert content instanceof ReceiptCommand : "receipt command error: " + content;
+        // no need to response receipt command
+        return null;
     }
+
 }

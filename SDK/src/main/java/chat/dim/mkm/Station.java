@@ -38,6 +38,7 @@ import chat.dim.protocol.EntityType;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 import chat.dim.protocol.Visa;
+import chat.dim.type.Converter;
 
 /**
  *  DIM Server
@@ -53,6 +54,8 @@ public class Station implements User {
     private String host;
     private int port;
 
+    private ID isp;
+
     public Station(ID identifier, String host, int port) {
         super();
         assert EntityType.STATION.equals(identifier.getType()) || EntityType.ANY.equals(identifier.getType())
@@ -60,6 +63,7 @@ public class Station implements User {
         this.user = new BaseUser(identifier);
         this.host = host;
         this.port = port;
+        this.isp = null;
     }
 
     public Station(ID identifier) {
@@ -73,15 +77,10 @@ public class Station implements User {
     @Override
     public boolean equals(Object other) {
         if (other instanceof Station) {
-            if (other == this) {
-                // same object
-                return true;
-            }
-            Station server = (Station) other;
-            return server.port == port && server.host.equals(host);
+            return ServiceProvider.sameStation((Station) other, this);
         }
         // others?
-        return false;
+        return user.equals(other);
     }
 
     @Override
@@ -91,6 +90,48 @@ public class Station implements User {
         int network = identifier.getAddress().getType();
         return "<" + className + " id=\"" + identifier + "\" network=" + network +
                 " host=\"" + getHost() + "\" port=" + getPort() + " />";
+    }
+
+    /**
+     *  Reload station info: host & port, SP ID
+     */
+    public void reload() {
+        Document doc = getDocument("*");
+        if (doc != null) {
+            String docHost = Converter.getString(doc.getProperty("host"), null);
+            if (docHost != null) {
+                host = docHost;
+            }
+            int docPort = Converter.getInt(doc.getProperty("port"), 0);
+            if (docPort > 0) {
+                port = docPort;
+            }
+            ID docISP = ID.parse(doc.getProperty("ISP"));
+            if (docISP != null) {
+                isp = docISP;
+            }
+        }
+    }
+
+    /**
+     *  Station IP
+     */
+    public String getHost() {
+        return host;
+    }
+
+    /**
+     *  Station Port
+     */
+    public int getPort() {
+        return port;
+    }
+
+    /**
+     *  ISP ID, station group
+     */
+    public ID getProvider() {
+        return isp;
     }
 
     public void setIdentifier(ID identifier) {
@@ -174,53 +215,4 @@ public class Station implements User {
         return user.verify(doc);
     }
 
-    //-------- Server
-
-    /**
-     *  Station IP
-     *
-     * @return IP address
-     */
-    public String getHost() {
-        if (host == null) {
-            Document doc = getDocument("*");
-            if (doc != null) {
-                Object value = doc.getProperty("host");
-                if (value != null) {
-                    host = (String) value;
-                }
-            }
-        }
-        return host;
-    }
-
-    /**
-     *  Station Port
-     *
-     * @return port number
-     */
-    public int getPort() {
-        if (port == 0) {
-            Document doc = getDocument("*");
-            if (doc != null) {
-                Object value = doc.getProperty("port");
-                if (value != null) {
-                    port = (int) value;
-                }
-            }
-        }
-        return port;
-    }
-
-    /**
-     *  Get provider ID
-     *
-     * @return ISP ID, station group
-     */
-    public ID getProvider() {
-        Document doc = getDocument("*");
-        if (doc == null) {
-            return null;
-        }
-        return ID.parse(doc.getProperty("ISP"));
-    }}
+}
