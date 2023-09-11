@@ -139,11 +139,13 @@ public interface Plugins {
 
             @Override
             public TransportableData createTransportableData(byte[] data) {
-                return new Base64Data(TransportableData.BASE_64, data);
+                return new Base64Data(data);
             }
 
             @Override
             public TransportableData parseTransportableData(Map<String, Object> ted) {
+                // TODO: 1. check algorithm
+                //       2. check data format
                 return new Base64Data(ted);
             }
         };

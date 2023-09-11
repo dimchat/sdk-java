@@ -36,6 +36,7 @@ import chat.dim.dkd.BaseContent;
 import chat.dim.dkd.BaseMoneyContent;
 import chat.dim.dkd.BaseTextContent;
 import chat.dim.dkd.ListContent;
+import chat.dim.dkd.NameCardContent;
 import chat.dim.dkd.SecretContent;
 import chat.dim.dkd.TransferMoneyContent;
 import chat.dim.dkd.WebPageContent;
@@ -109,6 +110,9 @@ public enum FactoryManager {
         // Web Page
         Content.setFactory(ContentType.PAGE, WebPageContent::new);
 
+        // Name Card
+        Content.setFactory(ContentType.NAME_CARD, NameCardContent::new);
+
         // Money
         Content.setFactory(ContentType.MONEY, BaseMoneyContent::new);
         Content.setFactory(ContentType.TRANSFER, TransferMoneyContent::new);
@@ -120,14 +124,14 @@ public enum FactoryManager {
         // History Command
         Content.setFactory(ContentType.HISTORY, new HistoryCommandFactory());
 
-        // Content Array
-        Content.setFactory(ContentType.ARRAY, ListContent::new);
-
         /*/
         // Application Customized
         Content.setFactory(ContentType.CUSTOMIZED, AppCustomizedContent::new);
         Content.setFactory(ContentType.APPLICATION, AppCustomizedContent::new);
         /*/
+
+        // Content Array
+        Content.setFactory(ContentType.ARRAY, ListContent::new);
 
         // Top-Secret
         Content.setFactory(ContentType.FORWARD, SecretContent::new);

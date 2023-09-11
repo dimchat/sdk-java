@@ -35,6 +35,51 @@ import chat.dim.protocol.ID;
 
 public interface CipherKeyDelegate {
 
+    /*
+     *                +-----------------+-----------------+-----------------+-----------------+
+     *                |     is user     |    is group     | broadcast user  | broadcast group |
+     *      +---------+-----------------+-----------------+-----------------+-----------------+
+     *      |         |                 |    receiver     |                 |                 |
+     *      |   (A)   +-----------------+-----------------+-----------------+-----------------+
+     *      |         |                 |                 |                 |    receiver     |
+     *      +---------+-----------------+-----------------+-----------------+-----------------+
+     *      |         |    receiver     |                 |                 |                 |
+     *      |   (B)   +-----------------+-----------------+-----------------+-----------------+
+     *      |         |                 |                 |    receiver     |                 |
+     *      +---------+-----------------+-----------------+-----------------+-----------------+
+     *      |   (C)   |    receiver     |                 |                 |                 |
+     *      +---------+-----------------+-----------------+-----------------+-----------------+
+     *      |         |    receiver     |                 |                 |      group      |
+     *      |   (D)   +-----------------+-----------------+-----------------+-----------------+
+     *      |         |                 |                 |    receiver     |      group      |
+     *      +---------+-----------------+-----------------+-----------------+-----------------+
+     *      |   (E)   |                 |      group      |    receiver     |                 |
+     *      +---------+-----------------+-----------------+-----------------+-----------------+
+     *      |   (F)   |    receiver     |      group      |                 |                 |
+     *      +---------+-----------------+-----------------+-----------------+-----------------+
+     */
+    static ID getDestination(ID receiver, ID group) {
+        if (receiver.isGroup()) {
+            // (A)  group message, not split yet (maybe broadcast)
+            //      'group' field must be empty here
+            return receiver;
+        } else if (group == null) {
+            // (B)  personal message (maybe broadcast)
+            // (C)  group message split for its member, and needs to hide the group ID
+            return receiver;
+        } else if (group.isBroadcast()) {
+            // (D)  broadcast group message, split for special user
+            //      'sender' field must be user here
+            return group;
+        } else if (receiver.isBroadcast()) {
+            // (E)  group message, broadcast to all members
+            return receiver;
+        } else {
+            // (F)  group message, split for special member
+            return group;
+        }
+    }
+
     /**
      *  Get cipher key for encrypt message from 'sender' to 'receiver'
      *

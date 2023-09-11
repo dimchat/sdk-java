@@ -64,10 +64,6 @@ public abstract class Messenger extends Transceiver implements CipherKeyDelegate
     //
     //  Interfaces for Packing Message
     //
-    @Override
-    public ID getOvertGroup(Content content) {
-        return getPacker().getOvertGroup(content);
-    }
 
     @Override
     public SecureMessage encryptMessage(InstantMessage iMsg) {
@@ -130,12 +126,13 @@ public abstract class Messenger extends Transceiver implements CipherKeyDelegate
     //-------- SecureMessageDelegate
 
     @Override
-    public SymmetricKey deserializeKey(byte[] key, ID receiver, SecureMessage sMsg) {
+    public SymmetricKey deserializeKey(byte[] key, SecureMessage sMsg) {
         if (key == null) {
             // get key from cache
-            return getCipherKey(sMsg.getSender(), receiver, false);
+            ID target = CipherKeyDelegate.getDestination(sMsg.getReceiver(), sMsg.getGroup());
+            return getCipherKey(sMsg.getSender(), target, false);
         } else {
-            return super.deserializeKey(key, receiver, sMsg);
+            return super.deserializeKey(key, sMsg);
         }
     }
 
@@ -144,18 +141,16 @@ public abstract class Messenger extends Transceiver implements CipherKeyDelegate
         Content content = super.deserializeContent(data, password, sMsg);
         // assert content != null : "content error: " + data.length;
 
-        if (!BaseMessage.isBroadcast(sMsg) && content != null) {
+        if (!BaseMessage.isBroadcast(sMsg)/* && content != null*/) {
             // check and cache key for reuse
-            ID group = getOvertGroup(content);
-            if (group == null) {
-                // personal message or (group) command
-                // cache key with direction (sender -> receiver)
-                cacheCipherKey(sMsg.getSender(), sMsg.getReceiver(), password);
-            } else {
-                // group message (excludes group command)
-                // cache the key with direction (sender -> group)
-                cacheCipherKey(sMsg.getSender(), group, password);
+            ID target = sMsg.getGroup();
+            if (target == null) {
+                // 1. personal message
+                // 2. group message not split
+                target = sMsg.getReceiver();
             }
+            // cache the key with direction: sender -> receiver(group)
+            cacheCipherKey(sMsg.getSender(), target, password);
         }
 
         // NOTICE: check attachment for File/Image/Audio/Video message content

@@ -58,17 +58,12 @@ public final class AESKey extends BaseSymmetricKey {
     private TransportableData keyData;
     private TransportableData ivData;
 
-//    private final SecretKeySpec keySpec;
-//    private final IvParameterSpec ivSpec;
-
     public AESKey(Map<String, Object> dictionary) throws NoSuchPaddingException, NoSuchAlgorithmException {
         super(dictionary);
         // TODO: check algorithm parameters
         // 1. check mode = 'CBC'
         // 2. check padding = 'PKCS7Padding'
         cipher = Cipher.getInstance(AES_CBC_PKCS7);
-//        keySpec = new SecretKeySpec(getData(), SymmetricKey.AES);
-//        ivSpec = new IvParameterSpec(getInitVector());
         keyData = null;
         ivData = null;
         if (!containsKey("data")) {
@@ -89,9 +84,9 @@ public final class AESKey extends BaseSymmetricKey {
         ivData = TransportableData.create(iv);
         put("iv", ivData.toObject());
 
-        // other parameters
-        //put("mode", "CBC");
-        //put("padding", "PKCS7");
+        // // other parameters
+        // put("mode", "CBC");
+        // put("padding", "PKCS7");
     }
 
     private int getKeySize() {
@@ -131,7 +126,10 @@ public final class AESKey extends BaseSymmetricKey {
         return ted.getData();
     }
     private void setInitVector(Object iv) {
-        ivData = TransportableData.parse(iv);
+        TransportableData ted = TransportableData.parse(iv);
+        if (ted != null) {
+            ivData = ted;
+        }
     }
 
     @Override

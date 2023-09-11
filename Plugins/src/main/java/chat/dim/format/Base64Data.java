@@ -39,18 +39,17 @@ public class Base64Data extends Dictionary implements TransportableData {
         data = null;
     }
 
-    public Base64Data(String algorithm, byte[] binary) {
+    public Base64Data(byte[] binary) {
         super();
         // algorithm: base64
-        assert algorithm.equals(TransportableData.BASE_64) : "unsupported algorithm: " + algorithm;
-        put("algorithm", algorithm);
+        put("algorithm", TransportableData.BASE_64);
         // binary data (lazy encode)
         data = binary;
     }
 
     @Override
     public String getAlgorithm() {
-        return getString("algorithm", null);
+        return getString("algorithm", TransportableData.BASE_64);
     }
 
     @Override

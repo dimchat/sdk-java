@@ -36,13 +36,10 @@ import chat.dim.core.TwinsHelper;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.format.JSON;
 import chat.dim.format.UTF8;
-import chat.dim.mkm.Group;
 import chat.dim.mkm.User;
-import chat.dim.msg.EncryptedMessagePacker;
-import chat.dim.msg.NetworkMessagePacker;
-import chat.dim.msg.PlainMessagePacker;
-import chat.dim.protocol.Command;
-import chat.dim.protocol.Content;
+import chat.dim.msg.InstantMessagePacker;
+import chat.dim.msg.ReliableMessagePacker;
+import chat.dim.msg.SecureMessagePacker;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.Meta;
@@ -52,33 +49,15 @@ import chat.dim.protocol.Visa;
 
 public class MessagePacker extends TwinsHelper implements Packer {
 
-    private final PlainMessagePacker instantPacker;
-    private final EncryptedMessagePacker securePacker;
-    private final NetworkMessagePacker reliablePacker;
+    protected final InstantMessagePacker instantPacker;
+    protected final SecureMessagePacker securePacker;
+    protected final ReliableMessagePacker reliablePacker;
 
     public MessagePacker(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
-        instantPacker = new PlainMessagePacker(messenger);
-        securePacker = new EncryptedMessagePacker(messenger);
-        reliablePacker = new NetworkMessagePacker(messenger);
-    }
-
-    @Override
-    public ID getOvertGroup(Content content) {
-        ID group = content.getGroup();
-        if (group == null) {
-            return null;
-        }
-        if (group.isBroadcast()) {
-            // broadcast message is always overt
-            return group;
-        }
-        if (content instanceof Command) {
-            // group command should be sent to each member directly, so
-            // don't expose group ID
-            return null;
-        }
-        return group;
+        instantPacker = new InstantMessagePacker(messenger);
+        securePacker = new SecureMessagePacker(messenger);
+        reliablePacker = new ReliableMessagePacker(messenger);
     }
 
     //
@@ -91,68 +70,46 @@ public class MessagePacker extends TwinsHelper implements Packer {
         //       otherwise, suspend this message for waiting receiver's visa/meta;
         //       if receiver is a group, query all members' visa too!
 
-        Messenger messenger = getMessenger();
         ID sender = iMsg.getSender();
         ID receiver = iMsg.getReceiver();
-        // if 'group' exists and the 'receiver' is a group ID,
-        // they must be equal
+        // NOTICE: before sending group message, you can decide whether expose the group ID
+        //      (A) if you don't want to expose the group ID,
+        //          you can split it to multi-messages before encrypting,
+        //          replace the 'receiver' to each member and keep the group hidden in the content;
+        //          in this situation, the packer will use the personal message key (user to user);
+        //      (B) if the group ID is overt, no need to worry about the exposing,
+        //          you can keep the 'receiver' being the group ID, or set the group ID as 'group'
+        //          when splitting to multi-messages to let the remote packer knows it;
+        //          in these situations, the local packer will use the group msg key (user to group)
+        //          to encrypt the message, and the remote packer can get the overt group ID before
+        //          decrypting to take the right message key.
+        ID overtGroup = ID.parse(iMsg.get("group"));
+        ID target = CipherKeyDelegate.getDestination(receiver, overtGroup);
 
-        // NOTICE: while sending group message, don't split it before encrypting.
-        //         this means you could set group ID into message content, but
-        //         keep the "receiver" to be the group ID;
-        //         after encrypted (and signed), you could split the message
-        //         with group members before sending out, or just send it directly
-        //         to the group assistant to let it split messages for you!
-        //    BUT,
-        //         if you don't want to share the symmetric key with other members,
-        //         you could split it (set group ID into message content and
-        //         set contact ID to the "receiver") before encrypting, this usually
-        //         for sending group command to assistant bot, which should not
-        //         share the symmetric key (group msg key) with other members.
-
-        // 1. get symmetric key
-        ID group = messenger.getOvertGroup(iMsg.getContent());
-        SymmetricKey password;
-        if (group == null) {
-            // personal message or (group) command
-            password = messenger.getCipherKey(sender, receiver, true);
-            assert password != null : "failed to get msg key: " + sender + " -> " + receiver;
-        } else {
-            // group message (excludes group command)
-            password = messenger.getCipherKey(sender, group, true);
-            assert password != null : "failed to get group msg key: " + sender + " -> " + group;
-        }
+        //
+        //  1. get message key with direction (sender -> receiver) or (sender -> group)
+        //
+        SymmetricKey password = getMessenger().getCipherKey(sender, target, true);
+        assert password != null : "failed to get msg key: " + sender + " => " + receiver + ", " + overtGroup;
 
         // 2. encrypt 'content' to 'data' for receiver/group members
         SecureMessage sMsg;
         if (receiver.isGroup()) {
             // group message
-            Group grp = getFacebook().getGroup(receiver);
+            List<ID> members = getFacebook().getMembers(receiver);
+            assert members != null && members.size() > 0 : "group not ready: " + receiver;
             // a station will never send group message, so here must be a client;
-            // and the client messenger should check the group's meta & members
-            // before encrypting message, so we can trust that the group can be
-            // created and its members MUST exist here.
-            assert grp != null : "group not ready: " + receiver;
-            List<ID> members = grp.getMembers();
-            assert members != null && members.size() > 0: "group members not found: " + receiver;
+            // the client messenger should check the group's meta & members before encrypting,
+            // so we can trust that the group members MUST exist here.
             sMsg = instantPacker.encrypt(iMsg, password, members);
         } else {
             // personal message (or split group message)
-            sMsg = instantPacker.encrypt(iMsg, password);
+            sMsg = instantPacker.encrypt(iMsg, password, null);
         }
         if (sMsg == null) {
             // public key for encryption not found
             // TODO: suspend this message for waiting receiver's meta
             return null;
-        }
-
-        // overt group ID
-        if (group != null && !receiver.equals(group)) {
-            // NOTICE: this help the receiver knows the group ID
-            //         when the group message separated to multi-messages,
-            //         if don't want the others know you are the group members,
-            //         remove it.
-            sMsg.getEnvelope().setGroup(group);
         }
 
         // NOTICE: copy content type to envelope
@@ -257,7 +214,7 @@ public class MessagePacker extends TwinsHelper implements Packer {
 
         assert sMsg.getData() != null : "message data cannot be empty";
         // decrypt 'data' to 'content'
-        return securePacker.decrypt(sMsg);
+        return securePacker.decrypt(sMsg, user.getIdentifier());
 
         // TODO: check top-secret message
         //       (do it by application)

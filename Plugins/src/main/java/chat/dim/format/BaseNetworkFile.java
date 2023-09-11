@@ -109,7 +109,7 @@ public class BaseNetworkFile extends Dictionary implements PortableNetworkFile {
     public byte[] getData() {
         TransportableData ted = attachment;
         if (ted == null) {
-            String base64 = getString("data", null);
+            Object base64 = get("data");
             attachment = ted = TransportableData.parse(base64);
         }
         return ted == null ? null : ted.getData();
@@ -168,7 +168,7 @@ public class BaseNetworkFile extends Dictionary implements PortableNetworkFile {
         }
         // field 'data' not exists, means this file was uploaded onto a CDN,
         // if 'key' not exists too, just return 'URL' string here.
-        assert get("filename") == null: "PNF error: " + toMap();
+        assert get("filename") == null : "PNF error: " + toMap();
         String url = getString("URL", null);
         assert url != null : "URL cannot be empty: " + toMap();
         return url;
