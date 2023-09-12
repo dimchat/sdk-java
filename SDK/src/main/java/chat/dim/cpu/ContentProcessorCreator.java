@@ -85,9 +85,6 @@ public class ContentProcessorCreator extends TwinsHelper implements ContentProce
             // document command
             case Command.DOCUMENT:
                 return new DocumentCommandProcessor(getFacebook(), getMessenger());
-            // receipt command
-            case Command.RECEIPT:
-                return new ReceiptCommandProcessor(getFacebook(), getMessenger());
 
             // unknown
             default:

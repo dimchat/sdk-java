@@ -137,7 +137,7 @@ public abstract class Facebook extends Barrack {
                 return null;
             }
             List<ID> members = getMembers(identifier);
-            if (members == null || members.size() == 0) {
+            if (members == null || members.isEmpty()) {
                 assert false : "group members not found: " + identifier;
                 return null;
             }
@@ -168,7 +168,7 @@ public abstract class Facebook extends Barrack {
      */
     public User selectLocalUser(ID receiver) {
         List<User> users = getLocalUsers();
-        if (users == null || users.size() == 0) {
+        if (users == null || users.isEmpty()) {
             throw new NullPointerException("local users should not be empty");
         } else if (receiver.isBroadcast()) {
             // broadcast message can decrypt by anyone, so just return current user
@@ -196,7 +196,7 @@ public abstract class Facebook extends Barrack {
         // if a group can be create, means its meta, bulletin document,
         // and owner, members are all ready, so members should not be empty here.
         List<ID> members = grp.getMembers();
-        assert members.size() > 0 : "members not found: " + receiver;
+        assert !members.isEmpty() : "members not found: " + receiver;
         for (User item : users) {
             if (members.contains(item.getIdentifier())) {
                 // DISCUSS: set this item to be current user?

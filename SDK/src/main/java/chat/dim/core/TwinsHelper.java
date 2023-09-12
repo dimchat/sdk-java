@@ -31,11 +31,17 @@
 package chat.dim.core;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
+import chat.dim.protocol.Content;
+import chat.dim.protocol.ID;
+import chat.dim.protocol.ReceiptCommand;
+import chat.dim.protocol.ReliableMessage;
 
 public abstract class TwinsHelper {
 
@@ -54,6 +60,32 @@ public abstract class TwinsHelper {
 
     protected Messenger getMessenger() {
         return messengerRef.get();
+    }
+
+    //
+    //  Convenient responding
+    //
+
+    public static List<Content> respondReceipt(String text, ReliableMessage rMsg, ID group, Map<String, Object> extra) {
+        // create base receipt command with text & original envelope
+        ReceiptCommand res = ReceiptCommand.create(text, rMsg);
+        if (group != null) {
+            res.setGroup(group);
+        }
+        // add extra key-values
+        if (extra != null) {
+            rMsg.putAll(extra);
+        }
+        return respondContent(res);
+    }
+
+    public static List<Content> respondContent(Content res) {
+        if (res == null) {
+            return null;
+        }
+        List<Content> responses = new ArrayList<>();
+        responses.add(res);
+        return responses;
     }
 
     //

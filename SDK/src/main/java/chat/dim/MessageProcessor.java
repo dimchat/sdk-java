@@ -85,7 +85,7 @@ public class MessageProcessor extends TwinsHelper implements Processor {
         }
         // 2. process message
         List<ReliableMessage> responses = messenger.processReliableMessage(rMsg);
-        if (responses == null || responses.size() == 0) {
+        if (responses == null || responses.isEmpty()) {
             // nothing to respond
             return null;
         }
@@ -115,7 +115,7 @@ public class MessageProcessor extends TwinsHelper implements Processor {
         }
         // 2. process message
         List<SecureMessage> responses = messenger.processSecureMessage(sMsg, rMsg);
-        if (responses == null || responses.size() == 0) {
+        if (responses == null || responses.isEmpty()) {
             // nothing to respond
             return null;
         }
@@ -146,7 +146,7 @@ public class MessageProcessor extends TwinsHelper implements Processor {
         }
         // 2. process message
         List<InstantMessage> responses = messenger.processInstantMessage(iMsg, rMsg);
-        if (responses == null || responses.size() == 0) {
+        if (responses == null || responses.isEmpty()) {
             // nothing to respond
             return null;
         }
@@ -169,7 +169,7 @@ public class MessageProcessor extends TwinsHelper implements Processor {
         Messenger messenger = getMessenger();
         // 1. process content
         List<Content> responses = messenger.processContent(iMsg.getContent(), rMsg);
-        if (responses == null || responses.size() == 0) {
+        if (responses == null || responses.isEmpty()) {
             // nothing to respond
             return null;
         }

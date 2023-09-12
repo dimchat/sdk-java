@@ -30,16 +30,12 @@
  */
 package chat.dim.cpu;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.core.TwinsHelper;
 import chat.dim.protocol.Content;
-import chat.dim.protocol.ID;
-import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.ReliableMessage;
 
 /**
@@ -60,32 +56,6 @@ public class BaseContentProcessor extends TwinsHelper implements ContentProcesso
                         "type", content.getType()
                 )
         ));
-    }
-
-    //
-    //  Convenient responding
-    //
-
-    protected List<Content> respondReceipt(String text, ReliableMessage rMsg,ID group,  Map<String, Object> extra) {
-        // create base receipt command with text & original envelope
-        ReceiptCommand res = ReceiptCommand.create(text, rMsg);
-        if (group != null) {
-            res.setGroup(group);
-        }
-        // add extra key-values
-        if (extra != null) {
-            rMsg.putAll(extra);
-        }
-        return respondContent(res);
-    }
-
-    protected List<Content> respondContent(Content res) {
-        if (res == null) {
-            return null;
-        }
-        List<Content> responses = new ArrayList<>();
-        responses.add(res);
-        return responses;
     }
 
 }

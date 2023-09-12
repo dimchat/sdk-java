@@ -167,7 +167,7 @@ public class InstantMessagePacker {
                 // insert to 'message.keys' with member ID
                 keys.put(receiver.toString(), encodedKey);
             }
-            if (keys.size() == 0) {
+            if (keys.isEmpty()) {
                 // public key for member(s) not found
                 // TODO: suspend this message for waiting member's visa
                 return null;
