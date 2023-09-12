@@ -98,45 +98,20 @@ public abstract class Facebook extends Barrack {
     public abstract boolean saveDocument(Document doc);
 
     /**
-     *  Document checking
+     *  Create user when visa.key exists
      *
-     * @param doc - entity document
-     * @return true on accepted
+     * @param identifier - user ID
+     * @return user, null on not ready
      */
-    public boolean checkDocument(Document doc) {
-        ID identifier = doc.getIdentifier();
-        if (identifier == null) {
-            return false;
-        }
-        // NOTICE: if this is a bulletin document for group,
-        //             verify it with the group owner's meta.key
-        //         else (this is a visa document for user)
-        //             verify it with the user's meta.key
-        Meta meta;
-        if (identifier.isGroup()) {
-            ID owner = getOwner(identifier);
-            if (owner != null) {
-                // check by owner's meta.key
-                meta = getMeta(owner);
-            } else if (EntityType.GROUP.equals(identifier.getType())) {
-                // NOTICE: if this is a polylogue document,
-                //             verify it with the founder's meta.key
-                //             (which equals to the group's meta.key)
-                meta = getMeta(identifier);
-            } else {
-                // FIXME: owner not found for this group
-                return false;
-            }
-        } else {
-            meta = getMeta(identifier);
-        }
-        return meta != null && doc.verify(meta.getPublicKey());
-    }
-
     protected User createUser(ID identifier) {
-        // make sure visa key exists before calling this
-        assert identifier.isBroadcast() || getPublicKeyForEncryption(identifier) != null
-                : "visa key not found for user: " + identifier;
+        // check visa key
+        if (!identifier.isBroadcast()) {
+            if (getPublicKeyForEncryption(identifier) == null) {
+                assert false : "visa.key not found: " + identifier;
+                return null;
+            }
+            // NOTICE: if visa.key exists, then visa & meta must exist.
+        }
         int type = identifier.getType();
         // check user type
         if (EntityType.STATION.equals(type)) {
@@ -148,10 +123,27 @@ public abstract class Facebook extends Barrack {
         return new BaseUser(identifier);
     }
 
+    /**
+     *  Create group when meta & members exist
+     *
+     * @param identifier - group ID
+     * @return group, null on not ready
+     */
     protected Group createGroup(ID identifier) {
-        // make sure meta exists before calling this
-        assert identifier.isBroadcast() || getMeta(identifier) != null
-                : "meta not found for group: " + identifier;
+        // check meta & members
+        if (!identifier.isBroadcast()) {
+            if (getMeta(identifier) == null) {
+                assert false : "meta not found: " + identifier;
+                return null;
+            }
+            List<ID> members = getMembers(identifier);
+            if (members == null || members.size() == 0) {
+                assert false : "group members not found: " + identifier;
+                return null;
+            }
+            // NOTICE: if members exist, then owner exists,
+            //         and founder, bulletin must exist too.
+        }
         int type = identifier.getType();
         // check group type
         if (EntityType.ISP.equals(type)) {

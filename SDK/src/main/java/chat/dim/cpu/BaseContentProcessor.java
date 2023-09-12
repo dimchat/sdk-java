@@ -31,7 +31,6 @@
 package chat.dim.cpu;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -89,25 +88,4 @@ public class BaseContentProcessor extends TwinsHelper implements ContentProcesso
         return responses;
     }
 
-    //
-    //  Mapping
-    //
-
-    /**
-     *  Create a new map with key values
-     *
-     * @param keyValues - key1, value1, key2, value2, ...
-     * @return map
-     */
-    protected static Map<String, Object> newMap(Object... keyValues) {
-        Map<String, Object> info = new HashMap<>();
-        Object key, value;
-        for (int i = 1; i < keyValues.length; i += 2) {
-            key = keyValues[i - 1];
-            assert key instanceof String : "key error: " + key;
-            value = keyValues[i];
-            info.put((String) key, value);
-        }
-        return info;
-    }
 }

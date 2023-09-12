@@ -106,9 +106,7 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
             ));
         }
         // check document
-        boolean isValid = doc.isValid() || doc.verify(meta.getPublicKey());
-        // TODO: check for group document
-        if (!isValid) {
+        if (!checkDocument(doc, meta)) {
             // document error
             return respondReceipt("Document not accepted.", rMsg, null, newMap(
                     "template", "Document not accepted: ${ID}.",
@@ -133,6 +131,22 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
                     )
             ));
         }
+    }
+
+    protected boolean checkDocument(Document doc, Meta meta) {
+        ID identifier = doc.getIdentifier();
+        if (identifier == null) {
+            assert false : "document ID not found: " + doc;
+            return false;
+        } else if (doc.isValid()) {
+            return true;
+        }
+        // NOTICE: if this is a bulletin document for group,
+        //             verify it with the group owner's meta.key
+        //         else (this is a visa document for user)
+        //             verify it with the user's meta.key
+        return doc.verify(meta.getPublicKey());
+        // TODO: check for group document
     }
 
 }

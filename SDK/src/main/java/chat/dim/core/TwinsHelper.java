@@ -31,6 +31,8 @@
 package chat.dim.core;
 
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
+import java.util.Map;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
@@ -52,5 +54,27 @@ public abstract class TwinsHelper {
 
     protected Messenger getMessenger() {
         return messengerRef.get();
+    }
+
+    //
+    //  Mapping
+    //
+
+    /**
+     *  Create a new map with key values
+     *
+     * @param keyValues - key1, value1, key2, value2, ...
+     * @return map
+     */
+    public static Map<String, Object> newMap(Object... keyValues) {
+        Map<String, Object> info = new HashMap<>();
+        Object key, value;
+        for (int i = 1; i < keyValues.length; i += 2) {
+            key = keyValues[i - 1];
+            assert key instanceof String : "key error: " + key;
+            value = keyValues[i];
+            info.put((String) key, value);
+        }
+        return info;
     }
 }
