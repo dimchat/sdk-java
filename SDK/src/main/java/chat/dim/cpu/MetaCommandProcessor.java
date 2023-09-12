@@ -80,8 +80,15 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
 
     private List<Content> putMeta(ID identifier, Meta meta, ReliableMessage rMsg) {
         Facebook facebook = getFacebook();
-        // TODO: check meta
-        if (facebook.saveMeta(meta, identifier)) {
+        // check meta
+        if (!meta.isValid()) {
+            return respondReceipt("Meta not valid.", rMsg, null, newMap(
+                    "template", "Meta not valid: ${ID}.",
+                    "replacements", newMap(
+                            "ID", identifier.toString()
+                    )
+            ));
+        } else if (facebook.saveMeta(meta, identifier)) {
             return respondReceipt("Meta received.", rMsg, null, newMap(
                     "template", "Meta received: ${ID}.",
                     "replacements", newMap(
