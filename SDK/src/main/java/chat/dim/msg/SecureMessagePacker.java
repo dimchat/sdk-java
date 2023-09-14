@@ -31,7 +31,6 @@
 package chat.dim.msg;
 
 import java.lang.ref.WeakReference;
-import java.util.Arrays;
 import java.util.Map;
 
 import chat.dim.crypto.SymmetricKey;
@@ -83,34 +82,48 @@ public class SecureMessagePacker {
         //  1. Decode 'message.key' to encrypted symmetric key data
         //
         byte[] encryptedKey = sMsg.getEncryptedKey();
-        byte[] pwd = null;
+        byte[] keyData = null;
         if (encryptedKey != null) {
+            assert encryptedKey.length > 0 : "encrypted key data should not be empty: "
+                    + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup();
             //
             //  2. Decrypt 'message.key' with receiver's private key
             //
-            pwd = delegate.decryptKey(encryptedKey, receiver, sMsg);
-            if (pwd == null) {
-                throw new NullPointerException("failed to decrypt key in msg: " + sMsg);
+            keyData = delegate.decryptKey(encryptedKey, receiver, sMsg);
+            if (keyData == null) {
+                // A: my visa updated but the sender doesn't got the new one;
+                // B: key data error.
+                throw new NullPointerException("failed to decrypt message key: "
+                        + encryptedKey.length + " byte(s) "
+                        + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup());
+                // TODO: check whether my visa key is changed, push new visa to this contact
             }
+            assert keyData.length > 0 : "message key data should not be empty: "
+                    + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup();
         }
 
         //
         //  3. Deserialize message key from data (JsON / ProtoBuf / ...)
         //     (if key is empty, means it should be reused, get it from key cache)
         //
-        SymmetricKey password = delegate.deserializeKey(pwd, sMsg);
+        SymmetricKey password = delegate.deserializeKey(keyData, sMsg);
         if (password == null) {
-            throw new NullPointerException("failed to get msg key: "
-                    + sMsg.getSender() + " -> " + sMsg.getReceiver() + ", " + sMsg.getGroup()
-                    + ", " + Arrays.toString(pwd));
+            // A: key data is empty, and cipher key not found from local storage;
+            // B: key data error.
+            throw new NullPointerException("failed to get message key: "
+                    + (keyData == null ? 0 : keyData.length) + " byte(s) "
+                    + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup());
+            // TODO: ask the sender to send again (with new message key)
         }
 
         //
         //  4. Decode 'message.data' to encrypted content data
         //
         byte[] ciphertext = sMsg.getData();
-        if (ciphertext == null) {
-            throw new NullPointerException("failed to decode content data: " + sMsg);
+        if (ciphertext == null || ciphertext.length == 0) {
+            assert false : "failed to decode message data: "
+                    + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup();
+            return null;
         }
 
         //
@@ -118,15 +131,24 @@ public class SecureMessagePacker {
         //
         byte[] body = delegate.decryptContent(ciphertext, password, sMsg);
         if (body == null) {
-            throw new NullPointerException("failed to decrypt data with key: " + password);
+            // A: password is a reused key loaded from local storage, but it's expired;
+            // B: key error.
+            throw new NullPointerException("failed to decrypt message data with key: " + password
+                    + ", data length: " + ciphertext.length + " byte(s) "
+                    + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup());
+            // TODO: ask the sender to send again
         }
+        assert body.length > 0 : "message data should not be empty: "
+                + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup();
 
         //
         //  6. Deserialize message content from data (JsON / ProtoBuf / ...)
         //
         Content content = delegate.deserializeContent(body, password, sMsg);
         if (content == null) {
-            throw new NullPointerException("failed to deserialize content: " + Arrays.toString(body));
+            assert false : "failed to deserialize content: " + body.length + " byte(s) "
+                    + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup();
+            return null;
         }
 
         // TODO: check attachment for File/Image/Audio/Video message content
@@ -169,77 +191,31 @@ public class SecureMessagePacker {
         SecureMessageDelegate delegate = getDelegate();
 
         //
+        //  0. decode message data
+        //
+        byte[] ciphertext = sMsg.getData();
+        assert ciphertext != null && ciphertext.length > 0 : "failed to decode message data: "
+                + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
+
+        //
         //  1. Sign 'message.data' with sender's private key
         //
-        byte[] signature = delegate.signData(sMsg.getData(), sMsg);
-        assert signature != null : "failed to sign message: " + sMsg;
+        byte[] signature = delegate.signData(ciphertext, sMsg);
+        assert signature != null && signature.length > 0 : "failed to sign message: "
+                + ciphertext.length + " byte(s) "
+                + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
 
         //
         //  2. Encode 'message.signature' to String (Base64)
         //
         Object base64 = TransportableData.encode(signature);
-        assert base64 != null : "failed to encode signature: " + Arrays.toString(signature);
+        assert base64 != null : "failed to encode signature: " + signature.length + " byte(s) "
+                + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
 
         // OK, pack message
         Map<String, Object> map = sMsg.copyMap(false);
         map.put("signature", base64);
         return ReliableMessage.parse(map);
-    }
-
-    /*
-     *  Trim the Secure Message
-     *
-     *    +----------+      +----------+
-     *    | sender   |      | sender   |
-     *    | receiver |      | member   |  2. replace 'receiver' with member ID
-     *    | time     |  ->  | time     |
-     *    |          |      | group    |  1. move original 'receiver' to here
-     *    |          |      |          |
-     *    | data     |      | data     |
-     *    | key/keys |      | key      |  3. trim 'keys' to 'key'
-     *    +----------+      +----------+
-     */
-
-    /**
-     *  Trim the group message for a member
-     *
-     * @param sMsg   - encrypted message
-     * @param member - group member ID/string
-     * @return SecureMessage
-     */
-    public SecureMessage trim(SecureMessage sMsg, ID member) {
-        Map<String, Object> info = sMsg.copyMap(false);
-        // 1. check 'group'
-        ID group = sMsg.getGroup();
-        if (group == null) {
-            group = sMsg.getReceiver();
-            if (!group.isGroup()) {
-                assert false : "group message error: " + sMsg;
-                return null;
-            }
-            // if 'group' not exists, the 'receiver' must be a group ID here,
-            // and it will not be equal to the member of course,
-            // so move 'receiver' to 'group'
-            info.put("group", group.toString());
-        }
-
-        // 2. replace 'receiver' with member ID
-        info.put("receiver", member.toString());
-
-        // 3. check 'keys'
-        Map<?, ?> keys = sMsg.getEncryptedKeys();
-        if (keys != null) {
-            // trim keys, keep the only one matched to th member
-            // and move it to 'key'
-            Object base64 = keys.get(member.toString());
-            if (base64 != null) {
-                info.put("key", base64);
-            }
-            info.remove("keys");
-        }
-
-        // OK, repack message
-        return SecureMessage.parse(info);
     }
 
 }

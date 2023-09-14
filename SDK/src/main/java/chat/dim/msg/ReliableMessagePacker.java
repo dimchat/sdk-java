@@ -71,27 +71,34 @@ public class ReliableMessagePacker {
      */
     public SecureMessage verify(ReliableMessage rMsg) {
         ReliableMessageDelegate delegate = getDelegate();
+
         //
         //  0. Decode 'message.data' to encrypted content data
         //
-        byte[] data = rMsg.getData();
-        if (data == null) {
-            throw new NullPointerException("failed to decode content data: " + rMsg);
+        byte[] ciphertext = rMsg.getData();
+        if (ciphertext == null || ciphertext.length == 0) {
+            assert false : "failed to decode message data: "
+                    + rMsg.getSender() + " => " + rMsg.getReceiver() + ", " + rMsg.getGroup();
+            return null;
         }
 
         //
         //  1. Decode 'message.signature' from String (Base64)
         //
         byte[] signature = rMsg.getSignature();
-        if (signature == null) {
-            throw new NullPointerException("failed to decode message signature: " + rMsg);
+        if (signature == null || signature.length == 0) {
+            assert false : "failed to decode message signature: "
+                    + rMsg.getSender() + " => " + rMsg.getReceiver() + ", " + rMsg.getGroup();
+            return null;
         }
 
         //
         //  2. Verify the message data and signature with sender's public key
         //
-        if (!delegate.verifyDataSignature(data, signature, rMsg)) {
-            //throw new RuntimeException("message signature not match: " + rMsg);
+        boolean ok = delegate.verifyDataSignature(ciphertext, signature, rMsg);
+        if (!ok) {
+            assert false : "message signature not match: "
+                    + rMsg.getSender() + " => " + rMsg.getReceiver() + ", " + rMsg.getGroup();
             return null;
         }
 

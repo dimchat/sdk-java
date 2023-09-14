@@ -81,7 +81,7 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
     private List<Content> putMeta(ID identifier, Meta meta, ReliableMessage rMsg) {
         Facebook facebook = getFacebook();
         // check meta
-        if (!meta.isValid()) {
+        if (!meta.isValid() || !meta.matchIdentifier(identifier)) {
             return respondReceipt("Meta not valid.", rMsg, null, newMap(
                     "template", "Meta not valid: ${ID}.",
                     "replacements", newMap(

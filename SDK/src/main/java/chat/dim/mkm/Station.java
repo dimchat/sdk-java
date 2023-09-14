@@ -45,6 +45,9 @@ import chat.dim.type.Converter;
  */
 public class Station implements User {
 
+    /**
+     *  Broadcast
+     */
     public static ID ANY = ID.create("station", Address.ANYWHERE, null);
     public static ID EVERY = ID.create("stations", Address.EVERYWHERE, null);
 

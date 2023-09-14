@@ -59,18 +59,19 @@ public interface ContentProcessor {
         /**
          *  Create content processor with type
          *
-         * @param type - content type
+         * @param msgType - content type
          * @return ContentProcessor
          */
-        ContentProcessor createContentProcessor(int type);
+        ContentProcessor createContentProcessor(int msgType);
 
         /**
          *  Create command processor with name
          *
-         * @param name - command name
+         * @param msgType - content type
+         * @param cmd     - command name
          * @return CommandProcessor
          */
-        ContentProcessor createCommandProcessor(int type, String name);
+        ContentProcessor createCommandProcessor(int msgType, String cmd);
     }
 
     /**
@@ -87,8 +88,8 @@ public interface ContentProcessor {
          */
         ContentProcessor getProcessor(Content content);
 
-        ContentProcessor getContentProcessor(int type);
+        ContentProcessor getContentProcessor(int msgType);
 
-        ContentProcessor getCommandProcessor(int type, String name);
+        ContentProcessor getCommandProcessor(int msgType, String name);
     }
 }

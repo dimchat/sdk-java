@@ -86,6 +86,8 @@ public class ServiceProvider extends BaseGroup {
     private static boolean checkHosts(String a, String b) {
         if (a == null || b == null) {
             return true;
+        } else if (a.isEmpty() || b.isEmpty()) {
+            return true;
         }
         return a.equals(b);
     }

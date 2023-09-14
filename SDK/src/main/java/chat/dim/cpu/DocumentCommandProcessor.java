@@ -96,6 +96,13 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
                         )
                 ));
             }
+        } else if (!meta.isValid() || !meta.matchIdentifier(identifier)) {
+            return respondReceipt("Meta not valid.", rMsg, null, newMap(
+                    "template", "Meta not valid: ${ID}.",
+                    "replacements", newMap(
+                            "ID", identifier.toString()
+                    )
+            ));
         } else if (!facebook.saveMeta(meta, identifier)) {
             // meta error
             return respondReceipt("Meta not accepted.", rMsg, null, newMap(

@@ -92,7 +92,9 @@ public class MessagePacker extends TwinsHelper implements Packer {
         SymmetricKey password = getMessenger().getCipherKey(sender, target, true);
         assert password != null : "failed to get msg key: " + sender + " => " + receiver + ", " + overtGroup;
 
-        // 2. encrypt 'content' to 'data' for receiver/group members
+        //
+        //  2. encrypt 'content' to 'data' for receiver/group members
+        //
         SecureMessage sMsg;
         if (receiver.isGroup()) {
             // group message
@@ -188,31 +190,18 @@ public class MessagePacker extends TwinsHelper implements Packer {
 
     @Override
     public InstantMessage decryptMessage(SecureMessage sMsg) {
-        // TODO: make sure private key (decrypt key) exists before decrypting message
-        Facebook facebook = getFacebook();
+        // TODO: check receiver before calling this, make sure you are the receiver,
+        //       or you are a member of the group when this is a group message,
+        //       so that you will have a private key (decrypt key) to decrypt it.
         ID receiver = sMsg.getReceiver();
-        User user = facebook.selectLocalUser(receiver);
-        SecureMessage trimmed;
+        User user = getFacebook().selectLocalUser(receiver);
         if (user == null) {
-            // local users not match
-            trimmed = null;
-        } else if (receiver.isGroup()) {
-            // trim group message
-            trimmed = securePacker.trim(sMsg, user.getIdentifier());
-        } else {
-            trimmed = sMsg;
-        }
-        if (trimmed == null) {
             // not for you?
-            throw new NullPointerException("receiver error: " + sMsg);
+            assert false: "receiver error: " + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
+            return null;
         }
-        //
-        //  NOTICE: make sure the receiver is YOU!
-        //          which means the receiver's private key exists;
-        //          if the receiver is a group ID, split it first
-        //
-
-        assert sMsg.getData() != null : "message data cannot be empty";
+        assert sMsg.getData() != null : "message data empty: "
+                + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
         // decrypt 'data' to 'content'
         return securePacker.decrypt(sMsg, user.getIdentifier());
 

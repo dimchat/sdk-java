@@ -51,15 +51,15 @@ public class MessageProcessor extends TwinsHelper implements Processor {
 
     public MessageProcessor(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
-        factory = createFactory();
+        factory = createFactory(facebook, messenger);
     }
 
     // override for creating customized CPUs
-    protected ContentProcessor.Creator createCreator() {
-        return new ContentProcessorCreator(getFacebook(), getMessenger());
+    protected ContentProcessor.Creator createCreator(Facebook facebook, Messenger messenger) {
+        return new ContentProcessorCreator(facebook, messenger);
     }
-    protected ContentProcessor.Factory createFactory() {
-        return new ContentProcessorFactory(getFacebook(), getMessenger(), createCreator());
+    protected ContentProcessor.Factory createFactory(Facebook facebook, Messenger messenger) {
+        return new ContentProcessorFactory(facebook, messenger, createCreator(facebook, messenger));
     }
 
     public ContentProcessor getProcessor(Content content) {
@@ -182,12 +182,13 @@ public class MessageProcessor extends TwinsHelper implements Processor {
             assert false : "receiver error: " + receiver;
             return null;
         }
+        ID me = user.getIdentifier();
         // 3. pack messages
         List<InstantMessage> messages = new ArrayList<>();
         Envelope env;
         for (Content res : responses) {
             // assert res != null : "should not happen";
-            env = Envelope.create(user.getIdentifier(), sender, null);
+            env = Envelope.create(me, sender, null);
             iMsg = InstantMessage.create(env, res);
             // assert iMsg != null : "should not happen";
             messages.add(iMsg);

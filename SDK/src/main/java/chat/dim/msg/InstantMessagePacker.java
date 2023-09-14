@@ -129,10 +129,12 @@ public class InstantMessagePacker {
         Object encodedKey;
         if (members == null) // personal message
         {
+            ID receiver = iMsg.getReceiver();
+            assert receiver.isUser() : "message.receiver error: " + receiver;
             //
             //  5. Encrypt key data to 'message.key/keys' with receiver's public key
             //
-            encryptedKey = delegate.encryptKey(pwd, iMsg.getReceiver(), iMsg);
+            encryptedKey = delegate.encryptKey(pwd, receiver, iMsg);
             if (encryptedKey == null) {
                 // public key for encryption not found
                 // TODO: suspend this message for waiting receiver's visa
@@ -153,7 +155,7 @@ public class InstantMessagePacker {
                 //
                 //  5. Encrypt key data to 'message.keys' with member's public key
                 //
-                encryptedKey = delegate.encryptKey(pwd, iMsg.getReceiver(), iMsg);
+                encryptedKey = delegate.encryptKey(pwd, receiver, iMsg);
                 if (encryptedKey == null) {
                     // public key for member not found
                     // TODO: suspend this message for waiting member's visa

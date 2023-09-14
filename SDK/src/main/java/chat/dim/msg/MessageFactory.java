@@ -59,6 +59,7 @@ public class MessageFactory implements InstantMessage.Factory, SecureMessage.Fac
      * @return 1 ~ 2^31-1
      */
     private synchronized int next() {
+        assert sn >= 0 : "serial number error: " + sn;
         if (sn < 0x7fffffff) {
             sn += 1;
         } else {

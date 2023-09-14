@@ -50,7 +50,7 @@ import chat.dim.protocol.Meta;
 public abstract class Facebook extends Barrack {
 
     // memory caches
-    private final Map<ID, User> userMap = new HashMap<>();
+    private final Map<ID, User>   userMap = new HashMap<>();
     private final Map<ID, Group> groupMap = new HashMap<>();
 
     /**
@@ -110,7 +110,7 @@ public abstract class Facebook extends Barrack {
                 assert false : "visa.key not found: " + identifier;
                 return null;
             }
-            // NOTICE: if visa.key exists, then visa & meta must exist.
+            // NOTICE: if visa.key exists, then visa & meta must exist too.
         }
         int type = identifier.getType();
         // check user type
@@ -124,25 +124,21 @@ public abstract class Facebook extends Barrack {
     }
 
     /**
-     *  Create group when meta & members exist
+     *  Create group when members exist
      *
      * @param identifier - group ID
      * @return group, null on not ready
      */
     protected Group createGroup(ID identifier) {
-        // check meta & members
+        // check members
         if (!identifier.isBroadcast()) {
-            if (getMeta(identifier) == null) {
-                assert false : "meta not found: " + identifier;
-                return null;
-            }
             List<ID> members = getMembers(identifier);
             if (members == null || members.isEmpty()) {
                 assert false : "group members not found: " + identifier;
                 return null;
             }
-            // NOTICE: if members exist, then owner exists,
-            //         and founder, bulletin must exist too.
+            // NOTICE: if members exist, then owner (founder) must exist,
+            //         and bulletin, meta must exist too.
         }
         int type = identifier.getType();
         // check group type
@@ -169,7 +165,8 @@ public abstract class Facebook extends Barrack {
     public User selectLocalUser(ID receiver) {
         List<User> users = getLocalUsers();
         if (users == null || users.isEmpty()) {
-            throw new NullPointerException("local users should not be empty");
+            assert false : "local users should not be empty";
+            return null;
         } else if (receiver.isBroadcast()) {
             // broadcast message can decrypt by anyone, so just return current user
             return users.get(0);
@@ -182,20 +179,14 @@ public abstract class Facebook extends Barrack {
                     return item;
                 }
             }
+            // not me?
             return null;
         }
         // group message (recipient not designated)
         assert receiver.isGroup() : "receiver error: " + receiver;
         // the messenger will check group info before decrypting message,
         // so we can trust that the group's meta & members MUST exist here.
-        Group grp = getGroup(receiver);
-        if (grp == null) {
-            assert false : "group not ready: " + receiver;
-            return null;
-        }
-        // if a group can be create, means its meta, bulletin document,
-        // and owner, members are all ready, so members should not be empty here.
-        List<ID> members = grp.getMembers();
+        List<ID> members = getMembers(receiver);
         assert !members.isEmpty() : "members not found: " + receiver;
         for (User item : users) {
             if (members.contains(item.getIdentifier())) {

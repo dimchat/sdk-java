@@ -59,46 +59,42 @@ public class ContentProcessorFactory extends TwinsHelper implements ContentProce
     @Override
     public ContentProcessor getProcessor(Content content) {
         ContentProcessor cpu;
-        int type = content.getType();
+        int msgType = content.getType();
         if (content instanceof Command) {
             String name = ((Command) content).getCmd();
-            if (name == null) {
-                name = "*";
-            }
-            // command processor
-            cpu = getCommandProcessor(type, name);
+            // assert name != null && name.length() > 0 : "command name error: " + name;
+            cpu = getCommandProcessor(msgType, name);
             if (cpu != null) {
                 return cpu;
             } else if (content instanceof GroupCommand) {
-                assert !name.equals("group") : "command name error: " + content;
-                // group command processor
-                cpu = getCommandProcessor(type, "group");
+                // assert !name.equals("group") : "command name error: " + content;
+                cpu = getCommandProcessor(msgType, "group");
                 if (cpu != null) {
                     return cpu;
                 }
             }
         }
         // content processor
-        return getContentProcessor(type);
+        return getContentProcessor(msgType);
     }
 
     @Override
-    public ContentProcessor getContentProcessor(int type) {
-        ContentProcessor cpu = contentProcessors.get(type);
+    public ContentProcessor getContentProcessor(int msgType) {
+        ContentProcessor cpu = contentProcessors.get(msgType);
         if (cpu == null) {
-            cpu = creator.createContentProcessor(type);
+            cpu = creator.createContentProcessor(msgType);
             if (cpu != null) {
-                contentProcessors.put(type, cpu);
+                contentProcessors.put(msgType, cpu);
             }
         }
         return cpu;
     }
 
     @Override
-    public ContentProcessor getCommandProcessor(int type, String name) {
+    public ContentProcessor getCommandProcessor(int msgType, String name) {
         ContentProcessor cpu = commandProcessors.get(name);
         if (cpu == null) {
-            cpu = creator.createCommandProcessor(type, name);
+            cpu = creator.createCommandProcessor(msgType, name);
             if (cpu != null) {
                 commandProcessors.put(name, cpu);
             }
