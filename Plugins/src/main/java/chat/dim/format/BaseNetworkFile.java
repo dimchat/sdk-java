@@ -34,39 +34,92 @@ import chat.dim.type.Dictionary;
 
 public class BaseNetworkFile extends Dictionary implements PortableNetworkFile {
 
-    private URI remoteURL;                // download from CDN
-    private TransportableData attachment; // file content (not encrypted)
-    private DecryptKey password;          // key to decrypt data
+    // file content (not encrypted)
+    private TransportableData attachment;
+
+    // download from CDN
+    private URI remoteURL;
+    // key to decrypt data downloaded from CDN
+    private DecryptKey password;
 
     public BaseNetworkFile(Map<String, Object> dictionary) {
         super(dictionary);
         // lazy load
-        remoteURL = null;
         attachment = null;
+        remoteURL = null;
         password = null;
     }
 
-    //
-    //  Create PNF with remote URL & decrypt key
-    //
-
-    public BaseNetworkFile(URI url, DecryptKey key) {
+    public BaseNetworkFile(byte[] data, String filename, URI url, DecryptKey key) {
         super();
-        setURL(url);
-        attachment = null;
-        setPassword(key);
+        //
+        //  file data
+        //
+        if (data == null) {
+            attachment = null;
+        } else {
+            setData(data);
+        }
+        //
+        //  filename
+        //
+        if (filename != null) {
+            put("filename", filename);
+        }
+        //
+        //  remote URL
+        //
+        if (url == null) {
+            remoteURL = null;
+        } else {
+            setURL(url);
+        }
+        //
+        //  decrypt key
+        //
+        if (key == null) {
+            password = null;
+        } else {
+            setPassword(key);
+        }
     }
 
-    //
-    //  Create PNF with file data & filename
-    //
+    @Override
+    public void setData(byte[] data) {
+        TransportableData ted;
+        if (data == null/* || data.length == 0*/) {
+            ted = null;
+            remove("data");
+        } else {
+            ted = TransportableData.create(data);
+            // lazy encode
+            // put("data", ted.toObject());
+        }
+        attachment = ted;
+    }
 
-    public BaseNetworkFile(byte[] data, String filename) {
-        super();
-        remoteURL = null;
-        setData(data);
-        setFilename(filename);
-        password = null;
+    @Override
+    public byte[] getData() {
+        TransportableData ted = attachment;
+        if (ted == null) {
+            Object base64 = get("data");
+            attachment = ted = TransportableData.parse(base64);
+        }
+        return ted == null ? null : ted.getData();
+    }
+
+    @Override
+    public void setFilename(String name) {
+        if (name == null/* || name.isEmpty()*/) {
+            remove("filename");
+        } else {
+            put("filename", name);
+        }
+    }
+
+    @Override
+    public String getFilename() {
+        return getString("filename", null);
     }
 
     @Override
@@ -84,49 +137,11 @@ public class BaseNetworkFile extends Dictionary implements PortableNetworkFile {
         URI url = remoteURL;
         if (url == null) {
             String remote = getString("URL", null);
-            if (remote != null) {
+            if (remote != null/* && remote.length() > 0*/) {
                 remoteURL = url = URI.create(remote);
             }
         }
         return url;
-    }
-
-    @Override
-    public void setData(byte[] data) {
-        TransportableData ted;
-        if (data != null/* && data.length > 0*/) {
-            ted = TransportableData.create(data);
-            // lazy encode
-            // put("data", ted.toObject());
-        } else {
-            ted = null;
-            remove("data");
-        }
-        attachment = ted;
-    }
-
-    @Override
-    public byte[] getData() {
-        TransportableData ted = attachment;
-        if (ted == null) {
-            Object base64 = get("data");
-            attachment = ted = TransportableData.parse(base64);
-        }
-        return ted == null ? null : ted.getData();
-    }
-
-    @Override
-    public void setFilename(String filename) {
-        if (filename == null) {
-            remove("filename");
-        } else {
-            put("filename", filename);
-        }
-    }
-
-    @Override
-    public String getFilename() {
-        return getString("filename", null);
     }
 
     @Override
@@ -138,8 +153,7 @@ public class BaseNetworkFile extends Dictionary implements PortableNetworkFile {
     @Override
     public DecryptKey getPassword() {
         if (password == null) {
-            Object info = get("key");
-            password = SymmetricKey.parse(info);
+            password = SymmetricKey.parse(get("key"));
         }
         return password;
     }
@@ -169,9 +183,7 @@ public class BaseNetworkFile extends Dictionary implements PortableNetworkFile {
         // field 'data' not exists, means this file was uploaded onto a CDN,
         // if 'key' not exists too, just return 'URL' string here.
         assert get("filename") == null : "PNF error: " + toMap();
-        String url = getString("URL", null);
-        assert url != null : "URL cannot be empty: " + toMap();
-        return url;
+        return getString("URL", "");
     }
 
     @Override

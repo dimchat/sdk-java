@@ -40,7 +40,7 @@ public class Facebook implements User.DataSource, Group.DataSource {
     }
 
     public boolean cache(Meta meta, ID identifier) {
-        assert meta.matchID(identifier) : "meta not match ID: " + identifier + ", " + meta;
+        assert meta.matchIdentifier(identifier) : "meta not match ID: " + identifier + ", " + meta;
         metaMap.put(identifier, meta);
         return true;
     }
