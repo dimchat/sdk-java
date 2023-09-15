@@ -29,161 +29,115 @@ import java.net.URI;
 import java.util.Map;
 
 import chat.dim.crypto.DecryptKey;
-import chat.dim.crypto.SymmetricKey;
 import chat.dim.type.Dictionary;
 
 public class BaseNetworkFile extends Dictionary implements PortableNetworkFile {
 
-    // file content (not encrypted)
-    private TransportableData attachment;
-
-    // download from CDN
-    private URI remoteURL;
-    // key to decrypt data downloaded from CDN
-    private DecryptKey password;
+    private final BaseFileWrapper wrapper;
 
     public BaseNetworkFile(Map<String, Object> dictionary) {
         super(dictionary);
-        // lazy load
-        attachment = null;
-        remoteURL = null;
-        password = null;
+        wrapper = new BaseFileWrapper(toMap());
     }
 
     public BaseNetworkFile(byte[] data, String filename, URI url, DecryptKey key) {
         super();
-        //
-        //  file data
-        //
-        if (data == null) {
-            attachment = null;
-        } else {
+        wrapper = new BaseFileWrapper(toMap());
+        // file data
+        if (data != null) {
             setData(data);
         }
-        //
-        //  filename
-        //
+        // filename
         if (filename != null) {
-            put("filename", filename);
+            setFilename(filename);
         }
-        //
-        //  remote URL
-        //
-        if (url == null) {
-            remoteURL = null;
-        } else {
+        // remote URL
+        if (url != null) {
             setURL(url);
         }
-        //
-        //  decrypt key
-        //
-        if (key == null) {
-            password = null;
-        } else {
+        // decrypt key
+        if (key != null) {
             setPassword(key);
         }
     }
 
-    @Override
-    public void setData(byte[] data) {
-        TransportableData ted;
-        if (data == null/* || data.length == 0*/) {
-            ted = null;
-            remove("data");
-        } else {
-            ted = TransportableData.create(data);
-            // lazy encode
-            // put("data", ted.toObject());
-        }
-        attachment = ted;
-    }
+    /**
+     *  file data
+     */
 
     @Override
     public byte[] getData() {
-        TransportableData ted = attachment;
-        if (ted == null) {
-            Object base64 = get("data");
-            attachment = ted = TransportableData.parse(base64);
-        }
-        return ted == null ? null : ted.getData();
+        return wrapper.getData();
+    }
+
+    @Override
+    public void setData(byte[] data) {
+        wrapper.setData(data);
+    }
+
+    /**
+     *  file name
+     */
+
+    @Override
+    public String getFilename() {
+        return wrapper.getFilename();
     }
 
     @Override
     public void setFilename(String name) {
-        if (name == null/* || name.isEmpty()*/) {
-            remove("filename");
-        } else {
-            put("filename", name);
-        }
+        wrapper.setFilename(name);
     }
 
+    /**
+     *  download URL
+     */
+
     @Override
-    public String getFilename() {
-        return getString("filename", null);
+    public URI getURL() {
+        return wrapper.getURL();
     }
 
     @Override
     public void setURL(URI url) {
-        if (url == null) {
-            remove("URL");
-        } else {
-            put("URL", url.toString());
-        }
-        remoteURL = url;
+        wrapper.setURL(url);
     }
 
+    /**
+     *  decrypt key
+     */
+
     @Override
-    public URI getURL() {
-        URI url = remoteURL;
-        if (url == null) {
-            String remote = getString("URL", null);
-            if (remote != null/* && remote.length() > 0*/) {
-                remoteURL = url = URI.create(remote);
-            }
-        }
-        return url;
+    public DecryptKey getPassword() {
+        return wrapper.getPassword();
     }
 
     @Override
     public void setPassword(DecryptKey key) {
-        setMap("key", key);
-        password = key;
+        wrapper.setPassword(key);
     }
 
-    @Override
-    public DecryptKey getPassword() {
-        if (password == null) {
-            password = SymmetricKey.parse(get("key"));
-        }
-        return password;
-    }
-
-    private Object encodeData() {
-        Object base64 = get("data");
-        if (base64 == null) {
-            // 'data' not exists, check attachment
-            TransportableData ted = attachment;
-            if (ted != null) {
-                // encode data string
-                base64 = ted.toObject();
-                put("data", base64);
-            }
-        }
-        // return encoded data string
-        return base64;
-    }
+    /**
+     *  encoding
+     */
 
     @Override
     public String toString() {
-        // check 'data' and 'key'
-        if (encodeData() != null || getPassword() != null) {
-            // not a single URL, encode the entire dictionary
-            return JSONMap.encode(toMap());
+        if (size() == 1) {
+            // if only contains 'URL' field, return the URL string directly
+            String url = getString("URL", null);
+            if (url != null) {
+                return url;
+            }
+        } else if (size() == 2) {
+            String url = getString("URL", null);
+            if (url != null && containsKey("filename")) {
+                // ignore 'filename' field
+                return url;
+            }
         }
-        // field 'data' not exists, means this file was uploaded onto a CDN,
-        // if 'key' not exists too, just return 'URL' string here.
-        assert get("filename") == null : "PNF error: " + toMap();
-        return getString("URL", "");
+        // not a single URL, encode the entire dictionary
+        return JSONMap.encode(toMap());
     }
 
     @Override

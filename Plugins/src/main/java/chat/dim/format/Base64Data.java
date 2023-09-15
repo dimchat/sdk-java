@@ -31,67 +31,60 @@ import chat.dim.type.Dictionary;
 
 public class Base64Data extends Dictionary implements TransportableData {
 
-    private byte[] data;
+    private final BaseDataWrapper wrapper;
 
     public Base64Data(Map<String, Object> dictionary) {
         super(dictionary);
-        // lazy load
-        data = null;
+        wrapper = new BaseDataWrapper(toMap());
     }
 
     public Base64Data(byte[] binary) {
         super();
-        // algorithm: base64
-        put("algorithm", TransportableData.BASE_64);
-        // binary data (lazy encode)
-        data = binary;
+        wrapper = new BaseDataWrapper(toMap());
+        // encode algorithm
+        wrapper.setAlgorithm(TransportableData.BASE_64);
+        // binary data
+        if (binary != null) {
+            wrapper.setData(binary);
+        }
     }
+
+    /**
+     *  encode algorithm
+     */
 
     @Override
     public String getAlgorithm() {
-        return getString("algorithm", TransportableData.BASE_64);
+        return wrapper.getAlgorithm();
     }
+
+    /**
+     *  binary data
+     */
 
     @Override
     public byte[] getData() {
-        byte[] binary = data;
-        if (binary == null) {
-            String base64 = getString("data", null);
-            if (base64 != null) {
-                data = binary = Base64.decode(base64);
-            }
-        }
-        return binary;
+        return wrapper.getData();
     }
 
-    private String encodeData() {
-        String base64 = getString("data", null);
-        if (base64 == null) {
-            // field 'data' not exists, check binary data
-            byte[] binary = data;
-            if (binary != null) {
-                // encode data string
-                base64 = Base64.encode(binary);
-                put("data", base64);
-            }
-            assert base64 != null : "TED data should not be empty";
-        }
-        // return encoded data string
-        return base64;
-    }
-
-    @Override
-    public String toString() {
-        String base64 = encodeData();
-        if (base64 != null) {
-            return base64;
-        }
-        // TODO: other field?
-        return JSONMap.encode(toMap());
-    }
+    /**
+     *  encoding
+     */
 
     @Override
     public Object toObject() {
         return toString();
+    }
+
+    @Override
+    public String toString() {
+        // 0. "{BASE64_ENCODE}"
+        // 1. "base64,{BASE64_ENCODE}"
+        return wrapper.toString();
+    }
+
+    public String toString(String mimeType) {
+        // 2. "data:image/png;base64,{BASE64_ENCODE}"
+        return wrapper.toString(mimeType);
     }
 }
