@@ -85,7 +85,7 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
 
     private List<Content> putDocument(ID identifier, Meta meta, Document doc, ReliableMessage rMsg) {
         Facebook facebook = getFacebook();
-        // check meta
+        // 0. check meta
         if (meta == null) {
             meta = facebook.getMeta(identifier);
             if (meta == null) {
@@ -96,40 +96,42 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
                         )
                 ));
             }
-        } else if (!meta.isValid() || !meta.matchIdentifier(identifier)) {
-            return respondReceipt("Meta not valid.", rMsg, null, newMap(
-                    "template", "Meta not valid: ${ID}.",
-                    "replacements", newMap(
-                            "ID", identifier.toString()
-                    )
-            ));
-        } else if (!facebook.saveMeta(meta, identifier)) {
-            // meta error
-            return respondReceipt("Meta not accepted.", rMsg, null, newMap(
-                    "template", "Meta not accepted: ${ID}.",
-                    "replacements", newMap(
-                            "ID", identifier.toString()
-                    )
-            ));
         }
+        List<Content> errors;
+        // 1. try to save meta
+        errors = saveMeta(identifier, meta, rMsg);
+        if (errors != null) {
+            // failed
+            return errors;
+        }
+        // 2. try to save document
+        errors = saveDocument(identifier, meta, doc, rMsg);
+        if (errors != null) {
+            // failed
+            return errors;
+        }
+        // 3. success
+        return respondReceipt("Document received.", rMsg, null, newMap(
+                "template", "Document received: ${ID}.",
+                "replacements", newMap(
+                        "ID", identifier.toString()
+                )
+        ));
+    }
+
+    // return null on success
+    protected List<Content> saveDocument(ID identifier, Meta meta, Document doc, ReliableMessage rMsg) {
+        Facebook facebook = getFacebook();
         // check document
         if (!checkDocument(doc, meta)) {
-            // document error
+            // document invalid
             return respondReceipt("Document not accepted.", rMsg, null, newMap(
                     "template", "Document not accepted: ${ID}.",
                     "replacements", newMap(
                             "ID", identifier.toString()
                     )
             ));
-        } else if (facebook.saveDocument(doc)) {
-            // document saved
-            return respondReceipt("Document received.", rMsg, null, newMap(
-                    "template", "Document received: ${ID}.",
-                    "replacements", newMap(
-                            "ID", identifier.toString()
-                    )
-            ));
-        } else {
+        } else if (!facebook.saveDocument(doc)) {
             // document expired
             return respondReceipt("Document not changed.", rMsg, null, newMap(
                     "template", "Document not changed: ${ID}.",
@@ -138,6 +140,8 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
                     )
             ));
         }
+        // OK
+        return null;
     }
 
     protected boolean checkDocument(Document doc, Meta meta) {

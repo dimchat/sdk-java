@@ -123,18 +123,10 @@ public class BaseNetworkFile extends Dictionary implements PortableNetworkFile {
 
     @Override
     public String toString() {
-        if (size() == 1) {
-            // if only contains 'URL' field, return the URL string directly
-            String url = getString("URL", null);
-            if (url != null) {
-                return url;
-            }
-        } else if (size() == 2) {
-            String url = getString("URL", null);
-            if (url != null && containsKey("filename")) {
-                // ignore 'filename' field
-                return url;
-            }
+        String urlString = getURLString();
+        if (urlString != null) {
+            // only contains 'URL', return the URL string directly
+            return urlString;
         }
         // not a single URL, encode the entire dictionary
         return JSONMap.encode(toMap());
@@ -142,6 +134,26 @@ public class BaseNetworkFile extends Dictionary implements PortableNetworkFile {
 
     @Override
     public Object toObject() {
-        return toString();
+        String urlString = getURLString();
+        if (urlString != null) {
+            // only contains 'URL', return the URL string directly
+            return urlString;
+        }
+        // not a single URL, return the entire dictionary
+        return toMap();
+    }
+
+    private String getURLString() {
+        int count = size();
+        if (count == 1) {
+            // if only contains 'URL' field, return the URL string directly
+            return getString("URL", null);
+        } else if (count == 2 && containsKey("filename")) {
+            // ignore 'filename' field
+            return getString("URL", null);
+        } else {
+            // not a single URL
+            return null;
+        }
     }
 }

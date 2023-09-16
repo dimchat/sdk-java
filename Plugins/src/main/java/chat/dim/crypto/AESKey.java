@@ -126,10 +126,9 @@ public final class AESKey extends BaseSymmetricKey {
         return ted.getData();
     }
     private void setInitVector(Object iv) {
-        TransportableData ted = TransportableData.parse(iv);
-        if (ted != null) {
-            ivData = ted;
-        }
+        // if new iv not exists, this will erase the decoded ivData,
+        // and cause reloading from dictionary again.
+        ivData = TransportableData.parse(iv);
     }
 
     @Override

@@ -79,23 +79,36 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
     }
 
     private List<Content> putMeta(ID identifier, Meta meta, ReliableMessage rMsg) {
+        List<Content> errors;
+        // 1. try to save meta
+        errors = saveMeta(identifier, meta, rMsg);
+        if (errors != null) {
+            // failed
+            return errors;
+        }
+        // 2. success
+        return respondReceipt("Meta received.", rMsg, null, newMap(
+                "template", "Meta received: ${ID}.",
+                "replacements", newMap(
+                        "ID", identifier.toString()
+                )
+        ));
+    }
+
+    // return null on success
+    protected List<Content> saveMeta(ID identifier, Meta meta, ReliableMessage rMsg) {
         Facebook facebook = getFacebook();
         // check meta
         if (!meta.isValid() || !meta.matchIdentifier(identifier)) {
+            // meta invalid
             return respondReceipt("Meta not valid.", rMsg, null, newMap(
                     "template", "Meta not valid: ${ID}.",
                     "replacements", newMap(
                             "ID", identifier.toString()
                     )
             ));
-        } else if (facebook.saveMeta(meta, identifier)) {
-            return respondReceipt("Meta received.", rMsg, null, newMap(
-                    "template", "Meta received: ${ID}.",
-                    "replacements", newMap(
-                            "ID", identifier.toString()
-                    )
-            ));
-        } else {
+        } else if (!facebook.saveMeta(meta, identifier)) {
+            // DB error?
             return respondReceipt("Meta not accepted.", rMsg, null, newMap(
                     "template", "Meta not accepted: ${ID}.",
                     "replacements", newMap(
@@ -103,6 +116,8 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
                     )
             ));
         }
+        // OK
+        return null;
     }
 
 }

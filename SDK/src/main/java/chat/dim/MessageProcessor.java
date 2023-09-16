@@ -51,15 +51,15 @@ public class MessageProcessor extends TwinsHelper implements Processor {
 
     public MessageProcessor(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
-        factory = createFactory(facebook, messenger);
+        factory = createFactory();
     }
 
     // override for creating customized CPUs
-    protected ContentProcessor.Creator createCreator(Facebook facebook, Messenger messenger) {
-        return new ContentProcessorCreator(facebook, messenger);
+    protected ContentProcessor.Creator createCreator() {
+        return new ContentProcessorCreator(getFacebook(), getMessenger());
     }
-    protected ContentProcessor.Factory createFactory(Facebook facebook, Messenger messenger) {
-        return new ContentProcessorFactory(facebook, messenger, createCreator(facebook, messenger));
+    protected ContentProcessor.Factory createFactory() {
+        return new ContentProcessorFactory(getFacebook(), getMessenger(), createCreator());
     }
 
     public ContentProcessor getProcessor(Content content) {
