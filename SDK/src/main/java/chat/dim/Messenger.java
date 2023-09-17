@@ -33,14 +33,13 @@ package chat.dim;
 import java.util.List;
 
 import chat.dim.crypto.SymmetricKey;
-import chat.dim.msg.BaseMessage;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 
-public abstract class Messenger extends Transceiver implements CipherKeyDelegate, Packer, Processor {
+public abstract class Messenger extends Transceiver implements Packer, Processor {
 
     protected abstract CipherKeyDelegate getCipherKeyDelegate();
 
@@ -51,14 +50,27 @@ public abstract class Messenger extends Transceiver implements CipherKeyDelegate
     //
     //  Interfaces for Cipher Key
     //
-    @Override
-    public SymmetricKey getCipherKey(ID sender, ID receiver, boolean generate) {
-        return getCipherKeyDelegate().getCipherKey(sender, receiver, generate);
+    public SymmetricKey getEncryptKey(InstantMessage iMsg) {
+        ID sender = iMsg.getSender();
+        ID receiver = iMsg.getReceiver();
+        ID group = ID.parse(iMsg.get("group"));
+        ID target = CipherKeyDelegate.getDestination(receiver, group);
+        return getCipherKeyDelegate().getCipherKey(sender, target, true);
+    }
+    public SymmetricKey getDecryptKey(SecureMessage sMsg) {
+        ID sender = sMsg.getSender();
+        ID receiver = sMsg.getReceiver();
+        ID group = ID.parse(sMsg.get("group"));
+        ID target = CipherKeyDelegate.getDestination(receiver, group);
+        return getCipherKeyDelegate().getCipherKey(sender, target, false);
     }
 
-    @Override
-    public void cacheCipherKey(ID sender, ID receiver, SymmetricKey key) {
-        getCipherKeyDelegate().cacheCipherKey(sender, receiver, key);
+    public void cacheDecryptKey(SymmetricKey key, SecureMessage sMsg) {
+        ID sender = sMsg.getSender();
+        ID receiver = sMsg.getReceiver();
+        ID group = ID.parse(sMsg.get("group"));
+        ID target = CipherKeyDelegate.getDestination(receiver, group);
+        getCipherKeyDelegate().cacheCipherKey(sender, target, key);
     }
 
     //
@@ -128,9 +140,8 @@ public abstract class Messenger extends Transceiver implements CipherKeyDelegate
     @Override
     public SymmetricKey deserializeKey(byte[] key, SecureMessage sMsg) {
         if (key == null) {
-            // get key from cache
-            ID target = CipherKeyDelegate.getDestination(sMsg.getReceiver(), sMsg.getGroup());
-            return getCipherKey(sMsg.getSender(), target, false);
+            // get key from cache with direction: sender -> receiver(group)
+            return getDecryptKey(sMsg);
         } else {
             return super.deserializeKey(key, sMsg);
         }
@@ -141,16 +152,9 @@ public abstract class Messenger extends Transceiver implements CipherKeyDelegate
         Content content = super.deserializeContent(data, password, sMsg);
         // assert content != null : "content error: " + data.length;
 
-        if (!BaseMessage.isBroadcast(sMsg)/* && content != null*/) {
-            // check and cache key for reuse
-            ID target = sMsg.getGroup();
-            if (target == null) {
-                // 1. personal message
-                // 2. group message not split
-                target = sMsg.getReceiver();
-            }
+        if (content != null) {
             // cache the key with direction: sender -> receiver(group)
-            cacheCipherKey(sMsg.getSender(), target, password);
+            cacheDecryptKey(password, sMsg);
         }
 
         // NOTICE: check attachment for File/Image/Audio/Video message content
