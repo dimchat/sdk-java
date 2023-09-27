@@ -52,24 +52,18 @@ public abstract class Messenger extends Transceiver implements Packer, Processor
     //
     public SymmetricKey getEncryptKey(InstantMessage iMsg) {
         ID sender = iMsg.getSender();
-        ID receiver = iMsg.getReceiver();
-        ID group = ID.parse(iMsg.get("group"));
-        ID target = CipherKeyDelegate.getDestination(receiver, group);
+        ID target = CipherKeyDelegate.getDestination(iMsg);
         return getCipherKeyDelegate().getCipherKey(sender, target, true);
     }
     public SymmetricKey getDecryptKey(SecureMessage sMsg) {
         ID sender = sMsg.getSender();
-        ID receiver = sMsg.getReceiver();
-        ID group = ID.parse(sMsg.get("group"));
-        ID target = CipherKeyDelegate.getDestination(receiver, group);
+        ID target = CipherKeyDelegate.getDestination(sMsg);
         return getCipherKeyDelegate().getCipherKey(sender, target, false);
     }
 
     public void cacheDecryptKey(SymmetricKey key, SecureMessage sMsg) {
         ID sender = sMsg.getSender();
-        ID receiver = sMsg.getReceiver();
-        ID group = ID.parse(sMsg.get("group"));
-        ID target = CipherKeyDelegate.getDestination(receiver, group);
+        ID target = CipherKeyDelegate.getDestination(sMsg);
         getCipherKeyDelegate().cacheCipherKey(sender, target, key);
     }
 

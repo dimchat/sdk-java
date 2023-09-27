@@ -75,7 +75,7 @@ public class CustomizedContentProcessor extends BaseContentProcessor implements 
 
     // override for your application
     protected List<Content> filter(String app, CustomizedContent content, ReliableMessage rMsg) {
-        return respondReceipt("Content not support.", rMsg, content.getGroup(), newMap(
+        return respondReceipt("Content not support.", rMsg.getEnvelope(), content, newMap(
                 "template", "Customized content (app: ${app}) not support yet!",
                 "replacements", newMap(
                         "app", app
@@ -95,7 +95,7 @@ public class CustomizedContentProcessor extends BaseContentProcessor implements 
     public List<Content> handleAction(String act, ID sender, CustomizedContent content, ReliableMessage rMsg) {
         String app = content.getApplication();
         String mod = content.getModule();
-        return respondReceipt("Content not support.", rMsg, content.getGroup(), newMap(
+        return respondReceipt("Content not support.", rMsg.getEnvelope(), content, newMap(
                 "template", "Customized content (app: ${app}, mod: ${mod}, act: ${act}) not support yet!",
                 "replacements", newMap(
                         "app", app,

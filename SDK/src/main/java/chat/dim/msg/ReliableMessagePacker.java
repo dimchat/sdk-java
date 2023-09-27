@@ -70,7 +70,7 @@ public class ReliableMessagePacker {
      * @return SecureMessage object
      */
     public SecureMessage verify(ReliableMessage rMsg) {
-        ReliableMessageDelegate delegate = getDelegate();
+        ReliableMessageDelegate transceiver = getDelegate();
 
         //
         //  0. Decode 'message.data' to encrypted content data
@@ -95,7 +95,7 @@ public class ReliableMessagePacker {
         //
         //  2. Verify the message data and signature with sender's public key
         //
-        boolean ok = delegate.verifyDataSignature(ciphertext, signature, rMsg);
+        boolean ok = transceiver.verifyDataSignature(ciphertext, signature, rMsg);
         if (!ok) {
             assert false : "message signature not match: "
                     + rMsg.getSender() + " => " + rMsg.getReceiver() + ", " + rMsg.getGroup();

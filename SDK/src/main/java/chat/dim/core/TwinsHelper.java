@@ -39,9 +39,9 @@ import java.util.Map;
 import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.protocol.Content;
+import chat.dim.protocol.Envelope;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.ReceiptCommand;
-import chat.dim.protocol.ReliableMessage;
 
 public abstract class TwinsHelper {
 
@@ -66,26 +66,60 @@ public abstract class TwinsHelper {
     //  Convenient responding
     //
 
-    public static List<Content> respondReceipt(String text, ReliableMessage rMsg, ID group, Map<String, Object> extra) {
+    protected List<Content> respondReceipt(String text, Envelope envelope, Content content, Map<String, Object> extra) {
         // create base receipt command with text & original envelope
-        ReceiptCommand res = ReceiptCommand.create(text, rMsg);
-        if (group != null) {
-            res.setGroup(group);
-        }
-        // add extra key-values
-        if (extra != null) {
-            rMsg.putAll(extra);
-        }
-        return respondContent(res);
+        ReceiptCommand res = createReceipt(text, envelope, content, extra);
+        List<Content> responses = new ArrayList<>();
+        responses.add(res);
+        return responses;
     }
 
-    public static List<Content> respondContent(Content res) {
+    protected List<Content> respondContent(Content res) {
         if (res == null) {
             return null;
         }
         List<Content> responses = new ArrayList<>();
         responses.add(res);
         return responses;
+    }
+
+    /**
+     *  Create receipt command with text, original envelope, serial number & group
+     *
+     * @param text     - text message
+     * @param envelope - original envelope
+     * @param content  - original content
+     * @param extra    - extra info
+     * @return receipt command
+     */
+    public static ReceiptCommand createReceipt(String text, Envelope envelope, Content content, Map<String, Object> extra) {
+        assert text != null && envelope != null : "params error";
+        // check envelope
+        if (envelope.containsKey("data")) {
+            Map<String, Object> info = envelope.copyMap(false);
+            info.remove("data");
+            info.remove("key");
+            info.remove("keys");
+            info.remove("meta");
+            info.remove("visa");
+            envelope = Envelope.parse(info);
+        }
+        // create base receipt command with text, original envelope & serial number
+        ReceiptCommand res;
+        if (content == null) {
+            res = ReceiptCommand.create(text, envelope);
+        } else {
+            res = ReceiptCommand.create(text, envelope, content.getSerialNumber(), null);
+            ID group = content.getGroup();
+            if (group != null) {
+                res.setGroup(group);
+            }
+        }
+        // add extra key-value
+        if (extra != null) {
+            res.putAll(extra);
+        }
+        return res;
     }
 
     //
@@ -103,8 +137,13 @@ public abstract class TwinsHelper {
         Object key, value;
         for (int i = 1; i < keyValues.length; i += 2) {
             key = keyValues[i - 1];
-            assert key instanceof String : "key error: " + key;
             value = keyValues[i];
+            if (key == null || value == null) {
+                assert value == null : "map key should not be empty";
+                continue;
+            } else {
+                assert key instanceof String : "key error: " + key;
+            }
             info.put((String) key, value);
         }
         return info;

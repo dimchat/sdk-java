@@ -52,7 +52,7 @@ public class BaseCommandProcessor extends BaseContentProcessor {
     public List<Content> process(Content content, ReliableMessage rMsg) {
         assert content instanceof Command : "command error: " + content;
         Command command = (Command) content;
-        return respondReceipt("Command not support.", rMsg, command.getGroup(), newMap(
+        return respondReceipt("Command not support.", rMsg.getEnvelope(), command, newMap(
                 "template", "Command (name: ${command}) not support yet!",
                 "replacements", newMap(
                         "command", command.getCmd()

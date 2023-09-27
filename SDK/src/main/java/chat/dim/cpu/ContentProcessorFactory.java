@@ -46,8 +46,8 @@ import chat.dim.protocol.GroupCommand;
  */
 public class ContentProcessorFactory extends TwinsHelper implements ContentProcessor.Factory {
 
-    protected final Map<Integer, ContentProcessor> contentProcessors = new HashMap<>();
-    protected final Map<String, ContentProcessor> commandProcessors = new HashMap<>();
+    private final Map<Integer, ContentProcessor> contentProcessors = new HashMap<>();
+    private final Map<String, ContentProcessor> commandProcessors = new HashMap<>();
 
     private final ContentProcessor.Creator creator;
 
@@ -66,7 +66,7 @@ public class ContentProcessorFactory extends TwinsHelper implements ContentProce
             cpu = getCommandProcessor(msgType, name);
             if (cpu != null) {
                 return cpu;
-            } else if (content instanceof GroupCommand) {
+            } else if (content instanceof GroupCommand/* || content.containsKey("group")*/) {
                 // assert !name.equals("group") : "command name error: " + content;
                 cpu = getCommandProcessor(msgType, "group");
                 if (cpu != null) {

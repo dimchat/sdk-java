@@ -35,6 +35,7 @@ import java.util.List;
 import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.protocol.Content;
+import chat.dim.protocol.Envelope;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 import chat.dim.protocol.MetaCommand;
@@ -53,21 +54,21 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
         Meta meta = command.getMeta();
         ID identifier = command.getIdentifier();
         if (identifier == null) {
-            assert false : "meta ID cannot be empty: " + content;
-            return respondReceipt("Meta command error.", rMsg, null, null);
+            assert false : "meta ID cannot be empty: " + command;
+            return respondReceipt("Meta command error.", rMsg.getEnvelope(), command, null);
         } else if (meta == null) {
             // query meta for ID
-            return getMeta(identifier, rMsg);
+            return getMeta(identifier, rMsg.getEnvelope(), command);
         } else {
             // received a meta for ID
-            return putMeta(identifier, meta, rMsg);
+            return putMeta(identifier, meta, rMsg.getEnvelope(), command);
         }
     }
 
-    private List<Content> getMeta(ID identifier, ReliableMessage rMsg) {
+    private List<Content> getMeta(ID identifier, Envelope envelope, Content content) {
         Meta meta = getFacebook().getMeta(identifier);
         if (meta == null) {
-            return respondReceipt("Meta not found.", rMsg, null, newMap(
+            return respondReceipt("Meta not found.", envelope, content, newMap(
                     "template", "Meta not found: ${ID}.",
                     "replacements", newMap(
                             "ID", identifier.toString()
@@ -78,16 +79,16 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
         }
     }
 
-    private List<Content> putMeta(ID identifier, Meta meta, ReliableMessage rMsg) {
+    private List<Content> putMeta(ID identifier, Meta meta, Envelope envelope, Content content) {
         List<Content> errors;
         // 1. try to save meta
-        errors = saveMeta(identifier, meta, rMsg);
+        errors = saveMeta(identifier, meta, envelope, content);
         if (errors != null) {
             // failed
             return errors;
         }
         // 2. success
-        return respondReceipt("Meta received.", rMsg, null, newMap(
+        return respondReceipt("Meta received.", envelope, content, newMap(
                 "template", "Meta received: ${ID}.",
                 "replacements", newMap(
                         "ID", identifier.toString()
@@ -96,12 +97,12 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
     }
 
     // return null on success
-    protected List<Content> saveMeta(ID identifier, Meta meta, ReliableMessage rMsg) {
+    protected List<Content> saveMeta(ID identifier, Meta meta, Envelope envelope, Content content) {
         Facebook facebook = getFacebook();
         // check meta
         if (!meta.isValid() || !meta.matchIdentifier(identifier)) {
             // meta invalid
-            return respondReceipt("Meta not valid.", rMsg, null, newMap(
+            return respondReceipt("Meta not valid.", envelope, content, newMap(
                     "template", "Meta not valid: ${ID}.",
                     "replacements", newMap(
                             "ID", identifier.toString()
@@ -109,7 +110,7 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
             ));
         } else if (!facebook.saveMeta(meta, identifier)) {
             // DB error?
-            return respondReceipt("Meta not accepted.", rMsg, null, newMap(
+            return respondReceipt("Meta not accepted.", envelope, content, newMap(
                     "template", "Meta not accepted: ${ID}.",
                     "replacements", newMap(
                             "ID", identifier.toString()

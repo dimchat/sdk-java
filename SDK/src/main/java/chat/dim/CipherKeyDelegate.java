@@ -32,50 +32,81 @@ package chat.dim;
 
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.ID;
+import chat.dim.protocol.Message;
 
 public interface CipherKeyDelegate {
 
-    /*
-     *                +-----------------+-----------------+-----------------+-----------------+
-     *                |     is user     |    is group     | broadcast user  | broadcast group |
-     *      +---------+-----------------+-----------------+-----------------+-----------------+
-     *      |         |                 |    receiver     |                 |                 |
-     *      |   (A)   +-----------------+-----------------+-----------------+-----------------+
-     *      |         |                 |                 |                 |    receiver     |
-     *      +---------+-----------------+-----------------+-----------------+-----------------+
-     *      |         |    receiver     |                 |                 |                 |
-     *      |   (B)   +-----------------+-----------------+-----------------+-----------------+
-     *      |         |                 |                 |    receiver     |                 |
-     *      +---------+-----------------+-----------------+-----------------+-----------------+
-     *      |   (C)   |    receiver     |                 |                 |                 |
-     *      +---------+-----------------+-----------------+-----------------+-----------------+
-     *      |         |    receiver     |                 |                 |      group      |
-     *      |   (D)   +-----------------+-----------------+-----------------+-----------------+
-     *      |         |                 |                 |    receiver     |      group      |
-     *      +---------+-----------------+-----------------+-----------------+-----------------+
-     *      |   (E)   |                 |      group      |    receiver     |                 |
-     *      +---------+-----------------+-----------------+-----------------+-----------------+
-     *      |   (F)   |    receiver     |      group      |                 |                 |
-     *      +---------+-----------------+-----------------+-----------------+-----------------+
+    /*  Situations:
+                      +-------------+-------------+-------------+-------------+
+                      |  receiver   |  receiver   |  receiver   |  receiver   |
+                      |     is      |     is      |     is      |     is      |
+                      |             |             |  broadcast  |  broadcast  |
+                      |    user     |    group    |    user     |    group    |
+        +-------------+-------------+-------------+-------------+-------------+
+        |             |      A      |             |             |             |
+        |             +-------------+-------------+-------------+-------------+
+        |    group    |             |      B      |             |             |
+        |     is      |-------------+-------------+-------------+-------------+
+        |    null     |             |             |      C      |             |
+        |             +-------------+-------------+-------------+-------------+
+        |             |             |             |             |      D      |
+        +-------------+-------------+-------------+-------------+-------------+
+        |             |      E      |             |             |             |
+        |             +-------------+-------------+-------------+-------------+
+        |    group    |             |             |             |             |
+        |     is      |-------------+-------------+-------------+-------------+
+        |  broadcast  |             |             |      F      |             |
+        |             +-------------+-------------+-------------+-------------+
+        |             |             |             |             |      G      |
+        +-------------+-------------+-------------+-------------+-------------+
+        |             |      H      |             |             |             |
+        |             +-------------+-------------+-------------+-------------+
+        |    group    |             |      J      |             |             |
+        |     is      |-------------+-------------+-------------+-------------+
+        |    normal   |             |             |      K      |             |
+        |             +-------------+-------------+-------------+-------------+
+        |             |             |             |             |             |
+        +-------------+-------------+-------------+-------------+-------------+
      */
+
+    /**
+     *  get destination for cipher key vector: (sender, dest)
+     */
+    static ID getDestination(Message msg) {
+        ID receiver = msg.getReceiver();
+        ID group = ID.parse(msg.get("group"));
+        return getDestination(receiver, group);
+    }
+
     static ID getDestination(ID receiver, ID group) {
-        if (receiver.isGroup()) {
-            // (A)  group message, not split yet (maybe broadcast)
-            //      'group' field must be empty here
+        if (group == null && receiver.isGroup()) {
+            /// Transform:
+            ///     (B) => (J)
+            ///     (D) => (G)
+            group = receiver;
+        }
+        if (group == null) {
+            /// A : personal message (or hidden group message)
+            /// C : broadcast message for anyone
+            assert receiver.isUser() : "receiver error: " + receiver;
             return receiver;
-        } else if (group == null) {
-            // (B)  personal message (maybe broadcast)
-            // (C)  group message split for its member, and needs to hide the group ID
-            return receiver;
-        } else if (group.isBroadcast()) {
-            // (D)  broadcast group message, split for special user
-            //      'sender' field must be user here
+        }
+        assert group.isGroup() : "group error: $group, receiver: " + receiver;
+        if (group.isBroadcast()) {
+            /// E : unencrypted message for someone
+            //      return group as broadcast ID for disable encryption
+            /// F : broadcast message for anyone
+            /// G : (receiver == group) broadcast group message
+            assert receiver.isUser() || receiver.equals(group) : "receiver error: " + receiver;
             return group;
         } else if (receiver.isBroadcast()) {
-            // (E)  group message, broadcast to all members
+            /// K : unencrypted group message, usually group command
+            //      return receiver as broadcast ID for disable encryption
+            assert receiver.isUser() : "receiver error: " + receiver + ", group: " + group;
             return receiver;
         } else {
-            // (F)  group message, split for special member
+            /// H    : group message split for someone
+            /// J    : (receiver == group) non-split group message
             return group;
         }
     }
@@ -83,7 +114,7 @@ public interface CipherKeyDelegate {
     /**
      *  Get cipher key for encrypt message from 'sender' to 'receiver'
      *
-     * @param sender - from where (user or contact ID)
+     * @param sender   - from where (user or contact ID)
      * @param receiver - to where (contact or user/group ID)
      * @param generate - generate when key not exists
      * @return cipher key
@@ -93,9 +124,9 @@ public interface CipherKeyDelegate {
     /**
      *  Cache cipher key for reusing, with the direction (from 'sender' to 'receiver')
      *
-     * @param sender - from where (user or contact ID)
+     * @param sender   - from where (user or contact ID)
      * @param receiver - to where (contact or user/group ID)
-     * @param key - cipher key
+     * @param key      - cipher key
      */
     void cacheCipherKey(ID sender, ID receiver, SymmetricKey key);
 }

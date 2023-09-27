@@ -50,7 +50,7 @@ public class BaseContentProcessor extends TwinsHelper implements ContentProcesso
 
     @Override
     public List<Content> process(Content content, ReliableMessage rMsg) {
-        return respondReceipt("Content not support.", rMsg, content.getGroup(), newMap(
+        return respondReceipt("Content not support.", rMsg.getEnvelope(), content, newMap(
                 "template", "Content (type: ${type}) not support yet!",
                 "replacements", newMap(
                         "type", content.getType()

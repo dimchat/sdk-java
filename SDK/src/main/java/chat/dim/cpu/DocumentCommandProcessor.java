@@ -37,6 +37,7 @@ import chat.dim.Messenger;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.DocumentCommand;
+import chat.dim.protocol.Envelope;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 import chat.dim.protocol.ReliableMessage;
@@ -53,25 +54,25 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         ID identifier = command.getIdentifier();
         Document doc = command.getDocument();
         if (identifier == null) {
-            assert false : "doc ID cannot be empty: " + content;
-            return respondReceipt("Document command error.", rMsg, null, null);
+            assert false : "doc ID cannot be empty: " + command;
+            return respondReceipt("Document command error.", rMsg.getEnvelope(), command, null);
         } else if (doc == null) {
             // query entity document for ID
             String type = command.getString("doc_type", "*");
-            return getDocument(identifier, type, rMsg);
+            return getDocument(identifier, type, rMsg.getEnvelope(), command);
         } else if (identifier.equals(doc.getIdentifier())) {
             // received a new document for ID
-            return putDocument(identifier, command.getMeta(), doc, rMsg);
+            return putDocument(identifier, command.getMeta(), doc, rMsg.getEnvelope(), command);
         }
         // error
-        return respondReceipt("Document ID not match.", rMsg, null, null);
+        return respondReceipt("Document ID not match.", rMsg.getEnvelope(), command, null);
     }
 
-    private List<Content> getDocument(ID identifier, String type, ReliableMessage rMsg) {
+    private List<Content> getDocument(ID identifier, String type, Envelope envelope, Content content) {
         Facebook facebook = getFacebook();
         Document doc = facebook.getDocument(identifier, type);
         if (doc == null) {
-            return respondReceipt("Document not found.", rMsg, null, newMap(
+            return respondReceipt("Document not found.", envelope, content, newMap(
                     "template", "Document not found: ${ID}.",
                     "replacements", newMap(
                             "ID", identifier.toString()
@@ -83,13 +84,13 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         }
     }
 
-    private List<Content> putDocument(ID identifier, Meta meta, Document doc, ReliableMessage rMsg) {
+    private List<Content> putDocument(ID identifier, Meta meta, Document doc, Envelope envelope, Content content) {
         Facebook facebook = getFacebook();
         // 0. check meta
         if (meta == null) {
             meta = facebook.getMeta(identifier);
             if (meta == null) {
-                return respondReceipt("Meta not found.", rMsg, null, newMap(
+                return respondReceipt("Meta not found.", envelope, content, newMap(
                         "template", "Meta not found: ${ID}.",
                         "replacements", newMap(
                                 "ID", identifier.toString()
@@ -99,19 +100,19 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         }
         List<Content> errors;
         // 1. try to save meta
-        errors = saveMeta(identifier, meta, rMsg);
+        errors = saveMeta(identifier, meta, envelope, content);
         if (errors != null) {
             // failed
             return errors;
         }
         // 2. try to save document
-        errors = saveDocument(identifier, meta, doc, rMsg);
+        errors = saveDocument(identifier, meta, doc, envelope, content);
         if (errors != null) {
             // failed
             return errors;
         }
         // 3. success
-        return respondReceipt("Document received.", rMsg, null, newMap(
+        return respondReceipt("Document received.", envelope, content, newMap(
                 "template", "Document received: ${ID}.",
                 "replacements", newMap(
                         "ID", identifier.toString()
@@ -120,12 +121,12 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
     }
 
     // return null on success
-    protected List<Content> saveDocument(ID identifier, Meta meta, Document doc, ReliableMessage rMsg) {
+    protected List<Content> saveDocument(ID identifier, Meta meta, Document doc, Envelope envelope, Content content) {
         Facebook facebook = getFacebook();
         // check document
         if (!checkDocument(doc, meta)) {
             // document invalid
-            return respondReceipt("Document not accepted.", rMsg, null, newMap(
+            return respondReceipt("Document not accepted.", envelope, content, newMap(
                     "template", "Document not accepted: ${ID}.",
                     "replacements", newMap(
                             "ID", identifier.toString()
@@ -133,7 +134,7 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
             ));
         } else if (!facebook.saveDocument(doc)) {
             // document expired
-            return respondReceipt("Document not changed.", rMsg, null, newMap(
+            return respondReceipt("Document not changed.", envelope, content, newMap(
                     "template", "Document not changed: ${ID}.",
                     "replacements", newMap(
                             "ID", identifier.toString()

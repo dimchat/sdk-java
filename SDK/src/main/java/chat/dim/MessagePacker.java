@@ -129,7 +129,7 @@ public class MessagePacker extends TwinsHelper implements Packer {
 
     @Override
     public byte[] serializeMessage(ReliableMessage rMsg) {
-        return UTF8.encode(JSON.encode(rMsg));
+        return UTF8.encode(JSON.encode(rMsg.toMap()));
     }
 
     //
@@ -195,8 +195,8 @@ public class MessagePacker extends TwinsHelper implements Packer {
         User user = getFacebook().selectLocalUser(receiver);
         if (user == null) {
             // not for you?
-            assert false: "receiver error: " + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
-            return null;
+            throw new NullPointerException("receiver error: " + sMsg.getReceiver()
+                    + ", from " + sMsg.getSender() + ", " + sMsg.getGroup());
         }
         assert sMsg.getData() != null : "message data empty: "
                 + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();

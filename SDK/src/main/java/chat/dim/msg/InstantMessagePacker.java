@@ -81,18 +81,18 @@ public class InstantMessagePacker {
     public SecureMessage encrypt(InstantMessage iMsg, SymmetricKey password, List<ID> members) {
         // TODO: check attachment for File/Image/Audio/Video message content
         //      (do it by application)
-        InstantMessageDelegate delegate = getDelegate();
+        InstantMessageDelegate transceiver = getDelegate();
 
         //
         //  1. Serialize 'message.content' to data (JsON / ProtoBuf / ...)
         //
-        byte[] body = delegate.serializeContent(iMsg.getContent(), password, iMsg);
+        byte[] body = transceiver.serializeContent(iMsg.getContent(), password, iMsg);
         assert body != null : "failed to serialize content: " + iMsg.getContent();
 
         //
         //  2. Encrypt content data to 'message.data' with symmetric key
         //
-        byte[] ciphertext = delegate.encryptContent(body, password, iMsg);
+        byte[] ciphertext = transceiver.encryptContent(body, password, iMsg);
         assert ciphertext != null : "failed to encrypt content with key: " + password;
 
         //
@@ -118,7 +118,7 @@ public class InstantMessagePacker {
         //
         //  4. Serialize message key to data (JsON / ProtoBuf / ...)
         //
-        byte[] pwd = delegate.serializeKey(password, iMsg);
+        byte[] pwd = transceiver.serializeKey(password, iMsg);
         if (pwd == null) {
             // A) broadcast message has no key
             // B) reused key
@@ -134,7 +134,7 @@ public class InstantMessagePacker {
             //
             //  5. Encrypt key data to 'message.key/keys' with receiver's public key
             //
-            encryptedKey = delegate.encryptKey(pwd, receiver, iMsg);
+            encryptedKey = transceiver.encryptKey(pwd, receiver, iMsg);
             if (encryptedKey == null) {
                 // public key for encryption not found
                 // TODO: suspend this message for waiting receiver's visa
@@ -155,7 +155,7 @@ public class InstantMessagePacker {
                 //
                 //  5. Encrypt key data to 'message.keys' with member's public key
                 //
-                encryptedKey = delegate.encryptKey(pwd, receiver, iMsg);
+                encryptedKey = transceiver.encryptKey(pwd, receiver, iMsg);
                 if (encryptedKey == null) {
                     // public key for member not found
                     // TODO: suspend this message for waiting member's visa

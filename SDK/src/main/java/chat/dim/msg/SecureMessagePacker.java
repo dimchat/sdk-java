@@ -76,7 +76,7 @@ public class SecureMessagePacker {
      */
     public InstantMessage decrypt(SecureMessage sMsg, ID receiver) {
         assert receiver.isUser() : "receiver error: " + receiver;
-        SecureMessageDelegate delegate = getDelegate();
+        SecureMessageDelegate transceiver = getDelegate();
 
         //
         //  1. Decode 'message.key' to encrypted symmetric key data
@@ -89,7 +89,7 @@ public class SecureMessagePacker {
             //
             //  2. Decrypt 'message.key' with receiver's private key
             //
-            keyData = delegate.decryptKey(encryptedKey, receiver, sMsg);
+            keyData = transceiver.decryptKey(encryptedKey, receiver, sMsg);
             if (keyData == null) {
                 // A: my visa updated but the sender doesn't got the new one;
                 // B: key data error.
@@ -106,7 +106,7 @@ public class SecureMessagePacker {
         //  3. Deserialize message key from data (JsON / ProtoBuf / ...)
         //     (if key is empty, means it should be reused, get it from key cache)
         //
-        SymmetricKey password = delegate.deserializeKey(keyData, sMsg);
+        SymmetricKey password = transceiver.deserializeKey(keyData, sMsg);
         if (password == null) {
             // A: key data is empty, and cipher key not found from local storage;
             // B: key data error.
@@ -129,7 +129,7 @@ public class SecureMessagePacker {
         //
         //  5. Decrypt 'message.data' with symmetric key
         //
-        byte[] body = delegate.decryptContent(ciphertext, password, sMsg);
+        byte[] body = transceiver.decryptContent(ciphertext, password, sMsg);
         if (body == null) {
             // A: password is a reused key loaded from local storage, but it's expired;
             // B: key error.
@@ -144,7 +144,7 @@ public class SecureMessagePacker {
         //
         //  6. Deserialize message content from data (JsON / ProtoBuf / ...)
         //
-        Content content = delegate.deserializeContent(body, password, sMsg);
+        Content content = transceiver.deserializeContent(body, password, sMsg);
         if (content == null) {
             assert false : "failed to deserialize content: " + body.length + " byte(s) "
                     + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup();
@@ -188,7 +188,7 @@ public class SecureMessagePacker {
      * @return ReliableMessage object
      */
     public ReliableMessage sign(SecureMessage sMsg) {
-        SecureMessageDelegate delegate = getDelegate();
+        SecureMessageDelegate transceiver = getDelegate();
 
         //
         //  0. decode message data
@@ -200,7 +200,7 @@ public class SecureMessagePacker {
         //
         //  1. Sign 'message.data' with sender's private key
         //
-        byte[] signature = delegate.signData(ciphertext, sMsg);
+        byte[] signature = transceiver.signData(ciphertext, sMsg);
         assert signature != null && signature.length > 0 : "failed to sign message: "
                 + ciphertext.length + " byte(s) "
                 + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
