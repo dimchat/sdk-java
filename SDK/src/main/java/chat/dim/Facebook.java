@@ -30,11 +30,8 @@
  */
 package chat.dim;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import chat.dim.mkm.AddressFactory;
 import chat.dim.mkm.BaseGroup;
 import chat.dim.mkm.BaseUser;
 import chat.dim.mkm.Bot;
@@ -48,37 +45,6 @@ import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 
 public abstract class Facebook extends Barrack {
-
-    // memory caches
-    private final Map<ID, User>   userMap = new HashMap<>();
-    private final Map<ID, Group> groupMap = new HashMap<>();
-
-    /**
-     * Call it when received 'UIApplicationDidReceiveMemoryWarningNotification',
-     * this will remove 50% of cached objects
-     *
-     * @return number of survivors
-     */
-    public int reduceMemory() {
-        int finger = 0;
-        finger = AddressFactory.thanos(userMap, finger);
-        finger = AddressFactory.thanos(groupMap, finger);
-        return finger >> 1;
-    }
-
-    private void cache(User user) {
-        if (user.getDataSource() == null) {
-            user.setDataSource(this);
-        }
-        userMap.put(user.getIdentifier(), user);
-    }
-
-    private void cache(Group group) {
-        if (group.getDataSource() == null) {
-            group.setDataSource(this);
-        }
-        groupMap.put(group.getIdentifier(), group);
-    }
 
     /**
      *  Save meta for entity ID (must verify first)
@@ -97,12 +63,7 @@ public abstract class Facebook extends Barrack {
      */
     public abstract boolean saveDocument(Document doc);
 
-    /**
-     *  Create user when visa.key exists
-     *
-     * @param identifier - user ID
-     * @return user, null on not ready
-     */
+    @Override
     protected User createUser(ID identifier) {
         // check visa key
         if (!identifier.isBroadcast()) {
@@ -123,12 +84,7 @@ public abstract class Facebook extends Barrack {
         return new BaseUser(identifier);
     }
 
-    /**
-     *  Create group when members exist
-     *
-     * @param identifier - group ID
-     * @return group, null on not ready
-     */
+    @Override
     protected Group createGroup(ID identifier) {
         // check members
         if (!identifier.isBroadcast()) {
@@ -197,33 +153,4 @@ public abstract class Facebook extends Barrack {
         return null;
     }
 
-    //-------- Entity Delegate
-
-    @Override
-    public User getUser(ID identifier) {
-        // 1. get from user cache
-        User user = userMap.get(identifier);
-        if (user == null) {
-            // 2. create user and cache it
-            user = createUser(identifier);
-            if (user != null) {
-                cache(user);
-            }
-        }
-        return user;
-    }
-
-    @Override
-    public Group getGroup(ID identifier) {
-        // 1. get from group cache
-        Group group = groupMap.get(identifier);
-        if (group == null) {
-            // 2. create group and cache it
-            group = createGroup(identifier);
-            if (group != null) {
-                cache(group);
-            }
-        }
-        return group;
-    }
 }

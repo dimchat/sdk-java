@@ -1,5 +1,4 @@
 
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -15,22 +14,12 @@ import chat.dim.protocol.Address;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
-import chat.dim.protocol.NetworkID;
 import chat.dim.protocol.Visa;
 
 public class EntityTest {
 
     private static final Facebook facebook = Facebook.getInstance();
     private static final String satoshi = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa";
-
-    private String getAddressInfo(Address address) {
-        Map<String, Object> info = new HashMap<>();
-        info.put("type", address.getType());
-        byte network = NetworkID.BOT.value;
-        int result = network & NetworkID.THING.value;
-        Assert.assertEquals(result, NetworkID.THING.value);
-        return info.toString();
-    }
 
     private String getIDInfo(ID identifier) {
         Map<String, Object> info = new HashMap<>();
@@ -70,11 +59,6 @@ public class EntityTest {
 //
 //        address = BTCAddress.parse("4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ");
 //        Log.info("address: " + address + ", detail: " + getAddressInfo(address));
-
-        NetworkID bot = NetworkID.BOT;
-        Log.info("bot type: " + bot.value);
-        Log.info("bot type: " + bot.value);
-        Assert.assertEquals((byte) 0xC8, bot.value);
 
 //        address = BTCAddress.parse(satoshi);
 //        Log.info("satoshi: " + address);

@@ -30,52 +30,51 @@
  */
 package chat.dim.mkm;
 
+import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.crypto.VerifyKey;
-import chat.dim.format.TransportableData;
+import chat.dim.Barrack;
 import chat.dim.protocol.Address;
-import chat.dim.protocol.MetaType;
+import chat.dim.protocol.Meta;
 
 /**
- *  Meta to build BTC address for ID
- *
- *  version:
- *      0x02 - BTC
- *      0x03 - ExBTC
- *
- *  algorithm:
- *      CT      = key.data;
- *      hash    = ripemd160(sha256(CT));
- *      code    = sha256(sha256(network + hash)).prefix(4);
- *      address = base58_encode(network + hash + code);
+ *  Base Address Factory
+ *  ~~~~~~~~~~~~~~~~~~~~
  */
-public final class BTCMeta extends BaseMeta {
+public abstract class AddressFactory implements Address.Factory {
 
-    public BTCMeta(Map<String, Object> dictionary) {
-        super(dictionary);
+    private final Map<String, Address> addresses = new HashMap<>();
+
+    /**
+     * Call it when received 'UIApplicationDidReceiveMemoryWarningNotification',
+     * this will remove 50% of cached objects
+     *
+     * @return number of survivors
+     */
+    public int reduceMemory() {
+        int finger = 0;
+        finger = Barrack.thanos(addresses, finger);
+        return finger >> 1;
     }
-
-    public BTCMeta(int version, VerifyKey key) {
-        super(version, key, null, null);
-    }
-
-    public BTCMeta(int version, VerifyKey key, String seed, TransportableData fingerprint) {
-        super(version, key, seed, fingerprint);
-    }
-
-    // cache
-    private Address cachedAddress = null;
 
     @Override
-    public Address generateAddress(int type) {
-        assert MetaType.BTC.equals(getType()) || MetaType.ExBTC.equals(getType()) : "meta version error";
-        if (cachedAddress == null/* || cachedAddress.getType() != type*/) {
-            // generate and cache it
-            VerifyKey key = getPublicKey();
-            byte[] data = key.getData();
-            cachedAddress = BTCAddress.generate(data, (byte) type);
+    public Address generateAddress(Meta meta, int network) {
+        Address address = meta.generateAddress(network);
+        if (address != null) {
+            addresses.put(address.toString(), address);
         }
-        return cachedAddress;
+        return address;
+    }
+
+    @Override
+    public Address parseAddress(String address) {
+        Address add = addresses.get(address);
+        if (add == null) {
+            add = Address.create(address);
+            if (add != null) {
+                addresses.put(address, add);
+            }
+        }
+        return add;
     }
 }

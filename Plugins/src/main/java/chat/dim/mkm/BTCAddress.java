@@ -37,7 +37,6 @@ import chat.dim.digest.SHA256;
 import chat.dim.format.Base58;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.EntityType;
-import chat.dim.protocol.NetworkID;
 import chat.dim.type.ConstantString;
 
 /**
@@ -58,7 +57,7 @@ public final class BTCAddress extends ConstantString implements Address {
 
     private final byte network;
 
-    private BTCAddress(String string, byte network) {
+    public BTCAddress(String string, byte network) {
         super(string);
         this.network = network;
     }
@@ -75,14 +74,12 @@ public final class BTCAddress extends ConstantString implements Address {
 
     @Override
     public boolean isUser() {
-        int type = NetworkID.getType(network);
-        return EntityType.isUser(type);
+        return EntityType.isUser(network);
     }
 
     @Override
     public boolean isGroup() {
-        int type = NetworkID.getType(network);
-        return EntityType.isGroup(type);
+        return EntityType.isGroup(network);
     }
 
     /**

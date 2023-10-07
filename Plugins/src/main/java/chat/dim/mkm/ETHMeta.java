@@ -50,17 +50,17 @@ import chat.dim.protocol.MetaType;
  *      digest  = keccak256(CT);
  *      address = hex_encode(digest.suffix(20));
  */
-final class ETHMeta extends BaseMeta {
+public final class ETHMeta extends BaseMeta {
 
-    ETHMeta(Map<String, Object> dictionary) {
+    public ETHMeta(Map<String, Object> dictionary) {
         super(dictionary);
     }
 
-    ETHMeta(int version, VerifyKey key) {
+    public ETHMeta(int version, VerifyKey key) {
         super(version, key, null, null);
     }
 
-    ETHMeta(int version, VerifyKey key, String seed, TransportableData fingerprint) {
+    public ETHMeta(int version, VerifyKey key, String seed, TransportableData fingerprint) {
         super(version, key, seed, fingerprint);
     }
 

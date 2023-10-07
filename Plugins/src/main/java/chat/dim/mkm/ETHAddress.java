@@ -48,7 +48,7 @@ import chat.dim.type.ConstantString;
  */
 public final class ETHAddress extends ConstantString implements Address {
 
-    private ETHAddress(String string) {
+    public ETHAddress(String string) {
         super(string);
     }
 

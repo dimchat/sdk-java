@@ -56,7 +56,7 @@ import chat.dim.mkm.AddressFactory;
 import chat.dim.mkm.BTCAddress;
 import chat.dim.mkm.DocumentFactory;
 import chat.dim.mkm.ETHAddress;
-import chat.dim.mkm.EntityIDFactory;
+import chat.dim.mkm.IDFactory;
 import chat.dim.mkm.MetaFactory;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.Document;
@@ -249,7 +249,7 @@ public interface Plugins {
      */
     static void registerIDFactory() {
 
-        ID.setFactory(new EntityIDFactory());
+        ID.setFactory(new IDFactory());
     }
 
     /*

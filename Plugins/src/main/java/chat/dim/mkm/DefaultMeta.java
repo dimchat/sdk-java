@@ -50,13 +50,13 @@ import chat.dim.protocol.MetaType;
  *      code    = sha256(sha256(network + hash)).prefix(4);
  *      address = base58_encode(network + hash + code);
  */
-final class DefaultMeta extends BaseMeta {
+public final class DefaultMeta extends BaseMeta {
 
-    DefaultMeta(Map<String, Object> dictionary) {
+    public DefaultMeta(Map<String, Object> dictionary) {
         super(dictionary);
     }
 
-    DefaultMeta(int version, VerifyKey key, String seed, TransportableData fingerprint) {
+    public DefaultMeta(int version, VerifyKey key, String seed, TransportableData fingerprint) {
         super(version, key, seed, fingerprint);
     }
 
