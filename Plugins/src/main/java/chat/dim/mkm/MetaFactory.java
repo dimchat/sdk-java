@@ -35,6 +35,7 @@ import java.util.Map;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
 import chat.dim.crypto.VerifyKey;
+import chat.dim.format.TransportableData;
 import chat.dim.format.UTF8;
 import chat.dim.protocol.Meta;
 import chat.dim.protocol.MetaType;
@@ -49,7 +50,7 @@ public final class MetaFactory implements Meta.Factory {
     }
 
     @Override
-    public Meta createMeta(VerifyKey key, String seed, byte[] fingerprint) {
+    public Meta createMeta(VerifyKey key, String seed, TransportableData fingerprint) {
         if (MetaType.MKM.equals(version)) {
             // MKM
             return new DefaultMeta(version, key, seed, fingerprint);
@@ -71,11 +72,12 @@ public final class MetaFactory implements Meta.Factory {
 
     @Override
     public Meta generateMeta(SignKey sKey, String seed) {
-        byte[] fingerprint;
+        TransportableData fingerprint;
         if (seed == null || seed.length() == 0) {
             fingerprint = null;
         } else {
-            fingerprint = sKey.sign(UTF8.encode(seed));
+            byte[] sig = sKey.sign(UTF8.encode(seed));
+            fingerprint = TransportableData.create(sig);
         }
         VerifyKey key = ((PrivateKey) sKey).getPublicKey();
         return createMeta(key, seed, fingerprint);

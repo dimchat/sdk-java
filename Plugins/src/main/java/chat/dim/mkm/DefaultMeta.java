@@ -34,6 +34,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.crypto.VerifyKey;
+import chat.dim.format.TransportableData;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.MetaType;
 
@@ -55,7 +56,7 @@ final class DefaultMeta extends BaseMeta {
         super(dictionary);
     }
 
-    DefaultMeta(int version, VerifyKey key, String seed, byte[] fingerprint) {
+    DefaultMeta(int version, VerifyKey key, String seed, TransportableData fingerprint) {
         super(version, key, seed, fingerprint);
     }
 

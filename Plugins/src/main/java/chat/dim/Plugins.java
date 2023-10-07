@@ -119,7 +119,7 @@ public interface Plugins {
         PortableNetworkFile.setFactory(new PortableNetworkFile.Factory() {
 
             @Override
-            public PortableNetworkFile createPortableNetworkFile(byte[] data, String filename, URI url, DecryptKey key) {
+            public PortableNetworkFile createPortableNetworkFile(TransportableData data, String filename, URI url, DecryptKey key) {
                 return new BaseNetworkFile(data, filename, url, key);
             }
 

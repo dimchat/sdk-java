@@ -40,24 +40,24 @@ public class BaseNetworkFile extends Dictionary implements PortableNetworkFile {
         wrapper = new BaseFileWrapper(toMap());
     }
 
-    public BaseNetworkFile(byte[] data, String filename, URI url, DecryptKey key) {
+    public BaseNetworkFile(TransportableData data, String filename, URI url, DecryptKey key) {
         super();
         wrapper = new BaseFileWrapper(toMap());
         // file data
         if (data != null) {
-            setData(data);
+            wrapper.setData(data);
         }
-        // filename
+        // file name
         if (filename != null) {
-            setFilename(filename);
+            wrapper.setFilename(filename);
         }
-        // remote URL
+        // download URL
         if (url != null) {
-            setURL(url);
+            wrapper.setURL(url);
         }
         // decrypt key
         if (key != null) {
-            setPassword(key);
+            wrapper.setPassword(key);
         }
     }
 
@@ -67,7 +67,8 @@ public class BaseNetworkFile extends Dictionary implements PortableNetworkFile {
 
     @Override
     public byte[] getData() {
-        return wrapper.getData();
+        TransportableData ted = wrapper.getData();
+        return ted == null ? null : ted.getData();
     }
 
     @Override
