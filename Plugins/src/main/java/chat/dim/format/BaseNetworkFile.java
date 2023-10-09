@@ -72,8 +72,8 @@ public class BaseNetworkFile extends Dictionary implements PortableNetworkFile {
     }
 
     @Override
-    public void setData(byte[] data) {
-        wrapper.setData(data);
+    public void setData(byte[] binary) {
+        wrapper.setData(binary);
     }
 
     /**

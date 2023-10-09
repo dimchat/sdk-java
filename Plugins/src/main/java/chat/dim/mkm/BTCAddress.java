@@ -118,7 +118,7 @@ public final class BTCAddress extends ConstantString implements Address {
         }
         // decode
         byte[] data = Base58.decode(address);
-        if (data.length != 25) {
+        if (data == null || data.length != 25) {
             return null;
         }
         // Check Code

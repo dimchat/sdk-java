@@ -38,15 +38,15 @@ import chat.dim.protocol.SecureMessage;
 
 public class ReliableMessagePacker {
 
-    private final WeakReference<ReliableMessageDelegate> delegateRef;
+    private final WeakReference<ReliableMessageDelegate> transceiverRef;
 
-    public ReliableMessagePacker(ReliableMessageDelegate delegate) {
+    public ReliableMessagePacker(ReliableMessageDelegate messenger) {
         super();
-        delegateRef = new WeakReference<>(delegate);
+        transceiverRef = new WeakReference<>(messenger);
     }
 
     protected ReliableMessageDelegate getDelegate() {
-        return delegateRef.get();
+        return transceiverRef.get();
     }
 
     /*

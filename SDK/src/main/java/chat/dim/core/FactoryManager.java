@@ -157,6 +157,7 @@ public enum FactoryManager {
         // Group Commands
         Command.setFactory("group", new GroupCommandFactory());
         Command.setFactory(GroupCommand.INVITE, InviteGroupCommand::new);
+        // 'expel' is deprecated (use 'reset' instead)
         Command.setFactory(GroupCommand.EXPEL, ExpelGroupCommand::new);
         Command.setFactory(GroupCommand.JOIN, JoinGroupCommand::new);
         Command.setFactory(GroupCommand.QUIT, QuitGroupCommand::new);

@@ -116,11 +116,12 @@ public final class ETHAddress extends ConstantString implements Address {
     }
 
     public static String getValidateAddress(String address) {
-        if (isETH(address)) {
-            String lower = address.substring(2).toLowerCase();
-            return "0x" + eip55(lower);
+        if (!isETH(address)) {
+            // not an ETH address
+            return null;
         }
-        return null;
+        String lower = address.substring(2).toLowerCase();
+        return "0x" + eip55(lower);
     }
 
     public static boolean isValidate(String address) {
@@ -157,9 +158,10 @@ public final class ETHAddress extends ConstantString implements Address {
      * @return null on error
      */
     public static ETHAddress parse(String address) {
-        if (isETH(address)) {
-            return new ETHAddress(address);
+        if (!isETH(address)) {
+            // not an ETH address
+            return null;
         }
-        return null;
+        return new ETHAddress(address);
     }
 }

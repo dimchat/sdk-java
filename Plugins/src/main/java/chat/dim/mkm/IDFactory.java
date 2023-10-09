@@ -59,14 +59,14 @@ public class IDFactory implements ID.Factory {
     }
 
     @Override
-    public ID generateID(Meta meta, int network, String terminal) {
+    public ID generateIdentifier(Meta meta, int network, String terminal) {
         Address address = Address.generate(meta, network);
         assert address != null : "failed to generate ID with meta: " + meta.toMap();
         return ID.create(meta.getSeed(), address, terminal);
     }
 
     @Override
-    public ID createID(String name, Address address, String terminal) {
+    public ID createIdentifier(String name, Address address, String terminal) {
         String identifier = concat(name, address, terminal);
         ID id = identifiers.get(identifier);
         if (id == null) {
@@ -77,7 +77,7 @@ public class IDFactory implements ID.Factory {
     }
 
     @Override
-    public ID parseID(String identifier) {
+    public ID parseIdentifier(String identifier) {
         ID id = identifiers.get(identifier);
         if (id == null) {
             id = parse(identifier);

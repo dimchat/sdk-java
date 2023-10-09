@@ -71,6 +71,7 @@ public final class BTCMeta extends BaseMeta {
     public Address generateAddress(int type) {
         assert MetaType.BTC.equals(getType()) || MetaType.ExBTC.equals(getType()) : "meta version error";
         if (cachedAddress == null/* || cachedAddress.getType() != type*/) {
+            // TODO: compress public key?
             // generate and cache it
             VerifyKey key = getPublicKey();
             byte[] data = key.getData();

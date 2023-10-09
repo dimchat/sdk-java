@@ -40,7 +40,6 @@ import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.Envelope;
-import chat.dim.protocol.ID;
 import chat.dim.protocol.ReceiptCommand;
 
 public abstract class TwinsHelper {
@@ -87,34 +86,15 @@ public abstract class TwinsHelper {
      *  Create receipt command with text, original envelope, serial number & group
      *
      * @param text     - text message
-     * @param envelope - original envelope
-     * @param content  - original content
+     * @param head     - original envelope
+     * @param body     - original content
      * @param extra    - extra info
      * @return receipt command
      */
-    public static ReceiptCommand createReceipt(String text, Envelope envelope, Content content, Map<String, Object> extra) {
-        assert text != null && envelope != null : "params error";
-        // check envelope
-        if (envelope.containsKey("data")) {
-            Map<String, Object> info = envelope.copyMap(false);
-            info.remove("data");
-            info.remove("key");
-            info.remove("keys");
-            info.remove("meta");
-            info.remove("visa");
-            envelope = Envelope.parse(info);
-        }
-        // create base receipt command with text, original envelope & serial number
-        ReceiptCommand res;
-        if (content == null) {
-            res = ReceiptCommand.create(text, envelope);
-        } else {
-            res = ReceiptCommand.create(text, envelope, content.getSerialNumber(), null);
-            ID group = content.getGroup();
-            if (group != null) {
-                res.setGroup(group);
-            }
-        }
+    public static ReceiptCommand createReceipt(String text, Envelope head, Content body, Map<String, Object> extra) {
+        assert text != null && head != null : "params error";
+        // create base receipt command with text, original envelope, serial number & group ID
+        ReceiptCommand res = ReceiptCommand.create(text, head, body);
         // add extra key-value
         if (extra != null) {
             res.putAll(extra);

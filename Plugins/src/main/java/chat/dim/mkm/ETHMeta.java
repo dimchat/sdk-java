@@ -72,9 +72,10 @@ public final class ETHMeta extends BaseMeta {
         assert MetaType.ETH.equals(getType()) || MetaType.ExETH.equals(getType()) : "meta version error";
         assert EntityType.USER.equals(type) : "ETH address type error: " + type;
         if (cachedAddress == null) {
-            // generate and cache it
+            // 64 bytes key data without prefix 0x04
             VerifyKey key = getPublicKey();
             byte[] data = key.getData();
+            // generate and cache it
             cachedAddress = ETHAddress.generate(data);
         }
         return cachedAddress;

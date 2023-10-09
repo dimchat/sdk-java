@@ -45,15 +45,15 @@ import chat.dim.protocol.SecureMessage;
 
 public class InstantMessagePacker {
 
-    private final WeakReference<InstantMessageDelegate> delegateRef;
+    private final WeakReference<InstantMessageDelegate> transceiverRef;
 
-    public InstantMessagePacker(InstantMessageDelegate delegate) {
+    public InstantMessagePacker(InstantMessageDelegate messenger) {
         super();
-        delegateRef = new WeakReference<>(delegate);
+        transceiverRef = new WeakReference<>(messenger);
     }
 
     protected InstantMessageDelegate getDelegate() {
-        return delegateRef.get();
+        return transceiverRef.get();
     }
 
     /*
