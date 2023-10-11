@@ -161,7 +161,7 @@ public final class RSAPrivateKey extends BasePrivateKey implements DecryptKey {
 
     @Override
     public boolean matchEncryptKey(EncryptKey pKey) {
-        FactoryManager man = FactoryManager.getInstance();
+        CryptoKeyFactoryManager man = CryptoKeyFactoryManager.getInstance();
         return man.generalFactory.matches(pKey, this);
     }
 }

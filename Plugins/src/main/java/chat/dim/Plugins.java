@@ -52,12 +52,12 @@ import chat.dim.format.PortableNetworkFile;
 import chat.dim.format.StringCoder;
 import chat.dim.format.TransportableData;
 import chat.dim.format.UTF8;
-import chat.dim.mkm.AddressFactory;
 import chat.dim.mkm.BTCAddress;
-import chat.dim.mkm.DocumentFactory;
+import chat.dim.mkm.BaseAddressFactory;
 import chat.dim.mkm.ETHAddress;
-import chat.dim.mkm.IDFactory;
-import chat.dim.mkm.MetaFactory;
+import chat.dim.mkm.GeneralDocumentFactory;
+import chat.dim.mkm.GeneralIdentifierFactory;
+import chat.dim.mkm.GeneralMetaFactory;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
@@ -250,7 +250,7 @@ public interface Plugins {
      */
     static void registerIDFactory() {
 
-        ID.setFactory(new IDFactory());
+        ID.setFactory(new GeneralIdentifierFactory());
     }
 
     /*
@@ -258,7 +258,7 @@ public interface Plugins {
      */
     static void registerAddressFactory() {
 
-        Address.setFactory(new AddressFactory() {
+        Address.setFactory(new BaseAddressFactory() {
             @Override
             public Address createAddress(String address) {
                 if (address == null || address.length() == 0) {
@@ -288,11 +288,11 @@ public interface Plugins {
      */
     static void registerMetaFactories() {
 
-        Meta.setFactory(MetaType.MKM, new MetaFactory(MetaType.MKM));
-        Meta.setFactory(MetaType.BTC, new MetaFactory(MetaType.BTC));
-        Meta.setFactory(MetaType.ExBTC, new MetaFactory(MetaType.ExBTC));
-        Meta.setFactory(MetaType.ETH, new MetaFactory(MetaType.ETH));
-        Meta.setFactory(MetaType.ExETH, new MetaFactory(MetaType.ExETH));
+        Meta.setFactory(MetaType.MKM, new GeneralMetaFactory(MetaType.MKM));
+        Meta.setFactory(MetaType.BTC, new GeneralMetaFactory(MetaType.BTC));
+        Meta.setFactory(MetaType.ExBTC, new GeneralMetaFactory(MetaType.ExBTC));
+        Meta.setFactory(MetaType.ETH, new GeneralMetaFactory(MetaType.ETH));
+        Meta.setFactory(MetaType.ExETH, new GeneralMetaFactory(MetaType.ExETH));
     }
 
     /*
@@ -300,10 +300,10 @@ public interface Plugins {
      */
     static void registerDocumentFactories() {
 
-        Document.setFactory("*", new DocumentFactory("*"));
-        Document.setFactory(Document.VISA, new DocumentFactory(Document.VISA));
-        Document.setFactory(Document.PROFILE, new DocumentFactory(Document.PROFILE));
-        Document.setFactory(Document.BULLETIN, new DocumentFactory(Document.BULLETIN));
+        Document.setFactory("*", new GeneralDocumentFactory("*"));
+        Document.setFactory(Document.VISA, new GeneralDocumentFactory(Document.VISA));
+        Document.setFactory(Document.PROFILE, new GeneralDocumentFactory(Document.PROFILE));
+        Document.setFactory(Document.BULLETIN, new GeneralDocumentFactory(Document.BULLETIN));
     }
 
     static void registerPlugins() {

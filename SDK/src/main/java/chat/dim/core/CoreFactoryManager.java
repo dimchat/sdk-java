@@ -56,7 +56,6 @@ import chat.dim.dkd.group.QueryGroupCommand;
 import chat.dim.dkd.group.QuitGroupCommand;
 import chat.dim.dkd.group.ResetGroupCommand;
 import chat.dim.dkd.group.ResignGroupCommand;
-import chat.dim.msg.EnvelopeFactory;
 import chat.dim.msg.MessageFactory;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
@@ -67,11 +66,11 @@ import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 
-public enum FactoryManager {
+public enum CoreFactoryManager {
 
     INSTANCE;
 
-    public static FactoryManager getInstance() {
+    public static CoreFactoryManager getInstance() {
         return INSTANCE;
     }
 
@@ -80,14 +79,13 @@ public enum FactoryManager {
      */
     public void registerMessageFactories() {
         // Envelope factory
-        EnvelopeFactory env = new EnvelopeFactory();
-        Envelope.setFactory(env);
+        MessageFactory factory = new MessageFactory();
+        Envelope.setFactory(factory);
 
         // Message factories
-        MessageFactory msg = new MessageFactory();
-        InstantMessage.setFactory(msg);
-        SecureMessage.setFactory(msg);
-        ReliableMessage.setFactory(msg);
+        InstantMessage.setFactory(factory);
+        SecureMessage.setFactory(factory);
+        ReliableMessage.setFactory(factory);
     }
 
     /**

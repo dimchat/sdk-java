@@ -42,7 +42,7 @@ import chat.dim.protocol.Meta;
  *  General ID factory
  *  ~~~~~~~~~~~~~~~~~~
  */
-public class IDFactory implements ID.Factory {
+public class GeneralIdentifierFactory implements ID.Factory {
 
     private final Map<String, ID> identifiers = new HashMap<>();
 

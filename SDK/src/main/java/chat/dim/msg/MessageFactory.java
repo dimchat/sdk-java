@@ -36,11 +36,13 @@ import java.util.Random;
 
 import chat.dim.protocol.Content;
 import chat.dim.protocol.Envelope;
+import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 
-public class MessageFactory implements InstantMessage.Factory, SecureMessage.Factory, ReliableMessage.Factory {
+public class MessageFactory implements Envelope.Factory,
+                                       InstantMessage.Factory, SecureMessage.Factory, ReliableMessage.Factory {
 
     private int sn;
 
@@ -66,6 +68,24 @@ public class MessageFactory implements InstantMessage.Factory, SecureMessage.Fac
             sn = 1;
         }
         return sn;
+    }
+
+    //
+    //  Envelope.Factory
+    //
+    @Override
+    public Envelope createEnvelope(ID from, ID to, Date when) {
+        return new MessageEnvelope(from, to, when);
+    }
+
+    @Override
+    public Envelope parseEnvelope(Map<String, Object> env) {
+        // check 'sender'
+        if (env.get("sender") == null) {
+            // env.sender should not empty
+            return null;
+        }
+        return new MessageEnvelope(env);
     }
 
     //

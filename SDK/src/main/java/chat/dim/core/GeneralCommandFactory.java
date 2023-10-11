@@ -33,7 +33,7 @@ package chat.dim.core;
 import java.util.Map;
 
 import chat.dim.dkd.cmd.BaseCommand;
-import chat.dim.dkd.cmd.FactoryManager;
+import chat.dim.dkd.cmd.CommandFactoryManager;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 
@@ -45,7 +45,7 @@ public class GeneralCommandFactory implements Content.Factory, Command.Factory {
 
     @Override
     public Content parseContent(Map<String, Object> content) {
-        FactoryManager man = FactoryManager.getInstance();
+        CommandFactoryManager man = CommandFactoryManager.getInstance();
         // get factory by command name
         String cmd = man.generalFactory.getCmd(content, "*");
         Command.Factory factory = man.generalFactory.getCommandFactory(cmd);

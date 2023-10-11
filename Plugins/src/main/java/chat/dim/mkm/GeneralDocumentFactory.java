@@ -40,11 +40,11 @@ import chat.dim.protocol.ID;
  *  General Document Factory
  *  ~~~~~~~~~~~~~~~~~~~~~~~~
  */
-public final class DocumentFactory implements Document.Factory {
+public final class GeneralDocumentFactory implements Document.Factory {
 
     private final String docType;
 
-    public DocumentFactory(String type) {
+    public GeneralDocumentFactory(String type) {
         super();
         docType = type;
     }
@@ -92,7 +92,7 @@ public final class DocumentFactory implements Document.Factory {
             // assert false : "document ID not found : " + doc;
             return null;
         }
-        FactoryManager man = FactoryManager.getInstance();
+        AccountFactoryManager man = AccountFactoryManager.getInstance();
         String type = man.generalFactory.getDocumentType(doc, null);
         if (type == null) {
             type = getType("*", identifier);

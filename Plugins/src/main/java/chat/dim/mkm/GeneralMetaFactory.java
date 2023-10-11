@@ -40,11 +40,11 @@ import chat.dim.format.UTF8;
 import chat.dim.protocol.Meta;
 import chat.dim.protocol.MetaType;
 
-public final class MetaFactory implements Meta.Factory {
+public final class GeneralMetaFactory implements Meta.Factory {
 
     private final int version;
 
-    public MetaFactory(MetaType type) {
+    public GeneralMetaFactory(MetaType type) {
         super();
         version = type.value;
     }
@@ -86,7 +86,7 @@ public final class MetaFactory implements Meta.Factory {
     @Override
     public Meta parseMeta(Map<String, Object> meta) {
         Meta out;
-        FactoryManager man = FactoryManager.getInstance();
+        AccountFactoryManager man = AccountFactoryManager.getInstance();
         int type = man.generalFactory.getMetaType(meta, 0);
         if (MetaType.MKM.equals(type)) {
             // MKM

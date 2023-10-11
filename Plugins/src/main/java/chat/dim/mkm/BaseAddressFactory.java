@@ -1,13 +1,13 @@
 /* license: https://mit-license.org
  *
- *  DIMP : Decentralized Instant Messaging Protocol
+ *  Ming-Ke-Ming : Decentralized User Identity Authentication
  *
- *                                Written in 2022 by Moky <albert.moky@gmail.com>
+ *                                Written in 2020 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2022 Albert Moky
+ * Copyright (c) 2020 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,31 +28,53 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.msg;
+package chat.dim.mkm;
 
-import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.protocol.Envelope;
-import chat.dim.protocol.ID;
+import chat.dim.Barrack;
+import chat.dim.protocol.Address;
+import chat.dim.protocol.Meta;
 
-public class EnvelopeFactory implements Envelope.Factory {
+/**
+ *  Base Address Factory
+ *  ~~~~~~~~~~~~~~~~~~~~
+ */
+public abstract class BaseAddressFactory implements Address.Factory {
 
-    //
-    //  Envelope.Factory
-    //
-    @Override
-    public Envelope createEnvelope(ID from, ID to, Date when) {
-        return new MessageEnvelope(from, to, when);
+    private final Map<String, Address> addresses = new HashMap<>();
+
+    /**
+     * Call it when received 'UIApplicationDidReceiveMemoryWarningNotification',
+     * this will remove 50% of cached objects
+     *
+     * @return number of survivors
+     */
+    public int reduceMemory() {
+        int finger = 0;
+        finger = Barrack.thanos(addresses, finger);
+        return finger >> 1;
     }
 
     @Override
-    public Envelope parseEnvelope(Map<String, Object> env) {
-        // check 'sender'
-        if (env.get("sender") == null) {
-            // env.sender should not empty
-            return null;
+    public Address generateAddress(Meta meta, int network) {
+        Address address = meta.generateAddress(network);
+        if (address != null) {
+            addresses.put(address.toString(), address);
         }
-        return new MessageEnvelope(env);
+        return address;
+    }
+
+    @Override
+    public Address parseAddress(String address) {
+        Address add = addresses.get(address);
+        if (add == null) {
+            add = Address.create(address);
+            if (add != null) {
+                addresses.put(address, add);
+            }
+        }
+        return add;
     }
 }
