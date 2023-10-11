@@ -62,13 +62,13 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
             return getDocument(identifier, type, rMsg.getEnvelope(), command);
         } else if (identifier.equals(doc.getIdentifier())) {
             // received a new document for ID
-            return putDocument(identifier, command.getMeta(), doc, rMsg.getEnvelope(), command);
+            return putDocument(identifier, doc, rMsg.getEnvelope(), command);
         }
         // error
         return respondReceipt("Document ID not match.", rMsg.getEnvelope(), command, null);
     }
 
-    private List<Content> getDocument(ID identifier, String type, Envelope envelope, Content content) {
+    private List<Content> getDocument(ID identifier, String type, Envelope envelope, DocumentCommand content) {
         Facebook facebook = getFacebook();
         Document doc = facebook.getDocument(identifier, type);
         if (doc == null) {
@@ -78,15 +78,17 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
                             "ID", identifier.toString()
                     )
             ));
-        } else {
-            Meta meta = facebook.getMeta(identifier);
-            return respondContent(DocumentCommand.response(identifier, meta, doc));
         }
+        // document got
+        Meta meta = facebook.getMeta(identifier);
+        return respondContent(DocumentCommand.response(identifier, meta, doc));
     }
 
-    private List<Content> putDocument(ID identifier, Meta meta, Document doc, Envelope envelope, Content content) {
+    private List<Content> putDocument(ID identifier, Document doc, Envelope envelope, DocumentCommand content) {
         Facebook facebook = getFacebook();
+        List<Content> errors;
         // 0. check meta
+        Meta meta = content.getMeta();
         if (meta == null) {
             meta = facebook.getMeta(identifier);
             if (meta == null) {
@@ -97,16 +99,16 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
                         )
                 ));
             }
-        }
-        List<Content> errors;
-        // 1. try to save meta
-        errors = saveMeta(identifier, meta, envelope, content);
-        if (errors != null) {
-            // failed
-            return errors;
+        } else {
+            // 1. try to save meta
+            errors = saveMeta(meta, identifier, envelope, content);
+            if (errors != null) {
+                // failed
+                return errors;
+            }
         }
         // 2. try to save document
-        errors = saveDocument(identifier, meta, doc, envelope, content);
+        errors = saveDocument(doc, meta, identifier, envelope, content);
         if (errors != null) {
             // failed
             return errors;
@@ -121,7 +123,7 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
     }
 
     // return null on success
-    protected List<Content> saveDocument(ID identifier, Meta meta, Document doc, Envelope envelope, Content content) {
+    protected List<Content> saveDocument(Document doc, Meta meta, ID identifier, Envelope envelope, DocumentCommand content) {
         Facebook facebook = getFacebook();
         // check document
         if (!checkDocument(doc, meta)) {
@@ -141,7 +143,7 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
                     )
             ));
         }
-        // OK
+        // document saved, return no error
         return null;
     }
 

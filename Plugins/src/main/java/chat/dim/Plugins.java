@@ -268,13 +268,17 @@ public interface Plugins {
                 } else if (Address.EVERYWHERE.equalsIgnoreCase(address)) {
                     return Address.EVERYWHERE;
                 }
+                Address res;
                 int len = address.length();
                 if (len == 42) {
-                    return ETHAddress.parse(address);
+                    res = ETHAddress.parse(address);
                 } else if (26 <= len && len <= 35) {
-                    return BTCAddress.parse(address);
+                    res = BTCAddress.parse(address);
+                } else {
+                    throw new AssertionError("invalid address: " + address);
                 }
-                throw new AssertionError("invalid address: " + address);
+                assert res != null : "invalid address: " + address;
+                return res;
             }
         });
     }

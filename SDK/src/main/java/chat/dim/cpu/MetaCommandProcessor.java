@@ -59,13 +59,12 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
         } else if (meta == null) {
             // query meta for ID
             return getMeta(identifier, rMsg.getEnvelope(), command);
-        } else {
-            // received a meta for ID
-            return putMeta(identifier, meta, rMsg.getEnvelope(), command);
         }
+        // received a meta for ID
+        return putMeta(meta, identifier, rMsg.getEnvelope(), command);
     }
 
-    private List<Content> getMeta(ID identifier, Envelope envelope, Content content) {
+    private List<Content> getMeta(ID identifier, Envelope envelope, MetaCommand content) {
         Meta meta = getFacebook().getMeta(identifier);
         if (meta == null) {
             return respondReceipt("Meta not found.", envelope, content, newMap(
@@ -74,15 +73,15 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
                             "ID", identifier.toString()
                     )
             ));
-        } else {
-            return respondContent(MetaCommand.response(identifier, meta));
         }
+        // meta got
+        return respondContent(MetaCommand.response(identifier, meta));
     }
 
-    private List<Content> putMeta(ID identifier, Meta meta, Envelope envelope, Content content) {
+    private List<Content> putMeta(Meta meta, ID identifier, Envelope envelope, MetaCommand content) {
         List<Content> errors;
         // 1. try to save meta
-        errors = saveMeta(identifier, meta, envelope, content);
+        errors = saveMeta(meta, identifier, envelope, content);
         if (errors != null) {
             // failed
             return errors;
@@ -97,10 +96,10 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
     }
 
     // return null on success
-    protected List<Content> saveMeta(ID identifier, Meta meta, Envelope envelope, Content content) {
+    protected List<Content> saveMeta(Meta meta, ID identifier, Envelope envelope, MetaCommand content) {
         Facebook facebook = getFacebook();
         // check meta
-        if (!meta.isValid() || !meta.matchIdentifier(identifier)) {
+        if (!checkMeta(meta, identifier)) {
             // meta invalid
             return respondReceipt("Meta not valid.", envelope, content, newMap(
                     "template", "Meta not valid: ${ID}.",
@@ -117,8 +116,12 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
                     )
             ));
         }
-        // OK
+        // meta saved, return no error
         return null;
+    }
+
+    protected boolean checkMeta(Meta meta, ID identifier) {
+        return meta.isValid() && meta.matchIdentifier(identifier);
     }
 
 }
