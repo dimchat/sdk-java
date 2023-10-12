@@ -65,7 +65,12 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
             return putDocument(identifier, doc, rMsg.getEnvelope(), command);
         }
         // error
-        return respondReceipt("Document ID not match.", rMsg.getEnvelope(), command, null);
+        return respondReceipt("Document ID not match.", rMsg.getEnvelope(), command, newMap(
+                "template", "Document ID not match: ${ID}.",
+                "replacements", newMap(
+                        "ID", identifier.toString()
+                )
+        ));
     }
 
     private List<Content> getDocument(ID identifier, String type, Envelope envelope, DocumentCommand content) {
@@ -81,14 +86,16 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         }
         // document got
         Meta meta = facebook.getMeta(identifier);
-        return respondContent(DocumentCommand.response(identifier, meta, doc));
+        return respondContent(
+                DocumentCommand.response(identifier, meta, doc)
+        );
     }
 
     private List<Content> putDocument(ID identifier, Document doc, Envelope envelope, DocumentCommand content) {
         Facebook facebook = getFacebook();
         List<Content> errors;
-        // 0. check meta
         Meta meta = content.getMeta();
+        // 0. check meta
         if (meta == null) {
             meta = facebook.getMeta(identifier);
             if (meta == null) {

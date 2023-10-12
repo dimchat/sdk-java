@@ -33,10 +33,9 @@ package chat.dim;
 import java.util.ArrayList;
 import java.util.List;
 
+import chat.dim.core.ContentProcessor;
+import chat.dim.core.GeneralContentProcessorFactory;
 import chat.dim.core.TwinsHelper;
-import chat.dim.cpu.ContentProcessor;
-import chat.dim.cpu.ContentProcessorCreator;
-import chat.dim.cpu.ContentProcessorFactory;
 import chat.dim.mkm.User;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.Envelope;
@@ -45,7 +44,7 @@ import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 
-public class MessageProcessor extends TwinsHelper implements Processor {
+public abstract class MessageProcessor extends TwinsHelper implements Processor {
 
     private final ContentProcessor.Factory factory;
 
@@ -54,13 +53,11 @@ public class MessageProcessor extends TwinsHelper implements Processor {
         factory = createFactory();
     }
 
-    // override for creating customized CPUs
-    protected ContentProcessor.Creator createCreator() {
-        return new ContentProcessorCreator(getFacebook(), getMessenger());
-    }
     protected ContentProcessor.Factory createFactory() {
-        return new ContentProcessorFactory(getFacebook(), getMessenger(), createCreator());
+        return new GeneralContentProcessorFactory(getFacebook(), getMessenger(), createCreator());
     }
+    // override for creating customized CPUs
+    protected abstract ContentProcessor.Creator createCreator();
 
     public ContentProcessor getProcessor(Content content) {
         return factory.getProcessor(content);

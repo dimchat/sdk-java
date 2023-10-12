@@ -28,30 +28,29 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.cpu;
+package chat.dim.core;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
-import chat.dim.core.TwinsHelper;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
 
 /**
- *  Base ContentProcessor Factory
- *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *  General ContentProcessor Factory
+ *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
-public class ContentProcessorFactory extends TwinsHelper implements ContentProcessor.Factory {
+public class GeneralContentProcessorFactory extends TwinsHelper implements ContentProcessor.Factory {
 
     private final Map<Integer, ContentProcessor> contentProcessors = new HashMap<>();
     private final Map<String, ContentProcessor> commandProcessors = new HashMap<>();
 
     private final ContentProcessor.Creator creator;
 
-    public ContentProcessorFactory(Facebook facebook, Messenger messenger, ContentProcessor.Creator creator) {
+    public GeneralContentProcessorFactory(Facebook facebook, Messenger messenger, ContentProcessor.Creator creator) {
         super(facebook, messenger);
         this.creator = creator;
     }

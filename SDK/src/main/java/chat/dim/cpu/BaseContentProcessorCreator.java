@@ -32,6 +32,7 @@ package chat.dim.cpu;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
+import chat.dim.core.ContentProcessor;
 import chat.dim.core.TwinsHelper;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.ContentType;
@@ -40,9 +41,9 @@ import chat.dim.protocol.ContentType;
  *  Base ContentProcessor Creator
  *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
-public class ContentProcessorCreator extends TwinsHelper implements ContentProcessor.Creator {
+public class BaseContentProcessorCreator extends TwinsHelper implements ContentProcessor.Creator {
 
-    public ContentProcessorCreator(Facebook facebook, Messenger messenger) {
+    public BaseContentProcessorCreator(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
     }
 

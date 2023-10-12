@@ -75,7 +75,9 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
             ));
         }
         // meta got
-        return respondContent(MetaCommand.response(identifier, meta));
+        return respondContent(
+                MetaCommand.response(identifier, meta)
+        );
     }
 
     private List<Content> putMeta(Meta meta, ID identifier, Envelope envelope, MetaCommand content) {

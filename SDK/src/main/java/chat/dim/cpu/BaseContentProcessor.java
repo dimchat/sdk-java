@@ -34,6 +34,7 @@ import java.util.List;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
+import chat.dim.core.ContentProcessor;
 import chat.dim.core.TwinsHelper;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ReliableMessage;
