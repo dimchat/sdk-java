@@ -36,28 +36,28 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import chat.dim.Facebook;
-import chat.dim.Messenger;
+import chat.dim.Barrack;
+import chat.dim.Transceiver;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.Envelope;
 import chat.dim.protocol.ReceiptCommand;
 
 public abstract class TwinsHelper {
 
-    private final WeakReference<Facebook> facebookRef;
-    private final WeakReference<Messenger> messengerRef;
+    private final WeakReference<Barrack> facebookRef;
+    private final WeakReference<Transceiver> messengerRef;
 
-    protected TwinsHelper(Facebook facebook, Messenger messenger) {
+    protected TwinsHelper(Barrack facebook, Transceiver messenger) {
         super();
         facebookRef = new WeakReference<>(facebook);
         messengerRef = new WeakReference<>(messenger);
     }
 
-    protected Facebook getFacebook() {
+    protected Barrack getFacebook() {
         return facebookRef.get();
     }
 
-    protected Messenger getMessenger() {
+    protected Transceiver getMessenger() {
         return messengerRef.get();
     }
 

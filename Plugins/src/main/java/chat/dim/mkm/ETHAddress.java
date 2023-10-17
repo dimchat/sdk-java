@@ -137,6 +137,7 @@ public final class ETHAddress extends ConstantString implements Address {
      */
     public static ETHAddress generate(byte[] fingerprint) {
         if (fingerprint.length == 65) {
+            // skip first char
             byte[] data = new byte[64];
             System.arraycopy(fingerprint, 1, data, 0, 64);
             fingerprint = data;

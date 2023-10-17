@@ -144,9 +144,11 @@ public abstract class Messenger extends Transceiver implements Packer, Processor
     @Override
     public Content deserializeContent(byte[] data, SymmetricKey password, SecureMessage sMsg) {
         Content content = super.deserializeContent(data, password, sMsg);
-        // assert content != null : "content error: " + data.length;
 
-        if (content != null) {
+        // cache decrypt key when success
+        if (content == null) {
+             assert false : "content error: " + data.length;
+        } else {
             // cache the key with direction: sender -> receiver(group)
             cacheDecryptKey(password, sMsg);
         }

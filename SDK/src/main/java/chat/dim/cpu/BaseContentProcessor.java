@@ -50,6 +50,16 @@ public class BaseContentProcessor extends TwinsHelper implements ContentProcesso
     }
 
     @Override
+    protected Facebook getFacebook() {
+        return (Facebook) super.getFacebook();
+    }
+
+    @Override
+    protected Messenger getMessenger() {
+        return (Messenger) super.getMessenger();
+    }
+
+    @Override
     public List<Content> process(Content content, ReliableMessage rMsg) {
         return respondReceipt("Content not support.", rMsg.getEnvelope(), content, newMap(
                 "template", "Content (type: ${type}) not support yet!",

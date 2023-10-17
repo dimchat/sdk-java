@@ -72,6 +72,20 @@ public abstract class MessageProcessor extends TwinsHelper implements Processor 
     }
 
     @Override
+    protected Facebook getFacebook() {
+        return (Facebook) super.getFacebook();
+    }
+
+    @Override
+    protected Messenger getMessenger() {
+        return (Messenger) super.getMessenger();
+    }
+
+    //
+    //  Processing Message
+    //
+
+    @Override
     public List<byte[]> processPackage(byte[] data) {
         Messenger messenger = getMessenger();
         // 1. deserialize message

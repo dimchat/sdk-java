@@ -146,7 +146,7 @@ public interface Plugins {
             }
         };
         TransportableData.setFactory(TransportableData.BASE_64, tedFactory);
-        TransportableData.setFactory(TransportableData.DEFAULT, tedFactory);
+        //TransportableData.setFactory(TransportableData.DEFAULT, tedFactory);
         TransportableData.setFactory("*", tedFactory);
     }
 

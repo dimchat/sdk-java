@@ -60,6 +60,16 @@ public class MessagePacker extends TwinsHelper implements Packer {
         reliablePacker = new ReliableMessagePacker(messenger);
     }
 
+    @Override
+    protected Facebook getFacebook() {
+        return (Facebook) super.getFacebook();
+    }
+
+    @Override
+    protected Messenger getMessenger() {
+        return (Messenger) super.getMessenger();
+    }
+
     //
     //  InstantMessage -> SecureMessage -> ReliableMessage -> Data
     //
@@ -122,7 +132,7 @@ public class MessagePacker extends TwinsHelper implements Packer {
 
     @Override
     public ReliableMessage signMessage(SecureMessage sMsg) {
-        assert sMsg.getData() != null : "message data cannot be empty";
+        assert sMsg.getData() != null : "message data cannot be empty: " + sMsg;
         // sign 'data' by sender
         return securePacker.sign(sMsg);
     }
@@ -181,7 +191,7 @@ public class MessagePacker extends TwinsHelper implements Packer {
         //        (do in by application)
         //
 
-        assert rMsg.getSignature() != null : "message signature cannot be empty";
+        assert rMsg.getSignature() != null : "message signature cannot be empty: " + rMsg;
         // verify 'data' with 'signature'
         return reliablePacker.verify(rMsg);
     }

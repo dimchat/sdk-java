@@ -65,6 +65,7 @@ public abstract class Facebook extends Barrack {
 
     @Override
     protected User createUser(ID identifier) {
+        assert identifier.isUser() : "user ID error: " + identifier;
         // check visa key
         if (!identifier.isBroadcast()) {
             if (getPublicKeyForEncryption(identifier) == null) {
@@ -86,6 +87,7 @@ public abstract class Facebook extends Barrack {
 
     @Override
     protected Group createGroup(ID identifier) {
+        assert identifier.isGroup() : "group ID error: " + identifier;
         // check members
         if (!identifier.isBroadcast()) {
             List<ID> members = getMembers(identifier);
@@ -94,7 +96,7 @@ public abstract class Facebook extends Barrack {
                 return null;
             }
             // NOTICE: if members exist, then owner (founder) must exist,
-            //         and bulletin, meta must exist too.
+            //         and bulletin & meta must exist too.
         }
         int type = identifier.getType();
         // check group type

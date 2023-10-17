@@ -71,13 +71,14 @@ public final class ETHMeta extends BaseMeta {
     public Address generateAddress(int type) {
         assert MetaType.ETH.equals(getType()) || MetaType.ExETH.equals(getType()) : "meta version error";
         assert EntityType.USER.equals(type) : "ETH address type error: " + type;
-        if (cachedAddress == null) {
+        Address cached = cachedAddress;
+        if (cached == null/* || cached.getType() != type*/) {
             // 64 bytes key data without prefix 0x04
             VerifyKey key = getPublicKey();
             byte[] data = key.getData();
             // generate and cache it
-            cachedAddress = ETHAddress.generate(data);
+            cachedAddress = cached = ETHAddress.generate(data);
         }
-        return cachedAddress;
+        return cached;
     }
 }
