@@ -57,7 +57,7 @@ public final class GeneralDocumentFactory implements Document.Factory {
         } else if (identifier.isUser()) {
             return Document.VISA;
         } else {
-            return Document.PROFILE;
+            return "profile";
         }
     }
 

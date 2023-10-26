@@ -4,21 +4,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import chat.dim.Barrack;
 import chat.dim.crypto.DecryptKey;
-import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
-import chat.dim.crypto.VerifyKey;
+import chat.dim.mkm.BaseGroup;
 import chat.dim.mkm.BaseUser;
 import chat.dim.mkm.Group;
 import chat.dim.mkm.User;
-import chat.dim.protocol.Bulletin;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
-import chat.dim.protocol.Visa;
 
-public class Facebook implements User.DataSource, Group.DataSource {
+public class Facebook extends Barrack {
     private static final Facebook ourInstance = new Facebook();
     public static Facebook getInstance() { return ourInstance; }
     private Facebook() {
@@ -28,38 +26,54 @@ public class Facebook implements User.DataSource, Group.DataSource {
     // memory caches
     private final Map<ID, PrivateKey> privateKeyMap = new HashMap<>();
     private final Map<ID, Meta>       metaMap  = new HashMap<>();
-    private final Map<ID, User>       userMap  = new HashMap<>();
 
-    public boolean cache(PrivateKey key, ID identifier) {
+    protected void cache(PrivateKey key, ID identifier) {
         if (key == null) {
             privateKeyMap.remove(identifier);
-            return false;
+        } else {
+            privateKeyMap.put(identifier, key);
         }
-        privateKeyMap.put(identifier, key);
-        return true;
     }
 
-    public boolean cache(Meta meta, ID identifier) {
+    protected void cache(Meta meta, ID identifier) {
         assert meta.matchIdentifier(identifier) : "meta not match ID: " + identifier + ", " + meta;
         metaMap.put(identifier, meta);
-        return true;
     }
 
-    public boolean cache(User user) {
-        if (user.getDataSource() == null) {
-            user.setDataSource(this);
+    @Override
+    protected User createUser(ID identifier) {
+        assert identifier.isUser() : "user ID error: " + identifier;
+        // check visa key
+        if (!identifier.isBroadcast()) {
+            if (getPublicKeyForEncryption(identifier) == null) {
+                assert false : "visa.key not found: " + identifier;
+                return null;
+            }
+            // NOTICE: if visa.key exists, then visa & meta must exist too.
         }
-        userMap.put(user.getIdentifier(), user);
-        return true;
+        // TODO: check user type
+
+        // general user, or 'anyone@anywhere'
+        return new BaseUser(identifier);
     }
 
-    public User getUser(ID identifier) {
-        User user = userMap.get(identifier);
-        if (user == null) {
-            user = new BaseUser(identifier);
-            cache(user);
+    @Override
+    protected Group createGroup(ID identifier) {
+        assert identifier.isGroup() : "group ID error: " + identifier;
+        // check members
+        if (!identifier.isBroadcast()) {
+            List<ID> members = getMembers(identifier);
+            if (members == null || members.isEmpty()) {
+                assert false : "group members not found: " + identifier;
+                return null;
+            }
+            // NOTICE: if members exist, then owner (founder) must exist,
+            //         and bulletin & meta must exist too.
         }
-        return user;
+        // TODO: check group type
+
+        // general group, or 'everyone@everywhere'
+        return new BaseGroup(identifier);
     }
 
     //-------- EntityDataSource
@@ -70,7 +84,7 @@ public class Facebook implements User.DataSource, Group.DataSource {
     }
 
     @Override
-    public Document getDocument(ID entity, String type) {
+    public List<Document> getDocuments(ID entity) {
         return null;
     }
 
@@ -79,50 +93,6 @@ public class Facebook implements User.DataSource, Group.DataSource {
     @Override
     public List<ID> getContacts(ID user) {
         return null;
-    }
-
-    @Override
-    public EncryptKey getPublicKeyForEncryption(ID user) {
-        // 1. get key from visa
-        Document doc = getDocument(user, Document.VISA);
-        if (doc instanceof Visa) {
-            EncryptKey key = ((Visa) doc).getPublicKey();
-            if (key != null) {
-                return key;
-            }
-        }
-        // 2. get key from meta
-        Meta meta = getMeta(user);
-        if (meta != null) {
-            Object key = meta.getPublicKey();
-            if (key instanceof EncryptKey) {
-                return (EncryptKey) key;
-            }
-        }
-        return null;
-    }
-
-    @Override
-    public List<VerifyKey> getPublicKeysForVerification(ID user) {
-        List<VerifyKey> keys = new ArrayList<>();
-        // 1. get key from visa
-        Document doc = getDocument(user, Document.VISA);
-        if (doc instanceof Visa) {
-            Object key = ((Visa) doc).getPublicKey();
-            if (key instanceof VerifyKey) {
-                // the sender may use communication key to sign message.data,
-                // so try to verify it with visa.key here
-                keys.add((VerifyKey) key);
-            }
-        }
-        // 2. get key from meta
-        Meta meta = getMeta(user);
-        if (meta != null) {
-            // the sender may use identity key to sign message.data,
-            // try to verify it with meta.key
-            keys.add(meta.getPublicKey());
-        }
-        return keys;
     }
 
     @Override
@@ -144,33 +114,6 @@ public class Facebook implements User.DataSource, Group.DataSource {
     @Override
     public SignKey getPrivateKeyForVisaSignature(ID user) {
         return getPrivateKeyForSignature(user);
-    }
-
-    //-------- GroupDataSource
-
-    @Override
-    public ID getFounder(ID group) {
-        return null;
-    }
-
-    @Override
-    public ID getOwner(ID group) {
-        return null;
-    }
-
-    @Override
-    public List<ID> getMembers(ID group) {
-        return null;
-    }
-
-    @Override
-    public List<ID> getAssistants(ID group) {
-        Document doc = getDocument(group, Document.BULLETIN);
-        if (doc instanceof Bulletin) {
-            return ((Bulletin) doc).getAssistants();
-        }
-        // TODO: get group bots from SP configuration
-        return null;
     }
 
     static {

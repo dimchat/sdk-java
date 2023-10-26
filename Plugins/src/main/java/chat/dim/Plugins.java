@@ -301,8 +301,8 @@ public interface Plugins {
     static void registerDocumentFactories() {
 
         Document.setFactory("*", new GeneralDocumentFactory("*"));
+        Document.setFactory("profile", new GeneralDocumentFactory("*"));
         Document.setFactory(Document.VISA, new GeneralDocumentFactory(Document.VISA));
-        Document.setFactory(Document.PROFILE, new GeneralDocumentFactory(Document.PROFILE));
         Document.setFactory(Document.BULLETIN, new GeneralDocumentFactory(Document.BULLETIN));
     }
 

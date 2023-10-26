@@ -9,12 +9,10 @@ import java.util.Map;
 import chat.dim.crypto.SignKey;
 import chat.dim.mkm.BaseGroup;
 import chat.dim.mkm.Group;
-import chat.dim.mkm.User;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
-import chat.dim.protocol.Visa;
 
 public class EntityTest {
 
@@ -133,23 +131,6 @@ public class EntityTest {
             doc.sign(key);
         }
         Log.info("profile: " + doc);
-    }
-
-    @Test
-    public void testEntity() {
-        ID identifier = ID.parse("moky@4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ");
-        Log.info("ID: " + identifier + ", detail: " + getIDInfo(identifier));
-
-        User user = facebook.getUser(identifier);
-        Log.info("user: " + user);
-
-        Visa visa = user.getVisa();
-        if (visa != null) {
-            Log.info("visa: " + getDocumentInfo(visa));
-        }
-
-        List<ID> contacts = user.getContacts();
-        Log.info("contacts: " + contacts);
     }
 
     @Test

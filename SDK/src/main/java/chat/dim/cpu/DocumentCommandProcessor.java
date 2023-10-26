@@ -30,6 +30,7 @@
  */
 package chat.dim.cpu;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import chat.dim.Facebook;
@@ -57,9 +58,8 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
             assert false : "doc ID cannot be empty: " + command;
             return respondReceipt("Document command error.", rMsg.getEnvelope(), command, null);
         } else if (doc == null) {
-            // query entity document for ID
-            String type = command.getString("doc_type", "*");
-            return getDocument(identifier, type, rMsg.getEnvelope(), command);
+            // query entity documents for ID
+            return getDocuments(identifier, rMsg.getEnvelope(), command);
         } else if (identifier.equals(doc.getIdentifier())) {
             // received a new document for ID
             return putDocument(identifier, doc, rMsg.getEnvelope(), command);
@@ -73,10 +73,10 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         ));
     }
 
-    private List<Content> getDocument(ID identifier, String type, Envelope envelope, DocumentCommand content) {
+    private List<Content> getDocuments(ID identifier, Envelope envelope, DocumentCommand content) {
         Facebook facebook = getFacebook();
-        Document doc = facebook.getDocument(identifier, type);
-        if (doc == null) {
+        List<Document> documents = facebook.getDocuments(identifier);
+        if (documents == null || documents.isEmpty()) {
             return respondReceipt("Document not found.", envelope, content, newMap(
                     "template", "Document not found: ${ID}.",
                     "replacements", newMap(
@@ -84,11 +84,18 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
                     )
             ));
         }
-        // document got
+        // documents got
         Meta meta = facebook.getMeta(identifier);
-        return respondContent(
-                DocumentCommand.response(identifier, meta, doc)
-        );
+        List<Content> responses = new ArrayList<>();
+        // respond first document with meta
+        DocumentCommand command = DocumentCommand.response(identifier, meta, documents.get(0));
+        responses.add(command);
+        for (int i = 1; i < documents.size(); ++i) {
+            // respond other documents
+            command = DocumentCommand.response(identifier, documents.get(i));
+            responses.add(command);
+        }
+        return responses;
     }
 
     private List<Content> putDocument(ID identifier, Document doc, Envelope envelope, DocumentCommand content) {

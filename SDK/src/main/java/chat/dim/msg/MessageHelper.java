@@ -1,13 +1,13 @@
 /* license: https://mit-license.org
  *
- *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
+ *  DIMP : Decentralized Instant Messaging Protocol
  *
- *                                Written in 2019 by Moky <albert.moky@gmail.com>
+ *                                Written in 2023 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Albert Moky
+ * Copyright (c) 2023 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,39 +28,44 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.mkm;
+package chat.dim.msg;
 
 import chat.dim.protocol.Document;
-import chat.dim.protocol.EntityType;
-import chat.dim.protocol.ID;
+import chat.dim.protocol.Meta;
+import chat.dim.protocol.ReliableMessage;
+import chat.dim.protocol.Visa;
 
-/**
- *  Bot User
- */
-public class Bot extends BaseUser {
+public interface MessageHelper {
 
-    public Bot(ID identifier) {
-        super(identifier);
-        assert EntityType.BOT.equals(identifier.getType()) : "bot ID error: " + identifier;
+    /**
+     *  Sender's Meta
+     *  ~~~~~~~~~~~~~
+     *  Extends for the first message package of 'Handshake' protocol.
+     */
+    static Meta getMeta(ReliableMessage rMsg) {
+        return Meta.parse(rMsg.get("meta"));
+    }
+
+    static void setMeta(Meta meta, ReliableMessage rMsg) {
+        rMsg.setMap("meta", meta);
     }
 
     /**
-     *  Bot Document
+     *  Sender's Visa
+     *  ~~~~~~~~~~~~~
+     *  Extends for the first message package of 'Handshake' protocol.
      */
-    public Document getProfile() {
-        return getVisa();
-    }
-
-    /**
-     *  Get provider ID
-     *
-     * @return ICP ID, bot group
-     */
-    public ID getProvider() {
-        Document doc = getProfile();
-        if (doc == null) {
-            return null;
+    static Visa getVisa(ReliableMessage rMsg) {
+        Document doc = Document.parse(rMsg.get("visa"));
+        if (doc instanceof Visa) {
+            return (Visa) doc;
         }
-        return ID.parse(doc.getProperty("ICP"));
+        assert doc == null : "visa document error: " + doc;
+        return null;
     }
+
+    static void setVisa(Visa visa, ReliableMessage rMsg) {
+        rMsg.setMap("visa", visa);
+    }
+
 }

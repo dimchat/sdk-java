@@ -38,6 +38,7 @@ import chat.dim.format.JSON;
 import chat.dim.format.UTF8;
 import chat.dim.mkm.User;
 import chat.dim.msg.InstantMessagePacker;
+import chat.dim.msg.MessageHelper;
 import chat.dim.msg.ReliableMessagePacker;
 import chat.dim.msg.SecureMessagePacker;
 import chat.dim.protocol.ID;
@@ -170,18 +171,22 @@ public class MessagePacker extends TwinsHelper implements Packer {
         return ReliableMessage.parse(dict);
     }
 
-    @Override
-    public SecureMessage verifyMessage(ReliableMessage rMsg) {
-        // TODO: make sure meta exists before verifying message
+    /**
+     *  Check meta & visa
+     *
+     * @param rMsg - received message
+     * @return false on error
+     */
+    protected boolean checkAttachments(ReliableMessage rMsg) {
         Facebook facebook = getFacebook();
         ID sender = rMsg.getSender();
         // [Meta Protocol]
-        Meta meta = rMsg.getMeta();
+        Meta meta = MessageHelper.getMeta(rMsg);
         if (meta != null) {
             facebook.saveMeta(meta, sender);
         }
         // [Visa Protocol]
-        Visa visa = rMsg.getVisa();
+        Visa visa = MessageHelper.getVisa(rMsg);
         if (visa != null) {
             facebook.saveDocument(visa);
         }
@@ -190,6 +195,15 @@ public class MessagePacker extends TwinsHelper implements Packer {
         //        make sure the sender's meta(visa) exists
         //        (do in by application)
         //
+        return true;
+    }
+
+    @Override
+    public SecureMessage verifyMessage(ReliableMessage rMsg) {
+        // make sure meta exists before verifying message
+        if (!checkAttachments(rMsg)) {
+            return null;
+        }
 
         assert rMsg.getSignature() != null : "message signature cannot be empty: " + rMsg;
         // verify 'data' with 'signature'

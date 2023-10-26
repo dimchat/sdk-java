@@ -99,7 +99,7 @@ public class Station implements User {
      *  Reload station info: host & port, SP ID
      */
     public void reload() {
-        Document doc = getDocument("*");
+        Document doc = getProfile();
         if (doc != null) {
             String docHost = Converter.getString(doc.getProperty("host"), null);
             if (docHost != null) {
@@ -114,6 +114,14 @@ public class Station implements User {
                 isp = docISP;
             }
         }
+    }
+
+    /**
+     *  Station Document
+     */
+    public Document getProfile() {
+        List<Document> documents = getDocuments();
+        return DocumentHelper.lastDocument(documents, "*");
     }
 
     /**
@@ -172,8 +180,8 @@ public class Station implements User {
     }
 
     @Override
-    public Document getDocument(String type) {
-        return user.getDocument(type);
+    public List<Document> getDocuments() {
+        return user.getDocuments();
     }
 
     //-------- User

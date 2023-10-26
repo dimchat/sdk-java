@@ -47,9 +47,17 @@ public class ServiceProvider extends BaseGroup {
         assert EntityType.ISP.equals(identifier.getType()) : "SP ID error: " + identifier;
     }
 
+    /**
+     *  Provider Document
+     */
+    public Document getProfile() {
+        List<Document> documents = getDocuments();
+        return DocumentHelper.lastDocument(documents, "*");
+    }
+
     @SuppressWarnings("unchecked")
     public List<Map<String, Object>> getStations() {
-        Document doc = getDocument("*");
+        Document doc = getProfile();
         if (doc != null) {
             Object stations = doc.getProperty("stations");
             if (stations instanceof List) {
