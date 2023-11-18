@@ -31,10 +31,12 @@
 package chat.dim.cpu;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
+import chat.dim.mkm.DocumentHelper;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.DocumentCommand;
@@ -85,6 +87,23 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
             ));
         }
         // documents got
+        Date queryTime = content.getLastTime();
+        if (queryTime != null) {
+            // check last document time
+            Document last = DocumentHelper.lastDocument(documents, null);
+            assert last != null : "should not happen";
+            Date lastTime = last.getTime();
+            if (lastTime != null && !lastTime.after(queryTime)) {
+                // last document not updated
+                return respondReceipt("Document not updated.", envelope, content, newMap(
+                        "template", "Document not updated: ${ID}, last time: ${time}.",
+                        "replacements", newMap(
+                                "ID", identifier.toString(),
+                                "time", lastTime.getTime() / 1000.0d
+                        )
+                ));
+            }
+        }
         Meta meta = facebook.getMeta(identifier);
         List<Content> responses = new ArrayList<>();
         // respond first document with meta
