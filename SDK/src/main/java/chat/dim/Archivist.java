@@ -33,14 +33,14 @@ package chat.dim;
 import java.util.Date;
 import java.util.List;
 
-import chat.dim.mkm.DocumentHelper;
+import chat.dim.mkm.Entity;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 import chat.dim.utils.FrequencyChecker;
 import chat.dim.utils.RecentTimeChecker;
 
-public abstract class Archivist {
+public abstract class Archivist implements Entity.DataSource {
 
     // each query will be expired after 10 minutes
     public static final int QUERY_EXPIRES = 600 * 1000;  // milliseconds
@@ -79,7 +79,7 @@ public abstract class Archivist {
     public boolean setLastDocumentTime(ID identifier, Date current) {
         return lastDocumentTimes.setLastTime(identifier, current);
     }
-    protected boolean needsUpdateDocuments(ID identifier, List<Document> documents) {
+    public boolean needsUpdateDocuments(ID identifier, List<Document> documents) {
         if (documents == null || documents.isEmpty()) {
             // documents not found, sure to update
             return true;
@@ -87,13 +87,22 @@ public abstract class Archivist {
         Date current = getLastDocumentTime(identifier, documents);
         return lastDocumentTimes.isExpired(identifier, current);
     }
-    protected Date getLastDocumentTime(ID identifier, List<Document> documents) {
-        Document doc = DocumentHelper.lastDocument(documents, null);
-        if (doc == null) {
+    public Date getLastDocumentTime(ID identifier, List<Document> documents) {
+        if (documents == null || documents.isEmpty()) {
             return null;
-        } else {
-            return doc.getTime();
         }
+        Date lastTime = null;
+        Date docTime;
+        for (Document doc : documents) {
+            assert doc.getIdentifier().equals(identifier) : "document not match: " + identifier + ", " + doc;
+            docTime = doc.getTime();
+            if (docTime == null) {
+                assert false : "document error: " + doc;
+            } else if (lastTime == null || lastTime.before(docTime)) {
+                lastTime = docTime;
+            }
+        }
+        return lastTime;
     }
 
     //
@@ -103,15 +112,15 @@ public abstract class Archivist {
     public boolean setLastGroupHistoryTime(ID group, Date current) {
         return lastHistoryTimes.setLastTime(group, current);
     }
-    protected boolean needsUpdateGroupHistory(ID group, List<ID> members) {
+    public boolean needsUpdateGroupHistory(ID group, List<ID> members) {
         if (members == null || members.isEmpty()) {
             // members not found, sure to update
             return true;
         }
-        Date current = getLastGroupHistoryTime(group, members);
+        Date current = getLastGroupHistoryTime(group);
         return lastHistoryTimes.isExpired(group, current);
     }
-    protected abstract Date getLastGroupHistoryTime(ID group, List<ID> members);
+    public abstract Date getLastGroupHistoryTime(ID group);
 
     /**
      *  Check meta for querying
@@ -154,8 +163,7 @@ public abstract class Archivist {
             return false;
         }
         /*/
-        Date lastTime = getLastDocumentTime(identifier, documents);
-        return queryDocuments(identifier, lastTime);
+        return queryDocuments(identifier, documents);
     }
 
     /**
@@ -177,8 +185,7 @@ public abstract class Archivist {
             return false;
         }
         /*/
-        Date lastTime = getLastGroupHistoryTime(group, members);
-        return queryMembers(group, lastTime);
+        return queryMembers(group, members);
     }
 
     /**
@@ -188,26 +195,43 @@ public abstract class Archivist {
      * @param identifier - entity ID
      * @return false on duplicated
      */
-    protected abstract boolean queryMeta(ID identifier);
+    public abstract boolean queryMeta(ID identifier);
 
     /**
      *  Request for documents with entity ID
      *  (call 'isDocumentQueryExpired()' before sending command)
      *
      * @param identifier - entity ID
-     * @param lastTime   - last document time
+     * @param documents  - exixt documents
      * @return false on duplicated
      */
-    protected abstract boolean queryDocuments(ID identifier, Date lastTime);
+    public abstract boolean queryDocuments(ID identifier, List<Document> documents);
 
     /**
      *  Request for group members with group ID
      *  (call 'isMembersQueryExpired()' before sending command)
      *
      * @param group      - group ID
-     * @param lastTime   - last group history time
+     * @param members    - exist members
      * @return false on duplicated
      */
-    protected abstract boolean queryMembers(ID group, Date lastTime);
+    public abstract boolean queryMembers(ID group, List<ID> members);
+
+    /**
+     *  Save meta for entity ID (must verify first)
+     *
+     * @param meta - entity meta
+     * @param identifier - entity ID
+     * @return true on success
+     */
+    public abstract boolean saveMeta(Meta meta, ID identifier);
+
+    /**
+     *  Save entity document with ID (must verify first)
+     *
+     * @param doc - entity document
+     * @return true on success
+     */
+    public abstract boolean saveDocument(Document doc);
 
 }

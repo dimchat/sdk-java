@@ -93,8 +93,10 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
             Document last = DocumentHelper.lastDocument(documents, null);
             assert last != null : "should not happen";
             Date lastTime = last.getTime();
-            if (lastTime != null && !lastTime.after(queryTime)) {
-                // last document not updated
+            if (lastTime == null) {
+                assert false : "document error: " + last;
+            } else if (!lastTime.after(queryTime)) {
+                // document not updated
                 return respondReceipt("Document not updated.", envelope, content, newMap(
                         "template", "Document not updated: ${ID}, last time: ${time}.",
                         "replacements", newMap(

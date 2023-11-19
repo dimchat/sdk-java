@@ -35,6 +35,7 @@ import java.util.List;
 import chat.dim.mkm.BaseGroup;
 import chat.dim.mkm.BaseUser;
 import chat.dim.mkm.Bot;
+import chat.dim.mkm.DocumentHelper;
 import chat.dim.mkm.Group;
 import chat.dim.mkm.ServiceProvider;
 import chat.dim.mkm.Station;
@@ -46,22 +47,7 @@ import chat.dim.protocol.Meta;
 
 public abstract class Facebook extends Barrack {
 
-    /**
-     *  Save meta for entity ID (must verify first)
-     *
-     * @param meta - entity meta
-     * @param identifier - entity ID
-     * @return true on success
-     */
-    public abstract boolean saveMeta(Meta meta, ID identifier);
-
-    /**
-     *  Save entity document with ID (must verify first)
-     *
-     * @param doc - entity document
-     * @return true on success
-     */
-    public abstract boolean saveDocument(Document doc);
+    protected abstract Archivist getArchivist();
 
     @Override
     protected User createUser(ID identifier) {
@@ -153,6 +139,86 @@ public abstract class Facebook extends Barrack {
             }
         }
         return null;
+    }
+
+    public boolean saveMeta(Meta meta, ID identifier) {
+        boolean ok = meta.isValid() && meta.matchIdentifier(identifier);
+        if (!ok) {
+            assert false : "meta not valid: " + identifier;
+            return false;
+        }
+        // check old meta
+        Meta old = getMeta(identifier);
+        if (old != null) {
+            assert meta.equals(old) : "meta would not changed";
+            return true;
+        }
+        // meta not exists yet, save it
+        Archivist archivist = getArchivist();
+        return archivist.saveMeta(meta, identifier);
+    }
+
+    public boolean saveDocument(Document doc) {
+        ID identifier = doc.getIdentifier();
+        if (identifier == null) {
+            assert false : "document error: " + doc;
+            return false;
+        }
+        if (!doc.isValid()) {
+            // try to verify
+            Meta meta = getMeta(identifier);
+            if (meta == null) {
+                assert false : "meta not found: " + identifier;
+                return false;
+            } else if (doc.verify(meta.getPublicKey())) {
+                assert false : "document verified: " + identifier;
+            } else {
+                assert false : "failed to verify document: " + identifier;
+                return false;
+            }
+        }
+        String type = doc.getType();
+        // check old documents with type
+        List<Document> documents = getDocuments(identifier);
+        Document old = DocumentHelper.lastDocument(documents, type);
+        if (old != null && DocumentHelper.isExpired(doc, old)) {
+            // assert false : "drop expired document: " + identifier;
+            return false;
+        }
+        Archivist archivist = getArchivist();
+        return archivist.saveDocument(doc);
+    }
+
+    //
+    //  EntityDataSource
+    //
+
+    @Override
+    public Meta getMeta(ID entity) {
+        /*/
+        if (entity.isBroadcast()) {
+            // broadcast ID has no meta
+            return null;
+        }
+        /*/
+        Archivist archivist = getArchivist();
+        Meta meta = archivist.getMeta(entity);
+        archivist.checkMeta(entity, meta);
+        return meta;
+    }
+
+    @Override
+    public List<Document> getDocuments(ID entity) {
+        /*/
+        if (entity.isBroadcast()) {
+            // broadcast ID has no documents
+            return null;
+        }
+        /*/
+        Archivist archivist = getArchivist();
+        List<Document> docs = archivist.getDocuments(entity);
+        archivist.checkDocuments(entity, docs);
+        return docs;
     }
 
 }
