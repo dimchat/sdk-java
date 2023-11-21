@@ -55,8 +55,8 @@ public class FrequencyChecker <K> {
         return true;
     }
     private boolean checkExpired(K key, long now) {
-        Long value = records.get(key);
-        if (value != null && value > now) {
+        Long expired = records.get(key);
+        if (expired != null && expired > now) {
             // record exists and not expired yet
             return false;
         }

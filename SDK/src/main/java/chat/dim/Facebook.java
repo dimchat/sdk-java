@@ -170,9 +170,7 @@ public abstract class Facebook extends Barrack {
             if (meta == null) {
                 assert false : "meta not found: " + identifier;
                 return false;
-            } else if (doc.verify(meta.getPublicKey())) {
-                assert false : "document verified: " + identifier;
-            } else {
+            } else if (!doc.verify(meta.getPublicKey())) {
                 assert false : "failed to verify document: " + identifier;
                 return false;
             }

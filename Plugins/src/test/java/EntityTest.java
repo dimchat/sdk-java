@@ -108,7 +108,7 @@ public class EntityTest {
 
     @Test
     public void testGroup() {
-        ID identifier = ID.parse("Group-1280719982@7oMeWadRw4qat2sL4mTdcQSDAqZSo7LH5G");
+        ID identifier = ID.parse("Group-570334743@a1FxYVwqEFud9nSrfkQ3gPNJ4GXabC67i");
         Group group = new BaseGroup(identifier);
         group.setDataSource(facebook);
 

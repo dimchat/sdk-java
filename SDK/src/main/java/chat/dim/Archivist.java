@@ -72,6 +72,21 @@ public abstract class Archivist implements Entity.DataSource {
         return membersQueries.isExpired(identifier, 0, false);
     }
 
+    /**
+     *  check whether need to query meta
+     */
+    protected boolean needsQueryMeta(ID identifier, Meta meta) {
+        if (identifier.isBroadcast()) {
+            // broadcast entity has no meta to query
+            return false;
+        } else if (meta == null) {
+            // meta not found, sure to query
+            return true;
+        }
+        assert meta.matchIdentifier(identifier) : "meta not match: " + identifier + ", " + meta;
+        return false;
+    }
+
     //
     //  Last Document Times
     //
@@ -79,15 +94,22 @@ public abstract class Archivist implements Entity.DataSource {
     public boolean setLastDocumentTime(ID identifier, Date current) {
         return lastDocumentTimes.setLastTime(identifier, current);
     }
-    public boolean needsUpdateDocuments(ID identifier, List<Document> documents) {
-        if (documents == null || documents.isEmpty()) {
-            // documents not found, sure to update
+
+    /**
+     *  check whether need to query documents
+     */
+    protected boolean needsQueryDocuments(ID identifier, List<Document> documents) {
+        if (identifier.isBroadcast()) {
+            // broadcast entity has no document to query
+            return false;
+        } else if (documents == null || documents.isEmpty()) {
+            // documents not found, sure to query
             return true;
         }
         Date current = getLastDocumentTime(identifier, documents);
         return lastDocumentTimes.isExpired(identifier, current);
     }
-    public Date getLastDocumentTime(ID identifier, List<Document> documents) {
+    protected Date getLastDocumentTime(ID identifier, List<Document> documents) {
         if (documents == null || documents.isEmpty()) {
             return null;
         }
@@ -112,15 +134,22 @@ public abstract class Archivist implements Entity.DataSource {
     public boolean setLastGroupHistoryTime(ID group, Date current) {
         return lastHistoryTimes.setLastTime(group, current);
     }
-    public boolean needsUpdateGroupHistory(ID group, List<ID> members) {
-        if (members == null || members.isEmpty()) {
-            // members not found, sure to update
+
+    /**
+     *  check whether need to query group members
+     */
+    protected boolean needsQueryMembers(ID group, List<ID> members) {
+        if (group.isBroadcast()) {
+            // broadcast group has no members to query
+            return false;
+        } else if (members == null || members.isEmpty()) {
+            // members not found, sure to query
             return true;
         }
         Date current = getLastGroupHistoryTime(group);
         return lastHistoryTimes.isExpired(group, current);
     }
-    public abstract Date getLastGroupHistoryTime(ID group);
+    protected abstract Date getLastGroupHistoryTime(ID group);
 
     /**
      *  Check meta for querying
@@ -130,18 +159,18 @@ public abstract class Archivist implements Entity.DataSource {
      * @return ture on querying
      */
     public boolean checkMeta(ID identifier, Meta meta) {
-        if (meta != null) {
-            assert meta.matchIdentifier(identifier) : "meta not match: " + identifier;
+        if (needsQueryMeta(identifier, meta)) {
+            /*/
+            if (!isMetaQueryExpired(identifier)) {
+                // query not expired yet
+                return false;
+            }
+            /*/
+            return queryMeta(identifier);
+        } else {
+            // no need to query meta again
             return false;
         }
-        /*/
-        if (!isMetaQueryExpired(identifier)) {
-            // query not expired yet
-            assert false : "meta query not expired yet: " + identifier;
-            return false;
-        }
-        /*/
-        return queryMeta(identifier);
     }
 
     /**
@@ -152,18 +181,18 @@ public abstract class Archivist implements Entity.DataSource {
      * @return true on querying
      */
     public boolean checkDocuments(ID identifier, List<Document> documents) {
-        if (!needsUpdateDocuments(identifier, documents)) {
+        if (needsQueryDocuments(identifier, documents)) {
+            /*/
+            if (!isDocumentQueryExpired(identifier)) {
+                // query not expired yet
+                return false;
+            }
+            /*/
+            return queryDocuments(identifier, documents);
+        } else {
             // no need to update documents now
             return false;
         }
-        /*/
-        if (!isDocumentQueryExpired(identifier)) {
-            // query not expired yet
-            assert false : "document query not expired yet: " + identifier;
-            return false;
-        }
-        /*/
-        return queryDocuments(identifier, documents);
     }
 
     /**
@@ -174,18 +203,18 @@ public abstract class Archivist implements Entity.DataSource {
      * @return true on querying
      */
     public boolean checkMembers(ID group, List<ID> members) {
-        if (!needsUpdateGroupHistory(group, members)) {
+        if (needsQueryMembers(group, members)) {
+            /*/
+            if (!isMembersQueryExpired(group)) {
+                // query not expired yet
+                return false;
+            }
+            /*/
+            return queryMembers(group, members);
+        } else {
             // no need to update group members now
             return false;
         }
-        /*/
-        if (!isMembersQueryExpired(group)) {
-            // query not expired yet
-            assert false : "members query not expired yet: " + group;
-            return false;
-        }
-        /*/
-        return queryMembers(group, members);
     }
 
     /**
@@ -202,7 +231,7 @@ public abstract class Archivist implements Entity.DataSource {
      *  (call 'isDocumentQueryExpired()' before sending command)
      *
      * @param identifier - entity ID
-     * @param documents  - exixt documents
+     * @param documents  - exist documents
      * @return false on duplicated
      */
     public abstract boolean queryDocuments(ID identifier, List<Document> documents);
