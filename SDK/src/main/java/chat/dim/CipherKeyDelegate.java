@@ -91,7 +91,7 @@ public interface CipherKeyDelegate {
             assert receiver.isUser() : "receiver error: " + receiver;
             return receiver;
         }
-        assert group.isGroup() : "group error: $group, receiver: " + receiver;
+        assert group.isGroup() : "group error: " + group + ", receiver: " + receiver;
         if (group.isBroadcast()) {
             /// E : unencrypted message for someone
             //      return group as broadcast ID for disable encryption

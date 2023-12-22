@@ -31,8 +31,8 @@
 package chat.dim.msg;
 
 import chat.dim.protocol.Document;
+import chat.dim.protocol.Message;
 import chat.dim.protocol.Meta;
-import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.Visa;
 
 public interface MessageHelper {
@@ -42,12 +42,12 @@ public interface MessageHelper {
      *  ~~~~~~~~~~~~~
      *  Extends for the first message package of 'Handshake' protocol.
      */
-    static Meta getMeta(ReliableMessage rMsg) {
-        return Meta.parse(rMsg.get("meta"));
+    static Meta getMeta(Message msg) {
+        return Meta.parse(msg.get("meta"));
     }
 
-    static void setMeta(Meta meta, ReliableMessage rMsg) {
-        rMsg.setMap("meta", meta);
+    static void setMeta(Meta meta, Message msg) {
+        msg.setMap("meta", meta);
     }
 
     /**
@@ -55,8 +55,8 @@ public interface MessageHelper {
      *  ~~~~~~~~~~~~~
      *  Extends for the first message package of 'Handshake' protocol.
      */
-    static Visa getVisa(ReliableMessage rMsg) {
-        Document doc = Document.parse(rMsg.get("visa"));
+    static Visa getVisa(Message msg) {
+        Document doc = Document.parse(msg.get("visa"));
         if (doc instanceof Visa) {
             return (Visa) doc;
         }
@@ -64,8 +64,8 @@ public interface MessageHelper {
         return null;
     }
 
-    static void setVisa(Visa visa, ReliableMessage rMsg) {
-        rMsg.setMap("visa", visa);
+    static void setVisa(Visa visa, Message msg) {
+        msg.setMap("visa", visa);
     }
 
 }
