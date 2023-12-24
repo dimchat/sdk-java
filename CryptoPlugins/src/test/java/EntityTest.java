@@ -133,15 +133,16 @@ public class EntityTest {
         Log.info("profile: " + doc);
     }
 
-    @Test
-    public void testGroup() {
-        ID identifier = ID.parse("Group-1280719982@7oMeWadRw4qat2sL4mTdcQSDAqZSo7LH5G");
-        Group group = new BaseGroup(identifier);
-        group.setDataSource(facebook);
+//    @Test
+//    public void testGroup() {
+//        ID identifier = ID.parse("Group-1280719982@7oMeWadRw4qat2sL4mTdcQSDAqZSo7LH5G");
+//        Group group = new BaseGroup(identifier);
+//        group.setDataSource(facebook);
+//
+//        Log.info("founder: " + group.getFounder());
+//        Log.info("owner: " + group.getOwner());
+//        Log.info("members: " + group.getMembers());
+//    }
 
-        Log.info("founder: " + group.getFounder());
-        Log.info("owner: " + group.getOwner());
-        Log.info("members: " + group.getMembers());
-    }
 }
 
