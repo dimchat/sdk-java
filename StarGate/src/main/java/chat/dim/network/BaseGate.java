@@ -59,19 +59,6 @@ public abstract class BaseGate<H extends Hub>
     //  Docker
     //
 
-    public Docker getDocker(SocketAddress remote, SocketAddress local, List<byte[]> advanceParty) {
-        Docker docker = getDocker(remote, local);
-        if (docker == null && advanceParty != null) {
-            Connection conn = getHub().connect(remote, local);
-            if (conn != null) {
-                docker = createDocker(conn, advanceParty);
-                assert docker != null : "failed to create docker: " + remote + ", " + local;
-                setDocker(remote, local, docker);
-            }
-        }
-        return docker;
-    }
-
     @Override
     protected Docker getDocker(SocketAddress remote, SocketAddress local) {
         return super.getDocker(remote, null);

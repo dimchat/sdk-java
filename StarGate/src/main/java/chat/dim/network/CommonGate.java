@@ -31,7 +31,7 @@
 package chat.dim.network;
 
 import java.net.SocketAddress;
-import java.util.ArrayList;
+import java.util.List;
 
 import chat.dim.mtp.MTPHelper;
 import chat.dim.mtp.Package;
@@ -39,6 +39,7 @@ import chat.dim.mtp.StreamArrival;
 import chat.dim.mtp.StreamDocker;
 import chat.dim.mtp.TransactionID;
 import chat.dim.net.Channel;
+import chat.dim.net.Connection;
 import chat.dim.net.Hub;
 import chat.dim.port.Arrival;
 import chat.dim.port.Docker;
@@ -100,7 +101,7 @@ public abstract class CommonGate extends BaseGate<StreamHub> /*implements Runnab
     public boolean sendResponse(byte[] payload, Arrival ship, SocketAddress remote, SocketAddress local) {
         assert ship instanceof StreamArrival : "arrival ship error: " + ship;
         //MTPStreamArrival arrival = (MTPStreamArrival) ship;
-        Docker docker = getDocker(remote, local, new ArrayList<>());
+        Docker docker = getDocker(remote, local);
         assert docker instanceof StreamDocker : "docker error: " + docker;
         StreamDocker worker = (StreamDocker) docker;
         //TransactionID sn = TransactionID.from(new Data(arrival.getSN()));
@@ -108,4 +109,21 @@ public abstract class CommonGate extends BaseGate<StreamHub> /*implements Runnab
         Package pack = MTPHelper.createMessage(sn, new Data(payload));
         return worker.sendPackage(pack);
     }
+
+    public Docker fetchDocker(SocketAddress remote, SocketAddress local, List<byte[]> advanceParty) {
+        Docker docker = getDocker(remote, local);
+        if (docker == null && advanceParty != null) {
+            Connection conn = getHub().connect(remote, local);
+            if (conn != null) {
+                docker = createDocker(conn, advanceParty);
+                if (docker == null) {
+                    assert false : "failed to create docker: " + remote + ", " + local;
+                } else {
+                    setDocker(remote, local, docker);
+                }
+            }
+        }
+        return docker;
+    }
+
 }
