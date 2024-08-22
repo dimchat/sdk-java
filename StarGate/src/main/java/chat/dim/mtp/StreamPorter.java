@@ -30,12 +30,12 @@
  */
 package chat.dim.mtp;
 
+import java.net.SocketAddress;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import chat.dim.net.Connection;
 import chat.dim.pack.DeparturePacker;
 import chat.dim.pack.SeekerResult;
 import chat.dim.port.Arrival;
@@ -46,14 +46,14 @@ import chat.dim.type.Data;
 /**
  *  Docker for MTP packages
  */
-public class StreamDocker extends PackageDocker implements DeparturePacker {
+public class StreamPorter extends PackagePorter implements DeparturePacker {
 
     private ByteArray chunks = Data.ZERO;
     private final ReadWriteLock chunksLock = new ReentrantReadWriteLock();
     private boolean packageReceived = false;
 
-    public StreamDocker(Connection conn) {
-        super(conn);
+    public StreamPorter(SocketAddress remote, SocketAddress local) {
+        super(remote, local);
     }
 
     @Override
@@ -173,4 +173,5 @@ public class StreamDocker extends PackageDocker implements DeparturePacker {
         SeekerResult<Header> result = MTPHelper.seekHeader(data);
         return result.value != null;
     }
+
 }

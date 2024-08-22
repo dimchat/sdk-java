@@ -30,37 +30,23 @@
  */
 package chat.dim.network;
 
-import java.util.List;
+import java.net.SocketAddress;
 
-import chat.dim.mtp.StreamDocker;
-import chat.dim.net.Connection;
-import chat.dim.port.Docker;
-import chat.dim.type.ByteArray;
-import chat.dim.type.Data;
+import chat.dim.mtp.StreamPorter;
+import chat.dim.port.Porter;
 
-public final class UDPServerGate extends CommonGate {
+public final class UDPServerGate extends CommonGate<StreamServerHub> {
 
-    public UDPServerGate(Docker.Delegate delegate) {
-        super(delegate);
+    public UDPServerGate(Porter.Delegate keeper) {
+        super(keeper);
     }
 
     @Override
-    protected Docker createDocker(Connection conn, List<byte[]> advanceParty) {
-        int count = advanceParty == null ? 0 : advanceParty.size();
-        if (count == 0) {
-            return null;
-        }
-        //assert count == 1 : "UDP docker will not separate packages";
-        ByteArray data = new Data(advanceParty.get(count - 1));
-        if (data.getSize() == 0) {
-            return null;
-        }
-        // check data format before creating docker
-        if (StreamDocker.check(data)) {
-            StreamDocker docker = new StreamDocker(conn);
-            docker.setDelegate(getDelegate());
-            return docker;
-        }
-        throw new AssertionError("failed to create docker: " + data);
+    protected Porter createPorter(SocketAddress remote, SocketAddress local) {
+        // TODO: check data format before creating docker
+        StreamPorter docker = new StreamPorter(remote, local);
+        docker.setDelegate(getDelegate());
+        return docker;
     }
+
 }

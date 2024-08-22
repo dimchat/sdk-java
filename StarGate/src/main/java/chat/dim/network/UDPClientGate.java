@@ -30,22 +30,22 @@
  */
 package chat.dim.network;
 
-import java.util.List;
+import java.net.SocketAddress;
 
-import chat.dim.mtp.StreamDocker;
+import chat.dim.mtp.StreamPorter;
 import chat.dim.net.Connection;
-import chat.dim.port.Docker;
+import chat.dim.port.Porter;
 import chat.dim.socket.ActiveConnection;
 
-public final class UDPClientGate extends CommonGate {
+public final class UDPClientGate extends CommonGate<StreamClientHub> {
 
-    public UDPClientGate(Docker.Delegate delegate) {
-        super(delegate);
+    public UDPClientGate(Porter.Delegate keeper) {
+        super(keeper);
     }
 
     @Override
-    protected Docker createDocker(Connection conn, List<byte[]> data) {
-        StreamDocker docker = new StreamDocker(conn);
+    protected Porter createPorter(SocketAddress remote, SocketAddress local) {
+        StreamPorter docker = new StreamPorter(remote, local);
         docker.setDelegate(getDelegate());
         return docker;
     }
@@ -57,4 +57,5 @@ public final class UDPClientGate extends CommonGate {
             super.heartbeat(connection);
         }
     }
+
 }

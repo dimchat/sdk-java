@@ -30,9 +30,11 @@
  */
 package chat.dim.mtp;
 
+import java.util.Date;
+
 public final class StreamArrival extends PackageArrival {
 
-    public StreamArrival(Package pack, long now) {
+    public StreamArrival(Package pack, Date now) {
         super(pack, now);
     }
 
@@ -47,4 +49,5 @@ public final class StreamArrival extends PackageArrival {
         }
         return pack.body.getBytes();
     }
+
 }

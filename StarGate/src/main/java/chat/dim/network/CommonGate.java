@@ -2,12 +2,12 @@
  *
  *  Star Gate: Network Connection Module
  *
- *                                Written in 2021 by Moky <albert.moky@gmail.com>
+ *                                Written in 2022 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2021 Albert Moky
+ * Copyright (c) 2022 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,99 +31,79 @@
 package chat.dim.network;
 
 import java.net.SocketAddress;
-import java.util.List;
 
-import chat.dim.mtp.MTPHelper;
-import chat.dim.mtp.Package;
-import chat.dim.mtp.StreamArrival;
-import chat.dim.mtp.StreamDocker;
-import chat.dim.mtp.TransactionID;
-import chat.dim.net.Channel;
 import chat.dim.net.Connection;
 import chat.dim.net.Hub;
 import chat.dim.port.Arrival;
-import chat.dim.port.Docker;
-import chat.dim.tcp.StreamHub;
-import chat.dim.type.Data;
+import chat.dim.port.Porter;
+import chat.dim.socket.ActiveConnection;
+import chat.dim.startrek.StarGate;
 
 /**
  *  Gate with hub for connection
  */
-public abstract class CommonGate extends BaseGate<StreamHub> /*implements Runnable */{
+public abstract class CommonGate<H extends Hub>
+        extends StarGate {
 
-    private boolean running;
+    private H hub;
 
-    public CommonGate(Docker.Delegate delegate) {
-        super(delegate);
-        running = false;
+    public CommonGate(Porter.Delegate keeper) {
+        super(keeper);
     }
 
-    public void start() {
-        running = true;
+    public H getHub() {
+        return hub;
     }
-    public void stop() {
-        running = false;
+    public void setHub(H h) {
+        hub = h;
     }
-    public boolean isRunning() {
-        return running;
-    }
-    /*/
+
+    //
+    //  Docker
+    //
+
     @Override
-    public void run() {
-        //running = true;
-        while (isRunning()) {
-            if (!process()) {
-                idle();
-            }
+    protected Porter getPorter(SocketAddress remote, SocketAddress local) {
+        return super.getPorter(remote, null);
+    }
+
+    @Override
+    protected Porter setPorter(SocketAddress remote, SocketAddress local, Porter porter) {
+        return super.setPorter(remote, null, porter);
+    }
+
+    @Override
+    protected Porter removePorter(SocketAddress remote, SocketAddress local, Porter porter) {
+        return super.removePorter(remote, null, porter);
+    }
+
+    public Porter fetchPorter(SocketAddress remote, SocketAddress local) {
+        // get connection from hub
+        Connection conn = getHub().connect(remote, local);
+        if (conn == null) {
+            assert false : "failed to get connection: " + local + " -> " + remote;
+            return null;
         }
-        // gate closing
-    }
-
-    protected void idle() {
-        idle(256);
-    }
-
-    public static void idle(long millis) {
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-    /*/
-
-    public Channel getChannel(SocketAddress remote, SocketAddress local) {
-        Hub hub = getHub();
-        assert hub != null : "no hub for channel: " + remote + ", " + local;
-        return hub.open(remote, local);
+        // connected, get docker with this connection
+        return dock(conn, true);
     }
 
     public boolean sendResponse(byte[] payload, Arrival ship, SocketAddress remote, SocketAddress local) {
-        assert ship instanceof StreamArrival : "arrival ship error: " + ship;
-        //MTPStreamArrival arrival = (MTPStreamArrival) ship;
-        Docker docker = getDocker(remote, local);
-        assert docker instanceof StreamDocker : "docker error: " + docker;
-        StreamDocker worker = (StreamDocker) docker;
-        //TransactionID sn = TransactionID.from(new Data(arrival.getSN()));
-        TransactionID sn = TransactionID.generate();
-        Package pack = MTPHelper.createMessage(sn, new Data(payload));
-        return worker.sendPackage(pack);
+        Porter docker = getPorter(remote, local);
+        if (docker == null) {
+            return false;
+        } else if (!docker.isAlive()) {
+            return false;
+        }
+        return docker.sendData(payload);
     }
 
-    public Docker fetchDocker(SocketAddress remote, SocketAddress local, List<byte[]> advanceParty) {
-        Docker docker = getDocker(remote, local);
-        if (docker == null && advanceParty != null) {
-            Connection conn = getHub().connect(remote, local);
-            if (conn != null) {
-                docker = createDocker(conn, advanceParty);
-                if (docker == null) {
-                    assert false : "failed to create docker: " + remote + ", " + local;
-                } else {
-                    setDocker(remote, local, docker);
-                }
-            }
+    @Override
+    protected void heartbeat(Connection connection) {
+        // let the client to do the job
+        if (connection instanceof ActiveConnection) {
+            super.heartbeat(connection);
         }
-        return docker;
     }
 
 }

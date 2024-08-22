@@ -52,12 +52,13 @@ public final class StreamClientHub extends ClientHub {
     }
 
     @Override
-    protected void setConnection(SocketAddress remote, SocketAddress local, Connection conn) {
-        super.setConnection(remote, null, conn);
+    protected Connection setConnection(SocketAddress remote, SocketAddress local, Connection conn) {
+        return super.setConnection(remote, null, conn);
     }
 
     @Override
-    protected void removeConnection(SocketAddress remote, SocketAddress local, Connection conn) {
-        super.removeConnection(remote, null, conn);
+    protected Connection removeConnection(SocketAddress remote, SocketAddress local, Connection conn) {
+        return super.removeConnection(remote, null, conn);
     }
+
 }
