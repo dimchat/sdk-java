@@ -112,10 +112,10 @@ public class MessagePacker extends TwinsHelper implements Packer {
             // a station will never send group message, so here must be a client;
             // the client messenger should check the group's meta & members before encrypting,
             // so we can trust that the group members MUST exist here.
-            sMsg = instantPacker.encrypt(iMsg, password, members);
+            sMsg = instantPacker.encryptMessage(iMsg, password, members);
         } else {
             // personal message (or split group message)
-            sMsg = instantPacker.encrypt(iMsg, password, null);
+            sMsg = instantPacker.encryptMessage(iMsg, password, null);
         }
         if (sMsg == null) {
             // public key for encryption not found
@@ -135,7 +135,7 @@ public class MessagePacker extends TwinsHelper implements Packer {
     public ReliableMessage signMessage(SecureMessage sMsg) {
         assert sMsg.getData() != null : "message data cannot be empty: " + sMsg;
         // sign 'data' by sender
-        return securePacker.sign(sMsg);
+        return securePacker.signMessage(sMsg);
     }
 
     @Override
@@ -207,7 +207,7 @@ public class MessagePacker extends TwinsHelper implements Packer {
 
         assert rMsg.getSignature() != null : "message signature cannot be empty: " + rMsg;
         // verify 'data' with 'signature'
-        return reliablePacker.verify(rMsg);
+        return reliablePacker.verifyMessage(rMsg);
     }
 
     @Override
@@ -225,9 +225,10 @@ public class MessagePacker extends TwinsHelper implements Packer {
         assert sMsg.getData() != null : "message data empty: "
                 + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
         // decrypt 'data' to 'content'
-        return securePacker.decrypt(sMsg, user.getIdentifier());
+        return securePacker.decryptMessage(sMsg, user.getIdentifier());
 
         // TODO: check top-secret message
         //       (do it by application)
     }
+
 }

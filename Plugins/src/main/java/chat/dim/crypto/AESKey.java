@@ -56,7 +56,7 @@ public final class AESKey extends BaseSymmetricKey {
     private final Cipher cipher;
 
     private TransportableData keyData;
-    private TransportableData ivData;
+    // private TransportableData ivData;
 
     public AESKey(Map<String, Object> dictionary) throws NoSuchPaddingException, NoSuchAlgorithmException {
         super(dictionary);
@@ -65,7 +65,7 @@ public final class AESKey extends BaseSymmetricKey {
         // 2. check padding = 'PKCS7Padding'
         cipher = Cipher.getInstance(AES_CBC_PKCS7);
         keyData = null;
-        ivData = null;
+        // ivData = null;
         if (!containsKey("data")) {
             generate();
         }
@@ -78,11 +78,13 @@ public final class AESKey extends BaseSymmetricKey {
         keyData = TransportableData.create(pw);
         put("data", keyData.toObject());
 
+        /*/
         // random initialization vector
         int blockSize = getBlockSize();
         byte[] iv = randomData(blockSize);
         ivData = TransportableData.create(iv);
         put("iv", ivData.toObject());
+        /*/
 
         // // other parameters
         // put("mode", "CBC");
@@ -110,6 +112,7 @@ public final class AESKey extends BaseSymmetricKey {
         return new byte[size];
     }
 
+    /*/
     private byte[] getInitVector() {
         TransportableData ted = ivData;
         if (ted == null) {
@@ -130,6 +133,7 @@ public final class AESKey extends BaseSymmetricKey {
         // and cause reloading from dictionary again.
         ivData = TransportableData.parse(iv);
     }
+    /*/
 
     @Override
     public byte[] getData() {
@@ -143,15 +147,47 @@ public final class AESKey extends BaseSymmetricKey {
         return ted.getData();
     }
 
+    private byte[] getInitVector(Map<String, Object> params) {
+        Object text = params.get("IV");
+        if (text == null) {
+            text = params.get("iv");
+            if (text == null) {
+                // compatible with old version
+                text = get("iv");
+                if (text == null) {
+                    text = get("IV");
+                }
+            }
+        }
+        byte[] iv = null;
+        TransportableData ivData = TransportableData.parse(text);
+        if (ivData != null) {
+            iv = ivData.getData();
+        }
+        if (iv != null) {
+            return iv;
+        }
+        int blockSize = getBlockSize();
+        return zeroData(blockSize);
+    }
+    private void putInitVector(byte[] iv, Map<String, Object> extra) {
+        TransportableData ivData = TransportableData.create(iv);
+        extra.put("IV", ivData.toObject());
+    }
+    private byte[] newInitVector() {
+        int blockSize = getBlockSize();
+        return randomData(blockSize);
+    }
+
     @Override
     public byte[] encrypt(byte[] plaintext, Map<String, Object> extra) {
-        // 0. TODO: random new 'IV'
-        // 1. get key data & initial vector
+        // 1. random new 'IV'
+        byte[] iv = newInitVector();
+        putInitVector(iv, extra);
+        // 2. get key data
         byte[] data = getData();
-        byte[] iv = getInitVector();
-        assert data != null && iv != null : "key error: " + toMap();
-        extra.put("IV", ivData.toObject());
-        // 2. try to encrypt
+        assert data != null : "key error: " + toMap();
+        // 3. try to encrypt
         try {
             Cipher cipher = Cipher.getInstance(AES_CBC_PKCS7);
             SecretKeySpec keySpec = new SecretKeySpec(data, SymmetricKey.AES);
@@ -168,13 +204,12 @@ public final class AESKey extends BaseSymmetricKey {
 
     @Override
     public byte[] decrypt(byte[] ciphertext, Map<String, Object> params) {
-        // 0. get 'IV' from extra params
-        setInitVector(params.get("IV"));
-        // 1. get key data & initial vector
+        // 1. get 'IV' from extra params
+        byte[] iv = getInitVector(params);
+        // 2. get key data
         byte[] data = getData();
-        byte[] iv = getInitVector();
-        assert data != null && iv != null : "key error: " + toMap();
-        // 2. try to decrypt
+        assert data != null : "key error: " + toMap();
+        // 3. try to decrypt
         try {
             Cipher cipher = Cipher.getInstance(AES_CBC_PKCS7);
             SecretKeySpec keySpec = new SecretKeySpec(data, SymmetricKey.AES);

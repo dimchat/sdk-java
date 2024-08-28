@@ -171,7 +171,12 @@ public class Station implements User {
 
     @Override
     public DataSource getDataSource() {
-        return (DataSource) user.getDataSource();
+        Entity.DataSource facebook = user.getDataSource();
+        if (facebook instanceof DataSource) {
+            return (DataSource) facebook;
+        }
+        assert facebook == null : "user data source error: " + facebook;
+        return null;
     }
 
     @Override

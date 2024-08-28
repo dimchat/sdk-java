@@ -74,7 +74,7 @@ public class SecureMessagePacker {
      * @param receiver - actual receiver (local user)
      * @return InstantMessage object
      */
-    public InstantMessage decrypt(SecureMessage sMsg, ID receiver) {
+    public InstantMessage decryptMessage(SecureMessage sMsg, ID receiver) {
         assert receiver.isUser() : "receiver error: " + receiver;
         SecureMessageDelegate transceiver = getDelegate();
 
@@ -187,7 +187,7 @@ public class SecureMessagePacker {
      * @param sMsg - encrypted message
      * @return ReliableMessage object
      */
-    public ReliableMessage sign(SecureMessage sMsg) {
+    public ReliableMessage signMessage(SecureMessage sMsg) {
         SecureMessageDelegate transceiver = getDelegate();
 
         //

@@ -69,7 +69,7 @@ public class ReliableMessagePacker {
      * @param rMsg - received message
      * @return SecureMessage object
      */
-    public SecureMessage verify(ReliableMessage rMsg) {
+    public SecureMessage verifyMessage(ReliableMessage rMsg) {
         ReliableMessageDelegate transceiver = getDelegate();
 
         //

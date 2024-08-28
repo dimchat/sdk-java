@@ -53,6 +53,16 @@ public abstract class MessageProcessor extends TwinsHelper implements Processor 
         factory = createFactory();
     }
 
+    @Override
+    protected Facebook getFacebook() {
+        return (Facebook) super.getFacebook();
+    }
+
+    @Override
+    protected Messenger getMessenger() {
+        return (Messenger) super.getMessenger();
+    }
+
     protected ContentProcessor.Factory createFactory() {
         return new GeneralContentProcessorFactory(getFacebook(), getMessenger(), createCreator());
     }
@@ -69,16 +79,6 @@ public abstract class MessageProcessor extends TwinsHelper implements Processor 
 
     public ContentProcessor getCommandProcessor(int type, String name) {
         return factory.getCommandProcessor(type, name);
-    }
-
-    @Override
-    protected Facebook getFacebook() {
-        return (Facebook) super.getFacebook();
-    }
-
-    @Override
-    protected Messenger getMessenger() {
-        return (Messenger) super.getMessenger();
     }
 
     //
@@ -219,4 +219,5 @@ public abstract class MessageProcessor extends TwinsHelper implements Processor 
         return cpu.process(content, rMsg);
         // TODO: override to filter the responses
     }
+
 }

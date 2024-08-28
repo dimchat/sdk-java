@@ -145,16 +145,24 @@ public class BaseNetworkFile extends Dictionary implements PortableNetworkFile {
     }
 
     private String getURLString() {
+        String urlString = getString("URL", null);
+        if (urlString == null) {
+            return null;
+        } else if (urlString.startsWith("data:")) {
+            // 'data:...;...,...'
+            return urlString;
+        }
         int count = size();
         if (count == 1) {
             // if only contains 'URL' field, return the URL string directly
-            return getString("URL", null);
+            return urlString;
         } else if (count == 2 && containsKey("filename")) {
             // ignore 'filename' field
-            return getString("URL", null);
+            return urlString;
         } else {
             // not a single URL
             return null;
         }
     }
+
 }

@@ -78,7 +78,7 @@ public class InstantMessagePacker {
      * @param members  - group members for group message
      * @return SecureMessage object, null on visa not found
      */
-    public SecureMessage encrypt(InstantMessage iMsg, SymmetricKey password, List<ID> members) {
+    public SecureMessage encryptMessage(InstantMessage iMsg, SymmetricKey password, List<ID> members) {
         // TODO: check attachment for File/Image/Audio/Video message content
         //      (do it by application)
         InstantMessageDelegate transceiver = getDelegate();
