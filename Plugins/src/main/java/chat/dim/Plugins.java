@@ -25,7 +25,6 @@
  */
 package chat.dim;
 
-import javax.crypto.NoSuchPaddingException;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
@@ -62,7 +61,6 @@ import chat.dim.protocol.Address;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
-import chat.dim.protocol.MetaType;
 
 public interface Plugins {
 
@@ -223,12 +221,7 @@ public interface Plugins {
 
             @Override
             public SymmetricKey parseSymmetricKey(Map<String, Object> key) {
-                try {
-                    return new AESKey(key);
-                } catch (NoSuchPaddingException | NoSuchAlgorithmException e) {
-                    e.printStackTrace();
-                    return null;
-                }
+                return new AESKey(key);
             }
         });
         SymmetricKey.setFactory(PlainKey.PLAIN, new SymmetricKey.Factory() {
@@ -288,11 +281,13 @@ public interface Plugins {
      */
     static void registerMetaFactories() {
 
-        Meta.setFactory(MetaType.MKM, new GeneralMetaFactory(MetaType.MKM));
-        Meta.setFactory(MetaType.BTC, new GeneralMetaFactory(MetaType.BTC));
-        Meta.setFactory(MetaType.ExBTC, new GeneralMetaFactory(MetaType.ExBTC));
-        Meta.setFactory(MetaType.ETH, new GeneralMetaFactory(MetaType.ETH));
-        Meta.setFactory(MetaType.ExETH, new GeneralMetaFactory(MetaType.ExETH));
+        Meta.setFactory("1", new GeneralMetaFactory("1"));
+        Meta.setFactory("2", new GeneralMetaFactory("2"));
+        Meta.setFactory("4", new GeneralMetaFactory("4"));
+
+        Meta.setFactory(Meta.MKM, new GeneralMetaFactory(Meta.MKM));
+        Meta.setFactory(Meta.BTC, new GeneralMetaFactory(Meta.BTC));
+        Meta.setFactory(Meta.ETH, new GeneralMetaFactory(Meta.ETH));
     }
 
     /*
@@ -301,8 +296,8 @@ public interface Plugins {
     static void registerDocumentFactories() {
 
         Document.setFactory("*", new GeneralDocumentFactory("*"));
-        Document.setFactory("profile", new GeneralDocumentFactory("*"));
         Document.setFactory(Document.VISA, new GeneralDocumentFactory(Document.VISA));
+        Document.setFactory(Document.PROFILE, new GeneralDocumentFactory(Document.PROFILE));
         Document.setFactory(Document.BULLETIN, new GeneralDocumentFactory(Document.BULLETIN));
     }
 

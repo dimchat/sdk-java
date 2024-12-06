@@ -38,34 +38,32 @@ import chat.dim.crypto.VerifyKey;
 import chat.dim.format.TransportableData;
 import chat.dim.format.UTF8;
 import chat.dim.protocol.Meta;
-import chat.dim.protocol.MetaType;
 
 public final class GeneralMetaFactory implements Meta.Factory {
 
-    private final int version;
+    private final String algorithm;
 
-    public GeneralMetaFactory(MetaType type) {
+    public GeneralMetaFactory(String type) {
         super();
-        version = type.value;
+        algorithm = type;
     }
 
     @Override
     public Meta createMeta(VerifyKey key, String seed, TransportableData fingerprint) {
-        if (MetaType.MKM.equals(version)) {
-            // MKM
-            return new DefaultMeta(version, key, seed, fingerprint);
-        } else if (MetaType.BTC.equals(version)) {
-            // BTC
-            return new BTCMeta(version, key);
-        } else if (MetaType.ExBTC.equals(version)) {
-            // ExBTC
-            return new BTCMeta(version, key, seed, fingerprint);
-        } else if (MetaType.ETH.equals(version)) {
-            // ETH
-            return new ETHMeta(version, key);
-        } else if (MetaType.ExETH.equals(version)) {
-            // ExETH
-            return new ETHMeta(version, key, seed, fingerprint);
+        switch (algorithm) {
+
+            case Meta.MKM:
+            case "1":
+                return new DefaultMeta("1", key, seed, fingerprint);
+
+            case Meta.BTC:
+            case "2":
+                return new BTCMeta("2", key);
+
+            case Meta.ETH:
+            case "4":
+                // ETH
+                return new ETHMeta("4", key);
         }
         return null;
     }
@@ -87,18 +85,26 @@ public final class GeneralMetaFactory implements Meta.Factory {
     public Meta parseMeta(Map<String, Object> meta) {
         Meta out;
         AccountFactoryManager man = AccountFactoryManager.getInstance();
-        int type = man.generalFactory.getMetaType(meta, 0);
-        if (MetaType.MKM.equals(type)) {
-            // MKM
-            out = new DefaultMeta(meta);
-        } else if (MetaType.BTC.equals(type) || MetaType.ExBTC.equals(type)) {
-            // BTC, ExBTC
-            out = new BTCMeta(meta);
-        } else if (MetaType.ETH.equals(type) || MetaType.ExETH.equals(type)) {
-            // ETH, ExETH
-            out = new ETHMeta(meta);
-        } else {
-            throw new IllegalArgumentException("unknown meta type: " + type);
+        String type = man.generalFactory.getMetaType(meta, "");
+        switch (type) {
+
+            case Meta.MKM:
+            case "1":
+                out = new DefaultMeta(meta);
+                break;
+
+            case Meta.BTC:
+            case "2":
+                out = new BTCMeta(meta);
+                break;
+
+            case Meta.ETH:
+            case "4":
+                out = new ETHMeta(meta);
+                break;
+
+            default:
+                throw new IllegalArgumentException("unknown meta type: " + type);
         }
         return out.isValid() ? out : null;
     }

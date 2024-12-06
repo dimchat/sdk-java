@@ -35,7 +35,7 @@ import java.util.Map;
 import chat.dim.crypto.VerifyKey;
 import chat.dim.format.TransportableData;
 import chat.dim.protocol.Address;
-import chat.dim.protocol.MetaType;
+import chat.dim.protocol.Meta;
 
 /**
  *  Meta to build BTC address for ID
@@ -56,12 +56,12 @@ public final class BTCMeta extends BaseMeta {
         super(dictionary);
     }
 
-    public BTCMeta(int version, VerifyKey key) {
-        super(version, key, null, null);
+    public BTCMeta(String type, VerifyKey key) {
+        super(type, key, null, null);
     }
 
-    public BTCMeta(int version, VerifyKey key, String seed, TransportableData fingerprint) {
-        super(version, key, seed, fingerprint);
+    public BTCMeta(String type, VerifyKey key, String seed, TransportableData fingerprint) {
+        super(type, key, seed, fingerprint);
     }
 
     // cache
@@ -69,7 +69,7 @@ public final class BTCMeta extends BaseMeta {
 
     @Override
     public Address generateAddress(int type) {
-        assert MetaType.BTC.equals(getType()) || MetaType.ExBTC.equals(getType()) : "meta version error";
+        assert Meta.BTC.equals(getType()) || "2".equals(getType()) : "meta version error: " + getType();
         Address address = cachedAddress;
         if (address == null || address.getType() != type) {
             // TODO: compress public key?

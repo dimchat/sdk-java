@@ -36,7 +36,7 @@ import java.util.Map;
 import chat.dim.crypto.VerifyKey;
 import chat.dim.format.TransportableData;
 import chat.dim.protocol.Address;
-import chat.dim.protocol.MetaType;
+import chat.dim.protocol.Meta;
 
 /**
  *  Default Meta to build ID with 'name@address'
@@ -56,8 +56,8 @@ public final class DefaultMeta extends BaseMeta {
         super(dictionary);
     }
 
-    public DefaultMeta(int version, VerifyKey key, String seed, TransportableData fingerprint) {
-        super(version, key, seed, fingerprint);
+    public DefaultMeta(String type, VerifyKey key, String seed, TransportableData fingerprint) {
+        super(type, key, seed, fingerprint);
     }
 
     // caches
@@ -65,7 +65,7 @@ public final class DefaultMeta extends BaseMeta {
 
     @Override
     public Address generateAddress(int type) {
-        assert MetaType.MKM.equals(getType()) : "meta version error: " + getType();
+        assert Meta.MKM.equals(getType()) || "1".equals(getType()) : "meta version error: " + getType();
         byte network = (byte) type;
         // check caches
         Address address = cachedAddresses.get(network);
