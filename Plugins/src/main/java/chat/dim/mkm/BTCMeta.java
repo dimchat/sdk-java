@@ -30,12 +30,12 @@
  */
 package chat.dim.mkm;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.crypto.VerifyKey;
 import chat.dim.format.TransportableData;
 import chat.dim.protocol.Address;
-import chat.dim.protocol.Meta;
 
 /**
  *  Meta to build BTC address for ID
@@ -64,20 +64,28 @@ public final class BTCMeta extends BaseMeta {
         super(type, key, seed, fingerprint);
     }
 
-    // cache
-    private Address cachedAddress = null;
+    @Override
+    protected boolean hasSeed() {
+        return false;
+    }
+
+    // caches
+    private final Map<Byte, Address> cachedAddresses = new HashMap<>();
 
     @Override
     public Address generateAddress(int type) {
-        assert Meta.BTC.equals(getType()) || "2".equals(getType()) : "meta version error: " + getType();
-        Address address = cachedAddress;
-        if (address == null || address.getType() != type) {
+        //assert Meta.BTC.equals(getType()) || "2".equals(getType()) : "meta version error: " + getType();
+        byte network = (byte) type;
+        // check caches
+        Address cached = cachedAddresses.get(network);
+        if (cached == null) {
             // TODO: compress public key?
             VerifyKey key = getPublicKey();
             byte[] data = key.getData();
             // generate and cache it
-            cachedAddress = address = BTCAddress.generate(data, (byte) type);
+            cached = BTCAddress.generate(data, network);
+            cachedAddresses.put(network, cached);
         }
-        return address;
+        return cached;
     }
 }

@@ -49,26 +49,6 @@ public final class GeneralMetaFactory implements Meta.Factory {
     }
 
     @Override
-    public Meta createMeta(VerifyKey key, String seed, TransportableData fingerprint) {
-        switch (algorithm) {
-
-            case Meta.MKM:
-            case "1":
-                return new DefaultMeta("1", key, seed, fingerprint);
-
-            case Meta.BTC:
-            case "2":
-                return new BTCMeta("2", key);
-
-            case Meta.ETH:
-            case "4":
-                // ETH
-                return new ETHMeta("4", key);
-        }
-        return null;
-    }
-
-    @Override
     public Meta generateMeta(SignKey sKey, String seed) {
         TransportableData fingerprint;
         if (seed == null || seed.length() == 0) {
@@ -82,6 +62,22 @@ public final class GeneralMetaFactory implements Meta.Factory {
     }
 
     @Override
+    public Meta createMeta(VerifyKey key, String seed, TransportableData fingerprint) {
+        switch (algorithm) {
+
+            case Meta.MKM:
+                return new DefaultMeta(Meta.MKM, key, seed, fingerprint);
+
+            case Meta.BTC:
+                return new BTCMeta(Meta.BTC, key);
+
+            case Meta.ETH:
+                return new ETHMeta(Meta.ETH, key);
+        }
+        return null;
+    }
+
+    @Override
     public Meta parseMeta(Map<String, Object> meta) {
         Meta out;
         AccountFactoryManager man = AccountFactoryManager.getInstance();
@@ -89,17 +85,14 @@ public final class GeneralMetaFactory implements Meta.Factory {
         switch (type) {
 
             case Meta.MKM:
-            case "1":
                 out = new DefaultMeta(meta);
                 break;
 
             case Meta.BTC:
-            case "2":
                 out = new BTCMeta(meta);
                 break;
 
             case Meta.ETH:
-            case "4":
                 out = new ETHMeta(meta);
                 break;
 

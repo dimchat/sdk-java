@@ -57,21 +57,6 @@ public final class ETHAddress extends ConstantString implements Address {
         return EntityType.USER.value;
     }
 
-    @Override
-    public boolean isBroadcast() {
-        return false;
-    }
-
-    @Override
-    public boolean isUser() {
-        return true;
-    }
-
-    @Override
-    public boolean isGroup() {
-        return false;
-    }
-
     // https://eips.ethereum.org/EIPS/eip-55
     private static String eip55(String hex) {
         StringBuilder sb = new StringBuilder();

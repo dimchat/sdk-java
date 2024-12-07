@@ -67,7 +67,7 @@ public class GeneralIdentifierFactory implements ID.Factory {
 
     @Override
     public ID createIdentifier(String name, Address address, String terminal) {
-        String identifier = concat(name, address, terminal);
+        String identifier = Identifier.concat(name, address, terminal);
         ID id = identifiers.get(identifier);
         if (id == null) {
             id = newID(identifier, name, address, terminal);
@@ -91,17 +91,6 @@ public class GeneralIdentifierFactory implements ID.Factory {
     // override for customized ID
     protected ID newID(String identifier, String name, Address address, String terminal) {
         return new Identifier(identifier, name, address, terminal);
-    }
-
-    private String concat(String name, Address address, String terminal) {
-        String string = address.toString();
-        if (name != null && name.length() > 0) {
-            string = name + "@" + string;
-        }
-        if (terminal != null && terminal.length() > 0) {
-            string = string + "/" + terminal;
-        }
-        return string;
     }
 
     protected ID parse(final String identifier) {

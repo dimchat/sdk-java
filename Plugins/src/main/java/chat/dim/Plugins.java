@@ -254,15 +254,23 @@ public interface Plugins {
         Address.setFactory(new BaseAddressFactory() {
             @Override
             public Address createAddress(String address) {
-                if (address == null || address.length() == 0) {
+                if (address == null) {
                     throw new NullPointerException("address empty");
-                } else if (Address.ANYWHERE.equalsIgnoreCase(address)) {
-                    return Address.ANYWHERE;
-                } else if (Address.EVERYWHERE.equalsIgnoreCase(address)) {
-                    return Address.EVERYWHERE;
+                }
+                int len = address.length();
+                assert len > 0 : "address empty";
+                if (len == 8) {
+                    // "anywhere"
+                    if (Address.ANYWHERE.equalsIgnoreCase(address)) {
+                        return Address.ANYWHERE;
+                    }
+                } else if (len == 10) {
+                    // "everywhere"
+                    if (Address.EVERYWHERE.equalsIgnoreCase(address)) {
+                        return Address.EVERYWHERE;
+                    }
                 }
                 Address res;
-                int len = address.length();
                 if (len == 42) {
                     res = ETHAddress.parse(address);
                 } else if (26 <= len && len <= 35) {
@@ -280,10 +288,6 @@ public interface Plugins {
      *  Meta factories
      */
     static void registerMetaFactories() {
-
-        Meta.setFactory("1", new GeneralMetaFactory("1"));
-        Meta.setFactory("2", new GeneralMetaFactory("2"));
-        Meta.setFactory("4", new GeneralMetaFactory("4"));
 
         Meta.setFactory(Meta.MKM, new GeneralMetaFactory(Meta.MKM));
         Meta.setFactory(Meta.BTC, new GeneralMetaFactory(Meta.BTC));

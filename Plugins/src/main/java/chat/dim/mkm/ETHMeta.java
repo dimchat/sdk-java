@@ -36,7 +36,6 @@ import chat.dim.crypto.VerifyKey;
 import chat.dim.format.TransportableData;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.EntityType;
-import chat.dim.protocol.Meta;
 
 /**
  *  Meta to build ETH address for ID
@@ -64,20 +63,27 @@ public final class ETHMeta extends BaseMeta {
         super(type, key, seed, fingerprint);
     }
 
+    @Override
+    protected boolean hasSeed() {
+        return false;
+    }
+
     // cache
     private Address cachedAddress = null;
 
     @Override
     public Address generateAddress(int type) {
-        assert Meta.ETH.equals(getType()) || "4".equals(getType()) : "meta version error: " + getType();
+        //assert Meta.ETH.equals(getType()) || "4".equals(getType()) : "meta version error: " + getType();
         assert EntityType.USER.equals(type) : "ETH address type error: " + type;
+        // check cache
         Address cached = cachedAddress;
         if (cached == null/* || cached.getType() != type*/) {
             // 64 bytes key data without prefix 0x04
             VerifyKey key = getPublicKey();
             byte[] data = key.getData();
             // generate and cache it
-            cachedAddress = cached = ETHAddress.generate(data);
+            cached = ETHAddress.generate(data);
+            cachedAddress = cached;
         }
         return cached;
     }
