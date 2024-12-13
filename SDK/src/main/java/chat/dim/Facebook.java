@@ -30,75 +30,51 @@
  */
 package chat.dim;
 
+import java.util.ArrayList;
 import java.util.List;
 
-import chat.dim.mkm.BaseGroup;
-import chat.dim.mkm.BaseUser;
-import chat.dim.mkm.Bot;
-import chat.dim.mkm.DocumentHelper;
+import chat.dim.crypto.EncryptKey;
+import chat.dim.crypto.VerifyKey;
 import chat.dim.mkm.Group;
-import chat.dim.mkm.ServiceProvider;
-import chat.dim.mkm.Station;
 import chat.dim.mkm.User;
 import chat.dim.protocol.Document;
-import chat.dim.protocol.EntityType;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 
-public abstract class Facebook extends Barrack {
-
-    protected abstract Archivist getArchivist();
+public abstract class Facebook extends Barrack implements User.DataSource, Group.DataSource {
 
     @Override
-    protected User createUser(ID identifier) {
-        assert identifier.isUser() : "user ID error: " + identifier;
-        // check visa key
-        if (!identifier.isBroadcast()) {
-            if (getPublicKeyForEncryption(identifier) == null) {
-                assert false : "visa.key not found: " + identifier;
-                return null;
-            }
-            // NOTICE: if visa.key exists, then visa & meta must exist too.
+    protected void cache(User user) {
+        if (user.getDataSource() == null) {
+            user.setDataSource(this);
         }
-        int type = identifier.getType();
-        // check user type
-        if (EntityType.STATION.equals(type)) {
-            return new Station(identifier);
-        } else if (EntityType.BOT.equals(type)) {
-            return new Bot(identifier);
-        }
-        // general user, or 'anyone@anywhere'
-        return new BaseUser(identifier);
+        super.cache(user);
     }
 
     @Override
-    protected Group createGroup(ID identifier) {
-        assert identifier.isGroup() : "group ID error: " + identifier;
-        // check members
-        if (!identifier.isBroadcast()) {
-            List<ID> members = getMembers(identifier);
-            if (members == null || members.isEmpty()) {
-                assert false : "group members not found: " + identifier;
-                return null;
-            }
-            // NOTICE: if members exist, then owner (founder) must exist,
-            //         and bulletin & meta must exist too.
+    protected void cache(Group group) {
+        if (group.getDataSource() == null) {
+            group.setDataSource(this);
         }
-        int type = identifier.getType();
-        // check group type
-        if (EntityType.ISP.equals(type)) {
-            return new ServiceProvider(identifier);
-        }
-        // general group, or 'everyone@everywhere'
-        return new BaseGroup(identifier);
+        super.cache(group);
     }
 
     /**
-     *  Get all local users (for decrypting received message)
+     *  Save meta for entity ID (must verify first)
      *
-     * @return users with private key
+     * @param meta - entity meta
+     * @param identifier - entity ID
+     * @return true on success
      */
-    public abstract List<User> getLocalUsers();
+    public abstract boolean saveMeta(Meta meta, ID identifier);
+
+    /**
+     *  Save entity document with ID (must verify first)
+     *
+     * @param doc - entity document
+     * @return true on success
+     */
+    public abstract boolean saveDocument(Document doc);
 
     /**
      *  Select local user for receiver
@@ -107,116 +83,78 @@ public abstract class Facebook extends Barrack {
      * @return local user
      */
     public User selectLocalUser(ID receiver) {
-        List<User> users = getLocalUsers();
-        if (users == null || users.isEmpty()) {
-            assert false : "local users should not be empty";
-            return null;
-        } else if (receiver.isBroadcast()) {
-            // broadcast message can decrypt by anyone, so just return current user
-            return users.get(0);
-        } else if (receiver.isUser()) {
-            // 1. personal message
-            // 2. split group message
-            for (User item : users) {
-                if (receiver.equals(item.getIdentifier())) {
-                    // DISCUSS: set this item to be current user?
-                    return item;
+        if (receiver.isUser()) {
+            Archivist archivist = getArchivist();
+            List<User> users = archivist.getLocalUsers();
+            if (users == null || users.isEmpty()) {
+                assert false : "local users should not be empty";
+            } else if (receiver.isBroadcast()) {
+                // broadcast message can be decrypted by anyone, so
+                // just return current user here
+                return users.get(0);
+            } else {
+                // 1. personal message
+                // 2. split group message
+                for (User item : users) {
+                    if (receiver.equals(item.getIdentifier())) {
+                        // DISCUSS: set this item to be current user?
+                        return item;
+                    }
                 }
+                // not me?
             }
-            // not me?
             return null;
         }
         // group message (recipient not designated)
         assert receiver.isGroup() : "receiver error: " + receiver;
-        // the messenger will check group info before decrypting message,
-        // so we can trust that the group's meta & members MUST exist here.
-        List<ID> members = getMembers(receiver);
-        assert !members.isEmpty() : "members not found: " + receiver;
-        for (User item : users) {
-            if (members.contains(item.getIdentifier())) {
-                // DISCUSS: set this item to be current user?
-                return item;
-            }
-        }
+        // TODO: check members of group
         return null;
     }
 
-    public boolean saveMeta(Meta meta, ID identifier) {
-        boolean ok = meta.isValid() && meta.matchIdentifier(identifier);
-        if (!ok) {
-            assert false : "meta not valid: " + identifier;
-            return false;
-        }
-        // check old meta
-        Meta old = getMeta(identifier);
-        if (old != null) {
-            assert meta.equals(old) : "meta would not changed";
-            return true;
-        }
-        // meta not exists yet, save it
-        Archivist archivist = getArchivist();
-        return archivist.saveMeta(meta, identifier);
-    }
-
-    public boolean saveDocument(Document doc) {
-        ID identifier = doc.getIdentifier();
-        if (identifier == null) {
-            assert false : "document error: " + doc;
-            return false;
-        }
-        if (!doc.isValid()) {
-            // try to verify
-            Meta meta = getMeta(identifier);
-            if (meta == null) {
-                assert false : "meta not found: " + identifier;
-                return false;
-            } else if (!doc.verify(meta.getPublicKey())) {
-                assert false : "failed to verify document: " + identifier;
-                return false;
-            }
-        }
-        String type = doc.getType();
-        // check old documents with type
-        List<Document> documents = getDocuments(identifier);
-        Document old = DocumentHelper.lastDocument(documents, type);
-        if (old != null && DocumentHelper.isExpired(doc, old)) {
-            // assert false : "drop expired document: " + identifier;
-            return false;
-        }
-        Archivist archivist = getArchivist();
-        return archivist.saveDocument(doc);
-    }
-
-    //
-    //  EntityDataSource
-    //
+    //-------- User DataSource
 
     @Override
-    public Meta getMeta(ID entity) {
-        /*/
-        if (entity.isBroadcast()) {
-            // broadcast ID has no meta
-            return null;
-        }
-        /*/
+    public EncryptKey getPublicKeyForEncryption(ID user) {
+        assert user.isUser() : "user ID error: " + user;
         Archivist archivist = getArchivist();
-        Meta meta = archivist.getMeta(entity);
-        archivist.checkMeta(entity, meta);
-        return meta;
+        // 1. get key from visa
+        EncryptKey visaKey = archivist.getVisaKey(user);
+        if (visaKey != null) {
+            // if visa.key exists, use it for encryption
+            return visaKey;
+        }
+        // 2. get key from meta
+        VerifyKey metaKey = archivist.getMetaKey(user);
+        if (metaKey instanceof EncryptKey) {
+            // if visa.key not exists and meta.key is encrypt key,
+            // use it for encryption
+            return (EncryptKey) metaKey;
+        }
+        //throw new NullPointerException("failed to get encrypt key for user: " + user);
+        return null;
     }
 
     @Override
-    public List<Document> getDocuments(ID entity) {
-        /*/
-        if (entity.isBroadcast()) {
-            // broadcast ID has no documents
-            return null;
-        }
-        /*/
+    public List<VerifyKey> getPublicKeysForVerification(ID user) {
+        // assert user.isUser() : "user ID error: " + user;
+        List<VerifyKey> keys = new ArrayList<>();
         Archivist archivist = getArchivist();
-        List<Document> docs = archivist.getDocuments(entity);
-        archivist.checkDocuments(entity, docs);
-        return docs;
+        // 1. get key from visa
+        EncryptKey visaKey = archivist.getVisaKey(user);
+        if (visaKey instanceof VerifyKey) {
+            // the sender may use communication key to sign message.data,
+            // try to verify it with visa.key first
+            keys.add((VerifyKey) visaKey);
+        }
+        // 2. get key from meta
+        VerifyKey metaKey = archivist.getMetaKey(user);
+        if (metaKey != null) {
+            // the sender may use identity key to sign message.data,
+            // try to verify it with meta.key too
+            keys.add(metaKey);
+        }
+        assert !keys.isEmpty() : "failed to get verify key for user: " + user;
+        return keys;
     }
 
 }

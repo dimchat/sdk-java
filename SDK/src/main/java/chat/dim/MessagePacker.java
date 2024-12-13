@@ -37,9 +37,12 @@ import chat.dim.crypto.SymmetricKey;
 import chat.dim.format.JSON;
 import chat.dim.format.UTF8;
 import chat.dim.mkm.User;
+import chat.dim.msg.InstantMessageDelegate;
 import chat.dim.msg.InstantMessagePacker;
 import chat.dim.msg.MessageHelper;
+import chat.dim.msg.ReliableMessageDelegate;
 import chat.dim.msg.ReliableMessagePacker;
+import chat.dim.msg.SecureMessageDelegate;
 import chat.dim.msg.SecureMessagePacker;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
@@ -56,9 +59,19 @@ public class MessagePacker extends TwinsHelper implements Packer {
 
     public MessagePacker(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
-        instantPacker = new InstantMessagePacker(messenger);
-        securePacker = new SecureMessagePacker(messenger);
-        reliablePacker = new ReliableMessagePacker(messenger);
+        instantPacker = createInstantMessagePacker(messenger);
+        securePacker = createSecureMessagePacker(messenger);
+        reliablePacker = createReliableMessagePacker(messenger);
+    }
+
+    protected InstantMessagePacker createInstantMessagePacker(InstantMessageDelegate transceiver) {
+        return new InstantMessagePacker(transceiver);
+    }
+    protected SecureMessagePacker createSecureMessagePacker(SecureMessageDelegate transceiver) {
+        return new SecureMessagePacker(transceiver);
+    }
+    protected ReliableMessagePacker createReliableMessagePacker(ReliableMessageDelegate transceiver) {
+        return new ReliableMessagePacker(transceiver);
     }
 
     @Override

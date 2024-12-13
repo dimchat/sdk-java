@@ -48,8 +48,8 @@ public class Station implements User {
     /**
      *  Broadcast
      */
-    public static ID ANY = ID.create("station", Address.ANYWHERE, null);
-    public static ID EVERY = ID.create("stations", Address.EVERYWHERE, null);
+    public static ID ANY = Identifier.create("station", Address.ANYWHERE, null);
+    public static ID EVERY = Identifier.create("stations", Address.EVERYWHERE, null);
 
     // inner user
     private User user;
@@ -84,6 +84,11 @@ public class Station implements User {
         }
         // others?
         return user.equals(other);
+    }
+
+    @Override
+    public int hashCode() {
+        return user.hashCode();
     }
 
     @Override
