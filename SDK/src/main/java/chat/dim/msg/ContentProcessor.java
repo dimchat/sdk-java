@@ -28,7 +28,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.core;
+package chat.dim.msg;
 
 import java.util.List;
 
@@ -68,10 +68,10 @@ public interface ContentProcessor {
          *  Create command processor with name
          *
          * @param msgType - content type
-         * @param cmd     - command name
+         * @param cmdName - command name
          * @return CommandProcessor
          */
-        ContentProcessor createCommandProcessor(int msgType, String cmd);
+        ContentProcessor createContentProcessor(int msgType, String cmdName);
     }
 
     /**
@@ -86,10 +86,8 @@ public interface ContentProcessor {
          * @param content - Content/Command
          * @return ContentProcessor
          */
-        ContentProcessor getProcessor(Content content);
+        ContentProcessor getContentProcessor(Content content);
 
         ContentProcessor getContentProcessor(int msgType);
-
-        ContentProcessor getCommandProcessor(int msgType, String name);
     }
 }

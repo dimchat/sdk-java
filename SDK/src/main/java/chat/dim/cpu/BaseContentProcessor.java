@@ -34,8 +34,8 @@ import java.util.List;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
-import chat.dim.core.ContentProcessor;
 import chat.dim.core.TwinsHelper;
+import chat.dim.msg.ContentProcessor;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ReliableMessage;
 
@@ -50,12 +50,12 @@ public class BaseContentProcessor extends TwinsHelper implements ContentProcesso
     }
 
     @Override
-    protected Facebook getFacebook() {
+    public Facebook getFacebook() {
         return (Facebook) super.getFacebook();
     }
 
     @Override
-    protected Messenger getMessenger() {
+    public Messenger getMessenger() {
         return (Messenger) super.getMessenger();
     }
 

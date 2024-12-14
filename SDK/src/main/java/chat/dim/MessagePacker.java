@@ -32,18 +32,16 @@ package chat.dim;
 
 import java.util.List;
 
-import chat.dim.core.TwinsHelper;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.format.JSON;
 import chat.dim.format.UTF8;
 import chat.dim.mkm.User;
-import chat.dim.msg.InstantMessageDelegate;
 import chat.dim.msg.InstantMessagePacker;
 import chat.dim.msg.MessageHelper;
-import chat.dim.msg.ReliableMessageDelegate;
 import chat.dim.msg.ReliableMessagePacker;
-import chat.dim.msg.SecureMessageDelegate;
 import chat.dim.msg.SecureMessagePacker;
+import chat.dim.protocol.Content;
+import chat.dim.protocol.Envelope;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.Meta;
@@ -51,38 +49,27 @@ import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 import chat.dim.protocol.Visa;
 
-public class MessagePacker extends TwinsHelper implements Packer {
+public abstract class MessagePacker implements Packer {
 
     protected final InstantMessagePacker instantPacker;
     protected final SecureMessagePacker securePacker;
     protected final ReliableMessagePacker reliablePacker;
 
-    public MessagePacker(Facebook facebook, Messenger messenger) {
-        super(facebook, messenger);
-        instantPacker = createInstantMessagePacker(messenger);
-        securePacker = createSecureMessagePacker(messenger);
-        reliablePacker = createReliableMessagePacker(messenger);
+    public MessagePacker() {
+        super();
+        instantPacker = createInstantMessagePacker();
+        securePacker = createSecureMessagePacker();
+        reliablePacker = createReliableMessagePacker();
     }
 
-    protected InstantMessagePacker createInstantMessagePacker(InstantMessageDelegate transceiver) {
-        return new InstantMessagePacker(transceiver);
-    }
-    protected SecureMessagePacker createSecureMessagePacker(SecureMessageDelegate transceiver) {
-        return new SecureMessagePacker(transceiver);
-    }
-    protected ReliableMessagePacker createReliableMessagePacker(ReliableMessageDelegate transceiver) {
-        return new ReliableMessagePacker(transceiver);
-    }
+    // Message packers
+    protected abstract InstantMessagePacker  createInstantMessagePacker();
+    protected abstract SecureMessagePacker   createSecureMessagePacker();
+    protected abstract ReliableMessagePacker createReliableMessagePacker();
 
-    @Override
-    protected Facebook getFacebook() {
-        return (Facebook) super.getFacebook();
-    }
-
-    @Override
-    protected Messenger getMessenger() {
-        return (Messenger) super.getMessenger();
-    }
+    // Twins helper
+    protected abstract Facebook  getFacebook();
+    protected abstract Messenger getMessenger();
 
     //
     //  InstantMessage -> SecureMessage -> ReliableMessage -> Data
@@ -111,7 +98,8 @@ public class MessagePacker extends TwinsHelper implements Packer {
         //
         //  1. get message key with direction (sender -> receiver) or (sender -> group)
         //
-        SymmetricKey password = getMessenger().getEncryptKey(iMsg);
+        Messenger messenger = getMessenger();
+        SymmetricKey password = messenger.getEncryptKey(iMsg);
         assert password != null : "failed to get msg key: "
                 + iMsg.getSender() + " => " + receiver + ", " + iMsg.get("group");
 
@@ -120,7 +108,8 @@ public class MessagePacker extends TwinsHelper implements Packer {
         //
         if (receiver.isGroup()) {
             // group message
-            List<ID> members = getFacebook().getMembers(receiver);
+            Facebook facebook = getFacebook();
+            List<ID> members = facebook.getMembers(receiver);
             assert !members.isEmpty() : "group not ready: " + receiver;
             // a station will never send group message, so here must be a client;
             // the client messenger should check the group's meta & members before encrypting,
@@ -138,7 +127,9 @@ public class MessagePacker extends TwinsHelper implements Packer {
 
         // NOTICE: copy content type to envelope
         //         this help the intermediate nodes to recognize message type
-        sMsg.getEnvelope().setType(iMsg.getContent().getType());
+        Envelope envelope = sMsg.getEnvelope();
+        Content content = iMsg.getContent();
+        envelope.setType(content.getType());
 
         // OK
         return sMsg;
@@ -229,7 +220,8 @@ public class MessagePacker extends TwinsHelper implements Packer {
         //       or you are a member of the group when this is a group message,
         //       so that you will have a private key (decrypt key) to decrypt it.
         ID receiver = sMsg.getReceiver();
-        User user = getFacebook().selectLocalUser(receiver);
+        Facebook facebook = getFacebook();
+        User user = facebook.selectLocalUser(receiver);
         if (user == null) {
             // not for you?
             throw new NullPointerException("receiver error: " + sMsg.getReceiver()

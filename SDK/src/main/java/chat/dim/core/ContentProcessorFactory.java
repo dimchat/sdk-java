@@ -33,8 +33,7 @@ package chat.dim.core;
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.Facebook;
-import chat.dim.Messenger;
+import chat.dim.msg.ContentProcessor;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
@@ -43,20 +42,20 @@ import chat.dim.protocol.GroupCommand;
  *  General ContentProcessor Factory
  *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
-public class GeneralContentProcessorFactory extends TwinsHelper implements ContentProcessor.Factory {
+public final class ContentProcessorFactory implements ContentProcessor.Factory {
 
     private final Map<Integer, ContentProcessor> contentProcessors = new HashMap<>();
     private final Map<String, ContentProcessor> commandProcessors = new HashMap<>();
 
     private final ContentProcessor.Creator creator;
 
-    public GeneralContentProcessorFactory(Facebook facebook, Messenger messenger, ContentProcessor.Creator creator) {
-        super(facebook, messenger);
+    public ContentProcessorFactory(ContentProcessor.Creator creator) {
+        super();
         this.creator = creator;
     }
 
     @Override
-    public ContentProcessor getProcessor(Content content) {
+    public ContentProcessor getContentProcessor(Content content) {
         ContentProcessor cpu;
         int msgType = content.getType();
         if (content instanceof Command) {
@@ -89,13 +88,12 @@ public class GeneralContentProcessorFactory extends TwinsHelper implements Conte
         return cpu;
     }
 
-    @Override
-    public ContentProcessor getCommandProcessor(int msgType, String name) {
-        ContentProcessor cpu = commandProcessors.get(name);
+    private ContentProcessor getCommandProcessor(int msgType, String cmdName) {
+        ContentProcessor cpu = commandProcessors.get(cmdName);
         if (cpu == null) {
-            cpu = creator.createCommandProcessor(msgType, name);
+            cpu = creator.createContentProcessor(msgType, cmdName);
             if (cpu != null) {
-                commandProcessors.put(name, cpu);
+                commandProcessors.put(cmdName, cpu);
             }
         }
         return cpu;

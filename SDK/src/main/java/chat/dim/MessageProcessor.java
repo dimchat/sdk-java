@@ -33,10 +33,8 @@ package chat.dim;
 import java.util.ArrayList;
 import java.util.List;
 
-import chat.dim.core.ContentProcessor;
-import chat.dim.core.GeneralContentProcessorFactory;
-import chat.dim.core.TwinsHelper;
 import chat.dim.mkm.User;
+import chat.dim.msg.ContentProcessor;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.Envelope;
 import chat.dim.protocol.ID;
@@ -44,42 +42,21 @@ import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 
-public abstract class MessageProcessor extends TwinsHelper implements Processor {
+public abstract class MessageProcessor implements Processor {
 
     private final ContentProcessor.Factory factory;
 
-    public MessageProcessor(Facebook facebook, Messenger messenger) {
-        super(facebook, messenger);
+    public MessageProcessor() {
+        super();
         factory = createFactory();
     }
 
-    @Override
-    protected Facebook getFacebook() {
-        return (Facebook) super.getFacebook();
-    }
+    // CPU factory
+    protected abstract ContentProcessor.Factory createFactory();
 
-    @Override
-    protected Messenger getMessenger() {
-        return (Messenger) super.getMessenger();
-    }
-
-    protected ContentProcessor.Factory createFactory() {
-        return new GeneralContentProcessorFactory(getFacebook(), getMessenger(), createCreator());
-    }
-    // override for creating customized CPUs
-    protected abstract ContentProcessor.Creator createCreator();
-
-    public ContentProcessor getProcessor(Content content) {
-        return factory.getProcessor(content);
-    }
-
-    public ContentProcessor getContentProcessor(int type) {
-        return factory.getContentProcessor(type);
-    }
-
-    public ContentProcessor getCommandProcessor(int type, String name) {
-        return factory.getCommandProcessor(type, name);
-    }
+    // Twins helper
+    protected abstract Facebook  getFacebook();
+    protected abstract Messenger getMessenger();
 
     //
     //  Processing Message
@@ -210,10 +187,10 @@ public abstract class MessageProcessor extends TwinsHelper implements Processor 
     @Override
     public List<Content> processContent(Content content, ReliableMessage rMsg) {
         // TODO: override to check group
-        ContentProcessor cpu = getProcessor(content);
+        ContentProcessor cpu = factory.getContentProcessor(content);
         if (cpu == null) {
             // default content processor
-            cpu = getContentProcessor(0);
+            cpu = factory.getContentProcessor(0);
             assert cpu != null : "failed to get default CPU";
         }
         return cpu.process(content, rMsg);

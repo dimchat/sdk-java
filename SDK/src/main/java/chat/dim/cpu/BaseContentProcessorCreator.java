@@ -32,8 +32,8 @@ package chat.dim.cpu;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
-import chat.dim.core.ContentProcessor;
 import chat.dim.core.TwinsHelper;
+import chat.dim.msg.ContentProcessor;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.ContentType;
 
@@ -48,23 +48,23 @@ public class BaseContentProcessorCreator extends TwinsHelper implements ContentP
     }
 
     @Override
-    protected Facebook getFacebook() {
+    public Facebook getFacebook() {
         return (Facebook) super.getFacebook();
     }
 
     @Override
-    protected Messenger getMessenger() {
+    public Messenger getMessenger() {
         return (Messenger) super.getMessenger();
     }
 
     @Override
-    public ContentProcessor createContentProcessor(int type) {
+    public ContentProcessor createContentProcessor(int msgType) {
         // forward content
-        if (ContentType.FORWARD.equals(type)) {
+        if (ContentType.FORWARD.equals(msgType)) {
             return new ForwardContentProcessor(getFacebook(), getMessenger());
         }
         // array content
-        if (ContentType.ARRAY.equals(type)) {
+        if (ContentType.ARRAY.equals(msgType)) {
             return new ArrayContentProcessor(getFacebook(), getMessenger());
         }
         /*/
@@ -77,7 +77,7 @@ public class BaseContentProcessorCreator extends TwinsHelper implements ContentP
         /*/
 
         // default commands
-        if (ContentType.COMMAND.equals(type)) {
+        if (ContentType.COMMAND.equals(msgType)) {
             return new BaseCommandProcessor(getFacebook(), getMessenger());
         }
         /*/
@@ -92,8 +92,8 @@ public class BaseContentProcessorCreator extends TwinsHelper implements ContentP
     }
 
     @Override
-    public ContentProcessor createCommandProcessor(int type, String name) {
-        switch (name) {
+    public ContentProcessor createContentProcessor(int msgType, String cmdName) {
+        switch (cmdName) {
             // meta command
             case Command.META:
                 return new MetaCommandProcessor(getFacebook(), getMessenger());

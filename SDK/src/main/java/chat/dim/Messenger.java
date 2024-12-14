@@ -53,18 +53,21 @@ public abstract class Messenger extends Transceiver implements Packer, Processor
     public SymmetricKey getEncryptKey(InstantMessage iMsg) {
         ID sender = iMsg.getSender();
         ID target = CipherKeyDelegate.getDestination(iMsg);
-        return getCipherKeyDelegate().getCipherKey(sender, target, true);
+        CipherKeyDelegate delegate = getCipherKeyDelegate();
+        return delegate.getCipherKey(sender, target, true);
     }
     public SymmetricKey getDecryptKey(SecureMessage sMsg) {
         ID sender = sMsg.getSender();
         ID target = CipherKeyDelegate.getDestination(sMsg);
-        return getCipherKeyDelegate().getCipherKey(sender, target, false);
+        CipherKeyDelegate delegate = getCipherKeyDelegate();
+        return delegate.getCipherKey(sender, target, false);
     }
 
     public void cacheDecryptKey(SymmetricKey key, SecureMessage sMsg) {
         ID sender = sMsg.getSender();
         ID target = CipherKeyDelegate.getDestination(sMsg);
-        getCipherKeyDelegate().cacheCipherKey(sender, target, key);
+        CipherKeyDelegate delegate = getCipherKeyDelegate();
+        delegate.cacheCipherKey(sender, target, key);
     }
 
     //
@@ -73,32 +76,38 @@ public abstract class Messenger extends Transceiver implements Packer, Processor
 
     @Override
     public SecureMessage encryptMessage(InstantMessage iMsg) {
-        return getPacker().encryptMessage(iMsg);
+        Packer packer = getPacker();
+        return packer.encryptMessage(iMsg);
     }
 
     @Override
     public ReliableMessage signMessage(SecureMessage sMsg) {
-        return getPacker().signMessage(sMsg);
+        Packer packer = getPacker();
+        return packer.signMessage(sMsg);
     }
 
     @Override
     public byte[] serializeMessage(ReliableMessage rMsg) {
-        return getPacker().serializeMessage(rMsg);
+        Packer packer = getPacker();
+        return packer.serializeMessage(rMsg);
     }
 
     @Override
     public ReliableMessage deserializeMessage(byte[] data) {
-        return getPacker().deserializeMessage(data);
+        Packer packer = getPacker();
+        return packer.deserializeMessage(data);
     }
 
     @Override
     public SecureMessage verifyMessage(ReliableMessage rMsg) {
-        return getPacker().verifyMessage(rMsg);
+        Packer packer = getPacker();
+        return packer.verifyMessage(rMsg);
     }
 
     @Override
     public InstantMessage decryptMessage(SecureMessage sMsg) {
-        return getPacker().decryptMessage(sMsg);
+        Packer packer = getPacker();
+        return packer.decryptMessage(sMsg);
     }
 
     //
@@ -106,27 +115,32 @@ public abstract class Messenger extends Transceiver implements Packer, Processor
     //
     @Override
     public List<byte[]> processPackage(byte[] data) {
-        return getProcessor().processPackage(data);
+        Processor processor = getProcessor();
+        return processor.processPackage(data);
     }
 
     @Override
     public List<ReliableMessage> processReliableMessage(ReliableMessage rMsg) {
-        return getProcessor().processReliableMessage(rMsg);
+        Processor processor = getProcessor();
+        return processor.processReliableMessage(rMsg);
     }
 
     @Override
     public List<SecureMessage> processSecureMessage(SecureMessage sMsg, ReliableMessage rMsg) {
-        return getProcessor().processSecureMessage(sMsg, rMsg);
+        Processor processor = getProcessor();
+        return processor.processSecureMessage(sMsg, rMsg);
     }
 
     @Override
     public List<InstantMessage> processInstantMessage(InstantMessage iMsg, ReliableMessage rMsg) {
-        return getProcessor().processInstantMessage(iMsg, rMsg);
+        Processor processor = getProcessor();
+        return processor.processInstantMessage(iMsg, rMsg);
     }
 
     @Override
     public List<Content> processContent(Content content, ReliableMessage rMsg) {
-        return getProcessor().processContent(content, rMsg);
+        Processor processor = getProcessor();
+        return processor.processContent(content, rMsg);
     }
 
     //-------- SecureMessageDelegate

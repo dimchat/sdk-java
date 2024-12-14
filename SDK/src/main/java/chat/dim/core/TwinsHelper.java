@@ -42,23 +42,23 @@ import chat.dim.protocol.Content;
 import chat.dim.protocol.Envelope;
 import chat.dim.protocol.ReceiptCommand;
 
-public abstract class TwinsHelper {
+public class TwinsHelper {
 
-    private final WeakReference<Barrack> facebookRef;
-    private final WeakReference<Transceiver> messengerRef;
+    private final WeakReference<Barrack> barrack;
+    private final WeakReference<Transceiver> transceiver;
 
-    protected TwinsHelper(Barrack facebook, Transceiver messenger) {
+    public TwinsHelper(Barrack facebook, Transceiver messenger) {
         super();
-        facebookRef = new WeakReference<>(facebook);
-        messengerRef = new WeakReference<>(messenger);
+        barrack = new WeakReference<>(facebook);
+        transceiver = new WeakReference<>(messenger);
     }
 
-    protected Barrack getFacebook() {
-        return facebookRef.get();
+    public Barrack getFacebook() {
+        return barrack.get();
     }
 
-    protected Transceiver getMessenger() {
-        return messengerRef.get();
+    public Transceiver getMessenger() {
+        return transceiver.get();
     }
 
     //
@@ -128,4 +128,5 @@ public abstract class TwinsHelper {
         }
         return info;
     }
+
 }

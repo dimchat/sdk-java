@@ -65,7 +65,8 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
     }
 
     private List<Content> getMeta(ID identifier, Envelope envelope, MetaCommand content) {
-        Meta meta = getFacebook().getMeta(identifier);
+        Facebook facebook = getFacebook();
+        Meta meta = facebook.getMeta(identifier);
         if (meta == null) {
             return respondReceipt("Meta not found.", envelope, content, newMap(
                     "template", "Meta not found: ${ID}.",
