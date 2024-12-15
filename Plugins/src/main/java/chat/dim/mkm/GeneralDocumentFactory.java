@@ -40,7 +40,7 @@ import chat.dim.protocol.ID;
  *  General Document Factory
  *  ~~~~~~~~~~~~~~~~~~~~~~~~
  */
-public final class GeneralDocumentFactory implements Document.Factory {
+public class GeneralDocumentFactory implements Document.Factory {
 
     private final String docType;
 
@@ -57,7 +57,7 @@ public final class GeneralDocumentFactory implements Document.Factory {
         } else if (identifier.isUser()) {
             return Document.VISA;
         } else {
-            return "profile";
+            return Document.PROFILE;
         }
     }
 

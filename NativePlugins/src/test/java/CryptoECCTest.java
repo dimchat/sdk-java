@@ -10,6 +10,9 @@ import chat.dim.crypto.PublicKey;
 import chat.dim.digest.RIPEMD160;
 import chat.dim.digest.SHA256;
 import chat.dim.format.Hex;
+import chat.dim.mkm.BTCAddress;
+import chat.dim.mkm.ETHAddress;
+import chat.dim.protocol.Address;
 
 public class CryptoECCTest {
 
@@ -89,11 +92,11 @@ public class CryptoECCTest {
         byte[] pub = pKey.getData();
         Log.info("pub: " + Hex.encode(pub));
 
-//        BTCAddress btc = BTCAddress.generate(pub, NetworkID.BTCMain.value);
-//        Log.info("BTC address: " + btc.toString());
-//
-//        ETHAddress eth = ETHAddress.generate(pub);
-//        Log.info("ETH address: " + eth.toString());
+        BTCAddress btc = BTCAddress.generate(pub, (byte) 0);
+        Log.info("BTC address: " + btc);
+
+        ETHAddress eth = ETHAddress.generate(pub);
+        Log.info("ETH address: " + eth);
     }
 
     @Test
@@ -203,8 +206,8 @@ public class CryptoECCTest {
         byte[] data = RIPEMD160.digest(SHA256.digest(pub));
         Log.info("hash: " + Hex.encode(data));
 
-//        Address address = BTCAddress.generate(pub, (byte) 0);
-//        Log.info("address: " + address);
+        Address address = BTCAddress.generate(pub, (byte) 0);
+        Log.info("address: " + address);
     }
 
     @Test
@@ -269,9 +272,9 @@ public class CryptoECCTest {
     }
 
     private static void testValidate(String address, String expected) {
-//        String validate = ETHAddress.getValidateAddress(address);
-//        Log.info("validate(" + address + "): " + validate);
-//        Assert.assertEquals(expected, validate);
+        String validate = ETHAddress.getValidateAddress(address);
+        Log.info("validate(" + address + "): " + validate);
+        Assert.assertEquals(expected, validate);
     }
 
     @Test
@@ -279,14 +282,14 @@ public class CryptoECCTest {
         boolean ok;
         Log.info("-------- test validate --------");
 
-//        ok = ETHAddress.isValidate("0xD4a16aa11Bd0D3315698792F5E1F66770F9Cd78F");
-//        Assert.assertTrue(ok);
-//
-//        ok = ETHAddress.isValidate("0x40DAB7E81503AA1F8c1ef3574842017277755646");
-//        Assert.assertTrue(ok);
-//
-//        ok = ETHAddress.isValidate("0x50352B904445576242444bc1924e93e61090738c");
-//        Assert.assertTrue(!ok);
+        ok = ETHAddress.isValidate("0xD4a16aa11Bd0D3315698792F5E1F66770F9Cd78F");
+        Assert.assertTrue(ok);
+
+        ok = ETHAddress.isValidate("0x40DAB7E81503AA1F8c1ef3574842017277755646");
+        Assert.assertTrue(ok);
+
+        ok = ETHAddress.isValidate("0x50352B904445576242444bc1924e93e61090738c");
+        Assert.assertTrue(!ok);
 
         testValidate("0x50352B904445576242444bc1924e93e61090738c",
                 "0x50352B904445576242444bc1924e93e61090738C");

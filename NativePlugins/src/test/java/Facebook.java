@@ -4,19 +4,21 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import chat.dim.Archivist;
 import chat.dim.Barrack;
+import chat.dim.compat.CompatibleMetaFactory;
 import chat.dim.crypto.DecryptKey;
+import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
-import chat.dim.mkm.BaseGroup;
-import chat.dim.mkm.BaseUser;
+import chat.dim.crypto.VerifyKey;
 import chat.dim.mkm.Group;
 import chat.dim.mkm.User;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 
-public class Facebook extends Barrack {
+public class Facebook extends Barrack implements User.DataSource, Group.DataSource {
     private static final Facebook ourInstance = new Facebook();
     public static Facebook getInstance() { return ourInstance; }
     private Facebook() {
@@ -41,42 +43,28 @@ public class Facebook extends Barrack {
     }
 
     @Override
-    protected User createUser(ID identifier) {
-        assert identifier.isUser() : "user ID error: " + identifier;
-        // check visa key
-        if (!identifier.isBroadcast()) {
-            if (getPublicKeyForEncryption(identifier) == null) {
-                assert false : "visa.key not found: " + identifier;
-                return null;
-            }
-            // NOTICE: if visa.key exists, then visa & meta must exist too.
+    protected void cache(User user) {
+        if (user.getDataSource() == null) {
+            user.setDataSource(this);
         }
-        // TODO: check user type
-
-        // general user, or 'anyone@anywhere'
-        return new BaseUser(identifier);
+        super.cache(user);
     }
 
     @Override
-    protected Group createGroup(ID identifier) {
-        assert identifier.isGroup() : "group ID error: " + identifier;
-        // check members
-        if (!identifier.isBroadcast()) {
-            List<ID> members = getMembers(identifier);
-            if (members == null || members.isEmpty()) {
-                assert false : "group members not found: " + identifier;
-                return null;
-            }
-            // NOTICE: if members exist, then owner (founder) must exist,
-            //         and bulletin & meta must exist too.
+    protected void cache(Group group) {
+        if (group.getDataSource() == null) {
+            group.setDataSource(this);
         }
-        // TODO: check group type
-
-        // general group, or 'everyone@everywhere'
-        return new BaseGroup(identifier);
+        super.cache(group);
     }
 
-    //-------- EntityDataSource
+    @Override
+    public Archivist getArchivist() {
+        // TODO:
+        return null;
+    }
+
+    //-------- Entity DataSource
 
     @Override
     public Meta getMeta(ID entity) {
@@ -88,10 +76,23 @@ public class Facebook extends Barrack {
         return null;
     }
 
-    //------- UserDataSource
+    //------- User DataSource
 
     @Override
     public List<ID> getContacts(ID user) {
+        // TODO:
+        return null;
+    }
+
+    @Override
+    public EncryptKey getPublicKeyForEncryption(ID user) {
+        // TODO:
+        return null;
+    }
+
+    @Override
+    public List<VerifyKey> getPublicKeysForVerification(ID user) {
+        // TODO:
         return null;
     }
 
@@ -116,8 +117,62 @@ public class Facebook extends Barrack {
         return getPrivateKeyForSignature(user);
     }
 
-    static {
+    //------- Group DataSource
+
+    @Override
+    public ID getFounder(ID group) {
+        // TODO:
+        return null;
+    }
+
+    @Override
+    public ID getOwner(ID group) {
+        // TODO:
+        return null;
+    }
+
+    @Override
+    public List<ID> getMembers(ID group) {
+        // TODO:
+        return null;
+    }
+
+    @Override
+    public List<ID> getAssistants(ID group) {
+        // TODO:
+        return null;
+    }
+
+    /**
+     *  Meta factories
+     */
+    static void registerCompatibleMetaFactories() {
+
+        Meta.Factory mkm = new CompatibleMetaFactory(Meta.MKM);
+        Meta.Factory btc = new CompatibleMetaFactory(Meta.BTC);
+        Meta.Factory eth = new CompatibleMetaFactory(Meta.ETH);
+
+        Meta.setFactory("1", mkm);
+        Meta.setFactory("2", btc);
+        Meta.setFactory("4", eth);
+
+        Meta.setFactory("mkm", mkm);
+        Meta.setFactory("btc", btc);
+        Meta.setFactory("eth", eth);
+
+        Meta.setFactory("MKM", mkm);
+        Meta.setFactory("BTC", btc);
+        Meta.setFactory("ETH", eth);
+    }
+
+    static void registerPlugins() {
         chat.dim.Plugins.registerPlugins();
         chat.dim.NativePlugins.registerNativePlugins();
+
+        registerCompatibleMetaFactories();
+    }
+
+    static {
+        registerPlugins();
     }
 }

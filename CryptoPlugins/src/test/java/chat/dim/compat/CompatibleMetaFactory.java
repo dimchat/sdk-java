@@ -28,37 +28,23 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.mkm;
+package chat.dim.compat;
 
 import java.util.Map;
 
-import chat.dim.crypto.PrivateKey;
-import chat.dim.crypto.SignKey;
 import chat.dim.crypto.VerifyKey;
 import chat.dim.format.TransportableData;
-import chat.dim.format.UTF8;
+import chat.dim.mkm.AccountFactoryManager;
+import chat.dim.mkm.BTCMeta;
+import chat.dim.mkm.DefaultMeta;
+import chat.dim.mkm.ETHMeta;
+import chat.dim.mkm.GeneralMetaFactory;
 import chat.dim.protocol.Meta;
 
-public class GeneralMetaFactory implements Meta.Factory {
+public final class CompatibleMetaFactory extends GeneralMetaFactory {
 
-    protected final String type;
-
-    public GeneralMetaFactory(String algorithm) {
-        super();
-        type = algorithm;
-    }
-
-    @Override
-    public Meta generateMeta(SignKey sKey, String seed) {
-        TransportableData fingerprint;
-        if (seed == null || seed.length() == 0) {
-            fingerprint = null;
-        } else {
-            byte[] sig = sKey.sign(UTF8.encode(seed));
-            fingerprint = TransportableData.create(sig);
-        }
-        VerifyKey key = ((PrivateKey) sKey).getPublicKey();
-        return createMeta(key, seed, fingerprint);
+    public CompatibleMetaFactory(String algorithm) {
+        super(algorithm);
     }
 
     @Override
@@ -67,15 +53,15 @@ public class GeneralMetaFactory implements Meta.Factory {
         switch (type) {
 
             case Meta.MKM:
-                out = new DefaultMeta(type, key, seed, fingerprint);
+                out = new DefaultMeta("1", key, seed, fingerprint);
                 break;
 
             case Meta.BTC:
-                out = new BTCMeta(type, key);
+                out = new BTCMeta("2", key);
                 break;
 
             case Meta.ETH:
-                out = new ETHMeta(type, key);
+                out = new ETHMeta("4", key);
                 break;
 
             default:
@@ -92,15 +78,21 @@ public class GeneralMetaFactory implements Meta.Factory {
         String type = man.generalFactory.getMetaType(meta, "");
         switch (type) {
 
-            case Meta.MKM:
+            case "MKM":
+            case "mkm":
+            case "1":
                 out = new DefaultMeta(meta);
                 break;
 
-            case Meta.BTC:
+            case "BTC":
+            case "btc":
+            case "2":
                 out = new BTCMeta(meta);
                 break;
 
-            case Meta.ETH:
+            case "ETH":
+            case "eth":
+            case "4":
                 out = new ETHMeta(meta);
                 break;
 

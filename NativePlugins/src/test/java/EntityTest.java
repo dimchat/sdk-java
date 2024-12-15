@@ -1,4 +1,5 @@
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -6,11 +7,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import chat.dim.crypto.PrivateKey;
+import chat.dim.crypto.PublicKey;
 import chat.dim.crypto.SignKey;
+import chat.dim.mkm.BTCAddress;
 import chat.dim.mkm.BaseGroup;
+import chat.dim.mkm.BaseUser;
 import chat.dim.mkm.Group;
+import chat.dim.mkm.User;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.Document;
+import chat.dim.protocol.EntityType;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 
@@ -52,14 +59,19 @@ public class EntityTest {
     public void testAddress() {
         Address address;
 
-//        address = BTCAddress.parse("4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
-//        Log.info("address: " + address + ", detail: " + getAddressInfo(address));
-//
-//        address = BTCAddress.parse("4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ");
-//        Log.info("address: " + address + ", detail: " + getAddressInfo(address));
+        address = BTCAddress.parse("4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
+        Log.info("address: " + address + ", detail: " + getAddressInfo(address));
 
-//        address = BTCAddress.parse(satoshi);
-//        Log.info("satoshi: " + address);
+        address = BTCAddress.parse("4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ");
+        Log.info("address: " + address + ", detail: " + getAddressInfo(address));
+
+        address = BTCAddress.parse(satoshi);
+        Log.info("satoshi: " + address);
+    }
+
+    private String getAddressInfo(Address address) {
+        // TODO:
+        return null;
     }
 
     @Test
@@ -79,23 +91,24 @@ public class EntityTest {
         Log.info("list<ID>: " + array);
     }
 
-//    @Test
-//    public void testMeta() throws ClassNotFoundException {
-//        PrivateKey sk = PrivateKey.generate(PrivateKey.RSA);
-//        PublicKey pk = sk.getPublicKey();
-//        String seed = "moky";
+    @Test
+    public void testMeta() {
+        PrivateKey sk = PrivateKey.generate(PrivateKey.RSA);
+        PublicKey pk = sk.getPublicKey();
+        String seed = "moky";
+        Meta meta = Meta.generate(Meta.MKM, sk, seed);
+        Log.info("meta: " + meta + ", detail: " + getMetaInfo(meta));
+        Assert.assertTrue(meta.matchPublicKey(pk));
+
+        ID identifier = ID.generate(meta, EntityType.USER.value, null);
+        Log.info("ID: " + identifier + ", detail: " + getIDInfo(identifier));
+        Assert.assertTrue(meta.matchIdentifier(identifier));
+
+        User user = new BaseUser(identifier);
+        user.setDataSource(facebook);
+//        facebook.cacheUser(user);
+//
 //        byte[] data = UTF8.encode(seed);
-//        Meta meta = Meta.generate(MetaType.Default, sk, seed);
-//        Log.info("meta: " + meta + ", detail: " + getMetaInfo(meta));
-//        Assert.assertTrue(meta.matches(pk));
-//
-//        ID identifier = meta.generateID(NetworkID.Main);
-//        Log.info("ID: " + identifier + ", detail: " + getIDInfo(identifier));
-//        Assert.assertTrue(meta.matches(identifier));
-//
-//        User user = new User(identifier);
-//        user.setDataSource(facebook);
-//        facebook.cache(user);
 //
 //        byte[] signature = user.sign(data);
 //        Assert.assertTrue(user.verify(data, signature));
@@ -105,7 +118,7 @@ public class EntityTest {
 //        byte[] plaintext = user.decrypt(ciphertext);
 //        Assert.assertArrayEquals(data, plaintext);
 //        Log.info("decryption OK!");
-//    }
+    }
 
     @Test
     public void testProfile() {
@@ -133,16 +146,16 @@ public class EntityTest {
         Log.info("profile: " + doc);
     }
 
-//    @Test
-//    public void testGroup() {
-//        ID identifier = ID.parse("Group-1280719982@7oMeWadRw4qat2sL4mTdcQSDAqZSo7LH5G");
-//        Group group = new BaseGroup(identifier);
-//        group.setDataSource(facebook);
-//
+    @Test
+    public void testGroup() {
+        ID identifier = ID.parse("Group-1280719982@7oMeWadRw4qat2sL4mTdcQSDAqZSo7LH5G");
+        Group group = new BaseGroup(identifier);
+        group.setDataSource(facebook);
+
 //        Log.info("founder: " + group.getFounder());
 //        Log.info("owner: " + group.getOwner());
 //        Log.info("members: " + group.getMembers());
-//    }
+    }
 
 }
 

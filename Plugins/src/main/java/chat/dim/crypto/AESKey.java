@@ -46,157 +46,171 @@ import chat.dim.format.TransportableData;
  *          algorithm: "AES",
  *          keySize  : 32,                // optional
  *          data     : "{BASE64_ENCODE}}" // password data
- *          iv       : "{BASE64_ENCODE}", // initialization vector
  *      }
  */
 public final class AESKey extends BaseSymmetricKey {
 
     public final static String AES_CBC_PKCS7 = "AES/CBC/PKCS7Padding";
 
-    private final Cipher cipher;
+    private final int blockSize;  // 16
 
     private TransportableData keyData;
     // private TransportableData ivData;
 
-    public AESKey(Map<String, Object> dictionary) throws NoSuchPaddingException, NoSuchAlgorithmException {
+    public AESKey(Map<String, Object> dictionary) {
         super(dictionary);
         // TODO: check algorithm parameters
         // 1. check mode = 'CBC'
         // 2. check padding = 'PKCS7Padding'
-        cipher = Cipher.getInstance(AES_CBC_PKCS7);
-        keyData = null;
-        // ivData = null;
-        if (!containsKey("data")) {
-            generate();
+        blockSize = getDefaultBlockSize();
+        // check key data
+        if (containsKey("data")) {
+            // lazy load
+            keyData = null;
+        } else {
+            // new key
+            keyData = generateKeyData();
         }
     }
 
-    private void generate() {
+    protected TransportableData generateKeyData() {
         // random key data
         int keySize = getKeySize();
-        byte[] pw = randomData(keySize);
-        keyData = TransportableData.create(pw);
-        put("data", keyData.toObject());
+        byte[] pwd = randomData(keySize);
+        TransportableData ted = TransportableData.create(pwd);
 
+        put("data", ted.toObject());
         /*/
-        // random initialization vector
-        int blockSize = getBlockSize();
-        byte[] iv = randomData(blockSize);
-        ivData = TransportableData.create(iv);
-        put("iv", ivData.toObject());
-        /*/
-
-        // // other parameters
         // put("mode", "CBC");
         // put("padding", "PKCS7");
+        /*/
+
+        return ted;
     }
 
-    private int getKeySize() {
+    protected int getDefaultBlockSize() {
+        try {
+            Cipher cipher = Cipher.getInstance(AES_CBC_PKCS7);
+            return cipher.getBlockSize();
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
+            e.printStackTrace();
+            return 16;
+        }
+    }
+
+    protected Cipher getEncryptCipher(byte[] keyData, byte[] ivData) {
+        try {
+            Cipher cipher = Cipher.getInstance(AES_CBC_PKCS7);
+            SecretKeySpec keySpec = new SecretKeySpec(keyData, SymmetricKey.AES);
+            IvParameterSpec ivSpec = new IvParameterSpec(ivData);
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
+            return cipher;
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException |
+                InvalidAlgorithmParameterException | InvalidKeyException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    protected Cipher getDecryptCipher(byte[] keyData, byte[] ivData) {
+        try {
+            Cipher cipher = Cipher.getInstance(AES_CBC_PKCS7);
+            SecretKeySpec keySpec = new SecretKeySpec(keyData, SymmetricKey.AES);
+            IvParameterSpec ivSpec = new IvParameterSpec(ivData);
+            cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
+            return cipher;
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException |
+                InvalidAlgorithmParameterException | InvalidKeyException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    protected int getKeySize() {
         // TODO: get from key data
         return getInt("keySize", 32);
     }
 
-    private int getBlockSize() {
+    protected int getBlockSize() {
         // TODO: get from iv data
-        return getInt("blockSize", cipher.getBlockSize());
+        return getInt("blockSize", blockSize);
     }
-
-    private static byte[] randomData(int size) {
-        Random random = new Random();
-        byte[] buffer = new byte[size];
-        random.nextBytes(buffer);
-        return buffer;
-    }
-
-    private byte[] zeroData(int size) {
-        return new byte[size];
-    }
-
-    /*/
-    private byte[] getInitVector() {
-        TransportableData ted = ivData;
-        if (ted == null) {
-            Object iv = get("iv");
-            if (iv == null) {
-                // zero iv
-                byte[] zeros = zeroData(getBlockSize());
-                ivData = ted = TransportableData.create(zeros);
-            } else {
-                ivData = ted = TransportableData.parse(iv);
-                assert ivData != null : "IV error: " + iv;
-            }
-        }
-        return ted.getData();
-    }
-    private void setInitVector(Object iv) {
-        // if new iv not exists, this will erase the decoded ivData,
-        // and cause reloading from dictionary again.
-        ivData = TransportableData.parse(iv);
-    }
-    /*/
 
     @Override
     public byte[] getData() {
         TransportableData ted = keyData;
         if (ted == null) {
-            Object data = get("data");
-            assert data != null : "key data not found: " + toMap();
-            keyData = ted = TransportableData.parse(data);
-            assert keyData != null : "key data error: " + data;
+            Object base64 = get("data");
+            assert base64 != null : "key data not found: " + toMap();
+            keyData = ted = TransportableData.parse(base64);
+            //assert keyData != null : "key data error: " + base64;
         }
-        return ted.getData();
+        return ted == null ? null : ted.getData();
     }
 
-    private byte[] getInitVector(Map<String, Object> params) {
-        Object text = params.get("IV");
-        if (text == null) {
-            text = params.get("iv");
-            if (text == null) {
-                // compatible with old version
-                text = get("iv");
-                if (text == null) {
-                    text = get("IV");
-                }
+    protected byte[] getInitVector(Map<String, Object> params) {
+        // get base64 encoded IV from params
+        Object base64;
+        if (params == null) {
+            assert false : "params must provided to fetch IV for AES";
+            base64 = null;
+        } else {
+            base64 = params.get("IV");
+            if (base64 == null) {
+                base64 = params.get("iv");
             }
         }
-        byte[] iv = null;
-        TransportableData ivData = TransportableData.parse(text);
-        if (ivData != null) {
-            iv = ivData.getData();
+        if (base64 == null) {
+            // compatible with old version
+            base64 = get("iv");
+            if (base64 == null) {
+                base64 = get("IV");
+            }
         }
-        if (iv != null) {
-            return iv;
+        // decode IV data
+        TransportableData ted = TransportableData.parse(base64);
+        if (ted != null) {
+            byte[] iv = ted.getData();
+            if (iv != null) {
+                return iv;
+            }
         }
+        assert base64 == null : "IV data error: " + base64;
+        // zero IV
         int blockSize = getBlockSize();
-        return zeroData(blockSize);
+        return new byte[blockSize];
     }
-    private void putInitVector(byte[] iv, Map<String, Object> extra) {
-        TransportableData ivData = TransportableData.create(iv);
-        extra.put("IV", ivData.toObject());
-    }
-    private byte[] newInitVector() {
+    protected byte[] newInitVector(Map<String, Object> extra) {
+        // random IV data
         int blockSize = getBlockSize();
-        return randomData(blockSize);
+        byte[] iv = randomData(blockSize);
+        // put encoded IV into extra
+        if (extra == null) {
+            assert false : "extra dict must provided to store IV for AES";
+        } else {
+            TransportableData ted = TransportableData.create(iv);
+            extra.put("IV", ted.toObject());
+        }
+        // OK
+        return iv;
     }
 
     @Override
     public byte[] encrypt(byte[] plaintext, Map<String, Object> extra) {
         // 1. random new 'IV'
-        byte[] iv = newInitVector();
-        putInitVector(iv, extra);
+        byte[] iv = newInitVector(extra);
         // 2. get key data
         byte[] data = getData();
         assert data != null : "key error: " + toMap();
         // 3. try to encrypt
+        Cipher cipher = getEncryptCipher(data, iv);
+        if (cipher == null) {
+            assert false : "failed to get encrypt cipher";
+            return null;
+        }
         try {
-            Cipher cipher = Cipher.getInstance(AES_CBC_PKCS7);
-            SecretKeySpec keySpec = new SecretKeySpec(data, SymmetricKey.AES);
-            IvParameterSpec ivSpec = new IvParameterSpec(iv);
-            cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
             return cipher.doFinal(plaintext);
-        } catch (InvalidKeyException | InvalidAlgorithmParameterException |
-                NoSuchPaddingException | NoSuchAlgorithmException |
-                IllegalBlockSizeException | BadPaddingException e) {
+        } catch (IllegalBlockSizeException | BadPaddingException e) {
             e.printStackTrace();
             return null;
         }
@@ -210,17 +224,24 @@ public final class AESKey extends BaseSymmetricKey {
         byte[] data = getData();
         assert data != null : "key error: " + toMap();
         // 3. try to decrypt
+        Cipher cipher = getDecryptCipher(data, iv);
+        if (cipher == null) {
+            assert false : "failed to get decrypt cipher";
+            return null;
+        }
         try {
-            Cipher cipher = Cipher.getInstance(AES_CBC_PKCS7);
-            SecretKeySpec keySpec = new SecretKeySpec(data, SymmetricKey.AES);
-            IvParameterSpec ivSpec = new IvParameterSpec(iv);
-            cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
             return cipher.doFinal(ciphertext);
-        } catch (InvalidKeyException | InvalidAlgorithmParameterException |
-                NoSuchPaddingException | NoSuchAlgorithmException |
-                IllegalBlockSizeException | BadPaddingException e) {
+        } catch (IllegalBlockSizeException | BadPaddingException e) {
             e.printStackTrace();
             return null;
         }
     }
+
+    protected static byte[] randomData(int size) {
+        Random random = new Random();
+        byte[] buffer = new byte[size];
+        random.nextBytes(buffer);
+        return buffer;
+    }
+
 }

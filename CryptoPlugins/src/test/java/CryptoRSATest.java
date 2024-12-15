@@ -9,9 +9,12 @@ import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.PublicKey;
+import chat.dim.format.Hex;
 import chat.dim.format.UTF8;
 
 public class CryptoRSATest {
+
+    private static final Facebook facebook = Facebook.getInstance();
 
     @Test
     public void testRSA() {
@@ -26,7 +29,7 @@ public class CryptoRSATest {
         String text = "moky";
         byte[] plaintext = UTF8.encode(text);
         byte[] ciphertext = ((EncryptKey) pk).encrypt(plaintext, extra);
-        Log.info("RSA encrypt(\"" + text + "\") = " + Utils.hexEncode(ciphertext));
+        Log.info("RSA encrypt(\"" + text + "\") = " + Hex.encode(ciphertext));
 
         byte[] data = ((DecryptKey) sk).decrypt(ciphertext, extra);
         String decrypt = new String(data);
@@ -35,7 +38,7 @@ public class CryptoRSATest {
         Assert.assertEquals(text, decrypt);
 
         byte[] signature = sk.sign(plaintext);
-        Log.info("signature(\"" + text + "\") = " + Utils.hexEncode(signature));
+        Log.info("signature(\"" + text + "\") = " + Hex.encode(signature));
 
         boolean ok = pk.verify(plaintext, signature);
         Assert.assertTrue(ok);

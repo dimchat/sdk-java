@@ -255,7 +255,9 @@ public interface Plugins {
             @Override
             public Address createAddress(String address) {
                 if (address == null) {
-                    throw new NullPointerException("address empty");
+                    //throw new NullPointerException("address empty");
+                    assert false : "address empty";
+                    return null;
                 }
                 int len = address.length();
                 assert len > 0 : "address empty";
@@ -271,13 +273,16 @@ public interface Plugins {
                     }
                 }
                 Address res;
-                if (len == 42) {
-                    res = ETHAddress.parse(address);
-                } else if (26 <= len && len <= 35) {
+                if (26 <= len && len <= 35) {
                     res = BTCAddress.parse(address);
+                } else if (len == 42) {
+                    res = ETHAddress.parse(address);
                 } else {
-                    throw new AssertionError("invalid address: " + address);
+                    //throw new AssertionError("invalid address: " + address);
+                    assert false : "invalid address: " + address;
+                    res = null;
                 }
+                // TODO: other types of address
                 assert res != null : "invalid address: " + address;
                 return res;
             }

@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import chat.dim.mkm.BTCAddress;
 import chat.dim.mkm.BaseGroup;
 import chat.dim.mkm.Group;
 import chat.dim.protocol.Address;
@@ -51,14 +52,19 @@ public class EntityTest {
     public void testAddress() {
         Address address;
 
-//        address = BTCAddress.parse("4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
-//        Log.info("address: " + address + ", detail: " + getAddressInfo(address));
-//
-//        address = BTCAddress.parse("4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ");
-//        Log.info("address: " + address + ", detail: " + getAddressInfo(address));
+        address = BTCAddress.parse("4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
+        Log.info("address: " + address + ", detail: " + getAddressInfo(address));
 
-//        address = BTCAddress.parse(satoshi);
-//        Log.info("satoshi: " + address);
+        address = BTCAddress.parse("4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ");
+        Log.info("address: " + address + ", detail: " + getAddressInfo(address));
+
+        address = BTCAddress.parse(satoshi);
+        Log.info("satoshi: " + address);
+    }
+
+    private String getAddressInfo(Address address) {
+        // TODO:
+        return null;
     }
 
     @Test
