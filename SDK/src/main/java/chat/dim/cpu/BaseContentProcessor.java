@@ -30,13 +30,17 @@
  */
 package chat.dim.cpu;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.core.TwinsHelper;
 import chat.dim.msg.ContentProcessor;
 import chat.dim.protocol.Content;
+import chat.dim.protocol.Envelope;
+import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.ReliableMessage;
 
 /**
@@ -50,16 +54,6 @@ public class BaseContentProcessor extends TwinsHelper implements ContentProcesso
     }
 
     @Override
-    public Facebook getFacebook() {
-        return (Facebook) super.getFacebook();
-    }
-
-    @Override
-    public Messenger getMessenger() {
-        return (Messenger) super.getMessenger();
-    }
-
-    @Override
     public List<Content> process(Content content, ReliableMessage rMsg) {
         return respondReceipt("Content not support.", rMsg.getEnvelope(), content, newMap(
                 "template", "Content (type: ${type}) not support yet!",
@@ -67,6 +61,38 @@ public class BaseContentProcessor extends TwinsHelper implements ContentProcesso
                         "type", content.getType()
                 )
         ));
+    }
+
+    //
+    //  Convenient responding
+    //
+
+    protected List<Content> respondReceipt(String text, Envelope envelope, Content content, Map<String, Object> extra) {
+        // create base receipt command with text & original envelope
+        ReceiptCommand res = createReceipt(text, envelope, content, extra);
+        List<Content> responses = new ArrayList<>();
+        responses.add(res);
+        return responses;
+    }
+
+    /**
+     *  Create receipt command with text, original envelope, serial number & group
+     *
+     * @param text     - text message
+     * @param head     - original envelope
+     * @param body     - original content
+     * @param extra    - extra info
+     * @return receipt command
+     */
+    public static ReceiptCommand createReceipt(String text, Envelope head, Content body, Map<String, Object> extra) {
+        assert text != null && head != null : "params error";
+        // create base receipt command with text, original envelope, serial number & group ID
+        ReceiptCommand res = ReceiptCommand.create(text, head, body);
+        // add extra key-value
+        if (extra != null) {
+            res.putAll(extra);
+        }
+        return res;
     }
 
 }

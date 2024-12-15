@@ -48,16 +48,6 @@ public class BaseContentProcessorCreator extends TwinsHelper implements ContentP
     }
 
     @Override
-    public Facebook getFacebook() {
-        return (Facebook) super.getFacebook();
-    }
-
-    @Override
-    public Messenger getMessenger() {
-        return (Messenger) super.getMessenger();
-    }
-
-    @Override
     public ContentProcessor createContentProcessor(int msgType) {
         // forward content
         if (ContentType.FORWARD.equals(msgType)) {
@@ -106,4 +96,5 @@ public class BaseContentProcessorCreator extends TwinsHelper implements ContentP
                 return null;
         }
     }
+
 }

@@ -32,13 +32,17 @@ package chat.dim;
 
 import java.util.List;
 
+import chat.dim.core.TwinsHelper;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.format.JSON;
 import chat.dim.format.UTF8;
 import chat.dim.mkm.User;
+import chat.dim.msg.InstantMessageDelegate;
 import chat.dim.msg.InstantMessagePacker;
 import chat.dim.msg.MessageHelper;
+import chat.dim.msg.ReliableMessageDelegate;
 import chat.dim.msg.ReliableMessagePacker;
+import chat.dim.msg.SecureMessageDelegate;
 import chat.dim.msg.SecureMessagePacker;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.Envelope;
@@ -49,27 +53,29 @@ import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 import chat.dim.protocol.Visa;
 
-public abstract class MessagePacker implements Packer {
+public abstract class MessagePacker extends TwinsHelper implements Packer {
 
     protected final InstantMessagePacker instantPacker;
     protected final SecureMessagePacker securePacker;
     protected final ReliableMessagePacker reliablePacker;
 
-    public MessagePacker() {
-        super();
-        instantPacker = createInstantMessagePacker();
-        securePacker = createSecureMessagePacker();
-        reliablePacker = createReliableMessagePacker();
+    public MessagePacker(Facebook facebook, Messenger messenger) {
+        super(facebook, messenger);
+        instantPacker  = createInstantMessagePacker(messenger);
+        securePacker   = createSecureMessagePacker(messenger);
+        reliablePacker = createReliableMessagePacker(messenger);
     }
 
     // Message packers
-    protected abstract InstantMessagePacker  createInstantMessagePacker();
-    protected abstract SecureMessagePacker   createSecureMessagePacker();
-    protected abstract ReliableMessagePacker createReliableMessagePacker();
-
-    // Twins helper
-    protected abstract Facebook  getFacebook();
-    protected abstract Messenger getMessenger();
+    protected InstantMessagePacker createInstantMessagePacker(InstantMessageDelegate delegate) {
+        return new InstantMessagePacker(delegate);
+    }
+    protected SecureMessagePacker  createSecureMessagePacker(SecureMessageDelegate delegate) {
+        return new SecureMessagePacker(delegate);
+    }
+    protected ReliableMessagePacker createReliableMessagePacker(ReliableMessageDelegate delegate) {
+        return new ReliableMessagePacker(delegate);
+    }
 
     //
     //  InstantMessage -> SecureMessage -> ReliableMessage -> Data

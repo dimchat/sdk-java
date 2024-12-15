@@ -30,6 +30,7 @@
  */
 package chat.dim.cpu;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import chat.dim.Facebook;
@@ -76,9 +77,10 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
             ));
         }
         // meta got
-        return respondContent(
-                MetaCommand.response(identifier, meta)
-        );
+        MetaCommand res = MetaCommand.response(identifier, meta);
+        List<Content> responses = new ArrayList<>();
+        responses.add(res);
+        return responses;
     }
 
     private List<Content> putMeta(Meta meta, ID identifier, Envelope envelope, MetaCommand content) {

@@ -33,6 +33,7 @@ package chat.dim;
 import java.util.ArrayList;
 import java.util.List;
 
+import chat.dim.core.TwinsHelper;
 import chat.dim.mkm.User;
 import chat.dim.msg.ContentProcessor;
 import chat.dim.protocol.Content;
@@ -42,21 +43,17 @@ import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 
-public abstract class MessageProcessor implements Processor {
+public abstract class MessageProcessor extends TwinsHelper implements Processor {
 
     private final ContentProcessor.Factory factory;
 
-    public MessageProcessor() {
-        super();
-        factory = createFactory();
+    public MessageProcessor(Facebook facebook, Messenger messenger) {
+        super(facebook, messenger);
+        factory = createFactory(facebook, messenger);
     }
 
     // CPU factory
-    protected abstract ContentProcessor.Factory createFactory();
-
-    // Twins helper
-    protected abstract Facebook  getFacebook();
-    protected abstract Messenger getMessenger();
+    protected abstract ContentProcessor.Factory createFactory(Facebook facebook, Messenger messenger);
 
     //
     //  Processing Message

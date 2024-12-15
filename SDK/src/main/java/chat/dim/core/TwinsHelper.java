@@ -31,75 +31,29 @@
 package chat.dim.core;
 
 import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import chat.dim.Barrack;
-import chat.dim.Transceiver;
-import chat.dim.protocol.Content;
-import chat.dim.protocol.Envelope;
-import chat.dim.protocol.ReceiptCommand;
+import chat.dim.Facebook;
+import chat.dim.Messenger;
 
 public class TwinsHelper {
 
-    private final WeakReference<Barrack> barrack;
-    private final WeakReference<Transceiver> transceiver;
+    private final WeakReference<Facebook> barrack;
+    private final WeakReference<Messenger> transceiver;
 
-    public TwinsHelper(Barrack facebook, Transceiver messenger) {
+    public TwinsHelper(Facebook facebook, Messenger messenger) {
         super();
         barrack = new WeakReference<>(facebook);
         transceiver = new WeakReference<>(messenger);
     }
 
-    public Barrack getFacebook() {
+    protected Facebook getFacebook() {
         return barrack.get();
     }
 
-    public Transceiver getMessenger() {
+    protected Messenger getMessenger() {
         return transceiver.get();
-    }
-
-    //
-    //  Convenient responding
-    //
-
-    protected List<Content> respondReceipt(String text, Envelope envelope, Content content, Map<String, Object> extra) {
-        // create base receipt command with text & original envelope
-        ReceiptCommand res = createReceipt(text, envelope, content, extra);
-        List<Content> responses = new ArrayList<>();
-        responses.add(res);
-        return responses;
-    }
-
-    protected List<Content> respondContent(Content res) {
-        if (res == null) {
-            return null;
-        }
-        List<Content> responses = new ArrayList<>();
-        responses.add(res);
-        return responses;
-    }
-
-    /**
-     *  Create receipt command with text, original envelope, serial number & group
-     *
-     * @param text     - text message
-     * @param head     - original envelope
-     * @param body     - original content
-     * @param extra    - extra info
-     * @return receipt command
-     */
-    public static ReceiptCommand createReceipt(String text, Envelope head, Content body, Map<String, Object> extra) {
-        assert text != null && head != null : "params error";
-        // create base receipt command with text, original envelope, serial number & group ID
-        ReceiptCommand res = ReceiptCommand.create(text, head, body);
-        // add extra key-value
-        if (extra != null) {
-            res.putAll(extra);
-        }
-        return res;
     }
 
     //
