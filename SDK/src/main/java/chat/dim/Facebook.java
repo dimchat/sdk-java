@@ -33,6 +33,7 @@ package chat.dim;
 import java.util.ArrayList;
 import java.util.List;
 
+import chat.dim.core.Barrack;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.VerifyKey;
 import chat.dim.mkm.Group;

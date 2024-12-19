@@ -32,6 +32,10 @@ package chat.dim;
 
 import java.util.List;
 
+import chat.dim.core.CipherKeyDelegate;
+import chat.dim.core.Packer;
+import chat.dim.core.Processor;
+import chat.dim.core.Transceiver;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;

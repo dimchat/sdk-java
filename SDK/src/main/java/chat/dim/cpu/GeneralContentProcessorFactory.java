@@ -42,14 +42,14 @@ import chat.dim.protocol.GroupCommand;
  *  General ContentProcessor Factory
  *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
-public final class ContentProcessorFactory implements ContentProcessor.Factory {
+public final class GeneralContentProcessorFactory implements ContentProcessor.Factory {
 
     private final Map<Integer, ContentProcessor> contentProcessors = new HashMap<>();
     private final Map<String, ContentProcessor> commandProcessors = new HashMap<>();
 
     private final ContentProcessor.Creator creator;
 
-    public ContentProcessorFactory(ContentProcessor.Creator creator) {
+    public GeneralContentProcessorFactory(ContentProcessor.Creator creator) {
         super();
         this.creator = creator;
     }

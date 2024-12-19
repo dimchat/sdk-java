@@ -33,7 +33,7 @@ package chat.dim;
 import java.util.ArrayList;
 import java.util.List;
 
-import chat.dim.core.TwinsHelper;
+import chat.dim.core.Processor;
 import chat.dim.dkd.ContentProcessor;
 import chat.dim.mkm.User;
 import chat.dim.protocol.Content;

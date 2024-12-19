@@ -94,7 +94,7 @@ public class CoreLoader {
     }
 
     /**
-     *  Register message factories
+     *  Message factories
      */
     private void registerMessageFactories() {
 
@@ -109,7 +109,7 @@ public class CoreLoader {
     }
 
     /**
-     *  Register core content factories
+     *  Core content factories
      */
     private void registerContentFactories() {
 
@@ -159,7 +159,7 @@ public class CoreLoader {
     }
 
     /**
-     *  Register core command factories
+     *  Core command factories
      */
     private void registerCommandFactories() {
 
@@ -188,7 +188,7 @@ public class CoreLoader {
     }
 
     /**
-     *  Register customized content factories
+     *  Customized content factories
      */
     private void registerCustomizedFactories() {
 

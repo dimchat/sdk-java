@@ -32,7 +32,7 @@ package chat.dim;
 
 import java.util.List;
 
-import chat.dim.core.TwinsHelper;
+import chat.dim.core.Packer;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.format.JSON;
 import chat.dim.format.UTF8;
