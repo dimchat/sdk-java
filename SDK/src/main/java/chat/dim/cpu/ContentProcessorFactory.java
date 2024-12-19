@@ -28,12 +28,12 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.core;
+package chat.dim.cpu;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.msg.ContentProcessor;
+import chat.dim.dkd.ContentProcessor;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;

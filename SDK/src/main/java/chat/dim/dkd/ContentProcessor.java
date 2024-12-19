@@ -28,7 +28,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.msg;
+package chat.dim.dkd;
 
 import java.util.List;
 

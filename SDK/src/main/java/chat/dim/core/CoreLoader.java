@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  DIMP : Decentralized Instant Messaging Protocol
+ *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
  *                                Written in 2022 by Moky <albert.moky@gmail.com>
  *
@@ -30,11 +30,13 @@
  */
 package chat.dim.core;
 
-//import chat.dim.dkd.AppCustomizedContent;
 import chat.dim.dkd.AppCustomizedContent;
 import chat.dim.dkd.BaseContent;
 import chat.dim.dkd.BaseMoneyContent;
 import chat.dim.dkd.BaseTextContent;
+import chat.dim.dkd.GeneralCommandFactory;
+import chat.dim.dkd.GroupCommandFactory;
+import chat.dim.dkd.HistoryCommandFactory;
 import chat.dim.dkd.ListContent;
 import chat.dim.dkd.NameCardContent;
 import chat.dim.dkd.SecretContent;
@@ -66,18 +68,36 @@ import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 
-public enum CoreFactoryManager {
+public class CoreLoader {
 
-    INSTANCE;
+    private boolean isLoaded = false;
 
-    public static CoreFactoryManager getInstance() {
-        return INSTANCE;
+    /**
+     *  Register core factories
+     */
+    public boolean load() {
+        if (isLoaded) {
+            // already loaded
+            return false;
+        } else {
+            isLoaded = true;
+        }
+
+        registerMessageFactories();
+        registerContentFactories();
+        registerCommandFactories();
+
+        registerCustomizedFactories();
+
+        // OK
+        return true;
     }
 
     /**
-     *  Register core message factories
+     *  Register message factories
      */
-    public void registerMessageFactories() {
+    private void registerMessageFactories() {
+
         // Envelope factory
         MessageFactory factory = new MessageFactory();
         Envelope.setFactory(factory);
@@ -91,7 +111,7 @@ public enum CoreFactoryManager {
     /**
      *  Register core content factories
      */
-    public void registerContentFactories() {
+    private void registerContentFactories() {
 
         // Text
         Content.setFactory(ContentType.TEXT, BaseTextContent::new);
@@ -135,13 +155,13 @@ public enum CoreFactoryManager {
         Content.setFactory(ContentType.FORWARD, SecretContent::new);
 
         // unknown content type
-        Content.setFactory(0, BaseContent::new);
+        Content.setFactory(ContentType.ANY, BaseContent::new);
     }
 
     /**
      *  Register core command factories
      */
-    public void registerCommandFactories() {
+    private void registerCommandFactories() {
 
         // Meta Command
         Command.setFactory(Command.META, BaseMetaCommand::new);
@@ -167,22 +187,13 @@ public enum CoreFactoryManager {
         Command.setFactory(GroupCommand.RESIGN, ResignGroupCommand::new);
     }
 
-
     /**
-     *  Register All Message/Content/Command Factories
+     *  Register customized content factories
      */
-    public void registerAllFactories() {
-        //
-        //  Register core factories
-        //
-        registerMessageFactories();
-        registerContentFactories();
-        registerCommandFactories();
+    private void registerCustomizedFactories() {
 
-        //
-        //  Register customized factories
-        //
         Content.setFactory(ContentType.CUSTOMIZED, AppCustomizedContent::new);
         Content.setFactory(ContentType.APPLICATION, AppCustomizedContent::new);
     }
+
 }
