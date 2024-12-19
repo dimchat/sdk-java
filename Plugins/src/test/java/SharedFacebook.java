@@ -6,6 +6,7 @@ import java.util.Map;
 
 import chat.dim.Archivist;
 import chat.dim.Facebook;
+import chat.dim.PluginLoader;
 import chat.dim.compat.CompatibleMetaFactory;
 import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.PrivateKey;
@@ -146,13 +147,9 @@ public class SharedFacebook extends Facebook {
         Meta.setFactory("ETH", eth);
     }
 
-    static void registerPlugins() {
-        chat.dim.Plugins.registerPlugins();
+    static {
+        new PluginLoader().load();
 
         registerCompatibleMetaFactories();
-    }
-
-    static {
-        registerPlugins();
     }
 }

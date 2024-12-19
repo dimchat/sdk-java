@@ -55,16 +55,46 @@ import chat.dim.mkm.BTCAddress;
 import chat.dim.mkm.BaseAddressFactory;
 import chat.dim.mkm.ETHAddress;
 import chat.dim.mkm.GeneralDocumentFactory;
-import chat.dim.mkm.GeneralIdentifierFactory;
 import chat.dim.mkm.GeneralMetaFactory;
+import chat.dim.mkm.IdentifierFactory;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 
-public interface Plugins {
+public class PluginLoader {
 
-    static void registerDataCoders() {
+    private boolean isLoaded = false;
+
+    /**
+     *  Register core factories
+     */
+    public boolean load() {
+        if (isLoaded) {
+            // already loaded
+            return false;
+        } else {
+            isLoaded = true;
+        }
+
+        registerDataCoders();
+        registerDataDigesters();
+
+        registerSymmetricKeyFactories();
+
+        registerIDFactory();
+        registerAddressFactory();
+        registerMetaFactories();
+        registerDocumentFactories();
+
+        // OK
+        return true;
+    }
+
+    /**
+     *  Data coders
+     */
+    private void registerDataCoders() {
 
         // Base58 coding
         Base58.coder = new DataCoder() {
@@ -148,7 +178,10 @@ public interface Plugins {
         TransportableData.setFactory("*", tedFactory);
     }
 
-    static void registerDataDigesters() {
+    /**
+     *  Data digesters
+     */
+    private void registerDataDigesters() {
 
         // MD5
         MD5.digester = new DataDigester() {
@@ -205,10 +238,10 @@ public interface Plugins {
         };
     }
 
-    /*
-     *  Symmetric Key Parsers
+    /**
+     *  Symmetric key parsers
      */
-    static void registerSymmetricKeyFactories() {
+    private void registerSymmetricKeyFactories() {
 
         SymmetricKey.setFactory(SymmetricKey.AES, new SymmetricKey.Factory() {
 
@@ -238,18 +271,18 @@ public interface Plugins {
         });
     }
 
-    /*
+    /**
      *  ID factory
      */
-    static void registerIDFactory() {
+    private void registerIDFactory() {
 
-        ID.setFactory(new GeneralIdentifierFactory());
+        ID.setFactory(new IdentifierFactory());
     }
 
-    /*
+    /**
      *  Address factory
      */
-    static void registerAddressFactory() {
+    private void registerAddressFactory() {
 
         Address.setFactory(new BaseAddressFactory() {
             @Override
@@ -293,20 +326,20 @@ public interface Plugins {
         });
     }
 
-    /*
+    /**
      *  Meta factories
      */
-    static void registerMetaFactories() {
+    private void registerMetaFactories() {
 
         Meta.setFactory(Meta.MKM, new GeneralMetaFactory(Meta.MKM));
         Meta.setFactory(Meta.BTC, new GeneralMetaFactory(Meta.BTC));
         Meta.setFactory(Meta.ETH, new GeneralMetaFactory(Meta.ETH));
     }
 
-    /*
+    /**
      *  Document factories
      */
-    static void registerDocumentFactories() {
+    private void registerDocumentFactories() {
 
         Document.setFactory("*", new GeneralDocumentFactory("*"));
         Document.setFactory(Document.VISA, new GeneralDocumentFactory(Document.VISA));
@@ -314,16 +347,4 @@ public interface Plugins {
         Document.setFactory(Document.BULLETIN, new GeneralDocumentFactory(Document.BULLETIN));
     }
 
-    static void registerPlugins() {
-
-        registerDataCoders();
-        registerDataDigesters();
-
-        registerSymmetricKeyFactories();
-
-        registerIDFactory();
-        registerAddressFactory();
-        registerMetaFactories();
-        registerDocumentFactories();
-    }
 }

@@ -27,12 +27,14 @@ package chat.dim;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.NoSuchAlgorithmException;
+import java.security.Provider;
 import java.security.Security;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.bouncycastle.crypto.digests.KeccakDigest;
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import chat.dim.crypto.AsymmetricKey;
 import chat.dim.crypto.ECCPrivateKey;
@@ -47,9 +49,72 @@ import chat.dim.digest.RIPEMD160;
 import chat.dim.format.JSON;
 import chat.dim.format.ObjectCoder;
 
-public class NativePlugins {
+public class NativePluginLoader {
 
-    static void registerDataDigesters() {
+    private boolean isLoaded = false;
+
+    /**
+     *  Register core factories
+     */
+    public boolean load() {
+        if (isLoaded) {
+            // already loaded
+            return false;
+        } else {
+            isLoaded = true;
+            resetSecurityProvider();
+        }
+
+        registerDataCoders();
+        registerDataDigesters();
+
+        registerAsymmetricKeyFactories();
+
+        // OK
+        return true;
+    }
+
+    private void resetSecurityProvider() {
+
+        Provider provider = Security.getProvider(BouncyCastleProvider.PROVIDER_NAME);
+        if (provider != null) {
+            System.out.println(BouncyCastleProvider.PROVIDER_NAME + " old version: " + provider.getVersion());
+            Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
+        }
+        provider = new BouncyCastleProvider();
+        System.out.println(BouncyCastleProvider.PROVIDER_NAME + " new version: " + provider.getVersion());
+        Security.addProvider(provider);
+
+    }
+
+    /**
+     *  Data coders
+     */
+    private void registerDataCoders() {
+
+        JSON.coder = new ObjectCoder<Object>() {
+
+            @Override
+            public String encode(Object container) {
+                /*/
+                String s = com.alibaba.fastjson.JSON.toJSONString(container);
+                return s.getBytes(Charset.forName("UTF-8"));
+                */
+                return com.alibaba.fastjson.JSON.toJSONString(container);
+            }
+
+            @Override
+            public Object decode(String json) {
+                return com.alibaba.fastjson.JSON.parse(json);
+            }
+        };
+
+    }
+
+    /**
+     *  Data digesters
+     */
+    private void registerDataDigesters() {
 
         RIPEMD160.digester = new DataDigester() {
             @Override
@@ -73,28 +138,10 @@ public class NativePlugins {
         };
     }
 
-    static void registerDataCoders() {
-
-        JSON.coder = new ObjectCoder<Object>() {
-
-            @Override
-            public String encode(Object container) {
-                /*/
-                String s = com.alibaba.fastjson.JSON.toJSONString(container);
-                return s.getBytes(Charset.forName("UTF-8"));
-                */
-                return com.alibaba.fastjson.JSON.toJSONString(container);
-            }
-
-            @Override
-            public Object decode(String json) {
-                return com.alibaba.fastjson.JSON.parse(json);
-            }
-        };
-
-    }
-
-    static void registerAsymmetricKeyFactories() {
+    /**
+     *  Asymmetric key parsers
+     */
+    private void registerAsymmetricKeyFactories() {
 
         PrivateKey.Factory rsaPri = new PrivateKey.Factory() {
 
@@ -170,14 +217,4 @@ public class NativePlugins {
 
     }
 
-    public static void registerNativePlugins() {
-
-        Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
-
-        registerDataDigesters();
-
-        registerDataCoders();
-
-        registerAsymmetricKeyFactories();
-    }
 }

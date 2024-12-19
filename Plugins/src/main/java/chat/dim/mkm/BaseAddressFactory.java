@@ -33,7 +33,6 @@ package chat.dim.mkm;
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.Barrack;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.Meta;
 
@@ -43,19 +42,7 @@ import chat.dim.protocol.Meta;
  */
 public abstract class BaseAddressFactory implements Address.Factory {
 
-    private final Map<String, Address> addresses = new HashMap<>();
-
-    /**
-     * Call it when received 'UIApplicationDidReceiveMemoryWarningNotification',
-     * this will remove 50% of cached objects
-     *
-     * @return number of survivors
-     */
-    public int reduceMemory() {
-        int finger = 0;
-        finger = Barrack.thanos(addresses, finger);
-        return finger >> 1;
-    }
+    protected final Map<String, Address> addresses = new HashMap<>();
 
     @Override
     public Address generateAddress(Meta meta, int network) {

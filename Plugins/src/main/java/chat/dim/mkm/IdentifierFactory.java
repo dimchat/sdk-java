@@ -33,7 +33,6 @@ package chat.dim.mkm;
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.Barrack;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
@@ -42,21 +41,9 @@ import chat.dim.protocol.Meta;
  *  General ID factory
  *  ~~~~~~~~~~~~~~~~~~
  */
-public class GeneralIdentifierFactory implements ID.Factory {
+public class IdentifierFactory implements ID.Factory {
 
-    private final Map<String, ID> identifiers = new HashMap<>();
-
-    /**
-     * Call it when received 'UIApplicationDidReceiveMemoryWarningNotification',
-     * this will remove 50% of cached objects
-     *
-     * @return number of survivors
-     */
-    public int reduceMemory() {
-        int finger = 0;
-        finger = Barrack.thanos(identifiers, finger);
-        return finger >> 1;
-    }
+    protected final Map<String, ID> identifiers = new HashMap<>();
 
     @Override
     public ID generateIdentifier(Meta meta, int network, String terminal) {
