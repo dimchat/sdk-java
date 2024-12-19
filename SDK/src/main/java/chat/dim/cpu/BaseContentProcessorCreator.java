@@ -82,7 +82,7 @@ public class BaseContentProcessorCreator extends TwinsHelper implements ContentP
     }
 
     @Override
-    public ContentProcessor createContentProcessor(int msgType, String cmdName) {
+    public ContentProcessor createCommandProcessor(int msgType, String cmdName) {
         switch (cmdName) {
             // meta command
             case Command.META:

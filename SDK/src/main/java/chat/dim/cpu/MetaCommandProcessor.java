@@ -49,7 +49,7 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
     }
 
     @Override
-    public List<Content> process(Content content, ReliableMessage rMsg) {
+    public List<Content> processContent(Content content, ReliableMessage rMsg) {
         assert content instanceof MetaCommand : "meta command error: " + content;
         MetaCommand command = (MetaCommand) content;
         Meta meta = command.getMeta();

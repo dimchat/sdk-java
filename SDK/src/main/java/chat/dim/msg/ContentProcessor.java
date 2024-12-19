@@ -48,7 +48,7 @@ public interface ContentProcessor {
      * @param rMsg    - reliable message
      * @return {Content} response to sender
      */
-    List<Content> process(Content content, ReliableMessage rMsg);
+    List<Content> processContent(Content content, ReliableMessage rMsg);
 
     /**
      *  CPU Creator
@@ -71,7 +71,7 @@ public interface ContentProcessor {
          * @param cmdName - command name
          * @return CommandProcessor
          */
-        ContentProcessor createContentProcessor(int msgType, String cmdName);
+        ContentProcessor createCommandProcessor(int msgType, String cmdName);
     }
 
     /**

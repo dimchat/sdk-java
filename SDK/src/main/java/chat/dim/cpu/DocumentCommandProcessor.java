@@ -51,7 +51,7 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         super(facebook, messenger);
     }
     @Override
-    public List<Content> process(Content content, ReliableMessage rMsg) {
+    public List<Content> processContent(Content content, ReliableMessage rMsg) {
         assert content instanceof DocumentCommand : "document command error: " + content;
         DocumentCommand command = (DocumentCommand) content;
         ID identifier = command.getIdentifier();

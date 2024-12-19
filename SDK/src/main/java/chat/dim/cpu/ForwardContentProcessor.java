@@ -46,7 +46,7 @@ public class ForwardContentProcessor extends BaseContentProcessor {
     }
 
     @Override
-    public List<Content> process(Content content, ReliableMessage rMsg) {
+    public List<Content> processContent(Content content, ReliableMessage rMsg) {
         assert content instanceof ForwardContent : "forward content error: " + content;
         List<ReliableMessage> secrets = ((ForwardContent) content).getSecrets();
         // call messenger to process it

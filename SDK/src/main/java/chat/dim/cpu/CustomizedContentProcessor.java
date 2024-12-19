@@ -50,7 +50,7 @@ public class CustomizedContentProcessor extends BaseContentProcessor implements 
     }
 
     @Override
-    public List<Content> process(Content content, ReliableMessage rMsg) {
+    public List<Content> processContent(Content content, ReliableMessage rMsg) {
         assert content instanceof CustomizedContent : "customized content error: " + content;
         CustomizedContent customized = (CustomizedContent) content;
         // 1. check app id

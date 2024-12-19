@@ -43,20 +43,92 @@ import chat.dim.protocol.Meta;
 
 public abstract class Facebook extends Barrack implements User.DataSource, Group.DataSource {
 
+    public abstract Archivist getArchivist();
+
     @Override
-    protected void cache(User user) {
+    protected void cacheUser(User user) {
         if (user.getDataSource() == null) {
             user.setDataSource(this);
         }
-        super.cache(user);
+        super.cacheUser(user);
     }
 
     @Override
-    protected void cache(Group group) {
+    protected void cacheGroup(Group group) {
         if (group.getDataSource() == null) {
             group.setDataSource(this);
         }
-        super.cache(group);
+        super.cacheGroup(group);
+    }
+
+    //-------- Entity Delegate
+
+    @Override
+    public User getUser(ID identifier) {
+        assert identifier.isUser() : "user ID error: " + identifier;
+        // 1. get from user cache
+        User user = super.getUser(identifier);
+        if (user == null) {
+            // 2. create user and cache it
+            Archivist archivist = getArchivist();
+            user = archivist.createUser(identifier);
+            if (user != null) {
+                cacheUser(user);
+            }
+        }
+        return user;
+    }
+
+    @Override
+    public Group getGroup(ID identifier) {
+        assert identifier.isGroup() : "group ID error: " + identifier;
+        // 1. get from group cache
+        Group group = super.getGroup(identifier);
+        if (group == null) {
+            // 2. create group and cache it
+            Archivist archivist = getArchivist();
+            group = archivist.createGroup(identifier);
+            if (group != null) {
+                cacheGroup(group);
+            }
+        }
+        return group;
+    }
+
+    /**
+     *  Select local user for receiver
+     *
+     * @param receiver - user/group ID
+     * @return local user
+     */
+    public User selectLocalUser(ID receiver) {
+        if (receiver.isGroup()) {
+            // group message (recipient not designated)
+            // TODO: check members of group
+            return null;
+        } else {
+            assert receiver.isUser() : "receiver error: " + receiver;
+        }
+        Archivist archivist = getArchivist();
+        List<User> users = archivist.getLocalUsers();
+        if (users == null || users.isEmpty()) {
+            assert false : "local users should not be empty";
+            return null;
+        } else if (receiver.isBroadcast()) {
+            // broadcast message can be decrypted by anyone, so
+            // just return current user here
+            return users.get(0);
+        }
+        // 1. personal message
+        // 2. split group message
+        for (User item : users) {
+            if (receiver.equals(item.getIdentifier())) {
+                // DISCUSS: set this item to be current user?
+                return item;
+            }
+        }
+        // not mine?
+        return null;
     }
 
     /**
@@ -76,48 +148,13 @@ public abstract class Facebook extends Barrack implements User.DataSource, Group
      */
     public abstract boolean saveDocument(Document doc);
 
-    /**
-     *  Select local user for receiver
-     *
-     * @param receiver - user/group ID
-     * @return local user
-     */
-    public User selectLocalUser(ID receiver) {
-        if (receiver.isUser()) {
-            Archivist archivist = getArchivist();
-            List<User> users = archivist.getLocalUsers();
-            if (users == null || users.isEmpty()) {
-                assert false : "local users should not be empty";
-            } else if (receiver.isBroadcast()) {
-                // broadcast message can be decrypted by anyone, so
-                // just return current user here
-                return users.get(0);
-            } else {
-                // 1. personal message
-                // 2. split group message
-                for (User item : users) {
-                    if (receiver.equals(item.getIdentifier())) {
-                        // DISCUSS: set this item to be current user?
-                        return item;
-                    }
-                }
-                // not me?
-            }
-            return null;
-        }
-        // group message (recipient not designated)
-        assert receiver.isGroup() : "receiver error: " + receiver;
-        // TODO: check members of group
-        return null;
-    }
-
     //-------- User DataSource
 
     @Override
     public EncryptKey getPublicKeyForEncryption(ID user) {
         assert user.isUser() : "user ID error: " + user;
         Archivist archivist = getArchivist();
-        // 1. get key from visa
+        // 1. get pubic key from visa
         EncryptKey visaKey = archivist.getVisaKey(user);
         if (visaKey != null) {
             // if visa.key exists, use it for encryption
@@ -139,7 +176,7 @@ public abstract class Facebook extends Barrack implements User.DataSource, Group
         // assert user.isUser() : "user ID error: " + user;
         List<VerifyKey> keys = new ArrayList<>();
         Archivist archivist = getArchivist();
-        // 1. get key from visa
+        // 1. get pubic key from visa
         EncryptKey visaKey = archivist.getVisaKey(user);
         if (visaKey instanceof VerifyKey) {
             // the sender may use communication key to sign message.data,

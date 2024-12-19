@@ -91,7 +91,7 @@ public final class ContentProcessorFactory implements ContentProcessor.Factory {
     private ContentProcessor getCommandProcessor(int msgType, String cmdName) {
         ContentProcessor cpu = commandProcessors.get(cmdName);
         if (cpu == null) {
-            cpu = creator.createContentProcessor(msgType, cmdName);
+            cpu = creator.createCommandProcessor(msgType, cmdName);
             if (cpu != null) {
                 commandProcessors.put(cmdName, cpu);
             }

@@ -46,7 +46,7 @@ public class ArrayContentProcessor extends BaseContentProcessor {
     }
 
     @Override
-    public List<Content> process(Content content, ReliableMessage rMsg) {
+    public List<Content> processContent(Content content, ReliableMessage rMsg) {
         assert content instanceof ArrayContent : "array content error: " + content;
         List<Content> array = ((ArrayContent) content).getContents();
         // call messenger to process it

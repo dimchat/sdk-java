@@ -2,12 +2,12 @@
  *
  *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
- *                                Written in 2019 by Moky <albert.moky@gmail.com>
+ *                                Written in 2023 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Albert Moky
+ * Copyright (c) 2023 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,35 +28,60 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.cpu;
+package chat.dim;
 
 import java.util.List;
 
-import chat.dim.Facebook;
-import chat.dim.Messenger;
-import chat.dim.protocol.Command;
-import chat.dim.protocol.Content;
-import chat.dim.protocol.ReliableMessage;
+import chat.dim.crypto.EncryptKey;
+import chat.dim.crypto.VerifyKey;
+import chat.dim.mkm.Group;
+import chat.dim.mkm.User;
+import chat.dim.protocol.ID;
 
 /**
- *  Command Processing Unit
- *  ~~~~~~~~~~~~~~~~~~~~~~~
+ *  Entity Database
+ *  ~~~~~~~~~~~~~~~
+ *  Manage meta/document for all entities
  */
-public class BaseCommandProcessor extends BaseContentProcessor {
+public interface Archivist {
 
-    public BaseCommandProcessor(Facebook facebook, Messenger messenger) {
-        super(facebook, messenger);
-    }
+    /**
+     *  Create user when visa.key exists
+     *
+     * @param identifier - user ID
+     * @return user, null on not ready
+     */
+    User createUser(ID identifier);
 
-    @Override
-    public List<Content> processContent(Content content, ReliableMessage rMsg) {
-        assert content instanceof Command : "command error: " + content;
-        Command command = (Command) content;
-        return respondReceipt("Command not support.", rMsg.getEnvelope(), command, newMap(
-                "template", "Command (name: ${command}) not support yet!",
-                "replacements", newMap(
-                        "command", command.getCmd()
-                )
-        ));
-    }
+    /**
+     *  Create group when members exist
+     *
+     * @param identifier - group ID
+     * @return group, null on not ready
+     */
+    Group createGroup(ID identifier);
+
+    /**
+     *  Get all local users (for decrypting received message)
+     *
+     * @return users with private key
+     */
+    List<User> getLocalUsers();
+
+    /**
+     *  Get meta.key
+     *
+     * @param user - user ID
+     * @return null on not found
+     */
+    VerifyKey getMetaKey(ID user);
+
+    /**
+     *  Get visa.key
+     *
+     * @param user - user ID
+     * @return null on not found
+     */
+    EncryptKey getVisaKey(ID user);
+
 }
