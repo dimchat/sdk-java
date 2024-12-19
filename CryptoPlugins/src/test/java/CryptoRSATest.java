@@ -11,10 +11,11 @@ import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.PublicKey;
 import chat.dim.format.Hex;
 import chat.dim.format.UTF8;
+import chat.dim.Facebook;
 
 public class CryptoRSATest {
 
-    private static final Facebook facebook = Facebook.getInstance();
+    private static final Facebook facebook = SharedFacebook.getInstance();
 
     @Test
     public void testRSA() {

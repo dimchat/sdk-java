@@ -13,10 +13,11 @@ import chat.dim.format.Hex;
 import chat.dim.mkm.BTCAddress;
 import chat.dim.mkm.ETHAddress;
 import chat.dim.protocol.Address;
+import chat.dim.Facebook;
 
 public class CryptoECCTest {
 
-    private static final Facebook facebook = Facebook.getInstance();
+    private static final Facebook facebook = SharedFacebook.getInstance();
 
     private static PublicKey getPublicKey(String pem) {
         Map<String, Object> dictionary = new HashMap<>();

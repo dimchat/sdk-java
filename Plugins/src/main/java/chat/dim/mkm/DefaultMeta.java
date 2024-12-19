@@ -41,7 +41,7 @@ import chat.dim.protocol.Address;
  *  Default Meta to build ID with 'name@address'
  *
  *  version:
- *      0x01 - MKM
+ *      1 = MKM
  *
  *  algorithm:
  *      CT      = fingerprint = sKey.sign(seed);
@@ -76,6 +76,7 @@ public final class DefaultMeta extends BaseMeta {
         if (cached == null) {
             // generate and cache it
             byte[] data = getFingerprint();
+            assert data != null && data.length > 0 : "meta.fingerprint empty";
             cached = BTCAddress.generate(data, network);
             cachedAddresses.put(network, cached);
         }

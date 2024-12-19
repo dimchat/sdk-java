@@ -20,10 +20,11 @@ import chat.dim.protocol.Document;
 import chat.dim.protocol.EntityType;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
+import chat.dim.Facebook;
 
 public class EntityTest {
 
-    private static final Facebook facebook = Facebook.getInstance();
+    private static final Facebook facebook = SharedFacebook.getInstance();
     private static final String satoshi = "1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa";
 
     private String getIDInfo(ID identifier) {

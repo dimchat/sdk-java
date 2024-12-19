@@ -5,31 +5,33 @@ import java.util.List;
 import java.util.Map;
 
 import chat.dim.Archivist;
-import chat.dim.Barrack;
+import chat.dim.Facebook;
 import chat.dim.compat.CompatibleMetaFactory;
 import chat.dim.crypto.DecryptKey;
-import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
-import chat.dim.crypto.VerifyKey;
-import chat.dim.mkm.Group;
-import chat.dim.mkm.User;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 
-public class Facebook extends Barrack implements User.DataSource, Group.DataSource {
-    private static final Facebook ourInstance = new Facebook();
-    public static Facebook getInstance() { return ourInstance; }
-    private Facebook() {
+public class SharedFacebook extends Facebook {
+    private static final SharedFacebook ourInstance = new SharedFacebook();
+    public static SharedFacebook getInstance() { return ourInstance; }
+    private SharedFacebook() {
         super();
+    }
+
+    @Override
+    public Archivist getArchivist() {
+        // TODO:
+        return null;
     }
 
     // memory caches
     private final Map<ID, PrivateKey> privateKeyMap = new HashMap<>();
     private final Map<ID, Meta>       metaMap  = new HashMap<>();
 
-    protected void cache(PrivateKey key, ID identifier) {
+    protected void cachePrivateKey(PrivateKey key, ID identifier) {
         if (key == null) {
             privateKeyMap.remove(identifier);
         } else {
@@ -37,31 +39,21 @@ public class Facebook extends Barrack implements User.DataSource, Group.DataSour
         }
     }
 
-    protected void cache(Meta meta, ID identifier) {
+    protected void cacheMeta(Meta meta, ID identifier) {
         assert meta.matchIdentifier(identifier) : "meta not match ID: " + identifier + ", " + meta;
         metaMap.put(identifier, meta);
     }
 
     @Override
-    protected void cache(User user) {
-        if (user.getDataSource() == null) {
-            user.setDataSource(this);
-        }
-        super.cache(user);
-    }
-
-    @Override
-    protected void cache(Group group) {
-        if (group.getDataSource() == null) {
-            group.setDataSource(this);
-        }
-        super.cache(group);
-    }
-
-    @Override
-    public Archivist getArchivist() {
+    public boolean saveMeta(Meta meta, ID identifier) {
         // TODO:
-        return null;
+        return false;
+    }
+
+    @Override
+    public boolean saveDocument(Document doc) {
+        // TODO:
+        return false;
     }
 
     //-------- Entity DataSource
@@ -81,18 +73,6 @@ public class Facebook extends Barrack implements User.DataSource, Group.DataSour
 
     @Override
     public List<ID> getContacts(ID user) {
-        // TODO:
-        return null;
-    }
-
-    @Override
-    public EncryptKey getPublicKeyForEncryption(ID user) {
-        // TODO:
-        return null;
-    }
-
-    @Override
-    public List<VerifyKey> getPublicKeysForVerification(ID user) {
         // TODO:
         return null;
     }
@@ -168,7 +148,7 @@ public class Facebook extends Barrack implements User.DataSource, Group.DataSour
 
     static void registerPlugins() {
         chat.dim.Plugins.registerPlugins();
-        chat.dim.CryptoPlugins.registerCryptoPlugins();
+        chat.dim.NativePlugins.registerNativePlugins();
 
         registerCompatibleMetaFactories();
     }

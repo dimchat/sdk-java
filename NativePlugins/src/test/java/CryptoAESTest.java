@@ -10,10 +10,11 @@ import chat.dim.format.Base64;
 import chat.dim.format.Hex;
 import chat.dim.format.JSON;
 import chat.dim.format.UTF8;
+import chat.dim.Facebook;
 
 public class CryptoAESTest {
 
-    private static final Facebook facebook = Facebook.getInstance();
+    private static final Facebook facebook = SharedFacebook.getInstance();
 
     @Test
     public void testAES() {

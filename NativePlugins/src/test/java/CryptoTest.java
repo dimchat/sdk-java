@@ -19,10 +19,11 @@ import chat.dim.format.UTF8;
 import chat.dim.protocol.EntityType;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
+import chat.dim.Facebook;
 
 public class CryptoTest {
 
-    private static final Facebook facebook = Facebook.getInstance();
+    private static final Facebook facebook = SharedFacebook.getInstance();
 
     @Test
     public void testHash() {

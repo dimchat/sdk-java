@@ -54,7 +54,8 @@ public class GeneralMetaFactory implements Meta.Factory {
         if (seed == null || seed.length() == 0) {
             fingerprint = null;
         } else {
-            byte[] sig = sKey.sign(UTF8.encode(seed));
+            byte[] data = UTF8.encode(seed);
+            byte[] sig = sKey.sign(data);
             fingerprint = TransportableData.create(sig);
         }
         VerifyKey key = ((PrivateKey) sKey).getPublicKey();
@@ -89,8 +90,8 @@ public class GeneralMetaFactory implements Meta.Factory {
     public Meta parseMeta(Map<String, Object> meta) {
         Meta out;
         AccountFactoryManager man = AccountFactoryManager.getInstance();
-        String type = man.generalFactory.getMetaType(meta, "");
-        switch (type) {
+        String version = man.generalFactory.getMetaType(meta, "");
+        switch (version) {
 
             case Meta.MKM:
                 out = new DefaultMeta(meta);
@@ -105,7 +106,7 @@ public class GeneralMetaFactory implements Meta.Factory {
                 break;
 
             default:
-                throw new IllegalArgumentException("unknown meta type: " + type);
+                throw new IllegalArgumentException("unknown meta type: " + version);
         }
         return out.isValid() ? out : null;
     }

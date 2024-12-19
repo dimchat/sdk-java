@@ -41,8 +41,7 @@ import chat.dim.protocol.Address;
  *  Meta to build BTC address for ID
  *
  *  version:
- *      0x02 - BTC
- *      0x03 - ExBTC
+ *      2 = BTC
  *
  *  algorithm:
  *      CT      = key.data;

@@ -260,8 +260,10 @@ public interface Plugins {
                     return null;
                 }
                 int len = address.length();
-                assert len > 0 : "address empty";
-                if (len == 8) {
+                if (len == 0) {
+                    assert false : "address empty";
+                    return null;
+                } else if (len == 8) {
                     // "anywhere"
                     if (Address.ANYWHERE.equalsIgnoreCase(address)) {
                         return Address.ANYWHERE;
@@ -274,8 +276,10 @@ public interface Plugins {
                 }
                 Address res;
                 if (26 <= len && len <= 35) {
+                    // BTC
                     res = BTCAddress.parse(address);
                 } else if (len == 42) {
+                    // ETH
                     res = ETHAddress.parse(address);
                 } else {
                     //throw new AssertionError("invalid address: " + address);

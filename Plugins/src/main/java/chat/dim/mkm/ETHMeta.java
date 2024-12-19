@@ -41,8 +41,7 @@ import chat.dim.protocol.EntityType;
  *  Meta to build ETH address for ID
  *
  *  version:
- *      0x04 - ETH
- *      0x05 - ExETH
+ *      4 = ETH
  *
  *  algorithm:
  *      CT      = key.data;  // without prefix byte
