@@ -68,20 +68,30 @@ import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 
-public class CoreLoader {
+public class CoreLoader implements Runnable {
 
-    private boolean isLoaded = false;
+    private boolean loaded = false;
+
+    @Override
+    public void run() {
+        if (loaded) {
+            // no need to load it again
+            return;
+        } else {
+            // mark it to loaded
+            loaded = true;
+        }
+        try {
+            load();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      *  Register core factories
      */
-    public boolean load() {
-        if (isLoaded) {
-            // already loaded
-            return false;
-        } else {
-            isLoaded = true;
-        }
+    protected void load() {
 
         registerMessageFactories();
         registerContentFactories();
@@ -89,14 +99,12 @@ public class CoreLoader {
 
         registerCustomizedFactories();
 
-        // OK
-        return true;
     }
 
     /**
      *  Message factories
      */
-    private void registerMessageFactories() {
+    protected void registerMessageFactories() {
 
         // Envelope factory
         MessageFactory factory = new MessageFactory();
@@ -111,7 +119,7 @@ public class CoreLoader {
     /**
      *  Core content factories
      */
-    private void registerContentFactories() {
+    protected void registerContentFactories() {
 
         // Text
         Content.setFactory(ContentType.TEXT, BaseTextContent::new);
@@ -161,7 +169,7 @@ public class CoreLoader {
     /**
      *  Core command factories
      */
-    private void registerCommandFactories() {
+    protected void registerCommandFactories() {
 
         // Meta Command
         Command.setFactory(Command.META, BaseMetaCommand::new);
@@ -190,7 +198,7 @@ public class CoreLoader {
     /**
      *  Customized content factories
      */
-    private void registerCustomizedFactories() {
+    protected void registerCustomizedFactories() {
 
         Content.setFactory(ContentType.CUSTOMIZED, AppCustomizedContent::new);
         Content.setFactory(ContentType.APPLICATION, AppCustomizedContent::new);

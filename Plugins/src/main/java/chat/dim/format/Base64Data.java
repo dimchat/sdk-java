@@ -29,7 +29,11 @@ import java.util.Map;
 
 import chat.dim.type.Dictionary;
 
-public class Base64Data extends Dictionary implements TransportableData {
+/**
+ *  TED
+ *  ~~~
+ */
+public final class Base64Data extends Dictionary implements TransportableData {
 
     private final BaseDataWrapper wrapper;
 
@@ -83,6 +87,9 @@ public class Base64Data extends Dictionary implements TransportableData {
         return wrapper.toString();
     }
 
+    /**
+     *  Encode with 'Content-Type'
+     */
     public String toString(String mimeType) {
         // 2. "data:image/png;base64,{BASE64_ENCODE}"
         return wrapper.toString(mimeType);

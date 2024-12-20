@@ -31,7 +31,11 @@ import java.util.Map;
 import chat.dim.crypto.DecryptKey;
 import chat.dim.type.Dictionary;
 
-public class BaseNetworkFile extends Dictionary implements PortableNetworkFile {
+/**
+ *  PNF
+ *  ~~~
+ */
+public final class BaseNetworkFile extends Dictionary implements PortableNetworkFile {
 
     private final BaseFileWrapper wrapper;
 

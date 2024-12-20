@@ -51,9 +51,7 @@ import chat.dim.format.PortableNetworkFile;
 import chat.dim.format.StringCoder;
 import chat.dim.format.TransportableData;
 import chat.dim.format.UTF8;
-import chat.dim.mkm.BTCAddress;
 import chat.dim.mkm.BaseAddressFactory;
-import chat.dim.mkm.ETHAddress;
 import chat.dim.mkm.GeneralDocumentFactory;
 import chat.dim.mkm.GeneralMetaFactory;
 import chat.dim.mkm.IdentifierFactory;
@@ -62,20 +60,30 @@ import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 
-public class PluginLoader {
+public class PluginLoader implements Runnable {
 
-    private boolean isLoaded = false;
+    private boolean loaded = false;
+
+    @Override
+    public void run() {
+        if (loaded) {
+            // no need to load it again
+            return;
+        } else {
+            // mark it to loaded
+            loaded = true;
+        }
+        try {
+            load();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      *  Register core factories
      */
-    public boolean load() {
-        if (isLoaded) {
-            // already loaded
-            return false;
-        } else {
-            isLoaded = true;
-        }
+    protected void load() {
 
         registerDataCoders();
         registerDataDigesters();
@@ -87,15 +95,26 @@ public class PluginLoader {
         registerMetaFactories();
         registerDocumentFactories();
 
-        // OK
-        return true;
     }
 
     /**
      *  Data coders
      */
-    private void registerDataCoders() {
+    protected void registerDataCoders() {
 
+        registerBase58Coder();
+        registerBase64Coder();
+
+        registerHexCoder();
+
+        registerUTF8Coder();
+
+        registerPNFFactory();
+
+        registerTEDFactory();
+
+    }
+    protected void registerBase58Coder() {
         // Base58 coding
         Base58.coder = new DataCoder() {
 
@@ -109,7 +128,8 @@ public class PluginLoader {
                 return chat.dim.bitcoinj.Base58.decode(string);
             }
         };
-
+    }
+    protected void registerBase64Coder() {
         // Base64 coding
         Base64.coder = new DataCoder() {
 
@@ -123,10 +143,12 @@ public class PluginLoader {
                 return java.util.Base64.getDecoder().decode(string);
             }
         };
-
+    }
+    protected void registerHexCoder() {
         // HEX coding
         Hex.coder = new HexCoder();
-
+    }
+    protected void registerUTF8Coder() {
         // UTF8
         UTF8.coder = new StringCoder() {
 
@@ -142,7 +164,8 @@ public class PluginLoader {
                 return new String(utf8, Charset.forName("UTF-8"));
             }
         };
-
+    }
+    protected void registerPNFFactory() {
         // PNF
         PortableNetworkFile.setFactory(new PortableNetworkFile.Factory() {
 
@@ -157,7 +180,8 @@ public class PluginLoader {
                 return new BaseNetworkFile(pnf);
             }
         });
-
+    }
+    protected void registerTEDFactory() {
         // TED
         TransportableData.Factory tedFactory = new TransportableData.Factory() {
 
@@ -181,8 +205,16 @@ public class PluginLoader {
     /**
      *  Data digesters
      */
-    private void registerDataDigesters() {
+    protected void registerDataDigesters() {
 
+        registerMD5Digester();
+
+        registerSHA1Digester();
+
+        registerSHA256Digester();
+
+    }
+    protected void registerMD5Digester() {
         // MD5
         MD5.digester = new DataDigester() {
 
@@ -200,7 +232,8 @@ public class PluginLoader {
                 return md.digest();
             }
         };
-
+    }
+    protected void registerSHA1Digester() {
         // SHA1
         SHA1.digester = new DataDigester() {
 
@@ -218,7 +251,8 @@ public class PluginLoader {
                 return md.digest();
             }
         };
-
+    }
+    protected void registerSHA256Digester() {
         // SHA256
         SHA256.digester = new DataDigester() {
 
@@ -241,8 +275,14 @@ public class PluginLoader {
     /**
      *  Symmetric key parsers
      */
-    private void registerSymmetricKeyFactories() {
+    protected void registerSymmetricKeyFactories() {
 
+        registerAESKeyFactory();
+
+        registerPlainKeyFactory();
+
+    }
+    protected void registerAESKeyFactory() {
         SymmetricKey.setFactory(SymmetricKey.AES, new SymmetricKey.Factory() {
 
             @Override
@@ -257,6 +297,8 @@ public class PluginLoader {
                 return new AESKey(key);
             }
         });
+    }
+    protected void registerPlainKeyFactory() {
         SymmetricKey.setFactory(PlainKey.PLAIN, new SymmetricKey.Factory() {
 
             @Override
@@ -274,7 +316,7 @@ public class PluginLoader {
     /**
      *  ID factory
      */
-    private void registerIDFactory() {
+    protected void registerIDFactory() {
 
         ID.setFactory(new IdentifierFactory());
     }
@@ -282,54 +324,15 @@ public class PluginLoader {
     /**
      *  Address factory
      */
-    private void registerAddressFactory() {
+    protected void registerAddressFactory() {
 
-        Address.setFactory(new BaseAddressFactory() {
-            @Override
-            public Address createAddress(String address) {
-                if (address == null) {
-                    //throw new NullPointerException("address empty");
-                    assert false : "address empty";
-                    return null;
-                }
-                int len = address.length();
-                if (len == 0) {
-                    assert false : "address empty";
-                    return null;
-                } else if (len == 8) {
-                    // "anywhere"
-                    if (Address.ANYWHERE.equalsIgnoreCase(address)) {
-                        return Address.ANYWHERE;
-                    }
-                } else if (len == 10) {
-                    // "everywhere"
-                    if (Address.EVERYWHERE.equalsIgnoreCase(address)) {
-                        return Address.EVERYWHERE;
-                    }
-                }
-                Address res;
-                if (26 <= len && len <= 35) {
-                    // BTC
-                    res = BTCAddress.parse(address);
-                } else if (len == 42) {
-                    // ETH
-                    res = ETHAddress.parse(address);
-                } else {
-                    //throw new AssertionError("invalid address: " + address);
-                    assert false : "invalid address: " + address;
-                    res = null;
-                }
-                // TODO: other types of address
-                assert res != null : "invalid address: " + address;
-                return res;
-            }
-        });
+        Address.setFactory(new BaseAddressFactory());
     }
 
     /**
      *  Meta factories
      */
-    private void registerMetaFactories() {
+    protected void registerMetaFactories() {
 
         Meta.setFactory(Meta.MKM, new GeneralMetaFactory(Meta.MKM));
         Meta.setFactory(Meta.BTC, new GeneralMetaFactory(Meta.BTC));
@@ -339,7 +342,7 @@ public class PluginLoader {
     /**
      *  Document factories
      */
-    private void registerDocumentFactories() {
+    protected void registerDocumentFactories() {
 
         Document.setFactory("*", new GeneralDocumentFactory("*"));
         Document.setFactory(Document.VISA, new GeneralDocumentFactory(Document.VISA));

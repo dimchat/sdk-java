@@ -148,7 +148,7 @@ public class SharedFacebook extends Facebook {
     }
 
     static {
-        new PluginLoader().load();
+        new PluginLoader().run();
 
         registerCompatibleMetaFactories();
     }

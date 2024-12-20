@@ -43,7 +43,7 @@ import java.util.Arrays;
  * number of leading zeros (which are otherwise lost during the mathematical operations on the
  * numbers), and finally represent the resulting base-58 digits as alphanumeric ASCII characters.
  */
-public class Base58 {
+public final class Base58 {
     public static final char[] ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray();
     private static final char ENCODED_ZERO = ALPHABET[0];
     private static final int[] INDEXES = new int[128];

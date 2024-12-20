@@ -40,7 +40,7 @@ import chat.dim.protocol.Meta;
  *  Base Address Factory
  *  ~~~~~~~~~~~~~~~~~~~~
  */
-public abstract class BaseAddressFactory implements Address.Factory {
+public class BaseAddressFactory implements Address.Factory {
 
     protected final Map<String, Address> addresses = new HashMap<>();
 
@@ -64,4 +64,44 @@ public abstract class BaseAddressFactory implements Address.Factory {
         }
         return add;
     }
+
+    @Override
+    public Address createAddress(String address) {
+        if (address == null) {
+            //throw new NullPointerException("address empty");
+            assert false : "address empty";
+            return null;
+        }
+        int len = address.length();
+        if (len == 0) {
+            assert false : "address empty";
+            return null;
+        } else if (len == 8) {
+            // "anywhere"
+            if (Address.ANYWHERE.equalsIgnoreCase(address)) {
+                return Address.ANYWHERE;
+            }
+        } else if (len == 10) {
+            // "everywhere"
+            if (Address.EVERYWHERE.equalsIgnoreCase(address)) {
+                return Address.EVERYWHERE;
+            }
+        }
+        Address res;
+        if (26 <= len && len <= 35) {
+            // BTC
+            res = BTCAddress.parse(address);
+        } else if (len == 42) {
+            // ETH
+            res = ETHAddress.parse(address);
+        } else {
+            //throw new AssertionError("invalid address: " + address);
+            assert false : "invalid address: " + address;
+            res = null;
+        }
+        // TODO: other types of address
+        assert res != null : "invalid address: " + address;
+        return res;
+    }
+
 }

@@ -50,32 +50,45 @@ import chat.dim.digest.RIPEMD160;
 import chat.dim.format.JSON;
 import chat.dim.format.ObjectCoder;
 
-public class CryptoPluginLoader {
+public class CryptoPluginLoader implements Runnable {
 
-    private boolean isLoaded = false;
+    private boolean loaded = false;
+
+    @Override
+    public void run() {
+        if (loaded) {
+            // no need to load it again
+            return;
+        } else {
+            // mark it to loaded
+            loaded = true;
+        }
+        try {
+            load();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      *  Register core factories
      */
-    public boolean load() {
-        if (isLoaded) {
-            // already loaded
-            return false;
-        } else {
-            isLoaded = true;
-            resetSecurityProvider();
-        }
+    protected void load() {
+        prepare();
 
         registerDataCoders();
         registerDataDigesters();
 
         registerAsymmetricKeyFactories();
 
-        // OK
-        return true;
     }
 
-    private void resetSecurityProvider() {
+    protected void prepare() {
+
+        resetSecurityProvider();
+
+    }
+    protected void resetSecurityProvider() {
 
         Provider provider = Security.getProvider(BouncyCastleProvider.PROVIDER_NAME);
         if (provider != null) {
@@ -91,7 +104,12 @@ public class CryptoPluginLoader {
     /**
      *  Data coders
      */
-    private void registerDataCoders() {
+    protected void registerDataCoders() {
+
+        registerJSONCoder();
+
+    }
+    protected void registerJSONCoder() {
 
         JSON.coder = new ObjectCoder<Object>() {
 
@@ -115,8 +133,14 @@ public class CryptoPluginLoader {
     /**
      *  Data digesters
      */
-    private void registerDataDigesters() {
+    protected void registerDataDigesters() {
 
+        registerRIPEMD160Digester();
+
+        registerKeccak256Digester();
+
+    }
+    protected void registerRIPEMD160Digester() {
         RIPEMD160.digester = new DataDigester() {
             @Override
             public byte[] digest(byte[] data) {
@@ -127,7 +151,8 @@ public class CryptoPluginLoader {
                 return out;
             }
         };
-
+    }
+    protected void registerKeccak256Digester() {
         Keccak256.digester = new DataDigester() {
             @Override
             public byte[] digest(byte[] data) {
@@ -143,7 +168,14 @@ public class CryptoPluginLoader {
     /**
      *  Asymmetric key parsers
      */
-    private void registerAsymmetricKeyFactories() {
+    protected void registerAsymmetricKeyFactories() {
+
+        registerRSAKeyFactories();
+
+        registerECCKeyFactories();
+
+    }
+    protected void registerRSAKeyFactories() {
 
         PrivateKey.Factory rsaPri = new PrivateKey.Factory() {
 
@@ -168,6 +200,25 @@ public class CryptoPluginLoader {
         PrivateKey.setFactory(CryptoUtils.RSA_SHA256, rsaPri);
         PrivateKey.setFactory(CryptoUtils.RSA_ECB_PKCS1, rsaPri);
 
+        PublicKey.Factory rsaPub = new PublicKey.Factory() {
+
+            @Override
+            public PublicKey parsePublicKey(Map<String, Object> key) {
+                try {
+                    return new RSAPublicKey(key);
+                } catch (NoSuchFieldException e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+        };
+        PublicKey.setFactory(AsymmetricKey.RSA, rsaPub);
+        PublicKey.setFactory(CryptoUtils.RSA_SHA256, rsaPub);
+        PublicKey.setFactory(CryptoUtils.RSA_ECB_PKCS1, rsaPub);
+
+    }
+    protected void registerECCKeyFactories() {
+
         PrivateKey.setFactory(AsymmetricKey.ECC, new PrivateKey.Factory() {
 
             @Override
@@ -188,22 +239,6 @@ public class CryptoPluginLoader {
             }
         });
 
-        PublicKey.Factory rsaPub = new PublicKey.Factory() {
-
-            @Override
-            public PublicKey parsePublicKey(Map<String, Object> key) {
-                try {
-                    return new RSAPublicKey(key);
-                } catch (NoSuchFieldException e) {
-                    e.printStackTrace();
-                    return null;
-                }
-            }
-        };
-        PublicKey.setFactory(AsymmetricKey.RSA, rsaPub);
-        PublicKey.setFactory(CryptoUtils.RSA_SHA256, rsaPub);
-        PublicKey.setFactory(CryptoUtils.RSA_ECB_PKCS1, rsaPub);
-
         PublicKey.setFactory(AsymmetricKey.ECC, new PublicKey.Factory() {
 
             @Override
@@ -216,7 +251,6 @@ public class CryptoPluginLoader {
                 }
             }
         });
-
     }
 
 }
