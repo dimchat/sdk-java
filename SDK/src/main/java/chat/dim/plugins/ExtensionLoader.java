@@ -28,7 +28,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.core;
+package chat.dim.plugins;
 
 import chat.dim.dkd.AppCustomizedContent;
 import chat.dim.dkd.BaseContent;
@@ -70,7 +70,7 @@ import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 
-public class CoreLoader implements Runnable {
+public class ExtensionLoader implements Runnable {
 
     private boolean loaded = false;
 
@@ -95,11 +95,29 @@ public class CoreLoader implements Runnable {
      */
     protected void load() {
 
+        registerBaseHelpers();
+
         registerMessageFactories();
         registerContentFactories();
         registerCommandFactories();
 
         registerCustomizedFactories();
+
+    }
+
+    /**
+     *  General factories
+     */
+    protected void registerBaseHelpers() {
+
+        CryptoSharedHolder.helper = new CryptoKeyGeneralFactory();
+        FormatSharedHolder.helper = new FormatGeneralFactory();
+
+        AccountSharedHolder.helper = new AccountGeneralFactory();
+
+        MessageSharedHolder.helper = new MessageGeneralFactory();
+
+        CommandSharedHolder.helper = new CommandGeneralFactory();
 
     }
 
@@ -124,54 +142,67 @@ public class CoreLoader implements Runnable {
     protected void registerContentFactories() {
 
         // Text
-        Content.setFactory(ContentType.TEXT, BaseTextContent::new);
+        setContentFactory(ContentType.TEXT, BaseTextContent::new);
 
         // File
-        Content.setFactory(ContentType.FILE, BaseFileContent::new);
+        setContentFactory(ContentType.FILE, BaseFileContent::new);
         // Image
-        Content.setFactory(ContentType.IMAGE, ImageFileContent::new);
+        setContentFactory(ContentType.IMAGE, ImageFileContent::new);
         // Audio
-        Content.setFactory(ContentType.AUDIO, AudioFileContent::new);
+        setContentFactory(ContentType.AUDIO, AudioFileContent::new);
         // Video
-        Content.setFactory(ContentType.VIDEO, VideoFileContent::new);
+        setContentFactory(ContentType.VIDEO, VideoFileContent::new);
 
         // Web Page
-        Content.setFactory(ContentType.PAGE, WebPageContent::new);
+        setContentFactory(ContentType.PAGE, WebPageContent::new);
 
         // Name Card
-        Content.setFactory(ContentType.NAME_CARD, NameCardContent::new);
+        setContentFactory(ContentType.NAME_CARD, NameCardContent::new);
 
         // Quote
-        Content.setFactory(ContentType.QUOTE, BaseQuoteContent::new);
+        setContentFactory(ContentType.QUOTE, BaseQuoteContent::new);
 
         // Money
-        Content.setFactory(ContentType.MONEY, BaseMoneyContent::new);
-        Content.setFactory(ContentType.TRANSFER, TransferMoneyContent::new);
+        setContentFactory(ContentType.MONEY, BaseMoneyContent::new);
+        setContentFactory(ContentType.TRANSFER, TransferMoneyContent::new);
         // ...
 
         // Command
-        Content.setFactory(ContentType.COMMAND, new GeneralCommandFactory());
+        setContentFactory(ContentType.COMMAND, new GeneralCommandFactory());
 
         // History Command
-        Content.setFactory(ContentType.HISTORY, new HistoryCommandFactory());
+        setContentFactory(ContentType.HISTORY, new HistoryCommandFactory());
 
         /*/
         // Application Customized
-        Content.setFactory(ContentType.CUSTOMIZED, AppCustomizedContent::new);
-        Content.setFactory(ContentType.APPLICATION, AppCustomizedContent::new);
+        setContentFactory(ContentType.CUSTOMIZED, AppCustomizedContent::new);
+        setContentFactory(ContentType.APPLICATION, AppCustomizedContent::new);
         /*/
 
         // Content Array
-        Content.setFactory(ContentType.ARRAY, ListContent::new);
+        setContentFactory(ContentType.ARRAY, ListContent::new);
 
         // Combine and Forward
-        Content.setFactory(ContentType.COMBINE_FORWARD, CombineForwardContent::new);
+        setContentFactory(ContentType.COMBINE_FORWARD, CombineForwardContent::new);
 
         // Top-Secret
-        Content.setFactory(ContentType.FORWARD, SecretContent::new);
+        setContentFactory(ContentType.FORWARD, SecretContent::new);
 
         // unknown content type
-        Content.setFactory(ContentType.ANY, BaseContent::new);
+        setContentFactory(ContentType.ANY, BaseContent::new);
+    }
+
+    protected void setContentFactory(ContentType type, Content.Factory factory) {
+        Content.setFactory(type.value, factory);
+    }
+
+    /**
+     *  Customized content factories
+     */
+    protected void registerCustomizedFactories() {
+
+        setContentFactory(ContentType.CUSTOMIZED, AppCustomizedContent::new);
+        setContentFactory(ContentType.APPLICATION, AppCustomizedContent::new);
     }
 
     /**
@@ -201,15 +232,6 @@ public class CoreLoader implements Runnable {
         Command.setFactory(GroupCommand.HIRE, HireGroupCommand::new);
         Command.setFactory(GroupCommand.FIRE, FireGroupCommand::new);
         Command.setFactory(GroupCommand.RESIGN, ResignGroupCommand::new);
-    }
-
-    /**
-     *  Customized content factories
-     */
-    protected void registerCustomizedFactories() {
-
-        Content.setFactory(ContentType.CUSTOMIZED, AppCustomizedContent::new);
-        Content.setFactory(ContentType.APPLICATION, AppCustomizedContent::new);
     }
 
 }

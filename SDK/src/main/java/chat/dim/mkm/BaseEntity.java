@@ -69,7 +69,7 @@ public class BaseEntity implements Entity {
     @Override
     public String toString() {
         String clazz = getClass().getSimpleName();
-        int network = identifier.getAddress().getType();
+        int network = identifier.getAddress().getNetwork();
         return "<" + clazz + " id=\"" + identifier + "\" network=" + network + " />";
     }
 

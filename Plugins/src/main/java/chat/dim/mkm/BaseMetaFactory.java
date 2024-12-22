@@ -37,13 +37,18 @@ import chat.dim.crypto.SignKey;
 import chat.dim.crypto.VerifyKey;
 import chat.dim.format.TransportableData;
 import chat.dim.format.UTF8;
+import chat.dim.plugins.AccountSharedHolder;
 import chat.dim.protocol.Meta;
 
-public class GeneralMetaFactory implements Meta.Factory {
+/**
+ *  Base Meta Factory
+ *  ~~~~~~~~~~~~~~~~~
+ */
+public class BaseMetaFactory implements Meta.Factory {
 
     protected final String type;
 
-    public GeneralMetaFactory(String algorithm) {
+    public BaseMetaFactory(String algorithm) {
         super();
         type = algorithm;
     }
@@ -89,8 +94,7 @@ public class GeneralMetaFactory implements Meta.Factory {
     @Override
     public Meta parseMeta(Map<String, Object> meta) {
         Meta out;
-        AccountFactoryManager man = AccountFactoryManager.getInstance();
-        String version = man.generalFactory.getMetaType(meta, "");
+        String version = AccountSharedHolder.helper.getMetaType(meta, "");
         switch (version) {
 
             case Meta.MKM:

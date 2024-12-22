@@ -34,14 +34,14 @@ import java.util.Map;
 
 import chat.dim.crypto.VerifyKey;
 import chat.dim.format.TransportableData;
-import chat.dim.mkm.AccountFactoryManager;
 import chat.dim.mkm.BTCMeta;
+import chat.dim.mkm.BaseMetaFactory;
 import chat.dim.mkm.DefaultMeta;
 import chat.dim.mkm.ETHMeta;
-import chat.dim.mkm.GeneralMetaFactory;
+import chat.dim.plugins.AccountSharedHolder;
 import chat.dim.protocol.Meta;
 
-public final class CompatibleMetaFactory extends GeneralMetaFactory {
+public final class CompatibleMetaFactory extends BaseMetaFactory {
 
     public CompatibleMetaFactory(String algorithm) {
         super(algorithm);
@@ -74,8 +74,7 @@ public final class CompatibleMetaFactory extends GeneralMetaFactory {
     @Override
     public Meta parseMeta(Map<String, Object> meta) {
         Meta out;
-        AccountFactoryManager man = AccountFactoryManager.getInstance();
-        String type = man.generalFactory.getMetaType(meta, "");
+        String type = AccountSharedHolder.helper.getMetaType(meta, "");
         switch (type) {
 
             case "MKM":

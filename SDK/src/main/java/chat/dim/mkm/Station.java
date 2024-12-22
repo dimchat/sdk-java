@@ -95,7 +95,7 @@ public class Station implements User {
     public String toString() {
         String className = getClass().getSimpleName();
         ID identifier = getIdentifier();
-        int network = identifier.getAddress().getType();
+        int network = identifier.getAddress().getNetwork();
         return "<" + className + " id=\"" + identifier + "\" network=" + network +
                 " host=\"" + getHost() + "\" port=" + getPort() + " />";
     }

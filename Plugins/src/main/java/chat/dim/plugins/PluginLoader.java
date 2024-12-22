@@ -23,7 +23,7 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim;
+package chat.dim.plugins;
 
 import java.net.URI;
 import java.nio.charset.Charset;
@@ -52,8 +52,8 @@ import chat.dim.format.StringCoder;
 import chat.dim.format.TransportableData;
 import chat.dim.format.UTF8;
 import chat.dim.mkm.BaseAddressFactory;
+import chat.dim.mkm.BaseMetaFactory;
 import chat.dim.mkm.GeneralDocumentFactory;
-import chat.dim.mkm.GeneralMetaFactory;
 import chat.dim.mkm.IdentifierFactory;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.Document;
@@ -81,7 +81,7 @@ public class PluginLoader implements Runnable {
     }
 
     /**
-     *  Register core factories
+     *  Register plugins
      */
     protected void load() {
 
@@ -334,9 +334,9 @@ public class PluginLoader implements Runnable {
      */
     protected void registerMetaFactories() {
 
-        Meta.setFactory(Meta.MKM, new GeneralMetaFactory(Meta.MKM));
-        Meta.setFactory(Meta.BTC, new GeneralMetaFactory(Meta.BTC));
-        Meta.setFactory(Meta.ETH, new GeneralMetaFactory(Meta.ETH));
+        Meta.setFactory(Meta.MKM, new BaseMetaFactory(Meta.MKM));
+        Meta.setFactory(Meta.BTC, new BaseMetaFactory(Meta.BTC));
+        Meta.setFactory(Meta.ETH, new BaseMetaFactory(Meta.ETH));
     }
 
     /**

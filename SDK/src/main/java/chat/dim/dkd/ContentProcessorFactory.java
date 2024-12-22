@@ -58,9 +58,9 @@ public final class ContentProcessorFactory implements ContentProcessor.Factory {
         ContentProcessor cpu;
         int msgType = content.getType();
         if (content instanceof Command) {
-            String name = ((Command) content).getCmd();
-            // assert name != null && name.length() > 0 : "command name error: " + name;
-            cpu = getCommandProcessor(msgType, name);
+            String cmd = ((Command) content).getCommandName();
+            // assert cmd != null && cmd.length() > 0 : "command name error: " + cmd;
+            cpu = getCommandProcessor(msgType, cmd);
             if (cpu != null) {
                 return cpu;
             } else if (content instanceof GroupCommand/* || content.containsKey("group")*/) {

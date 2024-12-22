@@ -5,13 +5,19 @@ import java.util.List;
 import java.util.Map;
 
 import chat.dim.Archivist;
-import chat.dim.CryptoPluginLoader;
 import chat.dim.Facebook;
-import chat.dim.PluginLoader;
 import chat.dim.compat.CompatibleMetaFactory;
 import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
+import chat.dim.plugins.AccountGeneralFactory;
+import chat.dim.plugins.AccountSharedHolder;
+import chat.dim.plugins.CryptoKeyGeneralFactory;
+import chat.dim.plugins.CryptoPluginLoader;
+import chat.dim.plugins.CryptoSharedHolder;
+import chat.dim.plugins.FormatGeneralFactory;
+import chat.dim.plugins.FormatSharedHolder;
+import chat.dim.plugins.PluginLoader;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
@@ -149,6 +155,10 @@ public class SharedFacebook extends Facebook {
     }
 
     static {
+        CryptoSharedHolder.helper = new CryptoKeyGeneralFactory();
+        FormatSharedHolder.helper = new FormatGeneralFactory();
+        AccountSharedHolder.helper = new AccountGeneralFactory();
+
         new PluginLoader().run();
         new CryptoPluginLoader().run();
 

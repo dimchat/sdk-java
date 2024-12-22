@@ -33,6 +33,7 @@ package chat.dim.mkm;
 import java.util.Map;
 
 import chat.dim.format.TransportableData;
+import chat.dim.plugins.AccountSharedHolder;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 
@@ -42,16 +43,16 @@ import chat.dim.protocol.ID;
  */
 public class GeneralDocumentFactory implements Document.Factory {
 
-    private final String docType;
+    protected final String type;
 
-    public GeneralDocumentFactory(String type) {
+    public GeneralDocumentFactory(String docType) {
         super();
-        docType = type;
+        type = docType;
     }
 
-    private static String getType(String type, ID identifier) {
-        if (!type.equals("*")) {
-            return type;
+    protected String getType(String docType, ID identifier) {
+        if (!docType.equals("*")) {
+            return docType;
         } else if (identifier.isGroup()) {
             return Document.BULLETIN;
         } else if (identifier.isUser()) {
@@ -63,24 +64,24 @@ public class GeneralDocumentFactory implements Document.Factory {
 
     @Override
     public Document createDocument(ID identifier, String data, TransportableData signature) {
-        String type = getType(docType, identifier);
+        String docType = getType(type, identifier);
         if (data == null || signature == null/* || data.isEmpty() || signature.isEmpty()*/) {
             // create empty document
-            if (Document.VISA.equals(type)) {
+            if (Document.VISA.equals(docType)) {
                 return new BaseVisa(identifier);
-            } else if (Document.BULLETIN.equals(type)) {
+            } else if (Document.BULLETIN.equals(docType)) {
                 return new BaseBulletin(identifier);
             } else {
-                return new BaseDocument(identifier, type);
+                return new BaseDocument(identifier, docType);
             }
         } else {
             // create document with data & signature from local storage
-            if (Document.VISA.equals(type)) {
+            if (Document.VISA.equals(docType)) {
                 return new BaseVisa(identifier, data, signature);
-            } else if (Document.BULLETIN.equals(type)) {
+            } else if (Document.BULLETIN.equals(docType)) {
                 return new BaseBulletin(identifier, data, signature);
             } else {
-                return new BaseDocument(identifier, type, data, signature);
+                return new BaseDocument(identifier, docType, data, signature);
             }
         }
     }
@@ -92,14 +93,13 @@ public class GeneralDocumentFactory implements Document.Factory {
             // assert false : "document ID not found : " + doc;
             return null;
         }
-        AccountFactoryManager man = AccountFactoryManager.getInstance();
-        String type = man.generalFactory.getDocumentType(doc, null);
-        if (type == null) {
-            type = getType("*", identifier);
+        String docType = AccountSharedHolder.helper.getDocumentType(doc, null);
+        if (docType == null) {
+            docType = getType("*", identifier);
         }
-        if (Document.VISA.equals(type)) {
+        if (Document.VISA.equals(docType)) {
             return new BaseVisa(doc);
-        } else if (Document.BULLETIN.equals(type)) {
+        } else if (Document.BULLETIN.equals(docType)) {
             return new BaseBulletin(doc);
         } else {
             return new BaseDocument(doc);

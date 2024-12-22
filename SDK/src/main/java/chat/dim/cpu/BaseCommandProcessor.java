@@ -55,7 +55,7 @@ public class BaseCommandProcessor extends BaseContentProcessor {
         return respondReceipt("Command not support.", rMsg.getEnvelope(), command, newMap(
                 "template", "Command (name: ${command}) not support yet!",
                 "replacements", newMap(
-                        "command", command.getCmd()
+                        "command", command.getCommandName()
                 )
         ));
     }

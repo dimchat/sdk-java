@@ -41,7 +41,7 @@ public class Bot extends BaseUser {
 
     public Bot(ID identifier) {
         super(identifier);
-        assert EntityType.BOT.equals(identifier.getType()) : "bot ID error: " + identifier;
+        assert EntityType.BOT.equals(identifier.getType()) : "Bot ID error: " + identifier;
     }
 
     /**
