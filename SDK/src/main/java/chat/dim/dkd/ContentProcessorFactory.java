@@ -28,12 +28,11 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.cpu;
+package chat.dim.dkd;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.dkd.ContentProcessor;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.GroupCommand;
@@ -42,14 +41,14 @@ import chat.dim.protocol.GroupCommand;
  *  General ContentProcessor Factory
  *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
-public final class GeneralContentProcessorFactory implements ContentProcessor.Factory {
+public final class ContentProcessorFactory implements ContentProcessor.Factory {
 
     private final Map<Integer, ContentProcessor> contentProcessors = new HashMap<>();
     private final Map<String, ContentProcessor> commandProcessors = new HashMap<>();
 
     private final ContentProcessor.Creator creator;
 
-    public GeneralContentProcessorFactory(ContentProcessor.Creator creator) {
+    public ContentProcessorFactory(ContentProcessor.Creator creator) {
         super();
         this.creator = creator;
     }

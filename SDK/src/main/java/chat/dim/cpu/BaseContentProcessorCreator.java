@@ -59,9 +59,9 @@ public class BaseContentProcessorCreator extends TwinsHelper implements ContentP
         }
         /*/
         // application customized
-        if (ContentType.APPLICATION.equals(type)) {
+        if (ContentType.APPLICATION.equals(msgType)) {
             return new CustomizedContentProcessor(getFacebook(), getMessenger());
-        } else if (ContentType.CUSTOMIZED.equals(type)) {
+        } else if (ContentType.CUSTOMIZED.equals(msgType)) {
             return new CustomizedContentProcessor(getFacebook(), getMessenger());
         }
         /*/
@@ -70,13 +70,13 @@ public class BaseContentProcessorCreator extends TwinsHelper implements ContentP
         if (ContentType.COMMAND.equals(msgType)) {
             return new BaseCommandProcessor(getFacebook(), getMessenger());
         }
-        /*/
+
         // default contents
-        if (0 == type) {
+        if (ContentType.ANY.equals(msgType)) {
             // must return a default processor for type==0
             return new BaseContentProcessor(getFacebook(), getMessenger());
         }
-        /*/
+
         // unknown
         return null;
     }
