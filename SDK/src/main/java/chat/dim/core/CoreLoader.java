@@ -33,7 +33,9 @@ package chat.dim.core;
 import chat.dim.dkd.AppCustomizedContent;
 import chat.dim.dkd.BaseContent;
 import chat.dim.dkd.BaseMoneyContent;
+import chat.dim.dkd.BaseQuoteContent;
 import chat.dim.dkd.BaseTextContent;
+import chat.dim.dkd.CombineForwardContent;
 import chat.dim.dkd.GeneralCommandFactory;
 import chat.dim.dkd.GroupCommandFactory;
 import chat.dim.dkd.HistoryCommandFactory;
@@ -139,6 +141,9 @@ public class CoreLoader implements Runnable {
         // Name Card
         Content.setFactory(ContentType.NAME_CARD, NameCardContent::new);
 
+        // Quote
+        Content.setFactory(ContentType.QUOTE, BaseQuoteContent::new);
+
         // Money
         Content.setFactory(ContentType.MONEY, BaseMoneyContent::new);
         Content.setFactory(ContentType.TRANSFER, TransferMoneyContent::new);
@@ -158,6 +163,9 @@ public class CoreLoader implements Runnable {
 
         // Content Array
         Content.setFactory(ContentType.ARRAY, ListContent::new);
+
+        // Combine and Forward
+        Content.setFactory(ContentType.COMBINE_FORWARD, CombineForwardContent::new);
 
         // Top-Secret
         Content.setFactory(ContentType.FORWARD, SecretContent::new);
