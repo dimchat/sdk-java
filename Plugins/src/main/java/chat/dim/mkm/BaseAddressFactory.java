@@ -57,7 +57,7 @@ public class BaseAddressFactory implements Address.Factory {
     public Address parseAddress(String address) {
         Address add = addresses.get(address);
         if (add == null) {
-            add = Address.create(address);
+            add = parse(address);
             if (add != null) {
                 addresses.put(address, add);
             }
@@ -65,8 +65,7 @@ public class BaseAddressFactory implements Address.Factory {
         return add;
     }
 
-    @Override
-    public Address createAddress(String address) {
+    protected Address parse(String address) {
         if (address == null) {
             //throw new NullPointerException("address empty");
             assert false : "address empty";

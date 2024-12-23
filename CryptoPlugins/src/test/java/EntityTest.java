@@ -14,6 +14,7 @@ import chat.dim.mkm.BTCAddress;
 import chat.dim.mkm.BaseGroup;
 import chat.dim.mkm.BaseUser;
 import chat.dim.mkm.Group;
+import chat.dim.mkm.MetaHelper;
 import chat.dim.mkm.User;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.Document;
@@ -84,7 +85,7 @@ public class EntityTest {
 
         Log.info("is broadcast: " + identifier.isBroadcast());
 
-//        Assert.assertEquals(identifier, ID.parse("moky@4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ/home"));
+        //Assert.assertEquals(identifier, ID.parse("moky@4DnqXWdTV8wuZgfqSCX9GjE2kNq7HJrUgQ/home"));
 
         List<ID> array = new ArrayList<>();
         array.add(identifier);
@@ -99,11 +100,11 @@ public class EntityTest {
         String seed = "moky";
         Meta meta = Meta.generate(Meta.MKM, sk, seed);
         Log.info("meta: " + meta + ", detail: " + getMetaInfo(meta));
-        Assert.assertTrue(meta.matchPublicKey(pk));
+        Assert.assertTrue(MetaHelper.matches(pk, meta));
 
         ID identifier = ID.generate(meta, EntityType.USER.value, null);
         Log.info("ID: " + identifier + ", detail: " + getIDInfo(identifier));
-        Assert.assertTrue(meta.matchIdentifier(identifier));
+        Assert.assertTrue(MetaHelper.matches(identifier, meta));
 
         User user = new BaseUser(identifier);
         user.setDataSource(facebook);

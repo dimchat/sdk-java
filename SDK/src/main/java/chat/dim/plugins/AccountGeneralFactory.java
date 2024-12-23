@@ -100,13 +100,6 @@ public class AccountGeneralFactory implements GeneralAccountHelper,
     }
 
     @Override
-    public Address createAddress(String address) {
-        Address.Factory factory = getAddressFactory();
-        assert factory != null : "address factory not ready";
-        return factory.createAddress(address);
-    }
-
-    @Override
     public Address generateAddress(Meta meta, int network) {
         Address.Factory factory = getAddressFactory();
         assert factory != null : "address factory not ready";
