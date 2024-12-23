@@ -10,12 +10,7 @@ import chat.dim.compat.CompatibleMetaFactory;
 import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
-import chat.dim.plugins.AccountGeneralFactory;
-import chat.dim.plugins.AccountSharedHolder;
-import chat.dim.plugins.CryptoKeyGeneralFactory;
-import chat.dim.plugins.CryptoSharedHolder;
-import chat.dim.plugins.FormatGeneralFactory;
-import chat.dim.plugins.FormatSharedHolder;
+import chat.dim.plugins.ExtensionLoader;
 import chat.dim.plugins.NativePluginLoader;
 import chat.dim.plugins.PluginLoader;
 import chat.dim.protocol.Document;
@@ -155,9 +150,7 @@ public class SharedFacebook extends Facebook {
     }
 
     static {
-        CryptoSharedHolder.helper = new CryptoKeyGeneralFactory();
-        FormatSharedHolder.helper = new FormatGeneralFactory();
-        AccountSharedHolder.helper = new AccountGeneralFactory();
+        new ExtensionLoader().run();
 
         new PluginLoader().run();
         new NativePluginLoader().run();

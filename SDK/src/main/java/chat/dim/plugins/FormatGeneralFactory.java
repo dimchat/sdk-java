@@ -42,7 +42,9 @@ import chat.dim.type.Mapper;
  *  Format GeneralFactory
  *  ~~~~~~~~~~~~~~~~~~~~~
  */
-public class FormatGeneralFactory implements FormatHelper {
+public class FormatGeneralFactory implements GeneralFormatHelper,
+                                             PortableNetworkFile.Helper,
+                                             TransportableData.Helper {
 
     private final Map<String, TransportableData.Factory> tedFactories = new HashMap<>();
 
@@ -120,14 +122,14 @@ public class FormatGeneralFactory implements FormatHelper {
         return info;
     }
 
-    ///
-    ///   TED - Transportable Encoded Data
-    ///
-
     @Override
     public String getFormatAlgorithm(Map<?, ?> ted, String defaultValue) {
         return Converter.getString(ted.get("algorithm"), defaultValue);
     }
+
+    ///
+    ///   TED - Transportable Encoded Data
+    ///
 
     @Override
     public void setTransportableDataFactory(String algorithm, TransportableData.Factory factory) {

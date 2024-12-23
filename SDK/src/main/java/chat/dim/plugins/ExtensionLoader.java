@@ -83,11 +83,8 @@ public class ExtensionLoader implements Runnable {
             // mark it to loaded
             loaded = true;
         }
-        try {
-            load();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // try to load all extensions
+        load();
     }
 
     /**
@@ -95,7 +92,7 @@ public class ExtensionLoader implements Runnable {
      */
     protected void load() {
 
-        registerBaseHelpers();
+        registerCoreHelpers();
 
         registerMessageFactories();
         registerContentFactories();
@@ -106,19 +103,58 @@ public class ExtensionLoader implements Runnable {
     }
 
     /**
-     *  General factories
+     *  Core extensions
      */
-    protected void registerBaseHelpers() {
+    protected void registerCoreHelpers() {
 
-        CryptoSharedHolder.helper = new CryptoKeyGeneralFactory();
-        FormatSharedHolder.helper = new FormatGeneralFactory();
+        registerCryptoHelpers();
+        registerFormatHelpers();
 
-        AccountSharedHolder.helper = new AccountGeneralFactory();
+        registerAccountHelpers();
 
-        MessageSharedHolder.helper = new MessageGeneralFactory();
+        registerMessageHelpers();
+        registerCommandHelpers();
 
-        CommandSharedHolder.helper = new CommandGeneralFactory();
-
+    }
+    protected void registerCryptoHelpers() {
+        // crypto
+        CryptoKeyGeneralFactory cryptoHelper = new CryptoKeyGeneralFactory();
+        SharedCryptoHolder.symmetricHelper = cryptoHelper;
+        SharedCryptoHolder.privateHelper   = cryptoHelper;
+        SharedCryptoHolder.publicHelper    = cryptoHelper;
+        SharedCryptoHolder.helper          = cryptoHelper;
+    }
+    protected void registerFormatHelpers() {
+        // format
+        FormatGeneralFactory formatHelper = new FormatGeneralFactory();
+        SharedFormatHolder.pnfHelper = formatHelper;
+        SharedFormatHolder.tedHelper = formatHelper;
+        SharedFormatHolder.helper    = formatHelper;
+    }
+    protected void registerAccountHelpers() {
+        // mkm
+        AccountGeneralFactory accountHelper = new AccountGeneralFactory();
+        SharedAccountHolder.addressHelper = accountHelper;
+        SharedAccountHolder.idHelper      = accountHelper;
+        SharedAccountHolder.metaHelper    = accountHelper;
+        SharedAccountHolder.docHelper     = accountHelper;
+        SharedAccountHolder.helper        = accountHelper;
+    }
+    protected void registerMessageHelpers() {
+        // dkd
+        MessageGeneralFactory msgHelper = new MessageGeneralFactory();
+        SharedMessageHolder.contentHelper  = msgHelper;
+        SharedMessageHolder.envelopeHelper = msgHelper;
+        SharedMessageHolder.instantHelper  = msgHelper;
+        SharedMessageHolder.secureHelper   = msgHelper;
+        SharedMessageHolder.reliableHelper = msgHelper;
+        SharedMessageHolder.helper         = msgHelper;
+    }
+    protected void registerCommandHelpers() {
+        // cmd
+        CommandGeneralFactory cmdHelper = new CommandGeneralFactory();
+        SharedCommandHolder.cmdHelper = cmdHelper;
+        SharedCommandHolder.helper    = cmdHelper;
     }
 
     /**

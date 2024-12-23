@@ -42,12 +42,17 @@ import chat.dim.type.Wrapper;
  *  Command GeneralFactory
  *  ~~~~~~~~~~~~~~~~~~~~~~
  */
-public class CommandGeneralFactory implements CommandHelper {
+public class CommandGeneralFactory implements GeneralCommandHelper, Command.Helper {
 
     private final Map<String, Command.Factory> commandFactories = new HashMap<>();
 
+    @Override
+    public String getCommandName(Map<?, ?> content, String defaultValue) {
+        return Converter.getString(content.get("command"), defaultValue);
+    }
+
     //
-    //  Command
+    //  Command Helper
     //
 
     @Override
@@ -58,11 +63,6 @@ public class CommandGeneralFactory implements CommandHelper {
     @Override
     public Command.Factory getCommandFactory(String cmd) {
         return commandFactories.get(cmd);
-    }
-
-    @Override
-    public String getCommandName(Map<?, ?> content, String defaultValue) {
-        return Converter.getString(content.get("command"), defaultValue);
     }
 
     @Override
@@ -93,9 +93,8 @@ public class CommandGeneralFactory implements CommandHelper {
     }
 
     private static Command.Factory getDefaultFactory(Map<?, ?> info) {
-        MessageHelper helper = MessageSharedHolder.helper;
-        int type = helper.getContentType(info, 0);
-        Content.Factory factory = helper.getContentFactory(type);
+        int type = SharedMessageHolder.helper.getContentType(info, 0);
+        Content.Factory factory = SharedMessageHolder.contentHelper.getContentFactory(type);
         if (factory instanceof Command.Factory) {
             return (Command.Factory) factory;
         } else {

@@ -73,11 +73,8 @@ public class PluginLoader implements Runnable {
             // mark it to loaded
             loaded = true;
         }
-        try {
-            load();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        // try to load all plugins
+        load();
     }
 
     /**

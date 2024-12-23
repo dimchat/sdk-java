@@ -38,7 +38,9 @@ import chat.dim.type.Wrapper;
  *  CryptographyKey GeneralFactory
  *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
-public class CryptoKeyGeneralFactory implements CryptoHelper {
+public class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
+                                                SymmetricKey.Helper,
+                                                PrivateKey.Helper, PublicKey.Helper {
 
     private final Map<String, SymmetricKey.Factory> symmetricKeyFactories = new HashMap<>();
 
@@ -52,7 +54,7 @@ public class CryptoKeyGeneralFactory implements CryptoHelper {
     }
 
     //
-    //  SymmetricKey
+    //  SymmetricKey Helper
     //
 
     @Override
@@ -95,7 +97,7 @@ public class CryptoKeyGeneralFactory implements CryptoHelper {
     }
 
     //
-    //  PrivateKey
+    //  PrivateKey Helper
     //
 
     @Override
@@ -138,7 +140,7 @@ public class CryptoKeyGeneralFactory implements CryptoHelper {
     }
 
     //
-    //  PublicKey
+    //  PublicKey Helper
     //
 
     @Override

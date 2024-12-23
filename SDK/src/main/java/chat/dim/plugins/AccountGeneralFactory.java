@@ -49,7 +49,9 @@ import chat.dim.type.Wrapper;
  *  Account GeneralFactory
  *  ~~~~~~~~~~~~~~~~~~~~~~
  */
-public class AccountGeneralFactory implements AccountHelper {
+public class AccountGeneralFactory implements GeneralAccountHelper,
+                                              Address.Helper, ID.Helper,
+                                              Meta.Helper, Document.Helper {
 
     private Address.Factory addressFactory = null;
 
@@ -59,8 +61,18 @@ public class AccountGeneralFactory implements AccountHelper {
 
     private final Map<String, Document.Factory> documentFactories = new HashMap<>();
 
+    @Override
+    public String getMetaType(Map<?, ?> meta, String defaultValue) {
+        return Converter.getString(meta.get("type"), defaultValue);
+    }
+
+    @Override
+    public String getDocumentType(Map<?, ?> doc, String defaultValue) {
+        return Converter.getString(doc.get("type"), defaultValue);
+    }
+
     //
-    //  Address
+    //  Address Helper
     //
 
     @Override
@@ -102,7 +114,7 @@ public class AccountGeneralFactory implements AccountHelper {
     }
 
     //
-    //  ID
+    //  ID Helper
     //
 
     @Override
@@ -167,7 +179,7 @@ public class AccountGeneralFactory implements AccountHelper {
     }
 
     //
-    //  Meta
+    //  Meta Helper
     //
 
     @Override
@@ -179,27 +191,6 @@ public class AccountGeneralFactory implements AccountHelper {
     public Meta.Factory getMetaFactory(String type) {
         return metaFactories.get(type);
     }
-
-    @Override
-    public String getMetaType(Map<?, ?> meta, String defaultValue) {
-        return Converter.getString(meta.get("type"), defaultValue);
-    }
-
-    /*/
-    @Override
-    public boolean hasMetaSeed(Map<?, ?> meta) {
-        String type = getMetaType(meta, "");
-        return type.equals("1") || type.equals("MKM");
-    }
-
-    @Override
-    public String getMetaSeed(Map<?, ?> meta) {
-        if (!hasMetaSeed(meta)) {
-            return null;
-        }
-        return Converter.getString(meta.get("seed"), "");
-    }
-    /*/
 
     @Override
     public Meta createMeta(String type, VerifyKey key, String seed, TransportableData fingerprint) {
@@ -237,7 +228,7 @@ public class AccountGeneralFactory implements AccountHelper {
     }
 
     //
-    //  Document
+    //  Document Helper
     //
 
     @Override
@@ -248,11 +239,6 @@ public class AccountGeneralFactory implements AccountHelper {
     @Override
     public Document.Factory getDocumentFactory(String type) {
         return documentFactories.get(type);
-    }
-
-    @Override
-    public String getDocumentType(Map<?, ?> doc, String defaultValue) {
-        return Converter.getString(doc.get("type"), defaultValue);
     }
 
     @Override

@@ -47,7 +47,9 @@ import chat.dim.type.Wrapper;
  *  Message GeneralFactory
  *  ~~~~~~~~~~~~~~~~~~~~~~
  */
-public class MessageGeneralFactory implements MessageHelper {
+public class MessageGeneralFactory implements GeneralMessageHelper,
+                                              Content.Helper, Envelope.Helper,
+                                              InstantMessage.Helper, SecureMessage.Helper, ReliableMessage.Helper {
 
     private final Map<Integer, Content.Factory> contentFactories = new HashMap<>();
 
@@ -57,8 +59,13 @@ public class MessageGeneralFactory implements MessageHelper {
     private SecureMessage.Factory secureMessageFactory = null;
     private ReliableMessage.Factory reliableMessageFactory = null;
 
+    @Override
+    public int getContentType(Map<?, ?> content, int defaultValue) {
+        return Converter.getInt(content.get("type"), defaultValue);
+    }
+
     //
-    //  Content
+    //  Content Helper
     //
 
     @Override
@@ -69,11 +76,6 @@ public class MessageGeneralFactory implements MessageHelper {
     @Override
     public Content.Factory getContentFactory(int type) {
         return contentFactories.get(type);
-    }
-
-    @Override
-    public int getContentType(Map<?, ?> content, int defaultValue) {
-        return Converter.getInt(content.get("type"), defaultValue);
     }
 
     @Override
@@ -100,7 +102,7 @@ public class MessageGeneralFactory implements MessageHelper {
     }
 
     //
-    //  Envelope
+    //  Envelope Helper
     //
 
     @Override
@@ -138,7 +140,7 @@ public class MessageGeneralFactory implements MessageHelper {
     }
 
     //
-    //  InstantMessage
+    //  InstantMessage Helper
     //
 
     @Override
@@ -183,7 +185,7 @@ public class MessageGeneralFactory implements MessageHelper {
     }
 
     //
-    //  SecureMessage
+    //  SecureMessage Helper
     //
 
     @Override
@@ -214,7 +216,7 @@ public class MessageGeneralFactory implements MessageHelper {
     }
 
     //
-    //  ReliableMessage
+    //  ReliableMessage Helper
     //
 
     @Override
