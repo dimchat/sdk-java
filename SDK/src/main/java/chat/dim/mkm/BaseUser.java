@@ -59,7 +59,7 @@ public class BaseUser extends BaseEntity implements User {
     @Override
     public Visa getVisa() {
         List<Document> documents = getDocuments();
-        return DocumentHelper.lastVisa(documents);
+        return DocumentUtils.lastVisa(documents);
     }
 
     @Override

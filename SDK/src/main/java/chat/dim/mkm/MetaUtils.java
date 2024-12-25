@@ -36,7 +36,7 @@ import chat.dim.protocol.Address;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 
-public interface MetaHelper {
+public interface MetaUtils {
 
     /**
      *  Check whether meta matches with entity ID
@@ -80,7 +80,7 @@ public interface MetaHelper {
         // check with seed & fingerprint
         String seed = meta.getSeed();
         if (seed == null || seed.isEmpty()) {
-            // NOTICE: ID with BTC/ETH address has no username, so
+            // NOTICE: ID with BTC/ETH address has no name, so
             //         just compare the key.data to check matching
             return false;
         }

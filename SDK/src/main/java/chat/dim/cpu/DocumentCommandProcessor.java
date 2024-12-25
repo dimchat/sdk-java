@@ -36,7 +36,7 @@ import java.util.List;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
-import chat.dim.mkm.DocumentHelper;
+import chat.dim.mkm.DocumentUtils;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.DocumentCommand;
@@ -90,7 +90,7 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         Date queryTime = content.getLastTime();
         if (queryTime != null) {
             // check last document time
-            Document last = DocumentHelper.lastDocument(documents, null);
+            Document last = DocumentUtils.lastDocument(documents, null);
             assert last != null : "should not happen";
             Date lastTime = last.getTime();
             if (lastTime == null) {

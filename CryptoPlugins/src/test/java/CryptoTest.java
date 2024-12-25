@@ -16,7 +16,7 @@ import chat.dim.format.Base64;
 import chat.dim.format.Hex;
 import chat.dim.format.JSON;
 import chat.dim.format.UTF8;
-import chat.dim.mkm.MetaHelper;
+import chat.dim.mkm.MetaUtils;
 import chat.dim.protocol.EntityType;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
@@ -117,7 +117,7 @@ public class CryptoTest {
         Object skDict = JSON.decode(skJson);
         PrivateKey sk = PrivateKey.parse(skDict);
         Log.info("private key: " + sk);
-        Assert.assertTrue(MetaHelper.matches(sk.getPublicKey(), meta));
+        Assert.assertTrue(MetaUtils.matches(sk.getPublicKey(), meta));
 
         Map<String, Object> extra = new HashMap<>();
 

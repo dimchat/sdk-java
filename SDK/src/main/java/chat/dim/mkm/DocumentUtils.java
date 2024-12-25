@@ -36,7 +36,7 @@ import chat.dim.protocol.Bulletin;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.Visa;
 
-public interface DocumentHelper {
+public interface DocumentUtils {
 
     /**
      *  Check whether this time is before old time

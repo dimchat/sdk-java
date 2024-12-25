@@ -39,7 +39,7 @@ import chat.dim.format.UTF8;
 import chat.dim.mkm.User;
 import chat.dim.msg.InstantMessageDelegate;
 import chat.dim.msg.InstantMessagePacker;
-import chat.dim.msg.MessageHelper;
+import chat.dim.msg.MessageUtils;
 import chat.dim.msg.ReliableMessageDelegate;
 import chat.dim.msg.ReliableMessagePacker;
 import chat.dim.msg.SecureMessageDelegate;
@@ -191,12 +191,12 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
         Facebook facebook = getFacebook();
         ID sender = rMsg.getSender();
         // [Meta Protocol]
-        Meta meta = MessageHelper.getMeta(rMsg);
+        Meta meta = MessageUtils.getMeta(rMsg);
         if (meta != null) {
             facebook.saveMeta(meta, sender);
         }
         // [Visa Protocol]
-        Visa visa = MessageHelper.getVisa(rMsg);
+        Visa visa = MessageUtils.getVisa(rMsg);
         if (visa != null) {
             facebook.saveDocument(visa);
         }

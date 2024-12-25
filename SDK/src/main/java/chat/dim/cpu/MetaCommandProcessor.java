@@ -35,7 +35,7 @@ import java.util.List;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
-import chat.dim.mkm.MetaHelper;
+import chat.dim.mkm.MetaUtils;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.Envelope;
 import chat.dim.protocol.ID;
@@ -127,7 +127,7 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
     }
 
     protected boolean checkMeta(Meta meta, ID identifier) {
-        return meta.isValid() && MetaHelper.matches(identifier, meta);
+        return meta.isValid() && MetaUtils.matches(identifier, meta);
     }
 
 }

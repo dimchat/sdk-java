@@ -35,7 +35,7 @@ import chat.dim.protocol.Message;
 import chat.dim.protocol.Meta;
 import chat.dim.protocol.Visa;
 
-public interface MessageHelper {
+public interface MessageUtils {
 
     /**
      *  Sender's Meta

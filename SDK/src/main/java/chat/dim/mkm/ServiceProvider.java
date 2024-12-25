@@ -52,7 +52,7 @@ public class ServiceProvider extends BaseGroup {
      */
     public Document getProfile() {
         List<Document> documents = getDocuments();
-        return DocumentHelper.lastDocument(documents, "*");
+        return DocumentUtils.lastDocument(documents, "*");
     }
 
     @SuppressWarnings("unchecked")

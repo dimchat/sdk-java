@@ -10,7 +10,7 @@ import chat.dim.compat.CompatibleMetaFactory;
 import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
-import chat.dim.mkm.MetaHelper;
+import chat.dim.mkm.MetaUtils;
 import chat.dim.plugins.ExtensionLoader;
 import chat.dim.plugins.PluginLoader;
 import chat.dim.protocol.Document;
@@ -43,7 +43,7 @@ public class SharedFacebook extends Facebook {
     }
 
     protected void cacheMeta(Meta meta, ID identifier) {
-        assert MetaHelper.matches(identifier, meta) : "meta not match ID: " + identifier + ", " + meta;
+        assert MetaUtils.matches(identifier, meta) : "meta not match ID: " + identifier + ", " + meta;
         metaMap.put(identifier, meta);
     }
 

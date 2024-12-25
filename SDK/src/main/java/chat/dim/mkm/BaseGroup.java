@@ -59,7 +59,7 @@ public class BaseGroup extends BaseEntity implements Group {
     @Override
     public Bulletin getBulletin() {
         List<Document> documents = getDocuments();
-        return DocumentHelper.lastBulletin(documents);
+        return DocumentUtils.lastBulletin(documents);
     }
 
     @Override
