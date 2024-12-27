@@ -33,7 +33,7 @@ package chat.dim.mkm;
 import java.util.Map;
 
 import chat.dim.format.TransportableData;
-import chat.dim.plugins.SharedAccountHolder;
+import chat.dim.plugins.SharedAccountExtensions;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 
@@ -93,7 +93,7 @@ public class GeneralDocumentFactory implements Document.Factory {
             // assert false : "document ID not found : " + doc;
             return null;
         }
-        String docType = SharedAccountHolder.helper.getDocumentType(doc, null);
+        String docType = SharedAccountExtensions.helper.getDocumentType(doc, null);
         if (docType == null) {
             docType = getType("*", identifier);
         }

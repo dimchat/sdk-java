@@ -37,7 +37,7 @@ import chat.dim.crypto.SignKey;
 import chat.dim.crypto.VerifyKey;
 import chat.dim.format.TransportableData;
 import chat.dim.format.UTF8;
-import chat.dim.plugins.SharedAccountHolder;
+import chat.dim.plugins.SharedAccountExtensions;
 import chat.dim.protocol.Meta;
 
 /**
@@ -94,7 +94,7 @@ public class BaseMetaFactory implements Meta.Factory {
     @Override
     public Meta parseMeta(Map<String, Object> meta) {
         Meta out;
-        String version = SharedAccountHolder.helper.getMetaType(meta, "");
+        String version = SharedAccountExtensions.helper.getMetaType(meta, "");
         switch (version) {
 
             case Meta.MKM:

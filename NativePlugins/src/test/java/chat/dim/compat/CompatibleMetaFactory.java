@@ -38,7 +38,7 @@ import chat.dim.mkm.BTCMeta;
 import chat.dim.mkm.BaseMetaFactory;
 import chat.dim.mkm.DefaultMeta;
 import chat.dim.mkm.ETHMeta;
-import chat.dim.plugins.SharedAccountHolder;
+import chat.dim.plugins.SharedAccountExtensions;
 import chat.dim.protocol.Meta;
 
 public final class CompatibleMetaFactory extends BaseMetaFactory {
@@ -74,7 +74,7 @@ public final class CompatibleMetaFactory extends BaseMetaFactory {
     @Override
     public Meta parseMeta(Map<String, Object> meta) {
         Meta out;
-        String type = SharedAccountHolder.helper.getMetaType(meta, "");
+        String type = SharedAccountExtensions.helper.getMetaType(meta, "");
         switch (type) {
 
             case "MKM":

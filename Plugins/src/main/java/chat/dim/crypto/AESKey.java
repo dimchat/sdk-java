@@ -169,13 +169,14 @@ public final class AESKey extends BaseSymmetricKey {
         }
         // decode IV data
         TransportableData ted = TransportableData.parse(base64);
-        if (ted != null) {
-            byte[] iv = ted.getData();
-            if (iv != null) {
-                return iv;
-            }
+        byte[] iv = ted == null ? null : ted.getData();
+        if (iv == null || iv.length == 0) {
+            assert base64 == null : "IV data error: " + base64;
+            return null;
         }
-        assert base64 == null : "IV data error: " + base64;
+        return iv;
+    }
+    protected byte[] zeroInitVector() {
         // zero IV
         int blockSize = getBlockSize();
         return new byte[blockSize];
@@ -197,8 +198,11 @@ public final class AESKey extends BaseSymmetricKey {
 
     @Override
     public byte[] encrypt(byte[] plaintext, Map<String, Object> extra) {
-        // 1. random new 'IV'
-        byte[] iv = newInitVector(extra);
+        // 1. if 'IV' not found in extra params, new a random 'IV'
+        byte[] iv = getInitVector(extra);
+        if (iv == null) {
+            iv = newInitVector(extra);
+        }
         // 2. get key data
         byte[] data = getData();
         assert data != null : "key error: " + toMap();
@@ -218,8 +222,11 @@ public final class AESKey extends BaseSymmetricKey {
 
     @Override
     public byte[] decrypt(byte[] ciphertext, Map<String, Object> params) {
-        // 1. get 'IV' from extra params
+        // 1. if 'IV' not found in extra params, use an empty 'IV'
         byte[] iv = getInitVector(params);
+        if (iv == null) {
+            iv = zeroInitVector();
+        }
         // 2. get key data
         byte[] data = getData();
         assert data != null : "key error: " + toMap();
