@@ -58,7 +58,7 @@ public final class ContentProcessorFactory implements ContentProcessor.Factory {
         ContentProcessor cpu;
         int msgType = content.getType();
         if (content instanceof Command) {
-            String cmd = ((Command) content).getCommandName();
+            String cmd = ((Command) content).getCmd();
             // assert cmd != null && cmd.length() > 0 : "command name error: " + cmd;
             cpu = getCommandProcessor(msgType, cmd);
             if (cpu != null) {

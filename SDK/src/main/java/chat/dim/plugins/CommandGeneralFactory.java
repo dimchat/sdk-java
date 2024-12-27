@@ -47,7 +47,7 @@ public class CommandGeneralFactory implements GeneralCommandHelper, Command.Help
     private final Map<String, Command.Factory> commandFactories = new HashMap<>();
 
     @Override
-    public String getCommandName(Map<?, ?> content, String defaultValue) {
+    public String getCmd(Map<?, ?> content, String defaultValue) {
         return Converter.getString(content.get("command"), defaultValue);
     }
 
@@ -78,7 +78,7 @@ public class CommandGeneralFactory implements GeneralCommandHelper, Command.Help
             return null;
         }
         // get factory by command name
-        String name = getCommandName(info, "");
+        String name = getCmd(info, "");
         assert !name.isEmpty() : "command name not found: " + content;
         Command.Factory factory = getCommandFactory(name);
         if (factory == null) {
@@ -93,13 +93,13 @@ public class CommandGeneralFactory implements GeneralCommandHelper, Command.Help
     }
 
     private static Command.Factory getDefaultFactory(Map<?, ?> info) {
-        int type = SharedMessageHolder.helper.getContentType(info, 0);
-        Content.Factory factory = SharedMessageHolder.contentHelper.getContentFactory(type);
+        int type = SharedMessageExtensions.helper.getContentType(info, 0);
+        Content.Factory factory = SharedMessageExtensions.contentHelper.getContentFactory(type);
         if (factory instanceof Command.Factory) {
             return (Command.Factory) factory;
-        } else {
-            return null;
         }
+        assert false : "cannot parse command: " + info;
+        return null;
     }
 
 }

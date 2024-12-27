@@ -98,6 +98,7 @@ public class ExtensionLoader implements Runnable {
         registerCoreHelpers();
 
         registerMessageFactories();
+
         registerContentFactories();
         registerCommandFactories();
 
@@ -120,42 +121,42 @@ public class ExtensionLoader implements Runnable {
     protected void registerCryptoHelpers() {
         // crypto
         CryptoKeyGeneralFactory cryptoHelper = new CryptoKeyGeneralFactory();
-        SharedCryptoHolder.symmetricHelper = cryptoHelper;
-        SharedCryptoHolder.privateHelper   = cryptoHelper;
-        SharedCryptoHolder.publicHelper    = cryptoHelper;
-        SharedCryptoHolder.helper          = cryptoHelper;
+        SharedCryptoExtensions.symmetricHelper = cryptoHelper;
+        SharedCryptoExtensions.privateHelper   = cryptoHelper;
+        SharedCryptoExtensions.publicHelper    = cryptoHelper;
+        SharedCryptoExtensions.helper          = cryptoHelper;
     }
     protected void registerFormatHelpers() {
         // format
         FormatGeneralFactory formatHelper = new FormatGeneralFactory();
-        SharedFormatHolder.pnfHelper = formatHelper;
-        SharedFormatHolder.tedHelper = formatHelper;
-        SharedFormatHolder.helper    = formatHelper;
+        SharedFormatExtensions.pnfHelper = formatHelper;
+        SharedFormatExtensions.tedHelper = formatHelper;
+        SharedFormatExtensions.helper    = formatHelper;
     }
     protected void registerAccountHelpers() {
         // mkm
         AccountGeneralFactory accountHelper = new AccountGeneralFactory();
-        SharedAccountHolder.addressHelper = accountHelper;
-        SharedAccountHolder.idHelper      = accountHelper;
-        SharedAccountHolder.metaHelper    = accountHelper;
-        SharedAccountHolder.docHelper     = accountHelper;
-        SharedAccountHolder.helper        = accountHelper;
+        SharedAccountExtensions.addressHelper = accountHelper;
+        SharedAccountExtensions.idHelper      = accountHelper;
+        SharedAccountExtensions.metaHelper    = accountHelper;
+        SharedAccountExtensions.docHelper     = accountHelper;
+        SharedAccountExtensions.helper        = accountHelper;
     }
     protected void registerMessageHelpers() {
         // dkd
         MessageGeneralFactory msgHelper = new MessageGeneralFactory();
-        SharedMessageHolder.contentHelper  = msgHelper;
-        SharedMessageHolder.envelopeHelper = msgHelper;
-        SharedMessageHolder.instantHelper  = msgHelper;
-        SharedMessageHolder.secureHelper   = msgHelper;
-        SharedMessageHolder.reliableHelper = msgHelper;
-        SharedMessageHolder.helper         = msgHelper;
+        SharedMessageExtensions.contentHelper  = msgHelper;
+        SharedMessageExtensions.envelopeHelper = msgHelper;
+        SharedMessageExtensions.instantHelper  = msgHelper;
+        SharedMessageExtensions.secureHelper   = msgHelper;
+        SharedMessageExtensions.reliableHelper = msgHelper;
+        SharedMessageExtensions.helper         = msgHelper;
     }
     protected void registerCommandHelpers() {
         // cmd
         CommandGeneralFactory cmdHelper = new CommandGeneralFactory();
-        SharedCommandHolder.cmdHelper = cmdHelper;
-        SharedCommandHolder.helper    = cmdHelper;
+        SharedCommandExtensions.cmdHelper = cmdHelper;
+        SharedCommandExtensions.helper    = cmdHelper;
     }
 
     /**
