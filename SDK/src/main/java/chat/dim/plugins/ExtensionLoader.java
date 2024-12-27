@@ -30,7 +30,6 @@
  */
 package chat.dim.plugins;
 
-import chat.dim.dkd.AppCustomizedContent;
 import chat.dim.dkd.BaseContent;
 import chat.dim.dkd.BaseMoneyContent;
 import chat.dim.dkd.BaseQuoteContent;
@@ -70,6 +69,10 @@ import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 
+/**
+ *  Core Extensions Loader
+ *  ~~~~~~~~~~~~~~~~~~~~~~
+ */
 public class ExtensionLoader implements Runnable {
 
     private boolean loaded = false;
@@ -97,8 +100,6 @@ public class ExtensionLoader implements Runnable {
         registerMessageFactories();
         registerContentFactories();
         registerCommandFactories();
-
-        registerCustomizedFactories();
 
     }
 
@@ -209,12 +210,6 @@ public class ExtensionLoader implements Runnable {
         // History Command
         setContentFactory(ContentType.HISTORY, new HistoryCommandFactory());
 
-        /*/
-        // Application Customized
-        setContentFactory(ContentType.CUSTOMIZED, AppCustomizedContent::new);
-        setContentFactory(ContentType.APPLICATION, AppCustomizedContent::new);
-        /*/
-
         // Content Array
         setContentFactory(ContentType.ARRAY, ListContent::new);
 
@@ -230,15 +225,6 @@ public class ExtensionLoader implements Runnable {
 
     protected void setContentFactory(ContentType type, Content.Factory factory) {
         Content.setFactory(type.value, factory);
-    }
-
-    /**
-     *  Customized content factories
-     */
-    protected void registerCustomizedFactories() {
-
-        setContentFactory(ContentType.CUSTOMIZED, AppCustomizedContent::new);
-        setContentFactory(ContentType.APPLICATION, AppCustomizedContent::new);
     }
 
     /**
@@ -259,14 +245,14 @@ public class ExtensionLoader implements Runnable {
         Command.setFactory("group", new GroupCommandFactory());
         Command.setFactory(GroupCommand.INVITE, InviteGroupCommand::new);
         // 'expel' is deprecated (use 'reset' instead)
-        Command.setFactory(GroupCommand.EXPEL, ExpelGroupCommand::new);
-        Command.setFactory(GroupCommand.JOIN, JoinGroupCommand::new);
-        Command.setFactory(GroupCommand.QUIT, QuitGroupCommand::new);
-        Command.setFactory(GroupCommand.QUERY, QueryGroupCommand::new);
-        Command.setFactory(GroupCommand.RESET, ResetGroupCommand::new);
+        Command.setFactory(GroupCommand.EXPEL,  ExpelGroupCommand::new);
+        Command.setFactory(GroupCommand.JOIN,   JoinGroupCommand::new);
+        Command.setFactory(GroupCommand.QUIT,   QuitGroupCommand::new);
+        Command.setFactory(GroupCommand.QUERY,  QueryGroupCommand::new);
+        Command.setFactory(GroupCommand.RESET,  ResetGroupCommand::new);
         // Group Admin Commands
-        Command.setFactory(GroupCommand.HIRE, HireGroupCommand::new);
-        Command.setFactory(GroupCommand.FIRE, FireGroupCommand::new);
+        Command.setFactory(GroupCommand.HIRE,   HireGroupCommand::new);
+        Command.setFactory(GroupCommand.FIRE,   FireGroupCommand::new);
         Command.setFactory(GroupCommand.RESIGN, ResignGroupCommand::new);
     }
 
