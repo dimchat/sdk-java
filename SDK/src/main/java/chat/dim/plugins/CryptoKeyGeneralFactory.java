@@ -43,10 +43,8 @@ public class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
                                                 PrivateKey.Helper, PublicKey.Helper {
 
     private final Map<String, SymmetricKey.Factory> symmetricKeyFactories = new HashMap<>();
-
-    private final Map<String, PublicKey.Factory> publicKeyFactories = new HashMap<>();
-
-    private final Map<String, PrivateKey.Factory> privateKeyFactories = new HashMap<>();
+    private final Map<String, PrivateKey.Factory>     privateKeyFactories = new HashMap<>();
+    private final Map<String, PublicKey.Factory>       publicKeyFactories = new HashMap<>();
 
     @Override
     public String getKeyAlgorithm(Map<?, ?> key, String defaultValue) {
