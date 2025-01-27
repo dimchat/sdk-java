@@ -101,13 +101,11 @@ public class PluginLoader implements Runnable {
 
         registerBase58Coder();
         registerBase64Coder();
-
         registerHexCoder();
 
         registerUTF8Coder();
 
         registerPNFFactory();
-
         registerTEDFactory();
 
     }

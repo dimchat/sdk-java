@@ -71,7 +71,7 @@ public class BaseContentProcessorCreator extends TwinsHelper implements ContentP
             return new BaseContentProcessor(getFacebook(), getMessenger());
         }
 
-        // unknown
+        // unknown content
         return null;
     }
 
@@ -87,7 +87,7 @@ public class BaseContentProcessorCreator extends TwinsHelper implements ContentP
             case Command.DOCUMENT:
                 return new DocumentCommandProcessor(getFacebook(), getMessenger());
 
-            // unknown
+            // unknown command
             default:
                 return null;
         }
