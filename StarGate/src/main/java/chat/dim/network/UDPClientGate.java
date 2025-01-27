@@ -33,9 +33,7 @@ package chat.dim.network;
 import java.net.SocketAddress;
 
 import chat.dim.mtp.StreamPorter;
-import chat.dim.net.Connection;
 import chat.dim.port.Porter;
-import chat.dim.socket.ActiveConnection;
 
 public final class UDPClientGate extends CommonGate<StreamClientHub> {
 
@@ -48,14 +46,6 @@ public final class UDPClientGate extends CommonGate<StreamClientHub> {
         StreamPorter docker = new StreamPorter(remote, local);
         docker.setDelegate(getDelegate());
         return docker;
-    }
-
-    @Override
-    protected void heartbeat(Connection connection) {
-        // let the client to do the job
-        if (connection instanceof ActiveConnection) {
-            super.heartbeat(connection);
-        }
     }
 
 }

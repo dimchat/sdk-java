@@ -98,6 +98,10 @@ public abstract class CommonGate<H extends Hub>
         return docker.sendData(payload);
     }
 
+    //
+    //  Keep Active
+    //
+
     @Override
     protected void heartbeat(Connection connection) {
         // let the client to do the job
