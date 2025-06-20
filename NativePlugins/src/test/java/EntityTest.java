@@ -21,6 +21,7 @@ import chat.dim.protocol.Document;
 import chat.dim.protocol.EntityType;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
+import chat.dim.protocol.MetaType;
 import chat.dim.Facebook;
 
 public class EntityTest {
@@ -48,7 +49,7 @@ public class EntityTest {
 
     private String getDocumentInfo(Document doc) {
         Map<String, Object> info = new HashMap<>();
-        info.put("ID", doc.getIdentifier());
+        info.put("did", doc.getIdentifier());
         info.put("name", doc.getName());
         info.put("key", doc.getProperty("key"));
         info.put("avatar", doc.getProperty("avatar"));
@@ -98,7 +99,7 @@ public class EntityTest {
         PrivateKey sk = PrivateKey.generate(PrivateKey.RSA);
         PublicKey pk = sk.getPublicKey();
         String seed = "moky";
-        Meta meta = Meta.generate(Meta.MKM, sk, seed);
+        Meta meta = Meta.generate(MetaType.MKM, sk, seed);
         Log.info("meta: " + meta + ", detail: " + getMetaInfo(meta));
         Assert.assertTrue(MetaUtils.matches(pk, meta));
 
@@ -125,7 +126,7 @@ public class EntityTest {
     @Test
     public void testProfile() {
         Map<String, Object> dict = new HashMap<>();
-        dict.put("ID", "moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
+        dict.put("did", "moki@4WDfe3zZ4T7opFSi3iDAKiuTnUHjxmXekk");
         dict.put("data", "{\"name\":\"齐天大圣\"}");
         dict.put("signature", "oMdD4Ssop/gOpzwAYpt+Cp3tVJswm+u5i1bu1UlEzzFt+g3ohmE1z018WmSgsBpCls6vXwJEhKS1O5gN9N8XCYhnYx/Q56M0n2NOSifcbQuZciOfQU1c2RMXgUEizIwL2tiFoam22qxyScKIjXcu7rD4XhBC0Gn/EhQpJCqWTMo=");
         Document doc = Document.parse(dict);

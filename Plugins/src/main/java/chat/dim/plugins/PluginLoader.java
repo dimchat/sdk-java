@@ -57,8 +57,10 @@ import chat.dim.mkm.GeneralDocumentFactory;
 import chat.dim.mkm.IdentifierFactory;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.Document;
+import chat.dim.protocol.DocumentType;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
+import chat.dim.protocol.MetaType;
 
 public class PluginLoader implements Runnable {
 
@@ -329,9 +331,9 @@ public class PluginLoader implements Runnable {
      */
     protected void registerMetaFactories() {
 
-        Meta.setFactory(Meta.MKM, new BaseMetaFactory(Meta.MKM));
-        Meta.setFactory(Meta.BTC, new BaseMetaFactory(Meta.BTC));
-        Meta.setFactory(Meta.ETH, new BaseMetaFactory(Meta.ETH));
+        Meta.setFactory(MetaType.MKM, new BaseMetaFactory(MetaType.MKM));
+        Meta.setFactory(MetaType.BTC, new BaseMetaFactory(MetaType.BTC));
+        Meta.setFactory(MetaType.ETH, new BaseMetaFactory(MetaType.ETH));
     }
 
     /**
@@ -340,9 +342,9 @@ public class PluginLoader implements Runnable {
     protected void registerDocumentFactories() {
 
         Document.setFactory("*", new GeneralDocumentFactory("*"));
-        Document.setFactory(Document.VISA, new GeneralDocumentFactory(Document.VISA));
-        Document.setFactory(Document.PROFILE, new GeneralDocumentFactory(Document.PROFILE));
-        Document.setFactory(Document.BULLETIN, new GeneralDocumentFactory(Document.BULLETIN));
+        Document.setFactory(DocumentType.VISA, new GeneralDocumentFactory(DocumentType.VISA));
+        Document.setFactory(DocumentType.PROFILE, new GeneralDocumentFactory(DocumentType.PROFILE));
+        Document.setFactory(DocumentType.BULLETIN, new GeneralDocumentFactory(DocumentType.BULLETIN));
     }
 
 }

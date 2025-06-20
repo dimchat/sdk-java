@@ -35,6 +35,7 @@ import java.util.Map;
 import chat.dim.format.TransportableData;
 import chat.dim.plugins.SharedAccountExtensions;
 import chat.dim.protocol.Document;
+import chat.dim.protocol.DocumentType;
 import chat.dim.protocol.ID;
 
 /**
@@ -54,11 +55,11 @@ public class GeneralDocumentFactory implements Document.Factory {
         if (!docType.equals("*")) {
             return docType;
         } else if (identifier.isGroup()) {
-            return Document.BULLETIN;
+            return DocumentType.BULLETIN;
         } else if (identifier.isUser()) {
-            return Document.VISA;
+            return DocumentType.VISA;
         } else {
-            return Document.PROFILE;
+            return DocumentType.PROFILE;
         }
     }
 
@@ -67,18 +68,18 @@ public class GeneralDocumentFactory implements Document.Factory {
         String docType = getType(type, identifier);
         if (data == null || signature == null/* || data.isEmpty() || signature.isEmpty()*/) {
             // create empty document
-            if (Document.VISA.equals(docType)) {
+            if (DocumentType.VISA.equals(docType)) {
                 return new BaseVisa(identifier);
-            } else if (Document.BULLETIN.equals(docType)) {
+            } else if (DocumentType.BULLETIN.equals(docType)) {
                 return new BaseBulletin(identifier);
             } else {
                 return new BaseDocument(identifier, docType);
             }
         } else {
             // create document with data & signature from local storage
-            if (Document.VISA.equals(docType)) {
+            if (DocumentType.VISA.equals(docType)) {
                 return new BaseVisa(identifier, data, signature);
-            } else if (Document.BULLETIN.equals(docType)) {
+            } else if (DocumentType.BULLETIN.equals(docType)) {
                 return new BaseBulletin(identifier, data, signature);
             } else {
                 return new BaseDocument(identifier, docType, data, signature);
@@ -88,7 +89,7 @@ public class GeneralDocumentFactory implements Document.Factory {
 
     @Override
     public Document parseDocument(Map<String, Object> doc) {
-        ID identifier = ID.parse(doc.get("ID"));
+        ID identifier = ID.parse(doc.get("did"));
         if (identifier == null) {
             // assert false : "document ID not found : " + doc;
             return null;
@@ -97,9 +98,9 @@ public class GeneralDocumentFactory implements Document.Factory {
         if (docType == null) {
             docType = getType("*", identifier);
         }
-        if (Document.VISA.equals(docType)) {
+        if (DocumentType.VISA.equals(docType)) {
             return new BaseVisa(doc);
-        } else if (Document.BULLETIN.equals(docType)) {
+        } else if (DocumentType.BULLETIN.equals(docType)) {
             return new BaseBulletin(doc);
         } else {
             return new BaseDocument(doc);

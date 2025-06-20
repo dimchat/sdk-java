@@ -20,6 +20,7 @@ import chat.dim.mkm.MetaUtils;
 import chat.dim.protocol.EntityType;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
+import chat.dim.protocol.MetaType;
 import chat.dim.Facebook;
 
 public class CryptoTest {
@@ -102,7 +103,7 @@ public class CryptoTest {
     public void testMeta() {
         String username = "moky";
         PrivateKey sk = PrivateKey.generate("RSA");
-        Meta meta = Meta.generate(Meta.MKM, sk, username);
+        Meta meta = Meta.generate(MetaType.MKM, sk, username);
         Log.info("meta: " + JSON.encode(meta));
         Log.info("SK: " + JSON.encode(sk));
     }

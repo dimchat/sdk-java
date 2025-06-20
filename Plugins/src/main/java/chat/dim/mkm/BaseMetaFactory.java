@@ -39,6 +39,7 @@ import chat.dim.format.TransportableData;
 import chat.dim.format.UTF8;
 import chat.dim.plugins.SharedAccountExtensions;
 import chat.dim.protocol.Meta;
+import chat.dim.protocol.MetaType;
 
 /**
  *  Base Meta Factory
@@ -72,15 +73,15 @@ public class BaseMetaFactory implements Meta.Factory {
         Meta out;
         switch (type) {
 
-            case Meta.MKM:
+            case MetaType.MKM:
                 out = new DefaultMeta(type, key, seed, fingerprint);
                 break;
 
-            case Meta.BTC:
+            case MetaType.BTC:
                 out = new BTCMeta(type, key);
                 break;
 
-            case Meta.ETH:
+            case MetaType.ETH:
                 out = new ETHMeta(type, key);
                 break;
 
@@ -97,15 +98,15 @@ public class BaseMetaFactory implements Meta.Factory {
         String version = SharedAccountExtensions.helper.getMetaType(meta, "");
         switch (version) {
 
-            case Meta.MKM:
+            case MetaType.MKM:
                 out = new DefaultMeta(meta);
                 break;
 
-            case Meta.BTC:
+            case MetaType.BTC:
                 out = new BTCMeta(meta);
                 break;
 
-            case Meta.ETH:
+            case MetaType.ETH:
                 out = new ETHMeta(meta);
                 break;
 

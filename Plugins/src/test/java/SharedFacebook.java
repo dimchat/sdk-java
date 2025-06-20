@@ -16,6 +16,7 @@ import chat.dim.plugins.PluginLoader;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
+import chat.dim.protocol.MetaType;
 
 public class SharedFacebook extends Facebook {
     private static final SharedFacebook ourInstance = new SharedFacebook();
@@ -132,9 +133,9 @@ public class SharedFacebook extends Facebook {
      */
     static void registerCompatibleMetaFactories() {
 
-        Meta.Factory mkm = new CompatibleMetaFactory(Meta.MKM);
-        Meta.Factory btc = new CompatibleMetaFactory(Meta.BTC);
-        Meta.Factory eth = new CompatibleMetaFactory(Meta.ETH);
+        Meta.Factory mkm = new CompatibleMetaFactory(MetaType.MKM);
+        Meta.Factory btc = new CompatibleMetaFactory(MetaType.BTC);
+        Meta.Factory eth = new CompatibleMetaFactory(MetaType.ETH);
 
         Meta.setFactory("1", mkm);
         Meta.setFactory("2", btc);

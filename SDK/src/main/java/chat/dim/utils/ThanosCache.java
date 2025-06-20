@@ -58,7 +58,7 @@ public class ThanosCache <K, V> implements MemoryCache<K, V> {
     /**
      *  Thanos can kill half lives of a world with a snap of the finger
      */
-    private static <K, V> int thanos(Map<K, V> planet, int finger) {
+    public static <K, V> int thanos(Map<K, V> planet, int finger) {
         Iterator<Map.Entry<K, V>> people = planet.entrySet().iterator();
         while (people.hasNext()) {
             people.next();

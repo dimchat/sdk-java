@@ -32,8 +32,6 @@ package chat.dim.compat;
 
 import java.util.Map;
 
-import chat.dim.crypto.VerifyKey;
-import chat.dim.format.TransportableData;
 import chat.dim.mkm.BTCMeta;
 import chat.dim.mkm.BaseMetaFactory;
 import chat.dim.mkm.DefaultMeta;
@@ -45,30 +43,6 @@ public final class CompatibleMetaFactory extends BaseMetaFactory {
 
     public CompatibleMetaFactory(String algorithm) {
         super(algorithm);
-    }
-
-    @Override
-    public Meta createMeta(VerifyKey key, String seed, TransportableData fingerprint) {
-        Meta out;
-        switch (type) {
-
-            case Meta.MKM:
-                out = new DefaultMeta("1", key, seed, fingerprint);
-                break;
-
-            case Meta.BTC:
-                out = new BTCMeta("2", key);
-                break;
-
-            case Meta.ETH:
-                out = new ETHMeta("4", key);
-                break;
-
-            default:
-                throw new IllegalArgumentException("unknown meta type: " + type);
-        }
-        assert out.isValid() : "meta error: " + out;
-        return out;
     }
 
     @Override
