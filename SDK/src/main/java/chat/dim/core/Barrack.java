@@ -30,14 +30,12 @@
  */
 package chat.dim.core;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
 import chat.dim.mkm.Entity;
 import chat.dim.mkm.Group;
 import chat.dim.mkm.User;
 import chat.dim.protocol.ID;
+import chat.dim.utils.MemoryCache;
+import chat.dim.utils.ThanosCache;
 
 /**
  *  Entity Factory
@@ -47,34 +45,15 @@ import chat.dim.protocol.ID;
 public class Barrack implements Entity.Delegate {
 
     // memory caches
-    private final Map<ID, User>   userMap = new HashMap<>();
-    private final Map<ID, Group> groupMap = new HashMap<>();
+    protected final MemoryCache<ID, User>   userCache = createUserCache();
+    protected final MemoryCache<ID, Group> groupCache = createGroupCache();
 
-    protected void cacheUser(User user) {
-        userMap.put(user.getIdentifier(), user);
+    protected MemoryCache<ID, User> createUserCache() {
+        return new ThanosCache<>();
     }
-
-    protected void cacheGroup(Group group) {
-        groupMap.put(group.getIdentifier(), group);
+    protected MemoryCache<ID, Group> createGroupCache() {
+        return new ThanosCache<>();
     }
-
-    //
-    //  Entity Delegate
-    //
-
-    @Override
-    public User getUser(ID identifier) {
-        return userMap.get(identifier);
-    }
-
-    @Override
-    public Group getGroup(ID identifier) {
-        return groupMap.get(identifier);
-    }
-
-    //
-    //  Garbage Collection
-    //
 
     /**
      * Call it when received 'UIApplicationDidReceiveMemoryWarningNotification',
@@ -83,26 +62,31 @@ public class Barrack implements Entity.Delegate {
      * @return number of survivors
      */
     public int reduceMemory() {
-        int finger = 0;
-        finger = thanos(userMap, finger);
-        finger = thanos(groupMap, finger);
-        return finger >> 1;
+        int cnt1 = userCache.reduceMemory();
+        int cnt2 = groupCache.reduceMemory();
+        return cnt1 + cnt2;
     }
 
-    /**
-     *  Thanos can kill half lives of a world with a snap of the finger
-     */
-    public static <K, V> int thanos(Map<K, V> planet, int finger) {
-        Iterator<Map.Entry<K, V>> people = planet.entrySet().iterator();
-        while (people.hasNext()) {
-            people.next();
-            if ((++finger & 1) == 1) {
-                // kill it
-                people.remove();
-            }
-            // let it go
-        }
-        return finger;
+    protected void cacheUser(User user) {
+        userCache.put(user.getIdentifier(), user);
+    }
+
+    protected void cacheGroup(Group group) {
+        groupCache.put(group.getIdentifier(), group);
+    }
+
+    //
+    //  Entity Delegate
+    //
+
+    @Override
+    public User getUser(ID identifier) {
+        return userCache.get(identifier);
+    }
+
+    @Override
+    public Group getGroup(ID identifier) {
+        return groupCache.get(identifier);
     }
 
 }

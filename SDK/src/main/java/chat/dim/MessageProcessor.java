@@ -37,6 +37,7 @@ import chat.dim.core.Processor;
 import chat.dim.dkd.ContentProcessor;
 import chat.dim.mkm.User;
 import chat.dim.protocol.Content;
+import chat.dim.protocol.ContentType;
 import chat.dim.protocol.Envelope;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
@@ -187,7 +188,7 @@ public abstract class MessageProcessor extends TwinsHelper implements Processor 
         ContentProcessor cpu = factory.getContentProcessor(content);
         if (cpu == null) {
             // default content processor
-            cpu = factory.getContentProcessor(0);  // ContentType.ANY
+            cpu = factory.getContentProcessor(ContentType.ANY);
             assert cpu != null : "failed to get default CPU";
         }
         return cpu.processContent(content, rMsg);

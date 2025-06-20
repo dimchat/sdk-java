@@ -1,13 +1,13 @@
 /* license: https://mit-license.org
  *
- *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
+ *  DIMP : Decentralized Instant Messaging Protocol
  *
- *                                Written in 2019 by Moky <albert.moky@gmail.com>
+ *                                Written in 2025 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Albert Moky
+ * Copyright (c) 2025 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,39 +28,47 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.mkm;
+package chat.dim.utils;
 
-import chat.dim.protocol.Document;
-import chat.dim.protocol.EntityType;
-import chat.dim.protocol.ID;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
-/**
- *  Bot User
- */
-public class Bot extends BaseUser {
+public class ThanosCache <K, V> implements MemoryCache<K, V> {
 
-    public Bot(ID identifier) {
-        super(identifier);
-        assert EntityType.BOT.equals(identifier.getType()) : "Bot ID error: " + identifier;
+    private final Map<K, V> caches = new HashMap<>();
+
+    @Override
+    public V get(K key) {
+        return caches.get(key);
+    }
+
+    @Override
+    public V put(K key, V value) {
+        return caches.put(key, value);
+    }
+
+    @Override
+    public int reduceMemory() {
+        int finger = 0;
+        finger = thanos(caches, finger);
+        return finger >> 1;
     }
 
     /**
-     *  Bot Document
+     *  Thanos can kill half lives of a world with a snap of the finger
      */
-    public Document getProfile() {
-        return getVisa();
-    }
-
-    /**
-     *  Get provider ID
-     *
-     * @return ICP ID, bot group
-     */
-    public ID getProvider() {
-        Document doc = getProfile();
-        if (doc == null) {
-            return null;
+    private static <K, V> int thanos(Map<K, V> planet, int finger) {
+        Iterator<Map.Entry<K, V>> people = planet.entrySet().iterator();
+        while (people.hasNext()) {
+            people.next();
+            if ((++finger & 1) == 1) {
+                // kill it
+                people.remove();
+            }
+            // let it go
         }
-        return ID.parse(doc.getProperty("provider"));
+        return finger;
     }
+
 }

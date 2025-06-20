@@ -43,7 +43,7 @@ import chat.dim.protocol.GroupCommand;
  */
 public final class ContentProcessorFactory implements ContentProcessor.Factory {
 
-    private final Map<Integer, ContentProcessor> contentProcessors = new HashMap<>();
+    private final Map<String, ContentProcessor> contentProcessors = new HashMap<>();
     private final Map<String, ContentProcessor> commandProcessors = new HashMap<>();
 
     private final ContentProcessor.Creator creator;
@@ -56,7 +56,7 @@ public final class ContentProcessorFactory implements ContentProcessor.Factory {
     @Override
     public ContentProcessor getContentProcessor(Content content) {
         ContentProcessor cpu;
-        int msgType = content.getType();
+        String msgType = content.getType();
         if (content instanceof Command) {
             String cmd = ((Command) content).getCmd();
             // assert cmd != null && cmd.length() > 0 : "command name error: " + cmd;
@@ -76,7 +76,7 @@ public final class ContentProcessorFactory implements ContentProcessor.Factory {
     }
 
     @Override
-    public ContentProcessor getContentProcessor(int msgType) {
+    public ContentProcessor getContentProcessor(String msgType) {
         ContentProcessor cpu = contentProcessors.get(msgType);
         if (cpu == null) {
             cpu = creator.createContentProcessor(msgType);
@@ -87,7 +87,7 @@ public final class ContentProcessorFactory implements ContentProcessor.Factory {
         return cpu;
     }
 
-    private ContentProcessor getCommandProcessor(int msgType, String cmdName) {
+    private ContentProcessor getCommandProcessor(String msgType, String cmdName) {
         ContentProcessor cpu = commandProcessors.get(cmdName);
         if (cpu == null) {
             cpu = creator.createCommandProcessor(msgType, cmdName);

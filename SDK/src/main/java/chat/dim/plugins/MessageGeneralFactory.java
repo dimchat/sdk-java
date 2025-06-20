@@ -51,7 +51,7 @@ public class MessageGeneralFactory implements GeneralMessageHelper,
                                               Content.Helper, Envelope.Helper,
                                               InstantMessage.Helper, SecureMessage.Helper, ReliableMessage.Helper {
 
-    private final Map<Integer, Content.Factory> contentFactories = new HashMap<>();
+    private final Map<String, Content.Factory> contentFactories = new HashMap<>();
 
     private Envelope.Factory envelopeFactory = null;
 
@@ -60,8 +60,8 @@ public class MessageGeneralFactory implements GeneralMessageHelper,
     private ReliableMessage.Factory reliableMessageFactory = null;
 
     @Override
-    public int getContentType(Map<?, ?> content, int defaultValue) {
-        return Converter.getInt(content.get("type"), defaultValue);
+    public String getContentType(Map<?, ?> content, String defaultValue) {
+        return Converter.getString(content.get("type"), defaultValue);
     }
 
     //
@@ -69,12 +69,15 @@ public class MessageGeneralFactory implements GeneralMessageHelper,
     //
 
     @Override
-    public void setContentFactory(int type, Content.Factory factory) {
+    public void setContentFactory(String type, Content.Factory factory) {
         contentFactories.put(type, factory);
     }
 
     @Override
-    public Content.Factory getContentFactory(int type) {
+    public Content.Factory getContentFactory(String type) {
+        if (type == null || type.isEmpty()) {
+            return null;
+        }
         return contentFactories.get(type);
     }
 
@@ -91,12 +94,16 @@ public class MessageGeneralFactory implements GeneralMessageHelper,
             return null;
         }
         // get factory by content type
-        int type = getContentType(info, 0);
-        //assert type > 0 : "content error: " + content;
+        String type = getContentType(info, null);
+        assert type != null : "content type not found: " + content;
         Content.Factory factory = getContentFactory(type);
         if (factory == null) {
-            factory = getContentFactory(0);  // unknown
-            assert factory != null : "default content factory not found";
+            // unknown content type, get default content factory
+            factory = getContentFactory("*");  // unknown
+            if (factory == null) {
+                assert false : "default content factory not found: " + content;
+                return null;
+            }
         }
         return factory.parseContent(info);
     }
@@ -135,7 +142,10 @@ public class MessageGeneralFactory implements GeneralMessageHelper,
             return null;
         }
         Envelope.Factory factory = getEnvelopeFactory();
-        assert factory != null : "envelope factory not ready";
+        if (factory == null) {
+            assert false : "envelope factory not ready: " + env;
+            return null;
+        }
         return factory.parseEnvelope(info);
     }
 
@@ -173,12 +183,15 @@ public class MessageGeneralFactory implements GeneralMessageHelper,
             return null;
         }
         InstantMessage.Factory factory = getInstantMessageFactory();
-        assert factory != null : "instant message factory not ready";
+        if (factory == null) {
+            assert false : "instant message factory not ready: " + msg;
+            return null;
+        }
         return factory.parseInstantMessage(info);
     }
 
     @Override
-    public long generateSerialNumber(int msgType, Date now) {
+    public long generateSerialNumber(String msgType, Date now) {
         InstantMessage.Factory factory = getInstantMessageFactory();
         assert factory != null : "instant message factory not ready";
         return factory.generateSerialNumber(msgType, now);
@@ -211,7 +224,10 @@ public class MessageGeneralFactory implements GeneralMessageHelper,
             return null;
         }
         SecureMessage.Factory factory = getSecureMessageFactory();
-        assert factory != null : "secure message factory not ready";
+        if (factory == null) {
+            assert false : "secure message factory not ready: " + msg;
+            return null;
+        }
         return factory.parseSecureMessage(info);
     }
 
@@ -242,7 +258,10 @@ public class MessageGeneralFactory implements GeneralMessageHelper,
             return null;
         }
         ReliableMessage.Factory factory = getReliableMessageFactory();
-        assert factory != null : "reliable message factory not ready";
+        if (factory == null) {
+            assert false : "reliable message factory not ready: " + msg;
+            return null;
+        }
         return factory.parseReliableMessage(info);
     }
 

@@ -32,6 +32,7 @@ package chat.dim.mkm;
 
 import java.util.Date;
 
+import chat.dim.plugins.SharedAccountExtensions;
 import chat.dim.protocol.Bulletin;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.Visa;
@@ -72,7 +73,7 @@ public interface DocumentUtils {
         for (Document doc : documents) {
             // 1. check type
             if (checkType) {
-                docType = doc.getType();
+                docType = SharedAccountExtensions.helper.getDocumentType(doc.toMap(), null);
                 matched = docType == null || docType.isEmpty() || docType.equals(type);
                 if (!matched) {
                     // type not matched, ignore it

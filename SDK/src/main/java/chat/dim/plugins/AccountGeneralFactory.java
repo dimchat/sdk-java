@@ -93,7 +93,10 @@ public class AccountGeneralFactory implements GeneralAccountHelper,
             return (Address) address;
         }
         String str = Wrapper.getString(address);
-        assert str != null : "address error: " + address;
+        if (str == null) {
+            assert false : "address error: " + address;
+            return null;
+        }
         Address.Factory factory = getAddressFactory();
         assert factory != null : "address factory not ready";
         return factory.parseAddress(str);
@@ -128,7 +131,10 @@ public class AccountGeneralFactory implements GeneralAccountHelper,
             return (ID) identifier;
         }
         String str = Wrapper.getString(identifier);
-        assert str != null : "ID error: " + identifier;
+        if (str == null) {
+            assert false : "ID error: " + identifier;
+            return null;
+        }
         ID.Factory factory = getIdentifierFactory();
         assert factory != null : "ID factory not ready";
         return factory.parseIdentifier(str);
@@ -182,6 +188,9 @@ public class AccountGeneralFactory implements GeneralAccountHelper,
 
     @Override
     public Meta.Factory getMetaFactory(String type) {
+        if (type == null || type.isEmpty()) {
+            return null;
+        }
         return metaFactories.get(type);
     }
 
@@ -211,11 +220,16 @@ public class AccountGeneralFactory implements GeneralAccountHelper,
             assert false : "meta error: " + meta;
             return null;
         }
-        String type = getMetaType(info, "*");
+        String type = getMetaType(info, null);
+        assert type != null : "meta type not found: " + meta;
         Meta.Factory factory = getMetaFactory(type);
         if (factory == null) {
+            // unknown meta type, get default meta factory
             factory = getMetaFactory("*");  // unknown
-            assert factory != null : "default meta factory not found";
+            if (factory == null) {
+                assert false : "default meta factory not found: " + meta;
+                return null;
+            }
         }
         return factory.parseMeta(info);
     }
@@ -231,6 +245,9 @@ public class AccountGeneralFactory implements GeneralAccountHelper,
 
     @Override
     public Document.Factory getDocumentFactory(String type) {
+        if (type == null || type.isEmpty()) {
+            return null;
+        }
         return documentFactories.get(type);
     }
 
@@ -253,12 +270,16 @@ public class AccountGeneralFactory implements GeneralAccountHelper,
             assert false : "document error: " + doc;
             return null;
         }
-        String type = getDocumentType(info, "*");
+        String type = getDocumentType(info, null);
+        //assert type != null : "document type not found: " + doc;
         Document.Factory factory = getDocumentFactory(type);
         if (factory == null) {
-            assert !type.equals("*") : "document factory not ready: " + doc;
+            // unknown document type, get default document factory
             factory = getDocumentFactory("*");  // unknown
-            assert factory != null : "default document factory not found";
+            if (factory == null) {
+                assert false : "default document factory not found: " + doc;
+                return null;
+            }
         }
         return factory.parseDocument(info);
     }

@@ -62,6 +62,9 @@ public class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
 
     @Override
     public SymmetricKey.Factory getSymmetricKeyFactory(String algorithm) {
+        if (algorithm == null || algorithm.isEmpty()) {
+            return null;
+        }
         return symmetricKeyFactories.get(algorithm);
     }
 
@@ -84,12 +87,16 @@ public class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
             assert false : "symmetric key error: " + key;
             return null;
         }
-        String algorithm = getKeyAlgorithm(info, "*");
-        assert !algorithm.equals("*") : "symmetric key error: " + key;
+        String algorithm = getKeyAlgorithm(info, null);
+        assert algorithm != null : "symmetric key error: " + key;
         SymmetricKey.Factory factory = getSymmetricKeyFactory(algorithm);
         if (factory == null) {
+            // unknown algorithm, get default key factory
             factory = getSymmetricKeyFactory("*");  // unknown
-            assert factory != null : "default symmetric key factory not found";
+            if (factory == null) {
+                assert false : "default symmetric key factory not found: " + key;
+                return null;
+            }
         }
         return factory.parseSymmetricKey(info);
     }
@@ -105,6 +112,9 @@ public class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
 
     @Override
     public PrivateKey.Factory getPrivateKeyFactory(String algorithm) {
+        if (algorithm == null || algorithm.isEmpty()) {
+            return null;
+        }
         return privateKeyFactories.get(algorithm);
     }
 
@@ -127,12 +137,16 @@ public class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
             assert false : "private key error: " + key;
             return null;
         }
-        String algorithm = getKeyAlgorithm(info, "*");
-        assert !algorithm.equals("*") : "private key error: " + key;
+        String algorithm = getKeyAlgorithm(info, null);
+        assert algorithm != null : "private key error: " + key;
         PrivateKey.Factory factory = getPrivateKeyFactory(algorithm);
         if (factory == null) {
+            // unknown algorithm, get default key factory
             factory = getPrivateKeyFactory("*");  // unknown
-            assert factory != null : "default private key factory not found";
+            if (factory == null) {
+                assert false : "default private key factory not found: " + key;
+                return null;
+            }
         }
         return factory.parsePrivateKey(info);
     }
@@ -148,6 +162,9 @@ public class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
 
     @Override
     public PublicKey.Factory getPublicKeyFactory(String algorithm) {
+        if (algorithm == null || algorithm.isEmpty()) {
+            return null;
+        }
         return publicKeyFactories.get(algorithm);
     }
 
@@ -163,12 +180,16 @@ public class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
             assert false : "pubic key error: " + key;
             return null;
         }
-        String algorithm = getKeyAlgorithm(info, "*");
-        assert !algorithm.equals("*") : "public key error: " + key;
+        String algorithm = getKeyAlgorithm(info, null);
+        assert algorithm != null : "public key error: " + key;
         PublicKey.Factory factory = getPublicKeyFactory(algorithm);
         if (factory == null) {
+            // unknown algorithm, get default key factory
             factory = getPublicKeyFactory("*");  // unknown
-            assert factory != null : "default public key factory not found";
+            if (factory == null) {
+                assert false : "default public key factory not found: " + key;
+                return null;
+            }
         }
         return factory.parsePublicKey(info);
     }

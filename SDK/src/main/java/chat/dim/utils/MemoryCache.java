@@ -1,13 +1,13 @@
 /* license: https://mit-license.org
  *
- *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
+ *  DIMP : Decentralized Instant Messaging Protocol
  *
- *                                Written in 2019 by Moky <albert.moky@gmail.com>
+ *                                Written in 2025 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Albert Moky
+ * Copyright (c) 2025 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,39 +28,17 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.mkm;
+package chat.dim.utils;
 
-import chat.dim.protocol.Document;
-import chat.dim.protocol.EntityType;
-import chat.dim.protocol.ID;
+public interface MemoryCache <K, V> {
 
-/**
- *  Bot User
- */
-public class Bot extends BaseUser {
+    V get(K key);
 
-    public Bot(ID identifier) {
-        super(identifier);
-        assert EntityType.BOT.equals(identifier.getType()) : "Bot ID error: " + identifier;
-    }
+    V put(K key, V value);
 
     /**
-     *  Bot Document
+     *  Garbage Collection
      */
-    public Document getProfile() {
-        return getVisa();
-    }
+    int reduceMemory();
 
-    /**
-     *  Get provider ID
-     *
-     * @return ICP ID, bot group
-     */
-    public ID getProvider() {
-        Document doc = getProfile();
-        if (doc == null) {
-            return null;
-        }
-        return ID.parse(doc.getProperty("provider"));
-    }
 }

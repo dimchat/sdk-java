@@ -44,7 +44,7 @@ import chat.dim.protocol.SecureMessage;
 public class MessageFactory implements Envelope.Factory,
                                        InstantMessage.Factory, SecureMessage.Factory, ReliableMessage.Factory {
 
-    private int sn;
+    private long sn;
 
     public MessageFactory() {
         super();
@@ -60,7 +60,7 @@ public class MessageFactory implements Envelope.Factory,
      *
      * @return 1 ~ 2^31-1
      */
-    private synchronized int next() {
+    private synchronized long next() {
         assert sn >= 0 : "serial number error: " + sn;
         if (sn < 0x7fffffff) {
             sn += 1;
@@ -92,7 +92,7 @@ public class MessageFactory implements Envelope.Factory,
     //  InstantMessage.Factory
     //
     @Override
-    public long generateSerialNumber(int msgType, Date time) {
+    public long generateSerialNumber(String msgType, Date time) {
         // because we must make sure all messages in a same chat box won't have
         // same serial numbers, so we can't use time-related numbers, therefore
         // the best choice is a totally random number, maybe.

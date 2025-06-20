@@ -62,6 +62,9 @@ public class CommandGeneralFactory implements GeneralCommandHelper, Command.Help
 
     @Override
     public Command.Factory getCommandFactory(String cmd) {
+        if (cmd == null || cmd.isEmpty()) {
+            return null;
+        }
         return commandFactories.get(cmd);
     }
 
@@ -78,8 +81,8 @@ public class CommandGeneralFactory implements GeneralCommandHelper, Command.Help
             return null;
         }
         // get factory by command name
-        String name = getCmd(info, "");
-        assert !name.isEmpty() : "command name not found: " + content;
+        String name = getCmd(info, null);
+        assert name != null : "command name not found: " + content;
         Command.Factory factory = getCommandFactory(name);
         if (factory == null) {
             // unknown command name, get base command factory
@@ -93,7 +96,8 @@ public class CommandGeneralFactory implements GeneralCommandHelper, Command.Help
     }
 
     private static Command.Factory getDefaultFactory(Map<?, ?> info) {
-        int type = SharedMessageExtensions.helper.getContentType(info, 0);
+        String type = SharedMessageExtensions.helper.getContentType(info, null);
+        assert type != null : "content type not found: " + info;
         Content.Factory factory = SharedMessageExtensions.contentHelper.getContentFactory(type);
         if (factory instanceof Command.Factory) {
             return (Command.Factory) factory;

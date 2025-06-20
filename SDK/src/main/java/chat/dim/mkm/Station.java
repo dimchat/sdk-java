@@ -114,7 +114,7 @@ public class Station implements User {
             if (docPort > 0) {
                 port = docPort;
             }
-            ID docISP = ID.parse(doc.getProperty("ISP"));
+            ID docISP = ID.parse(doc.getProperty("provider"));
             if (docISP != null) {
                 isp = docISP;
             }

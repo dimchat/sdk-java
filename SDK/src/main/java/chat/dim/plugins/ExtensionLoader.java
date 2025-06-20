@@ -224,8 +224,8 @@ public class ExtensionLoader implements Runnable {
         setContentFactory(ContentType.ANY, BaseContent::new);
     }
 
-    protected void setContentFactory(ContentType type, Content.Factory factory) {
-        Content.setFactory(type.value, factory);
+    protected void setContentFactory(String type, Content.Factory factory) {
+        Content.setFactory(type, factory);
     }
 
     /**

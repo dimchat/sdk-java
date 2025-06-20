@@ -68,9 +68,9 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         }
         // error
         return respondReceipt("Document ID not match.", rMsg.getEnvelope(), command, newMap(
-                "template", "Document ID not match: ${ID}.",
+                "template", "Document ID not match: ${did}.",
                 "replacements", newMap(
-                        "ID", identifier.toString()
+                        "did", identifier.toString()
                 )
         ));
     }
@@ -80,9 +80,9 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         List<Document> documents = facebook.getDocuments(identifier);
         if (documents == null || documents.isEmpty()) {
             return respondReceipt("Document not found.", envelope, content, newMap(
-                    "template", "Document not found: ${ID}.",
+                    "template", "Document not found: ${did}.",
                     "replacements", newMap(
-                            "ID", identifier.toString()
+                            "did", identifier.toString()
                     )
             ));
         }
@@ -98,9 +98,9 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
             } else if (!lastTime.after(queryTime)) {
                 // document not updated
                 return respondReceipt("Document not updated.", envelope, content, newMap(
-                        "template", "Document not updated: ${ID}, last time: ${time}.",
+                        "template", "Document not updated: ${did}, last time: ${time}.",
                         "replacements", newMap(
-                                "ID", identifier.toString(),
+                                "did", identifier.toString(),
                                 "time", lastTime.getTime() / 1000.0d
                         )
                 ));
@@ -128,9 +128,9 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
             meta = facebook.getMeta(identifier);
             if (meta == null) {
                 return respondReceipt("Meta not found.", envelope, content, newMap(
-                        "template", "Meta not found: ${ID}.",
+                        "template", "Meta not found: ${did}.",
                         "replacements", newMap(
-                                "ID", identifier.toString()
+                                "did", identifier.toString()
                         )
                 ));
             }
@@ -150,9 +150,9 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         }
         // 3. success
         return respondReceipt("Document received.", envelope, content, newMap(
-                "template", "Document received: ${ID}.",
+                "template", "Document received: ${did}.",
                 "replacements", newMap(
-                        "ID", identifier.toString()
+                        "did", identifier.toString()
                 )
         ));
     }
@@ -164,17 +164,17 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         if (!checkDocument(doc, meta)) {
             // document invalid
             return respondReceipt("Document not accepted.", envelope, content, newMap(
-                    "template", "Document not accepted: ${ID}.",
+                    "template", "Document not accepted: ${did}.",
                     "replacements", newMap(
-                            "ID", identifier.toString()
+                            "did", identifier.toString()
                     )
             ));
         } else if (!facebook.saveDocument(doc)) {
             // document expired
             return respondReceipt("Document not changed.", envelope, content, newMap(
-                    "template", "Document not changed: ${ID}.",
+                    "template", "Document not changed: ${did}.",
                     "replacements", newMap(
-                            "ID", identifier.toString()
+                            "did", identifier.toString()
                     )
             ));
         }

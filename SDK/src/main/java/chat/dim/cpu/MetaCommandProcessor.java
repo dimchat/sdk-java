@@ -71,9 +71,9 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
         Meta meta = facebook.getMeta(identifier);
         if (meta == null) {
             return respondReceipt("Meta not found.", envelope, content, newMap(
-                    "template", "Meta not found: ${ID}.",
+                    "template", "Meta not found: ${did}.",
                     "replacements", newMap(
-                            "ID", identifier.toString()
+                            "did", identifier.toString()
                     )
             ));
         }
@@ -94,9 +94,9 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
         }
         // 2. success
         return respondReceipt("Meta received.", envelope, content, newMap(
-                "template", "Meta received: ${ID}.",
+                "template", "Meta received: ${did}.",
                 "replacements", newMap(
-                        "ID", identifier.toString()
+                        "did", identifier.toString()
                 )
         ));
     }
@@ -108,17 +108,17 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
         if (!checkMeta(meta, identifier)) {
             // meta invalid
             return respondReceipt("Meta not valid.", envelope, content, newMap(
-                    "template", "Meta not valid: ${ID}.",
+                    "template", "Meta not valid: ${did}.",
                     "replacements", newMap(
-                            "ID", identifier.toString()
+                            "did", identifier.toString()
                     )
             ));
         } else if (!facebook.saveMeta(meta, identifier)) {
             // DB error?
             return respondReceipt("Meta not accepted.", envelope, content, newMap(
-                    "template", "Meta not accepted: ${ID}.",
+                    "template", "Meta not accepted: ${did}.",
                     "replacements", newMap(
-                            "ID", identifier.toString()
+                            "did", identifier.toString()
                     )
             ));
         }

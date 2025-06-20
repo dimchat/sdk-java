@@ -48,35 +48,32 @@ public class BaseContentProcessorCreator extends TwinsHelper implements ContentP
     }
 
     @Override
-    public ContentProcessor createContentProcessor(int msgType) {
+    public ContentProcessor createContentProcessor(String msgType) {
+        switch (msgType) {
 
-        // forward content
-        if (ContentType.FORWARD.equals(msgType)) {
-            return new ForwardContentProcessor(getFacebook(), getMessenger());
+            // forward content
+            case ContentType.FORWARD:
+                return new ForwardContentProcessor(getFacebook(), getMessenger());
+
+            // array content
+            case ContentType.ARRAY:
+                return new ArrayContentProcessor(getFacebook(), getMessenger());
+
+            // default commands
+            case ContentType.COMMAND:
+                return new BaseCommandProcessor(getFacebook(), getMessenger());
+
+            // unknown content
+            case ContentType.ANY:
+                // must return a default processor for unknown type
+                return new BaseContentProcessor(getFacebook(), getMessenger());
         }
-
-        // array content
-        if (ContentType.ARRAY.equals(msgType)) {
-            return new ArrayContentProcessor(getFacebook(), getMessenger());
-        }
-
-        // default commands
-        if (ContentType.COMMAND.equals(msgType)) {
-            return new BaseCommandProcessor(getFacebook(), getMessenger());
-        }
-
-        //if (ContentType.ANY.equals(msgType)) {
-        if (msgType == 0) {
-            // must return a default processor for type==0
-            return new BaseContentProcessor(getFacebook(), getMessenger());
-        }
-
-        // unknown content
+        assert false : "unsupported content: " + msgType;
         return null;
     }
 
     @Override
-    public ContentProcessor createCommandProcessor(int msgType, String cmdName) {
+    public ContentProcessor createCommandProcessor(String msgType, String cmdName) {
         switch (cmdName) {
 
             // meta command
@@ -86,11 +83,9 @@ public class BaseContentProcessorCreator extends TwinsHelper implements ContentP
             // document command
             case Command.DOCUMENT:
                 return new DocumentCommandProcessor(getFacebook(), getMessenger());
-
-            // unknown command
-            default:
-                return null;
         }
+        assert false : "unsupported command: " + cmdName;
+        return null;
     }
 
 }
