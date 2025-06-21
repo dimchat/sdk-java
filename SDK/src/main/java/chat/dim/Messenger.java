@@ -51,9 +51,27 @@ public abstract class Messenger extends Transceiver implements Packer, Processor
 
     protected abstract Processor getProcessor();
 
+    //-------- SecureMessageDelegate
+
+    @Override
+    public SymmetricKey deserializeKey(byte[] key, SecureMessage sMsg) {
+        if (key == null) {
+            // get key from cache with direction: sender -> receiver(group)
+            return getDecryptKey(sMsg);
+        }
+        SymmetricKey password = super.deserializeKey(key, sMsg);
+        // cache decrypt key when success
+        if (password != null) {
+            // cache the key with direction: sender -> receiver(group)
+            cacheDecryptKey(password, sMsg);
+        }
+        return password;
+    }
+
     //
     //  Interfaces for Cipher Key
     //
+
     public SymmetricKey getEncryptKey(InstantMessage iMsg) {
         ID sender = iMsg.getSender();
         ID target = CipherKeyDelegate.getDestination(iMsg);
@@ -117,6 +135,7 @@ public abstract class Messenger extends Transceiver implements Packer, Processor
     //
     //  Interfaces for Processing Message
     //
+
     @Override
     public List<byte[]> processPackage(byte[] data) {
         Processor processor = getProcessor();
@@ -147,32 +166,4 @@ public abstract class Messenger extends Transceiver implements Packer, Processor
         return processor.processContent(content, rMsg);
     }
 
-    //-------- SecureMessageDelegate
-
-    @Override
-    public SymmetricKey deserializeKey(byte[] key, SecureMessage sMsg) {
-        if (key == null) {
-            // get key from cache with direction: sender -> receiver(group)
-            return getDecryptKey(sMsg);
-        } else {
-            return super.deserializeKey(key, sMsg);
-        }
-    }
-
-    @Override
-    public Content deserializeContent(byte[] data, SymmetricKey password, SecureMessage sMsg) {
-        Content content = super.deserializeContent(data, password, sMsg);
-
-        // cache decrypt key when success
-        if (content == null) {
-             assert false : "content error: " + data.length;
-        } else {
-            // cache the key with direction: sender -> receiver(group)
-            cacheDecryptKey(password, sMsg);
-        }
-
-        // NOTICE: check attachment for File/Image/Audio/Video message content
-        //         after deserialize content, this job should be do in subclass
-        return content;
-    }
 }

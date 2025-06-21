@@ -211,6 +211,8 @@ public abstract class Transceiver implements InstantMessageDelegate, SecureMessa
         //       'W' -> 'time'
         //       'G' -> 'group'
         return Content.parse(dict);
+        // NOTICE: check attachment for File/Image/Audio/Video message content
+        //         after deserialize content, this job should be do in subclass
     }
 
     @Override

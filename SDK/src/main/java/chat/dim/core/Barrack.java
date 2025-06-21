@@ -32,8 +32,14 @@ package chat.dim.core;
 
 import java.util.List;
 
+import chat.dim.mkm.BaseGroup;
+import chat.dim.mkm.BaseUser;
+import chat.dim.mkm.Bot;
 import chat.dim.mkm.Group;
+import chat.dim.mkm.ServiceProvider;
+import chat.dim.mkm.Station;
 import chat.dim.mkm.User;
+import chat.dim.protocol.EntityType;
 import chat.dim.protocol.ID;
 
 /**
@@ -41,23 +47,30 @@ import chat.dim.protocol.ID;
  *  ~~~~~~~~~~~~~~
  *  Entity pool to manage User/Group instances
  */
-public interface Barrack {
+public abstract class Barrack {
 
-    void cacheUser(User user);
+    public abstract void cacheUser(User user);
 
-    void cacheGroup(Group group);
+    public abstract void cacheGroup(Group group);
 
     //
     //  Entity Delegate
     //
 
-    User getUser(ID identifier);
+    public abstract User getUser(ID identifier);
 
-    Group getGroup(ID identifier);
+    public abstract Group getGroup(ID identifier);
 
     //
     //  Archivist
     //
+
+    /**
+     *  Get all local users (for decrypting received message)
+     *
+     * @return users with private key
+     */
+    public abstract List<User> getLocalUsers();
 
     /**
      *  Create user when visa.key exists
@@ -65,7 +78,18 @@ public interface Barrack {
      * @param identifier - user ID
      * @return user, null on not ready
      */
-    User createUser(ID identifier);
+    public User createUser(ID identifier) {
+        assert identifier.isUser() : "user ID error: " + identifier;
+        int type = identifier.getType();
+        // check user type
+        if (EntityType.STATION.equals(type)) {
+            return new Station(identifier);
+        } else if (EntityType.BOT.equals(type)) {
+            return new Bot(identifier);
+        }
+        // general user, or 'anyone@anywhere'
+        return new BaseUser(identifier);
+    }
 
     /**
      *  Create group when members exist
@@ -73,13 +97,15 @@ public interface Barrack {
      * @param identifier - group ID
      * @return group, null on not ready
      */
-    Group createGroup(ID identifier);
-
-    /**
-     *  Get all local users (for decrypting received message)
-     *
-     * @return users with private key
-     */
-    List<User> getLocalUsers();
+    public Group createGroup(ID identifier) {
+        assert identifier.isGroup() : "group ID error: " + identifier;
+        int type = identifier.getType();
+        // check group type
+        if (EntityType.ISP.equals(type)) {
+            return new ServiceProvider(identifier);
+        }
+        // general group, or 'everyone@everywhere'
+        return new BaseGroup(identifier);
+    }
 
 }

@@ -148,7 +148,6 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
         //
         user = barrack.createUser(identifier);
         if (user != null) {
-            user.setDataSource(this);
             barrack.cacheUser(user);
         }
         return user;
@@ -182,7 +181,6 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
         //
         group = barrack.createGroup(identifier);
         if (group != null) {
-            group.setDataSource(this);
             barrack.cacheGroup(group);
         }
         return group;
