@@ -39,6 +39,10 @@ import chat.dim.protocol.Visa;
 
 public interface DocumentUtils {
 
+    static String getDocumentType(Document doc) {
+        return SharedAccountExtensions.helper.getDocumentType(doc.toMap(), null);
+    }
+
     /**
      *  Check whether this time is before old time
      */
@@ -73,7 +77,7 @@ public interface DocumentUtils {
         for (Document doc : documents) {
             // 1. check type
             if (checkType) {
-                docType = SharedAccountExtensions.helper.getDocumentType(doc.toMap(), null);
+                docType = getDocumentType(doc);
                 matched = docType == null || docType.isEmpty() || docType.equals(type);
                 if (!matched) {
                     // type not matched, ignore it

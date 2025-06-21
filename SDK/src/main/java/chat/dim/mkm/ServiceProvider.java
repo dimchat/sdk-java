@@ -68,41 +68,4 @@ public class ServiceProvider extends BaseGroup {
         return null;
     }
 
-    //
-    //  Comparison
-    //
-
-    public static boolean sameStation(Station a, Station b) {
-        if (a == b) {
-            // same object
-            return true;
-        }
-        return checkIdentifiers(a.getIdentifier(), b.getIdentifier()) &&
-                checkHosts(a.getHost(), b.getHost()) &&
-                checkPorts(a.getPort(), b.getPort());
-    }
-
-    private static boolean checkIdentifiers(ID a, ID b) {
-        if (a == b) {
-            // same object
-            return true;
-        } else if (a.isBroadcast() || b.isBroadcast()) {
-            return true;
-        }
-        return a.equals(b);
-    }
-    private static boolean checkHosts(String a, String b) {
-        if (a == null || b == null) {
-            return true;
-        } else if (a.isEmpty() || b.isEmpty()) {
-            return true;
-        }
-        return a.equals(b);
-    }
-    private static boolean checkPorts(int a, int b) {
-        if (a == 0 || b == 0) {
-            return true;
-        }
-        return a == b;
-    }
 }

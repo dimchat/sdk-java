@@ -55,8 +55,7 @@ import chat.dim.protocol.SecureMessage;
  */
 public abstract class Transceiver implements InstantMessageDelegate, SecureMessageDelegate, ReliableMessageDelegate {
 
-    // barrack
-    protected abstract Entity.Delegate getEntityDelegate();
+    protected abstract Entity.Delegate getFacebook();
 
     //-------- InstantMessageDelegate
 
@@ -99,11 +98,11 @@ public abstract class Transceiver implements InstantMessageDelegate, SecureMessa
     @Override
     public byte[] encryptKey(byte[] data, ID receiver, InstantMessage iMsg) {
         assert !BaseMessage.isBroadcast(iMsg) : "broadcast message has no key: " + iMsg;
-        Entity.Delegate barrack = getEntityDelegate();
-        assert barrack != null : "entity delegate not set yet";
+        Entity.Delegate facebook = getFacebook();
+        assert facebook != null : "entity delegate not set yet";
         // TODO: make sure the receiver's public key exists
         assert receiver.isUser() : "receiver error: " + receiver;
-        User contact = barrack.getUser(receiver);
+        User contact = facebook.getUser(receiver);
         if (contact == null) {
             assert false : "failed to encrypt message key for contact: " + receiver;
             return null;
@@ -137,10 +136,10 @@ public abstract class Transceiver implements InstantMessageDelegate, SecureMessa
         // NOTICE: the receiver must be a member ID
         //         if it's a group message
         assert !BaseMessage.isBroadcast(sMsg) : "broadcast message has no key: " + sMsg;
-        Entity.Delegate barrack = getEntityDelegate();
-        assert barrack != null : "entity delegate not set yet";
+        Entity.Delegate facebook = getFacebook();
+        assert facebook != null : "entity delegate not set yet";
         assert receiver.isUser() : "receiver error: " + receiver;
-        User user = barrack.getUser(receiver);
+        User user = facebook.getUser(receiver);
         if (user == null) {
             assert false : "failed to decrypt key: " + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup();
             return null;
@@ -216,10 +215,10 @@ public abstract class Transceiver implements InstantMessageDelegate, SecureMessa
 
     @Override
     public byte[] signData(byte[] data, SecureMessage sMsg) {
-        Entity.Delegate barrack = getEntityDelegate();
-        assert barrack != null : "entity delegate not set yet";
+        Entity.Delegate facebook = getFacebook();
+        assert facebook != null : "entity delegate not set yet";
         ID sender = sMsg.getSender();
-        User user = barrack.getUser(sender);
+        User user = facebook.getUser(sender);
         if (user == null) {
             assert false : "failed to sign message data for user: " + sender;
             return null;
@@ -246,10 +245,10 @@ public abstract class Transceiver implements InstantMessageDelegate, SecureMessa
 
     @Override
     public boolean verifyDataSignature(byte[] data, byte[] signature, ReliableMessage rMsg) {
-        Entity.Delegate barrack = getEntityDelegate();
-        assert barrack != null : "entity delegate not set yet";
+        Entity.Delegate facebook = getFacebook();
+        assert facebook != null : "entity delegate not set yet";
         ID sender = rMsg.getSender();
-        User contact = barrack.getUser(sender);
+        User contact = facebook.getUser(sender);
         if (contact == null) {
             assert false : "failed to verify message signature for contact: " + sender;
             return false;

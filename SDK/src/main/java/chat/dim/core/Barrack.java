@@ -30,63 +30,56 @@
  */
 package chat.dim.core;
 
-import chat.dim.mkm.Entity;
+import java.util.List;
+
 import chat.dim.mkm.Group;
 import chat.dim.mkm.User;
 import chat.dim.protocol.ID;
-import chat.dim.utils.MemoryCache;
-import chat.dim.utils.ThanosCache;
 
 /**
  *  Entity Factory
  *  ~~~~~~~~~~~~~~
  *  Entity pool to manage User/Group instances
  */
-public class Barrack implements Entity.Delegate {
+public interface Barrack {
 
-    // memory caches
-    protected final MemoryCache<ID, User>   userCache = createUserCache();
-    protected final MemoryCache<ID, Group> groupCache = createGroupCache();
+    void cacheUser(User user);
 
-    protected MemoryCache<ID, User> createUserCache() {
-        return new ThanosCache<>();
-    }
-    protected MemoryCache<ID, Group> createGroupCache() {
-        return new ThanosCache<>();
-    }
-
-    /**
-     * Call it when received 'UIApplicationDidReceiveMemoryWarningNotification',
-     * this will remove 50% of cached objects
-     *
-     * @return number of survivors
-     */
-    public int reduceMemory() {
-        int cnt1 = userCache.reduceMemory();
-        int cnt2 = groupCache.reduceMemory();
-        return cnt1 + cnt2;
-    }
-
-    protected void cacheUser(User user) {
-        userCache.put(user.getIdentifier(), user);
-    }
-
-    protected void cacheGroup(Group group) {
-        groupCache.put(group.getIdentifier(), group);
-    }
+    void cacheGroup(Group group);
 
     //
     //  Entity Delegate
     //
 
-    @Override
-    public User getUser(ID identifier) {
-        return userCache.get(identifier);
-    }
+    User getUser(ID identifier);
 
-    @Override
-    public Group getGroup(ID identifier) {
-        return groupCache.get(identifier);
-    }
+    Group getGroup(ID identifier);
+
+    //
+    //  Archivist
+    //
+
+    /**
+     *  Create user when visa.key exists
+     *
+     * @param identifier - user ID
+     * @return user, null on not ready
+     */
+    User createUser(ID identifier);
+
+    /**
+     *  Create group when members exist
+     *
+     * @param identifier - group ID
+     * @return group, null on not ready
+     */
+    Group createGroup(ID identifier);
+
+    /**
+     *  Get all local users (for decrypting received message)
+     *
+     * @return users with private key
+     */
+    List<User> getLocalUsers();
 
 }

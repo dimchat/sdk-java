@@ -228,33 +228,37 @@ public class ExtensionLoader implements Runnable {
         Content.setFactory(type, factory);
     }
 
+    protected void setCommandFactory(String cmd, Command.Factory factory) {
+        Command.setFactory(cmd, factory);
+    }
+
     /**
      *  Core command factories
      */
     protected void registerCommandFactories() {
 
         // Meta Command
-        Command.setFactory(Command.META, BaseMetaCommand::new);
+        setCommandFactory(Command.META, BaseMetaCommand::new);
 
         // Document Command
-        Command.setFactory(Command.DOCUMENT, BaseDocumentCommand::new);
+        setCommandFactory(Command.DOCUMENT, BaseDocumentCommand::new);
 
         // Receipt Command
-        Command.setFactory(Command.RECEIPT, BaseReceiptCommand::new);
+        setCommandFactory(Command.RECEIPT, BaseReceiptCommand::new);
 
         // Group Commands
-        Command.setFactory("group", new GroupCommandFactory());
-        Command.setFactory(GroupCommand.INVITE, InviteGroupCommand::new);
+        setCommandFactory("group", new GroupCommandFactory());
+        setCommandFactory(GroupCommand.INVITE, InviteGroupCommand::new);
         // 'expel' is deprecated (use 'reset' instead)
-        Command.setFactory(GroupCommand.EXPEL,  ExpelGroupCommand::new);
-        Command.setFactory(GroupCommand.JOIN,   JoinGroupCommand::new);
-        Command.setFactory(GroupCommand.QUIT,   QuitGroupCommand::new);
-        Command.setFactory(GroupCommand.QUERY,  QueryGroupCommand::new);
-        Command.setFactory(GroupCommand.RESET,  ResetGroupCommand::new);
+        setCommandFactory(GroupCommand.EXPEL,  ExpelGroupCommand::new);
+        setCommandFactory(GroupCommand.JOIN,   JoinGroupCommand::new);
+        setCommandFactory(GroupCommand.QUIT,   QuitGroupCommand::new);
+        setCommandFactory(GroupCommand.QUERY,  QueryGroupCommand::new);
+        setCommandFactory(GroupCommand.RESET,  ResetGroupCommand::new);
         // Group Admin Commands
-        Command.setFactory(GroupCommand.HIRE,   HireGroupCommand::new);
-        Command.setFactory(GroupCommand.FIRE,   FireGroupCommand::new);
-        Command.setFactory(GroupCommand.RESIGN, ResignGroupCommand::new);
+        setCommandFactory(GroupCommand.HIRE,   HireGroupCommand::new);
+        setCommandFactory(GroupCommand.FIRE,   FireGroupCommand::new);
+        setCommandFactory(GroupCommand.RESIGN, ResignGroupCommand::new);
     }
 
 }

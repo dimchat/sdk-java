@@ -36,65 +36,53 @@ import java.util.List;
 import chat.dim.core.Barrack;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.VerifyKey;
+import chat.dim.mkm.Entity;
 import chat.dim.mkm.Group;
 import chat.dim.mkm.User;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 
-public abstract class Facebook extends Barrack implements User.DataSource, Group.DataSource {
+public abstract class Facebook implements Entity.Delegate, User.DataSource, Group.DataSource {
 
-    public abstract Archivist getArchivist();
+    protected abstract Barrack getBarrack();
 
-    @Override
-    protected void cacheUser(User user) {
-        if (user.getDataSource() == null) {
-            user.setDataSource(this);
-        }
-        super.cacheUser(user);
-    }
+    /**
+     *  Save meta for entity ID (must verify first)
+     *
+     * @param meta - entity meta
+     * @param identifier - entity ID
+     * @return true on success
+     */
+    public abstract boolean saveMeta(Meta meta, ID identifier);
 
-    @Override
-    protected void cacheGroup(Group group) {
-        if (group.getDataSource() == null) {
-            group.setDataSource(this);
-        }
-        super.cacheGroup(group);
-    }
+    /**
+     *  Save entity document with ID (must verify first)
+     *
+     * @param doc - entity document
+     * @return true on success
+     */
+    public abstract boolean saveDocument(Document doc);
 
-    //-------- Entity Delegate
+    //
+    //  Public Keys
+    //
 
-    @Override
-    public User getUser(ID identifier) {
-        assert identifier.isUser() : "user ID error: " + identifier;
-        // 1. get from user cache
-        User user = super.getUser(identifier);
-        if (user == null) {
-            // 2. create user and cache it
-            Archivist archivist = getArchivist();
-            user = archivist.createUser(identifier);
-            if (user != null) {
-                cacheUser(user);
-            }
-        }
-        return user;
-    }
+    /**
+     *  Get meta.key
+     *
+     * @param user - user ID
+     * @return null on not found
+     */
+    protected abstract VerifyKey getMetaKey(ID user);
 
-    @Override
-    public Group getGroup(ID identifier) {
-        assert identifier.isGroup() : "group ID error: " + identifier;
-        // 1. get from group cache
-        Group group = super.getGroup(identifier);
-        if (group == null) {
-            // 2. create group and cache it
-            Archivist archivist = getArchivist();
-            group = archivist.createGroup(identifier);
-            if (group != null) {
-                cacheGroup(group);
-            }
-        }
-        return group;
-    }
+    /**
+     *  Get visa.key
+     *
+     * @param user - user ID
+     * @return null on not found
+     */
+    protected abstract EncryptKey getVisaKey(ID user);
 
     /**
      *  Select local user for receiver
@@ -110,8 +98,8 @@ public abstract class Facebook extends Barrack implements User.DataSource, Group
         } else {
             assert receiver.isUser() : "receiver error: " + receiver;
         }
-        Archivist archivist = getArchivist();
-        List<User> users = archivist.getLocalUsers();
+        Barrack barrack = getBarrack();
+        List<User> users = barrack.getLocalUsers();
         if (users == null || users.isEmpty()) {
             assert false : "local users should not be empty";
             return null;
@@ -132,37 +120,87 @@ public abstract class Facebook extends Barrack implements User.DataSource, Group
         return null;
     }
 
-    /**
-     *  Save meta for entity ID (must verify first)
-     *
-     * @param meta - entity meta
-     * @param identifier - entity ID
-     * @return true on success
-     */
-    public abstract boolean saveMeta(Meta meta, ID identifier);
+    //-------- Entity Delegate
 
-    /**
-     *  Save entity document with ID (must verify first)
-     *
-     * @param doc - entity document
-     * @return true on success
-     */
-    public abstract boolean saveDocument(Document doc);
+    @Override
+    public User getUser(ID identifier) {
+        assert identifier.isUser() : "user ID error: " + identifier;
+        Barrack barrack = getBarrack();
+        //
+        //  1. get from user cache
+        //
+        User user = barrack.getUser(identifier);
+        if (user != null) {
+            return user;
+        }
+        //
+        //  2. check visa key
+        //
+        if (!identifier.isBroadcast()) {
+            if (getPublicKeyForEncryption(identifier) == null) {
+                assert false : "visa.key not found: " + identifier;
+                return null;
+            }
+            // NOTICE: if visa.key exists, then visa & meta must exist too.
+        }
+        //
+        //  3. create user and cache it
+        //
+        user = barrack.createUser(identifier);
+        if (user != null) {
+            user.setDataSource(this);
+            barrack.cacheUser(user);
+        }
+        return user;
+    }
+
+    @Override
+    public Group getGroup(ID identifier) {
+        assert identifier.isGroup() : "group ID error: " + identifier;
+        Barrack barrack = getBarrack();
+        //
+        //  1. get from group cache
+        //
+        Group group = barrack.getGroup(identifier);
+        if (group != null) {
+            return group;
+        }
+        //
+        //  2. check members
+        //
+        if (!identifier.isBroadcast()) {
+            List<ID> members = getMembers(identifier);
+            if (members == null || members.isEmpty()) {
+                assert false : "group members not found: " + identifier;
+                return null;
+            }
+            // NOTICE: if members exist, then owner (founder) must exist,
+            //         and bulletin & meta must exist too.
+        }
+        //
+        //  3. create group and cache it
+        //
+        group = barrack.createGroup(identifier);
+        if (group != null) {
+            group.setDataSource(this);
+            barrack.cacheGroup(group);
+        }
+        return group;
+    }
 
     //-------- User DataSource
 
     @Override
     public EncryptKey getPublicKeyForEncryption(ID user) {
         assert user.isUser() : "user ID error: " + user;
-        Archivist archivist = getArchivist();
         // 1. get pubic key from visa
-        EncryptKey visaKey = archivist.getVisaKey(user);
+        EncryptKey visaKey = getVisaKey(user);
         if (visaKey != null) {
             // if visa.key exists, use it for encryption
             return visaKey;
         }
         // 2. get key from meta
-        VerifyKey metaKey = archivist.getMetaKey(user);
+        VerifyKey metaKey = getMetaKey(user);
         if (metaKey instanceof EncryptKey) {
             // if visa.key not exists and meta.key is encrypt key,
             // use it for encryption
@@ -176,16 +214,15 @@ public abstract class Facebook extends Barrack implements User.DataSource, Group
     public List<VerifyKey> getPublicKeysForVerification(ID user) {
         // assert user.isUser() : "user ID error: " + user;
         List<VerifyKey> keys = new ArrayList<>();
-        Archivist archivist = getArchivist();
         // 1. get pubic key from visa
-        EncryptKey visaKey = archivist.getVisaKey(user);
+        EncryptKey visaKey = getVisaKey(user);
         if (visaKey instanceof VerifyKey) {
             // the sender may use communication key to sign message.data,
             // try to verify it with visa.key first
             keys.add((VerifyKey) visaKey);
         }
         // 2. get key from meta
-        VerifyKey metaKey = archivist.getMetaKey(user);
+        VerifyKey metaKey = getMetaKey(user);
         if (metaKey != null) {
             // the sender may use identity key to sign message.data,
             // try to verify it with meta.key too

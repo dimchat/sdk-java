@@ -40,6 +40,7 @@ import chat.dim.crypto.VerifyKey;
 import chat.dim.format.TransportableData;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.Document;
+import chat.dim.protocol.DocumentType;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 import chat.dim.type.Converter;
@@ -68,7 +69,24 @@ public class AccountGeneralFactory implements GeneralAccountHelper,
 
     @Override
     public String getDocumentType(Map<?, ?> doc, String defaultValue) {
-        return Converter.getString(doc.get("type"), defaultValue);
+        Object type = doc.get("type");
+        if (type != null) {
+            return Converter.getString(type, defaultValue);
+        } else if (defaultValue != null) {
+            return defaultValue;
+        }
+        // get type for did
+        ID identifier = ID.parse(doc.get("did"));
+        if (identifier == null) {
+            assert false : "document error: " + doc;
+            return null;
+        } else if (identifier.isUser()) {
+            return DocumentType.VISA;
+        } else if (identifier.isGroup()) {
+            return DocumentType.BULLETIN;
+        } else {
+            return DocumentType.PROFILE;
+        }
     }
 
     //

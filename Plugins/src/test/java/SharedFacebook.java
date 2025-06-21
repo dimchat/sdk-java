@@ -4,12 +4,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import chat.dim.Archivist;
 import chat.dim.Facebook;
 import chat.dim.compat.CompatibleMetaFactory;
+import chat.dim.core.Barrack;
 import chat.dim.crypto.DecryptKey;
+import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
+import chat.dim.crypto.VerifyKey;
 import chat.dim.mkm.MetaUtils;
 import chat.dim.plugins.ExtensionLoader;
 import chat.dim.plugins.PluginLoader;
@@ -26,7 +28,7 @@ public class SharedFacebook extends Facebook {
     }
 
     @Override
-    public Archivist getArchivist() {
+    public Barrack getBarrack() {
         // TODO:
         return null;
     }
@@ -58,6 +60,16 @@ public class SharedFacebook extends Facebook {
     public boolean saveDocument(Document doc) {
         // TODO:
         return false;
+    }
+
+    @Override
+    protected VerifyKey getMetaKey(ID user) {
+        return null;
+    }
+
+    @Override
+    protected EncryptKey getVisaKey(ID user) {
+        return null;
     }
 
     //-------- Entity DataSource
