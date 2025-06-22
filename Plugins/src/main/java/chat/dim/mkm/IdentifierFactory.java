@@ -38,8 +38,7 @@ import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 
 /**
- *  General ID factory
- *  ~~~~~~~~~~~~~~~~~~
+ *  General ID Factory
  */
 public class IdentifierFactory implements ID.Factory {
 

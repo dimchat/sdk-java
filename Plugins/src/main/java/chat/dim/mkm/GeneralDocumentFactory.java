@@ -40,7 +40,6 @@ import chat.dim.protocol.ID;
 
 /**
  *  General Document Factory
- *  ~~~~~~~~~~~~~~~~~~~~~~~~
  */
 public class GeneralDocumentFactory implements Document.Factory {
 

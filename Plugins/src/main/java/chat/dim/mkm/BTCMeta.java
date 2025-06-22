@@ -40,6 +40,7 @@ import chat.dim.protocol.Address;
 /**
  *  Meta to build BTC address for ID
  *
+ *  <blockquote><pre>
  *  version:
  *      2 = BTC
  *
@@ -48,6 +49,7 @@ import chat.dim.protocol.Address;
  *      hash    = ripemd160(sha256(CT));
  *      code    = sha256(sha256(network + hash)).prefix(4);
  *      address = base58_encode(network + hash + code);
+ *  </pre></blockquote>
  */
 public final class BTCMeta extends BaseMeta {
 

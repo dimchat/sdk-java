@@ -32,8 +32,7 @@ import chat.dim.crypto.DecryptKey;
 import chat.dim.type.Dictionary;
 
 /**
- *  PNF
- *  ~~~
+ *  PNF - Portable Network File
  */
 public final class BaseNetworkFile extends Dictionary implements PortableNetworkFile {
 

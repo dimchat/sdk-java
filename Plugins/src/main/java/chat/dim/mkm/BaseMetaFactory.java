@@ -43,7 +43,6 @@ import chat.dim.protocol.MetaType;
 
 /**
  *  Base Meta Factory
- *  ~~~~~~~~~~~~~~~~~
  */
 public class BaseMetaFactory implements Meta.Factory {
 

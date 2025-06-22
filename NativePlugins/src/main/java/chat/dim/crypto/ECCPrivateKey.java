@@ -38,11 +38,13 @@ import chat.dim.format.PEM;
 /**
  *  ECC Private Key
  *
- *      keyInfo format: {
- *          algorithm    : "ECC",
- *          curve        : "secp256k1",
- *          data         : "..." // base64_encode()
- *      }
+ *  <blockquote><pre>
+ *  keyInfo format: {
+ *      algorithm    : "ECC",
+ *      curve        : "secp256k1",
+ *      data         : "..." // base64_encode()
+ *  }
+ *  </pre></blockquote>
  */
 public final class ECCPrivateKey extends BasePrivateKey {
 

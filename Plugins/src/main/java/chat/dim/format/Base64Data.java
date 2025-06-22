@@ -30,8 +30,7 @@ import java.util.Map;
 import chat.dim.type.Dictionary;
 
 /**
- *  TED
- *  ~~~
+ *  TED - Transportable Encoded Data
  */
 public final class Base64Data extends Dictionary implements TransportableData {
 

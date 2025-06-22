@@ -40,6 +40,7 @@ import chat.dim.protocol.EntityType;
 /**
  *  Meta to build ETH address for ID
  *
+ *  <blockquote><pre>
  *  version:
  *      4 = ETH
  *
@@ -47,6 +48,7 @@ import chat.dim.protocol.EntityType;
  *      CT      = key.data;  // without prefix byte
  *      digest  = keccak256(CT);
  *      address = hex_encode(digest.suffix(20));
+ *  </pre></blockquote>
  */
 public final class ETHMeta extends BaseMeta {
 

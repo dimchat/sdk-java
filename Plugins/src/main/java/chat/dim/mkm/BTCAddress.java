@@ -41,16 +41,18 @@ import chat.dim.type.ConstantString;
 /**
  *  Address like BitCoin
  *
- *      data format: "network+digest+code"
- *          network    --  1 byte
- *          digest     -- 20 bytes
- *          check code --  4 bytes
+ *  <blockquote><pre>
+ *  data format: "network+digest+code"
+ *      network    --  1 byte
+ *      digest     -- 20 bytes
+ *      check code --  4 bytes
  *
- *      algorithm:
- *          fingerprint = PK.data
- *          digest      = ripemd160(sha256(fingerprint));
- *          code        = sha256(sha256(network + digest)).prefix(4);
- *          address     = base58_encode(network + digest + code);
+ *  algorithm:
+ *      fingerprint = PK.data
+ *      digest      = ripemd160(sha256(fingerprint));
+ *      code        = sha256(sha256(network + digest)).prefix(4);
+ *      address     = base58_encode(network + digest + code);
+ *  </pre></blockquote>
  */
 public final class BTCAddress extends ConstantString implements Address {
 

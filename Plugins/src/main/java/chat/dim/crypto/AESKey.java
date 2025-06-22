@@ -42,11 +42,13 @@ import chat.dim.format.TransportableData;
 /**
  *  AES Key
  *
- *      keyInfo format: {
- *          algorithm: "AES",
- *          keySize  : 32,                // optional
- *          data     : "{BASE64_ENCODE}}" // password data
- *      }
+ *  <blockquote><pre>
+ *  keyInfo format: {
+ *      algorithm: "AES",
+ *      keySize  : 32,                // optional
+ *      data     : "{BASE64_ENCODE}}" // password data
+ *  }
+ *  </pre></blockquote>
  */
 public final class AESKey extends BaseSymmetricKey {
 

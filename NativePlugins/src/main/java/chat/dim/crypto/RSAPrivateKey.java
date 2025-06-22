@@ -44,10 +44,12 @@ import chat.dim.format.RSAKeys;
 /**
  *  RSA Private Key
  *
- *      keyInfo format: {
- *          algorithm : "RSA",
- *          data      : "..." // base64_encode()
- *      }
+ *  <blockquote><pre>
+ *  keyInfo format: {
+ *      algorithm : "RSA",
+ *      data      : "..." // base64_encode()
+ *  }
+ *  </pre></blockquote>
  */
 public final class RSAPrivateKey extends BasePrivateKey implements DecryptKey {
 

@@ -38,7 +38,6 @@ import chat.dim.protocol.Meta;
 
 /**
  *  Base Address Factory
- *  ~~~~~~~~~~~~~~~~~~~~
  */
 public class BaseAddressFactory implements Address.Factory {
 

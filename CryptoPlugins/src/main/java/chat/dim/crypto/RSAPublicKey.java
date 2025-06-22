@@ -42,10 +42,12 @@ import chat.dim.utils.CryptoUtils;
 /**
  *  RSA Public Key
  *
- *      keyInfo format: {
- *          algorithm : "RSA",
- *          data      : "..." // base64_encode()
- *      }
+ *  <blockquote><pre>
+ *  keyInfo format: {
+ *      algorithm : "RSA",
+ *      data      : "..." // base64_encode()
+ *  }
+ *  </pre></blockquote>
  */
 public final class RSAPublicKey extends BasePublicKey implements EncryptKey {
 

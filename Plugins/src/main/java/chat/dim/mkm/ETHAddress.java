@@ -39,12 +39,15 @@ import chat.dim.type.ConstantString;
 /**
  *  Address like Ethereum
  *
- *      data format: "0x{address}"
+ *  <blockquote><pre>
+ *  data format:
+ *      "0x{address}"
  *
- *      algorithm:
- *          fingerprint = PK.data;
- *          digest      = keccak256(fingerprint);
- *          address     = hex_encode(digest.suffix(20));
+ *  algorithm:
+ *      fingerprint = PK.data;
+ *      digest      = keccak256(fingerprint);
+ *      address     = hex_encode(digest.suffix(20));
+ *  </pre></blockquote>
  */
 public final class ETHAddress extends ConstantString implements Address {
 
