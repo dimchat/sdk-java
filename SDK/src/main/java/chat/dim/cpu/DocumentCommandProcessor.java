@@ -55,24 +55,28 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         assert content instanceof DocumentCommand : "document command error: " + content;
         DocumentCommand command = (DocumentCommand) content;
         ID identifier = command.getIdentifier();
-        Document doc = command.getDocument();
+        List<Document> docs = command.getDocuments();
         if (identifier == null) {
             assert false : "doc ID cannot be empty: " + command;
             return respondReceipt("Document command error.", rMsg.getEnvelope(), command, null);
-        } else if (doc == null) {
+        } else if (docs == null) {
             // query entity documents for ID
             return getDocuments(identifier, rMsg.getEnvelope(), command);
-        } else if (identifier.equals(doc.getIdentifier())) {
-            // received a new document for ID
-            return putDocument(identifier, doc, rMsg.getEnvelope(), command);
         }
-        // error
-        return respondReceipt("Document ID not match.", rMsg.getEnvelope(), command, newMap(
-                "template", "Document ID not match: ${did}.",
-                "replacements", newMap(
-                        "did", identifier.toString()
-                )
-        ));
+        // check document ID
+        for (Document document : docs) {
+            if (!identifier.equals(document.getIdentifier())) {
+                // error
+                return respondReceipt("Document ID not match.", rMsg.getEnvelope(), command, newMap(
+                        "template", "Document ID not match: ${did}.",
+                        "replacements", newMap(
+                                "did", identifier.toString()
+                        )
+                ));
+            }
+        }
+        // received new documents
+        return putDocuments(identifier, docs, rMsg.getEnvelope(), command);
     }
 
     private List<Content> getDocuments(ID identifier, Envelope envelope, DocumentCommand content) {
@@ -119,7 +123,7 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         return responses;
     }
 
-    private List<Content> putDocument(ID identifier, Document doc, Envelope envelope, DocumentCommand content) {
+    private List<Content> putDocuments(ID identifier, List<Document> docs, Envelope envelope, DocumentCommand content) {
         Facebook facebook = getFacebook();
         List<Content> errors;
         Meta meta = content.getMeta();
@@ -143,8 +147,16 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
             }
         }
         // 2. try to save document
-        errors = saveDocument(doc, meta, identifier, envelope, content);
-        if (errors != null) {
+        errors = new ArrayList<>();
+        List<Content> res;
+        for (Document document : docs) {
+            res = saveDocument(document, meta, identifier, envelope, content);
+            if (res != null) {
+                // failed
+                errors.addAll(res);
+            }
+        }
+        if (!errors.isEmpty()) {
             // failed
             return errors;
         }

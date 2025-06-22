@@ -30,9 +30,7 @@
  */
 package chat.dim.plugins;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import chat.dim.crypto.SignKey;
@@ -170,29 +168,6 @@ public class AccountGeneralFactory implements GeneralAccountHelper,
         ID.Factory factory = getIdentifierFactory();
         assert factory != null : "ID factory not ready";
         return factory.generateIdentifier(meta, network, terminal);
-    }
-
-    @Override
-    public List<ID> convertIdentifiers(Iterable<?> members) {
-        List<ID> array = new ArrayList<>();
-        ID id;
-        for (Object item : members) {
-            id = parseIdentifier(item);
-            if (id == null) {
-                continue;
-            }
-            array.add(id);
-        }
-        return array;
-    }
-
-    @Override
-    public List<String> revertIdentifiers(Iterable<ID> members) {
-        List<String> array = new ArrayList<>();
-        for (ID item : members) {
-            array.add(item.toString());
-        }
-        return array;
     }
 
     //

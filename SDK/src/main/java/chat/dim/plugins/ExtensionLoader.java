@@ -180,52 +180,53 @@ public class ExtensionLoader implements Runnable {
     protected void registerContentFactories() {
 
         // Text
-        setContentFactory(ContentType.TEXT, BaseTextContent::new);
+        setContentFactory(ContentType.TEXT, "text", BaseTextContent::new);
 
         // File
-        setContentFactory(ContentType.FILE, BaseFileContent::new);
+        setContentFactory(ContentType.FILE, "file", BaseFileContent::new);
         // Image
-        setContentFactory(ContentType.IMAGE, ImageFileContent::new);
+        setContentFactory(ContentType.IMAGE, "image", ImageFileContent::new);
         // Audio
-        setContentFactory(ContentType.AUDIO, AudioFileContent::new);
+        setContentFactory(ContentType.AUDIO, "audio", AudioFileContent::new);
         // Video
-        setContentFactory(ContentType.VIDEO, VideoFileContent::new);
+        setContentFactory(ContentType.VIDEO, "video", VideoFileContent::new);
 
         // Web Page
-        setContentFactory(ContentType.PAGE, WebPageContent::new);
+        setContentFactory(ContentType.PAGE, "page", WebPageContent::new);
 
         // Name Card
-        setContentFactory(ContentType.NAME_CARD, NameCardContent::new);
+        setContentFactory(ContentType.NAME_CARD, "card", NameCardContent::new);
 
         // Quote
-        setContentFactory(ContentType.QUOTE, BaseQuoteContent::new);
+        setContentFactory(ContentType.QUOTE, "quote", BaseQuoteContent::new);
 
         // Money
-        setContentFactory(ContentType.MONEY, BaseMoneyContent::new);
-        setContentFactory(ContentType.TRANSFER, TransferMoneyContent::new);
+        setContentFactory(ContentType.MONEY, "money", BaseMoneyContent::new);
+        setContentFactory(ContentType.TRANSFER, "transfer", TransferMoneyContent::new);
         // ...
 
         // Command
-        setContentFactory(ContentType.COMMAND, new GeneralCommandFactory());
+        setContentFactory(ContentType.COMMAND, "command", new GeneralCommandFactory());
 
         // History Command
-        setContentFactory(ContentType.HISTORY, new HistoryCommandFactory());
+        setContentFactory(ContentType.HISTORY, "history", new HistoryCommandFactory());
 
         // Content Array
-        setContentFactory(ContentType.ARRAY, ListContent::new);
+        setContentFactory(ContentType.ARRAY, "array", ListContent::new);
 
         // Combine and Forward
-        setContentFactory(ContentType.COMBINE_FORWARD, CombineForwardContent::new);
+        setContentFactory(ContentType.COMBINE_FORWARD, "combine", CombineForwardContent::new);
 
         // Top-Secret
-        setContentFactory(ContentType.FORWARD, SecretContent::new);
+        setContentFactory(ContentType.FORWARD, "forward", SecretContent::new);
 
         // unknown content type
-        setContentFactory(ContentType.ANY, BaseContent::new);
+        setContentFactory(ContentType.ANY, "*", BaseContent::new);
     }
 
-    protected void setContentFactory(String type, Content.Factory factory) {
+    protected void setContentFactory(String type, String alias, Content.Factory factory) {
         Content.setFactory(type, factory);
+        Content.setFactory(alias, factory);
     }
 
     protected void setCommandFactory(String cmd, Command.Factory factory) {
@@ -240,8 +241,8 @@ public class ExtensionLoader implements Runnable {
         // Meta Command
         setCommandFactory(Command.META, BaseMetaCommand::new);
 
-        // Document Command
-        setCommandFactory(Command.DOCUMENT, BaseDocumentCommand::new);
+        // Documents Command
+        setCommandFactory(Command.DOCUMENTS, BaseDocumentCommand::new);
 
         // Receipt Command
         setCommandFactory(Command.RECEIPT, BaseReceiptCommand::new);

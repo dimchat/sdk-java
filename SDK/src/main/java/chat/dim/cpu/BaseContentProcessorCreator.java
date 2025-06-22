@@ -53,18 +53,22 @@ public class BaseContentProcessorCreator extends TwinsHelper implements ContentP
 
             // forward content
             case ContentType.FORWARD:
+            case "forward":
                 return new ForwardContentProcessor(getFacebook(), getMessenger());
 
             // array content
             case ContentType.ARRAY:
+            case "array":
                 return new ArrayContentProcessor(getFacebook(), getMessenger());
 
             // default commands
             case ContentType.COMMAND:
+            case "command":
                 return new BaseCommandProcessor(getFacebook(), getMessenger());
 
             // unknown content
             case ContentType.ANY:
+            case "*":
                 // must return a default processor for unknown type
                 return new BaseContentProcessor(getFacebook(), getMessenger());
         }
@@ -81,7 +85,7 @@ public class BaseContentProcessorCreator extends TwinsHelper implements ContentP
                 return new MetaCommandProcessor(getFacebook(), getMessenger());
 
             // document command
-            case Command.DOCUMENT:
+            case Command.DOCUMENTS:
                 return new DocumentCommandProcessor(getFacebook(), getMessenger());
         }
         assert false : "unsupported command: " + cmdName;
