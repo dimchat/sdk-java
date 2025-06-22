@@ -38,7 +38,6 @@ import chat.dim.protocol.SecureMessage;
 
 /**
  *  Secure Message Delegate
- *  ~~~~~~~~~~~~~~~~~~~~~~~
  */
 public interface SecureMessageDelegate {
 
@@ -80,7 +79,9 @@ public interface SecureMessageDelegate {
 
     /**
      *  3. Deserialize message key from data (JsON / ProtoBuf / ...)
-     *     (if key data is empty, means it should be reused, get it from key cache)
+     *  <p>
+     *      (if key data is empty, means it should be reused, get it from key cache)
+     *  </p>
      *
      * @param key      - serialized key data, null for reused key
      * @param sMsg     - secure message object

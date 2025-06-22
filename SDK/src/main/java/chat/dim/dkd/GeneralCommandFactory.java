@@ -39,7 +39,6 @@ import chat.dim.protocol.Content;
 
 /**
  *  General Command Factory
- *  ~~~~~~~~~~~~~~~~~~~~~~~
  */
 public class GeneralCommandFactory implements Content.Factory, Command.Factory {
 

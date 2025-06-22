@@ -71,7 +71,6 @@ import chat.dim.protocol.SecureMessage;
 
 /**
  *  Core Extensions Loader
- *  ~~~~~~~~~~~~~~~~~~~~~~
  */
 public class ExtensionLoader implements Runnable {
 

@@ -46,7 +46,6 @@ import chat.dim.type.Wrapper;
 
 /**
  *  Account GeneralFactory
- *  ~~~~~~~~~~~~~~~~~~~~~~
  */
 public class AccountGeneralFactory implements GeneralAccountHelper,
                                               Address.Helper, ID.Helper,

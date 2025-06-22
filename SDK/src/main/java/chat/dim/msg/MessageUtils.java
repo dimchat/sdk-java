@@ -39,8 +39,9 @@ public interface MessageUtils {
 
     /**
      *  Sender's Meta
-     *  ~~~~~~~~~~~~~
-     *  Extends for the first message package of 'Handshake' protocol.
+     *  <p>
+     *      Extends for the first message package of 'Handshake' protocol.
+     *  </p>
      */
     static Meta getMeta(Message msg) {
         return Meta.parse(msg.get("meta"));
@@ -52,8 +53,9 @@ public interface MessageUtils {
 
     /**
      *  Sender's Visa
-     *  ~~~~~~~~~~~~~
-     *  Extends for the first message package of 'Handshake' protocol.
+     *  <p>
+     *      Extends for the first message package of 'Handshake' protocol.
+     *  </p>
      */
     static Visa getVisa(Message msg) {
         Document doc = Document.parse(msg.get("visa"));

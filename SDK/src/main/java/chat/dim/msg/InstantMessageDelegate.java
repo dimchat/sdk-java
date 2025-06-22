@@ -37,7 +37,6 @@ import chat.dim.protocol.InstantMessage;
 
 /**
  *  Instant Message Delegate
- *  ~~~~~~~~~~~~~~~~~~~~~~~~
  */
 public interface InstantMessageDelegate {
 

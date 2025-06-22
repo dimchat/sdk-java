@@ -39,8 +39,7 @@ import chat.dim.protocol.Content;
 import chat.dim.protocol.ReliableMessage;
 
 /**
- *  Command Processing Unit
- *  ~~~~~~~~~~~~~~~~~~~~~~~
+ *  CPU - Command Processing Unit
  */
 public class BaseCommandProcessor extends BaseContentProcessor {
 

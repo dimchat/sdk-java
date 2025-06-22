@@ -36,8 +36,7 @@ import chat.dim.protocol.Content;
 import chat.dim.protocol.ReliableMessage;
 
 /**
- *  CPU: Content Processing Unit
- *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ *  CPU - Content Processing Unit
  */
 public interface ContentProcessor {
 
@@ -52,7 +51,6 @@ public interface ContentProcessor {
 
     /**
      *  CPU Creator
-     *  ~~~~~~~~~~~
      */
     interface Creator {
 
@@ -76,7 +74,6 @@ public interface ContentProcessor {
 
     /**
      *  CPU Factory
-     *  ~~~~~~~~~~~
      */
     interface Factory {
 

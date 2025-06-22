@@ -49,9 +49,9 @@ import chat.dim.protocol.SecureMessage;
 
 /**
  *  Message Transceiver
- *  ~~~~~~~~~~~~~~~~~~~
- *
- *  Converting message format between PlainMessage and NetworkMessage
+ *  <p>
+ *      Converting message format between PlainMessage and NetworkMessage
+ *  </p>
  */
 public abstract class Transceiver implements InstantMessageDelegate, SecureMessageDelegate, ReliableMessageDelegate {
 

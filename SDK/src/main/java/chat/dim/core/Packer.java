@@ -36,7 +36,6 @@ import chat.dim.protocol.SecureMessage;
 
 /**
  *  Message Packer
- *  ~~~~~~~~~~~~~~
  */
 public interface Packer {
 

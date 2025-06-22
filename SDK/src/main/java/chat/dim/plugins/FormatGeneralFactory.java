@@ -40,7 +40,6 @@ import chat.dim.type.Mapper;
 
 /**
  *  Format GeneralFactory
- *  ~~~~~~~~~~~~~~~~~~~~~
  */
 public class FormatGeneralFactory implements GeneralFormatHelper,
                                              PortableNetworkFile.Helper,
@@ -51,7 +50,10 @@ public class FormatGeneralFactory implements GeneralFormatHelper,
     private PortableNetworkFile.Factory pnfFactory = null;
 
     /**
-     *  Split text string to array: ["{TEXT}", "{algorithm}", "{content-type}"]
+     *  Split text string to array:
+     *  <blockquote>
+     *      ["{TEXT}", "{algorithm}", "{content-type}"]
+     *  </blockquote>
      */
     public static List<String> split(String text) {
         List<String> array = new ArrayList<>();

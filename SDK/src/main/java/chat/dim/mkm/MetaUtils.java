@@ -40,7 +40,9 @@ public interface MetaUtils {
 
     /**
      *  Check whether meta matches with entity ID
-     *  (must call this when received a new meta from network)
+     *  <p>
+     *      (must call this when received a new meta from network)
+     *  </p>
      *
      * @param identifier - entity ID
      * @return true on matched

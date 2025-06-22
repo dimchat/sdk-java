@@ -37,14 +37,15 @@ import chat.dim.protocol.ID;
 
 /**
  *  Group for organizing users
- *  ~~~~~~~~~~~~~~~~~~~~~~~~~~
  *
+ * <pre>
  *  roles:
  *      founder
  *      owner
  *      members
  *      administrators - Optional
  *      assistants     - group bots
+ *  </pre>
  */
 public interface Group extends Entity {
 
@@ -64,10 +65,11 @@ public interface Group extends Entity {
 
     /**
      *  Group Data Source
-     *  ~~~~~~~~~~~~~~~~~
      *
-     *      1. founder has the same public key with the group's meta.key
-     *      2. owner and members should be set complying with the consensus algorithm
+     *  <pre>
+     *  1. founder has the same public key with the group's meta.key
+     *  2. owner and members should be set complying with consensus algorithm
+     *  </pre>
      */
     interface DataSource extends Entity.DataSource {
 

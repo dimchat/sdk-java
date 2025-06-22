@@ -40,7 +40,6 @@ import chat.dim.type.Wrapper;
 
 /**
  *  Command GeneralFactory
- *  ~~~~~~~~~~~~~~~~~~~~~~
  */
 public class CommandGeneralFactory implements GeneralCommandHelper, Command.Helper {
 

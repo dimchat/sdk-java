@@ -44,8 +44,7 @@ import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.ReliableMessage;
 
 /**
- *  Content Processing Unit
- *  ~~~~~~~~~~~~~~~~~~~~~~~
+ *  CPU - Content Processing Unit
  */
 public class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
 

@@ -45,7 +45,6 @@ import chat.dim.type.Wrapper;
 
 /**
  *  Message GeneralFactory
- *  ~~~~~~~~~~~~~~~~~~~~~~
  */
 public class MessageGeneralFactory implements GeneralMessageHelper,
                                               Content.Helper, Envelope.Helper,

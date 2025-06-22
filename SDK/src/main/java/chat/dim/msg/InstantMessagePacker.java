@@ -70,12 +70,14 @@ public class InstantMessagePacker {
      */
 
     /**
-     *  1. Encrypt personal message, replace 'content' field with encrypted 'data'
-     *  2. Encrypt group message, replace 'content' field with encrypted 'data'
+     *  Encrypt personal / group message
+     *  <p>
+     *      Replace 'content' field with encrypted 'data'
+     *  </p>
      *
      * @param iMsg     - plain message
      * @param password - symmetric key
-     * @param members  - group members for group message
+     * @param members  - group members for group message; null for personal message
      * @return SecureMessage object, null on visa not found
      */
     public SecureMessage encryptMessage(InstantMessage iMsg, SymmetricKey password, List<ID> members) {

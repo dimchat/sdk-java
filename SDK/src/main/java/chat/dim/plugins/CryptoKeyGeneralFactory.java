@@ -36,7 +36,6 @@ import chat.dim.type.Wrapper;
 
 /**
  *  CryptographyKey GeneralFactory
- *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 public class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
                                                 SymmetricKey.Helper,

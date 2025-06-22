@@ -39,7 +39,6 @@ import chat.dim.protocol.SecureMessage;
 
 /**
  *  Message Processor
- *  ~~~~~~~~~~~~~~~~~
  */
 public interface Processor {
 

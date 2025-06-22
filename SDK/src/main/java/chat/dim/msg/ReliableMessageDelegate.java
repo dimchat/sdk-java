@@ -35,7 +35,6 @@ import chat.dim.protocol.ReliableMessage;
 
 /**
  *  Reliable Message Delegate
- *  ~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 public interface ReliableMessageDelegate/* extends SecureMessageDelegate*/ {
 

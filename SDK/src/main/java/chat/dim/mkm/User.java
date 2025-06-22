@@ -41,16 +41,20 @@ import chat.dim.protocol.Visa;
 
 /**
  *  User account for communication
- *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- *  This class is for creating user account
+ *  <p>
+ *      This class is for creating user account
+ *  </p>
  *
+ *  <pre>
  *  functions:
  *      (User)
  *      1. verify(data, signature) - verify (encrypted content) data and signature
  *      2. encrypt(data)           - encrypt (symmetric key) data
+ *
  *      (LocalUser)
  *      3. sign(data)    - calculate signature of (encrypted content) data
  *      4. decrypt(data) - decrypt (symmetric key) data
+ *  </pre>
  */
 public interface User extends Entity {
 
@@ -109,8 +113,8 @@ public interface User extends Entity {
 
     /**
      *  User Data Source
-     *  ~~~~~~~~~~~~~~~~
      *
+     *  <pre>
      *  (Encryption/decryption)
      *  1. public key for encryption
      *     if visa.key not exists, means it is the same key with meta.key
@@ -128,6 +132,7 @@ public interface User extends Entity {
      *     the private key pared with meta.key
      *  6. public key for visa verification
      *     meta.key only
+     *  </pre>
      */
     interface DataSource extends Entity.DataSource {
 
@@ -141,7 +146,9 @@ public interface User extends Entity {
 
         /**
          *  Get user's public key for encryption
-         *  (visa.key or meta.key)
+         *  <blockquote>
+         *      (visa.key or meta.key)
+         *  </blockquote>
          *
          * @param user - user ID
          * @return visa.key or meta.key
@@ -150,7 +157,9 @@ public interface User extends Entity {
 
         /**
          *  Get user's public keys for verification
-         *  [visa.key, meta.key]
+         *  <blockquote>
+         *      ([visa.key, meta.key])
+         *  </blockquote>
          *
          * @param user - user ID
          * @return public keys
@@ -159,7 +168,9 @@ public interface User extends Entity {
 
         /**
          *  Get user's private keys for decryption
-         *  (which paired with [visa.key, meta.key])
+         *  <blockquote>
+         *      (which paired with [visa.key, meta.key])
+         *  </blockquote>
          *
          * @param user - user ID
          * @return private keys
@@ -168,7 +179,9 @@ public interface User extends Entity {
 
         /**
          *  Get user's private key for signature
-         *  (which paired with visa.key or meta.key)
+         *  <blockquote>
+         *      (which paired with visa.key or meta.key)
+         *  </blockquote>
          *
          * @param user - user ID
          * @return private key

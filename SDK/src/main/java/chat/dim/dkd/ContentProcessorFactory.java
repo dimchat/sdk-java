@@ -39,7 +39,6 @@ import chat.dim.protocol.GroupCommand;
 
 /**
  *  General ContentProcessor Factory
- *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 public final class ContentProcessorFactory implements ContentProcessor.Factory {
 

@@ -39,7 +39,6 @@ import chat.dim.protocol.ContentType;
 
 /**
  *  Base ContentProcessor Creator
- *  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  */
 public class BaseContentProcessorCreator extends TwinsHelper implements ContentProcessor.Creator {
 

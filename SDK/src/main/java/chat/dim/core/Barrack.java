@@ -44,8 +44,9 @@ import chat.dim.protocol.ID;
 
 /**
  *  Entity Factory
- *  ~~~~~~~~~~~~~~
- *  Entity pool to manage User/Group instances
+ *  <p>
+ *      Entity pool to manage User/Group instances
+ *  </p>
  */
 public abstract class Barrack {
 
