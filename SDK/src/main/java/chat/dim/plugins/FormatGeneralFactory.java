@@ -125,8 +125,8 @@ public class FormatGeneralFactory implements GeneralFormatHelper,
     }
 
     @Override
-    public String getFormatAlgorithm(Map<?, ?> ted, String defaultValue) {
-        return Converter.getString(ted.get("algorithm"), defaultValue);
+    public String getFormatAlgorithm(Map<?, ?> ted, String defaultValueIfNull) {
+        return Converter.getString(ted.get("algorithm"), defaultValueIfNull);
     }
 
     ///

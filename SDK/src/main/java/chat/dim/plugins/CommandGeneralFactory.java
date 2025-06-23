@@ -46,8 +46,8 @@ public class CommandGeneralFactory implements GeneralCommandHelper, Command.Help
     private final Map<String, Command.Factory> commandFactories = new HashMap<>();
 
     @Override
-    public String getCmd(Map<?, ?> content, String defaultValue) {
-        return Converter.getString(content.get("command"), defaultValue);
+    public String getCmd(Map<?, ?> content, String defaultValueIfNull) {
+        return Converter.getString(content.get("command"), defaultValueIfNull);
     }
 
     //

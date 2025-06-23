@@ -68,7 +68,11 @@ public final class RSAPrivateKey extends BasePrivateKey implements DecryptKey {
 
     private int keySize() {
         // TODO: get from key
-        return getInt("keySize", 1024 / 8); // 128
+        Integer size = getInteger("keySize", null);
+        if (size != null) {
+            return size;
+        }
+        return 1024 / 8; // 128
     }
 
     private KeyPair getKeyPair() throws NoSuchAlgorithmException {

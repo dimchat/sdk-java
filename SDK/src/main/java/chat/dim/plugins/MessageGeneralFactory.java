@@ -59,8 +59,8 @@ public class MessageGeneralFactory implements GeneralMessageHelper,
     private ReliableMessage.Factory reliableMessageFactory = null;
 
     @Override
-    public String getContentType(Map<?, ?> content, String defaultValue) {
-        return Converter.getString(content.get("type"), defaultValue);
+    public String getContentType(Map<?, ?> content, String defaultValueIfNull) {
+        return Converter.getString(content.get("type"), defaultValueIfNull);
     }
 
     //
@@ -190,7 +190,7 @@ public class MessageGeneralFactory implements GeneralMessageHelper,
     }
 
     @Override
-    public long generateSerialNumber(String msgType, Date now) {
+    public Long generateSerialNumber(String msgType, Date now) {
         InstantMessage.Factory factory = getInstantMessageFactory();
         assert factory != null : "instant message factory not ready";
         return factory.generateSerialNumber(msgType, now);

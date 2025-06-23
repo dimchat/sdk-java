@@ -130,12 +130,20 @@ public final class AESKey extends BaseSymmetricKey {
 
     protected int getKeySize() {
         // TODO: get from key data
-        return getInt("keySize", 32);
+        Integer size = getInteger("keySize", null);
+        if (size != null) {
+            return size;
+        }
+        return 256 / 8; // 32
     }
 
     protected int getBlockSize() {
         // TODO: get from iv data
-        return getInt("blockSize", blockSize);
+        Integer size = getInteger("blockSize", null);
+        if (size != null) {
+            return size;
+        }
+        return blockSize; // 16
     }
 
     @Override
