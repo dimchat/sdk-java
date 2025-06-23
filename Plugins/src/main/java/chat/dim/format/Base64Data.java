@@ -45,7 +45,7 @@ public final class Base64Data extends Dictionary implements TransportableData {
         super();
         wrapper = new BaseDataWrapper(toMap());
         // encode algorithm
-        wrapper.setAlgorithm(TransportableData.BASE_64);
+        wrapper.setAlgorithm(EncodeAlgorithms.BASE_64);
         // binary data
         if (binary != null) {
             wrapper.setData(binary);

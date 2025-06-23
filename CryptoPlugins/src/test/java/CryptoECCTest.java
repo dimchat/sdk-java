@@ -5,6 +5,7 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
+import chat.dim.crypto.AsymmetricAlgorithms;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.PublicKey;
 import chat.dim.digest.RIPEMD160;
@@ -132,7 +133,7 @@ public class CryptoECCTest {
     @Test
     public void testECCNewKeys() {
         Log.info("-------- test new keys --------");
-        PrivateKey sk = PrivateKey.generate(PrivateKey.ECC);
+        PrivateKey sk = PrivateKey.generate(AsymmetricAlgorithms.ECC);
         PublicKey pk = sk.getPublicKey();
         testKeys(sk, pk);
 

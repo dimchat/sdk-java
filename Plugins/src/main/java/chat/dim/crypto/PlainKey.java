@@ -34,8 +34,6 @@ import java.util.Map;
  */
 public final class PlainKey extends BaseSymmetricKey {
 
-    public final static String PLAIN = "PLAIN";
-
     private PlainKey(Map<String, Object> dictionary) {
         super(dictionary);
     }
@@ -62,7 +60,7 @@ public final class PlainKey extends BaseSymmetricKey {
     public static SymmetricKey getInstance() {
         if (ourInstance == null) {
             Map<String, Object> dictionary = new HashMap<>();
-            dictionary.put("algorithm", PLAIN);
+            dictionary.put("algorithm", SymmetricAlgorithms.PLAIN);
             ourInstance = new PlainKey(dictionary);
         }
         return ourInstance;

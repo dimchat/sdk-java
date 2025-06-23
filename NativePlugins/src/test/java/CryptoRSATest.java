@@ -5,6 +5,7 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
+import chat.dim.crypto.AsymmetricAlgorithms;
 import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.PrivateKey;
@@ -19,7 +20,7 @@ public class CryptoRSATest {
 
     @Test
     public void testRSA() {
-        PrivateKey sk = PrivateKey.generate(PrivateKey.RSA);
+        PrivateKey sk = PrivateKey.generate(AsymmetricAlgorithms.RSA);
         Log.info("RSA private key: " + sk);
 
         PublicKey pk = sk.getPublicKey();

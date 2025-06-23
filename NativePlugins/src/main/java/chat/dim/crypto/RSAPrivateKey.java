@@ -89,7 +89,7 @@ public final class RSAPrivateKey extends BasePrivateKey implements DecryptKey {
     }
 
     private KeyPair generateKeyPair(int sizeInBits) throws NoSuchAlgorithmException {
-        KeyPairGenerator generator = KeyPairGenerator.getInstance(AsymmetricKey.RSA);
+        KeyPairGenerator generator = KeyPairGenerator.getInstance(AsymmetricAlgorithms.RSA);
         generator.initialize(sizeInBits);
         KeyPair keyPair = generator.generateKeyPair();
 

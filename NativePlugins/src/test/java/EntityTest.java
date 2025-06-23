@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import chat.dim.crypto.AsymmetricAlgorithms;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.PublicKey;
 import chat.dim.crypto.SignKey;
@@ -96,7 +97,7 @@ public class EntityTest {
 
     @Test
     public void testMeta() {
-        PrivateKey sk = PrivateKey.generate(PrivateKey.RSA);
+        PrivateKey sk = PrivateKey.generate(AsymmetricAlgorithms.RSA);
         PublicKey pk = sk.getPublicKey();
         String seed = "moky";
         Meta meta = Meta.generate(MetaType.MKM, sk, seed);

@@ -34,7 +34,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
-import chat.dim.crypto.AsymmetricKey;
+import chat.dim.crypto.AsymmetricAlgorithms;
 import chat.dim.utils.CryptoUtils;
 
 public final class PEM {
@@ -149,7 +149,7 @@ public final class PEM {
             byte[] data = publicKey.getEncoded();
             String format = publicKey.getFormat();
             if (format.equals("X.509")) {
-                if (algorithm.equals(AsymmetricKey.RSA)) {
+                if (algorithm.equals(AsymmetricAlgorithms.RSA)) {
                     // convert to PKCS#1
                     data = (new X509(data)).toPKCS1();
                     format = "PKCS#1";
@@ -170,7 +170,7 @@ public final class PEM {
             byte[] data = privateKey.getEncoded();
             String format = privateKey.getFormat();
             if (format.equals("PKCS#8")) {
-                if (algorithm.equals(AsymmetricKey.RSA)) {
+                if (algorithm.equals(AsymmetricAlgorithms.RSA)) {
                     // convert to PKCS#1
                     data = (new PKCS8(data)).toPKCS1();
                     format = "PKCS#1";
@@ -199,7 +199,7 @@ public final class PEM {
                 isPrivate = true;
             }
             byte[] data = Base64.decode(keyContent);
-            if (algorithm.equals(AsymmetricKey.RSA)) {
+            if (algorithm.equals(AsymmetricAlgorithms.RSA)) {
                 try {
                     // convert from "PKCS#1" to "X.509"
                     data = (new PKCS1(data, isPrivate)).toX509();
@@ -219,7 +219,7 @@ public final class PEM {
                 return null;
             }
             byte[] data = Base64.decode(keyContent);
-            if (algorithm.equals(AsymmetricKey.RSA)) {
+            if (algorithm.equals(AsymmetricAlgorithms.RSA)) {
                 try {
                     // convert from "PKCS#1" to "PKCS#8"
                     data = (new PKCS1(data, true)).toPKCS8();

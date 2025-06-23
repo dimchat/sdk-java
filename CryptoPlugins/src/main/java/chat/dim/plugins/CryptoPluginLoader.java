@@ -36,8 +36,7 @@ import org.bouncycastle.crypto.digests.KeccakDigest;
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-import chat.dim.utils.CryptoUtils;
-import chat.dim.crypto.AsymmetricKey;
+import chat.dim.crypto.AsymmetricAlgorithms;
 import chat.dim.crypto.ECCPrivateKey;
 import chat.dim.crypto.ECCPublicKey;
 import chat.dim.crypto.PrivateKey;
@@ -49,6 +48,7 @@ import chat.dim.digest.Keccak256;
 import chat.dim.digest.RIPEMD160;
 import chat.dim.format.JSON;
 import chat.dim.format.ObjectCoder;
+import chat.dim.utils.CryptoUtils;
 
 public class CryptoPluginLoader implements Runnable {
 
@@ -179,7 +179,7 @@ public class CryptoPluginLoader implements Runnable {
             @Override
             public PrivateKey generatePrivateKey() {
                 Map<String, Object> key = new HashMap<>();
-                key.put("algorithm", AsymmetricKey.RSA);
+                key.put("algorithm", AsymmetricAlgorithms.RSA);
                 return parsePrivateKey(key);
             }
 
@@ -193,7 +193,7 @@ public class CryptoPluginLoader implements Runnable {
                 }
             }
         };
-        PrivateKey.setFactory(AsymmetricKey.RSA, rsaPri);
+        PrivateKey.setFactory(AsymmetricAlgorithms.RSA, rsaPri);
         PrivateKey.setFactory(CryptoUtils.RSA_SHA256, rsaPri);
         PrivateKey.setFactory(CryptoUtils.RSA_ECB_PKCS1, rsaPri);
 
@@ -209,19 +209,19 @@ public class CryptoPluginLoader implements Runnable {
                 }
             }
         };
-        PublicKey.setFactory(AsymmetricKey.RSA, rsaPub);
+        PublicKey.setFactory(AsymmetricAlgorithms.RSA, rsaPub);
         PublicKey.setFactory(CryptoUtils.RSA_SHA256, rsaPub);
         PublicKey.setFactory(CryptoUtils.RSA_ECB_PKCS1, rsaPub);
 
     }
     protected void registerECCKeyFactories() {
 
-        PrivateKey.setFactory(AsymmetricKey.ECC, new PrivateKey.Factory() {
+        PrivateKey.setFactory(AsymmetricAlgorithms.ECC, new PrivateKey.Factory() {
 
             @Override
             public PrivateKey generatePrivateKey() {
                 Map<String, Object> key = new HashMap<>();
-                key.put("algorithm", AsymmetricKey.ECC);
+                key.put("algorithm", AsymmetricAlgorithms.ECC);
                 return parsePrivateKey(key);
             }
 
@@ -236,7 +236,7 @@ public class CryptoPluginLoader implements Runnable {
             }
         });
 
-        PublicKey.setFactory(AsymmetricKey.ECC, new PublicKey.Factory() {
+        PublicKey.setFactory(AsymmetricAlgorithms.ECC, new PublicKey.Factory() {
 
             @Override
             public PublicKey parsePublicKey(Map<String, Object> key) {

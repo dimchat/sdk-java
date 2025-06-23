@@ -35,6 +35,7 @@ import java.util.Map;
 import chat.dim.crypto.AESKey;
 import chat.dim.crypto.DecryptKey;
 import chat.dim.crypto.PlainKey;
+import chat.dim.crypto.SymmetricAlgorithms;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.digest.DataDigester;
 import chat.dim.digest.MD5;
@@ -45,6 +46,7 @@ import chat.dim.format.Base64;
 import chat.dim.format.Base64Data;
 import chat.dim.format.BaseNetworkFile;
 import chat.dim.format.DataCoder;
+import chat.dim.format.EncodeAlgorithms;
 import chat.dim.format.Hex;
 import chat.dim.format.HexCoder;
 import chat.dim.format.PortableNetworkFile;
@@ -194,8 +196,8 @@ public class PluginLoader implements Runnable {
                 return new Base64Data(ted);
             }
         };
-        TransportableData.setFactory(TransportableData.BASE_64, tedFactory);
-        //TransportableData.setFactory(TransportableData.DEFAULT, tedFactory);
+        TransportableData.setFactory(EncodeAlgorithms.BASE_64, tedFactory);
+        //TransportableData.setFactory(EncodeAlgorithms.DEFAULT, tedFactory);
         TransportableData.setFactory("*", tedFactory);
     }
 
@@ -280,12 +282,12 @@ public class PluginLoader implements Runnable {
 
     }
     protected void registerAESKeyFactory() {
-        SymmetricKey.setFactory(SymmetricKey.AES, new SymmetricKey.Factory() {
+        SymmetricKey.setFactory(SymmetricAlgorithms.AES, new SymmetricKey.Factory() {
 
             @Override
             public SymmetricKey generateSymmetricKey() {
                 Map<String, Object> key = new HashMap<>();
-                key.put("algorithm", SymmetricKey.AES);
+                key.put("algorithm", SymmetricAlgorithms.AES);
                 return parseSymmetricKey(key);
             }
 
@@ -296,7 +298,7 @@ public class PluginLoader implements Runnable {
         });
     }
     protected void registerPlainKeyFactory() {
-        SymmetricKey.setFactory(PlainKey.PLAIN, new SymmetricKey.Factory() {
+        SymmetricKey.setFactory(SymmetricAlgorithms.PLAIN, new SymmetricKey.Factory() {
 
             @Override
             public SymmetricKey generateSymmetricKey() {

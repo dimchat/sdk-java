@@ -36,7 +36,7 @@ import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 
-import chat.dim.crypto.AsymmetricKey;
+import chat.dim.crypto.AsymmetricAlgorithms;
 import chat.dim.utils.CryptoUtils;
 
 final class RFC {
@@ -118,7 +118,7 @@ final class PKCS1 {
         System.arraycopy(data, 0, out, header.length, data.length);
         return out;
         */
-        KeyFactory keyFactory = CryptoUtils.getKeyFactory(AsymmetricKey.RSA);
+        KeyFactory keyFactory = CryptoUtils.getKeyFactory(AsymmetricAlgorithms.RSA);
         if (isPrivate) {
             // get public key data from private key data
             org.bouncycastle.asn1.pkcs.RSAPrivateKey privateKey;
@@ -137,7 +137,7 @@ final class PKCS1 {
         if (!isPrivate) {
             throw new InvalidKeySpecException("it's not private key data");
         }
-        KeyFactory keyFactory = CryptoUtils.getKeyFactory(AsymmetricKey.RSA);
+        KeyFactory keyFactory = CryptoUtils.getKeyFactory(AsymmetricAlgorithms.RSA);
         org.bouncycastle.asn1.pkcs.RSAPrivateKey privateKey;
         privateKey = org.bouncycastle.asn1.pkcs.RSAPrivateKey.getInstance(data);
         RSAPrivateCrtKeySpec keySpec = new RSAPrivateCrtKeySpec(privateKey.getModulus(), privateKey.getPublicExponent(),

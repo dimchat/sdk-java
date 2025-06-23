@@ -5,6 +5,7 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
+import chat.dim.crypto.SymmetricAlgorithms;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.format.Base64;
 import chat.dim.format.Hex;
@@ -65,7 +66,7 @@ public class CryptoAESTest {
         Log.info("FIXED: " + text + " -> " + (plaintext == null ? null : new String(plaintext)));
 
         // random key
-        key = SymmetricKey.generate(SymmetricKey.AES);
+        key = SymmetricKey.generate(SymmetricAlgorithms.AES);
         Log.info("key: " + key);
 
         text = "moky";

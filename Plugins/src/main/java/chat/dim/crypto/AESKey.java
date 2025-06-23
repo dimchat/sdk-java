@@ -37,6 +37,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.Random;
 
+import chat.dim.format.EncodeAlgorithms;
 import chat.dim.format.TransportableData;
 
 /**
@@ -79,7 +80,7 @@ public final class AESKey extends BaseSymmetricKey {
         // random key data
         int keySize = getKeySize();
         byte[] pwd = randomData(keySize);
-        TransportableData ted = TransportableData.create(pwd);
+        TransportableData ted = TransportableData.create(EncodeAlgorithms.DEFAULT, pwd);
 
         put("data", ted.toObject());
         /*/
@@ -103,7 +104,7 @@ public final class AESKey extends BaseSymmetricKey {
     protected Cipher getEncryptCipher(byte[] keyData, byte[] ivData) {
         try {
             Cipher cipher = Cipher.getInstance(AES_CBC_PKCS7);
-            SecretKeySpec keySpec = new SecretKeySpec(keyData, SymmetricKey.AES);
+            SecretKeySpec keySpec = new SecretKeySpec(keyData, SymmetricAlgorithms.AES);
             IvParameterSpec ivSpec = new IvParameterSpec(ivData);
             cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
             return cipher;
@@ -117,7 +118,7 @@ public final class AESKey extends BaseSymmetricKey {
     protected Cipher getDecryptCipher(byte[] keyData, byte[] ivData) {
         try {
             Cipher cipher = Cipher.getInstance(AES_CBC_PKCS7);
-            SecretKeySpec keySpec = new SecretKeySpec(keyData, SymmetricKey.AES);
+            SecretKeySpec keySpec = new SecretKeySpec(keyData, SymmetricAlgorithms.AES);
             IvParameterSpec ivSpec = new IvParameterSpec(ivData);
             cipher.init(Cipher.DECRYPT_MODE, keySpec, ivSpec);
             return cipher;
@@ -199,7 +200,7 @@ public final class AESKey extends BaseSymmetricKey {
         if (extra == null) {
             assert false : "extra dict must provided to store IV for AES";
         } else {
-            TransportableData ted = TransportableData.create(iv);
+            TransportableData ted = TransportableData.create(EncodeAlgorithms.DEFAULT, iv);
             extra.put("IV", ted.toObject());
         }
         // OK
