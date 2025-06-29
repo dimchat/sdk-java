@@ -140,6 +140,9 @@ public class FormatGeneralFactory implements GeneralFormatHelper,
 
     @Override
     public TransportableData.Factory getTransportableDataFactory(String algorithm) {
+        if (algorithm == null || algorithm.isEmpty()) {
+            return null;
+        }
         return tedFactories.get(algorithm);
     }
 
@@ -163,12 +166,15 @@ public class FormatGeneralFactory implements GeneralFormatHelper,
             //assert false : "TED error: " + ted;
             return null;
         }
-        String algorithm = getFormatAlgorithm(info, "*");
+        String algorithm = getFormatAlgorithm(info, null);
         TransportableData.Factory factory = getTransportableDataFactory(algorithm);
         if (factory == null) {
-            assert !algorithm.equals("*") : "TED factory not ready: " + ted;
+            // unknown algorithm, get default factory
             factory = getTransportableDataFactory("*");  // unknown
-            assert factory != null : "default TED factory not found";
+            if (factory == null) {
+                assert false : "default TED factory not found: " + ted;
+                return null;
+            }
         }
         return factory.parseTransportableData(info);
     }

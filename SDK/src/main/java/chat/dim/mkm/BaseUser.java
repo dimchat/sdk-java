@@ -64,16 +64,16 @@ public class BaseUser extends BaseEntity implements User {
 
     @Override
     public List<ID> getContacts() {
-        User.DataSource barrack = getDataSource();
-        assert barrack != null : "user delegate not set yet";
-        return barrack.getContacts(identifier);
+        User.DataSource facebook = getDataSource();
+        assert facebook != null : "user delegate not set yet";
+        return facebook.getContacts(identifier);
     }
 
     @Override
     public boolean verify(byte[] data, byte[] signature) {
-        User.DataSource barrack = getDataSource();
-        assert barrack != null : "user delegate not set yet";
-        List<VerifyKey> keys = barrack.getPublicKeysForVerification(identifier);
+        User.DataSource facebook = getDataSource();
+        assert facebook != null : "user delegate not set yet";
+        List<VerifyKey> keys = facebook.getPublicKeysForVerification(identifier);
         assert !keys.isEmpty() : "failed to get verify keys: " + identifier;
         for (VerifyKey key : keys) {
             if (key.verify(data, signature)) {
@@ -88,11 +88,11 @@ public class BaseUser extends BaseEntity implements User {
 
     @Override
     public byte[] encrypt(byte[] plaintext) {
-        User.DataSource barrack = getDataSource();
-        assert barrack != null : "user delegate not set yet";
+        User.DataSource facebook = getDataSource();
+        assert facebook != null : "user delegate not set yet";
         // NOTICE: meta.key will never changed, so use visa.key to encrypt message
         //         is a better way
-        EncryptKey pKey = barrack.getPublicKeyForEncryption(identifier);
+        EncryptKey pKey = facebook.getPublicKeyForEncryption(identifier);
         assert pKey != null : "failed to get encrypt key for user: " + identifier;
         return pKey.encrypt(plaintext, null);
     }
@@ -103,20 +103,20 @@ public class BaseUser extends BaseEntity implements User {
 
     @Override
     public byte[] sign(byte[] data) {
-        User.DataSource barrack = getDataSource();
-        assert barrack != null : "user delegate not set yet";
-        SignKey sKey = barrack.getPrivateKeyForSignature(identifier);
+        User.DataSource facebook = getDataSource();
+        assert facebook != null : "user delegate not set yet";
+        SignKey sKey = facebook.getPrivateKeyForSignature(identifier);
         assert sKey != null : "failed to get sign key for user: " + identifier;
         return sKey.sign(data);
     }
 
     @Override
     public byte[] decrypt(byte[] ciphertext) {
-        User.DataSource barrack = getDataSource();
-        assert barrack != null : "user delegate not set yet";
+        User.DataSource facebook = getDataSource();
+        assert facebook != null : "user delegate not set yet";
         // NOTICE: if you provide a public key in visa for encryption,
         //         here you should return the private key paired with visa.key
-        List<DecryptKey> keys = barrack.getPrivateKeysForDecryption(identifier);
+        List<DecryptKey> keys = facebook.getPrivateKeysForDecryption(identifier);
         assert !keys.isEmpty() : "failed to get decrypt keys for user: " + identifier;
         byte[] plaintext;
         for (DecryptKey key : keys) {
@@ -135,10 +135,10 @@ public class BaseUser extends BaseEntity implements User {
     @Override
     public Visa sign(Visa doc) {
         assert identifier.equals(doc.getIdentifier()) : "visa ID not match: " + identifier + ", " + doc.getIdentifier();
-        User.DataSource barrack = getDataSource();
-        assert barrack != null : "user delegate not set yet";
+        User.DataSource facebook = getDataSource();
+        assert facebook != null : "user delegate not set yet";
         // NOTICE: only sign visa with the private key paired with your meta.key
-        SignKey sKey = barrack.getPrivateKeyForVisaSignature(identifier);
+        SignKey sKey = facebook.getPrivateKeyForVisaSignature(identifier);
         assert sKey != null : "failed to get sign key for visa: " + identifier;
         if (doc.sign(sKey) == null) {
             assert false : "failed to sign visa: " + identifier + ", " + doc;

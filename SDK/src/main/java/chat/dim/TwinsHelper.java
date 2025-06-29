@@ -36,21 +36,21 @@ import java.util.Map;
 
 public class TwinsHelper {
 
-    private final WeakReference<Facebook> barrack;
-    private final WeakReference<Messenger> transceiver;
+    private final WeakReference<Facebook> facebookRef;
+    private final WeakReference<Messenger> messengerRef;
 
     public TwinsHelper(Facebook facebook, Messenger messenger) {
         super();
-        barrack = new WeakReference<>(facebook);
-        transceiver = new WeakReference<>(messenger);
+        facebookRef = new WeakReference<>(facebook);
+        messengerRef = new WeakReference<>(messenger);
     }
 
     protected Facebook getFacebook() {
-        return barrack.get();
+        return facebookRef.get();
     }
 
     protected Messenger getMessenger() {
-        return transceiver.get();
+        return messengerRef.get();
     }
 
     //

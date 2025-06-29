@@ -32,10 +32,9 @@ package chat.dim;
 
 import java.util.List;
 
+import chat.dim.core.Compressor;
 import chat.dim.core.Packer;
 import chat.dim.crypto.SymmetricKey;
-import chat.dim.format.JSON;
-import chat.dim.format.UTF8;
 import chat.dim.mkm.User;
 import chat.dim.msg.InstantMessageDelegate;
 import chat.dim.msg.InstantMessagePacker;
@@ -76,6 +75,8 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
     protected ReliableMessagePacker createReliableMessagePacker(ReliableMessageDelegate delegate) {
         return new ReliableMessagePacker(delegate);
     }
+
+    protected abstract Compressor getCompressor();
 
     //
     //  InstantMessage -> SecureMessage -> ReliableMessage -> Data
@@ -150,7 +151,8 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
 
     @Override
     public byte[] serializeMessage(ReliableMessage rMsg) {
-        return UTF8.encode(JSON.encode(rMsg.toMap()));
+        Compressor compressor = getCompressor();
+        return compressor.compressReliableMessage(rMsg.toMap());
     }
 
     //
@@ -159,26 +161,9 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
 
     @Override
     public ReliableMessage deserializeMessage(byte[] data) {
-        String json = UTF8.decode(data);
-        if (json == null) {
-            assert false : "message data error: " + data.length;
-            return null;
-        }
-        Object dict = JSON.decode(json);
-        // TODO: translate short keys
-        //       'S' -> 'sender'
-        //       'R' -> 'receiver'
-        //       'W' -> 'time'
-        //       'T' -> 'type'
-        //       'G' -> 'group'
-        //       ------------------
-        //       'D' -> 'data'
-        //       'V' -> 'signature'
-        //       'K' -> 'key', 'keys'
-        //       ------------------
-        //       'M' -> 'meta'
-        //       'P' -> 'visa'
-        return ReliableMessage.parse(dict);
+        Compressor compressor = getCompressor();
+        Object info = compressor.extractReliableMessage(data);
+        return ReliableMessage.parse(info);
     }
 
     /**

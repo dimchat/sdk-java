@@ -30,11 +30,7 @@
  */
 package chat.dim.core;
 
-import java.util.Arrays;
-
 import chat.dim.crypto.SymmetricKey;
-import chat.dim.format.JSON;
-import chat.dim.format.UTF8;
 import chat.dim.mkm.Entity;
 import chat.dim.mkm.User;
 import chat.dim.msg.BaseMessage;
@@ -57,13 +53,16 @@ public abstract class Transceiver implements InstantMessageDelegate, SecureMessa
 
     protected abstract Entity.Delegate getFacebook();
 
+    protected abstract Compressor getCompressor();
+
     //-------- InstantMessageDelegate
 
     @Override
     public byte[] serializeContent(Content content, SymmetricKey password, InstantMessage iMsg) {
         // NOTICE: check attachment for File/Image/Audio/Video message content
         //         before serialize content, this job should be do in subclass
-        return UTF8.encode(JSON.encode(content.toMap()));
+        Compressor compressor = getCompressor();
+        return compressor.compressContent(content.toMap(), password.toMap());
     }
 
     @Override
@@ -92,7 +91,8 @@ public abstract class Transceiver implements InstantMessageDelegate, SecureMessa
             // broadcast message has no key
             return null;
         }
-        return UTF8.encode(JSON.encode(password.toMap()));
+        Compressor compressor = getCompressor();
+        return compressor.compressSymmetricKey(password.toMap());
     }
 
     @Override
@@ -156,19 +156,9 @@ public abstract class Transceiver implements InstantMessageDelegate, SecureMessa
                     + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
             return null;
         }
-        String json = UTF8.decode(key);
-        if (json == null) {
-            assert false : "message key data error: " + Arrays.toString(key);
-            return null;
-        }
-        Object dict = JSON.decode(json);
-        // TODO: translate short keys
-        //       'A' -> 'algorithm'
-        //       'D' -> 'data'
-        //       'V' -> 'iv'
-        //       'M' -> 'mode'
-        //       'P' -> 'padding'
-        return SymmetricKey.parse(dict);
+        Compressor compressor = getCompressor();
+        Object info = compressor.extractSymmetricKey(key);
+        return SymmetricKey.parse(info);
     }
 
     /*/
@@ -199,18 +189,9 @@ public abstract class Transceiver implements InstantMessageDelegate, SecureMessa
     @Override
     public Content deserializeContent(byte[] data, SymmetricKey password, SecureMessage sMsg) {
         //assert sMsg.getData() != null : "message data empty";
-        String json = UTF8.decode(data);
-        if (json == null) {
-            assert false : "content data error: " + Arrays.toString(data);
-            return null;
-        }
-        Object dict = JSON.decode(json);
-        // TODO: translate short keys
-        //       'T' -> 'type'
-        //       'N' -> 'sn'
-        //       'W' -> 'time'
-        //       'G' -> 'group'
-        return Content.parse(dict);
+        Compressor compressor = getCompressor();
+        Object info = compressor.extractContent(data, password.toMap());
+        return Content.parse(info);
         // NOTICE: check attachment for File/Image/Audio/Video message content
         //         after deserialize content, this job should be do in subclass
     }
@@ -236,7 +217,6 @@ public abstract class Transceiver implements InstantMessageDelegate, SecureMessa
     /*/
 
     //-------- ReliableMessageDelegate
-
 
     /*/
     @Override

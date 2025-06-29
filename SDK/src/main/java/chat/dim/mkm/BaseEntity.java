@@ -41,7 +41,7 @@ public class BaseEntity implements Entity {
 
     protected final ID identifier;
 
-    private WeakReference<DataSource> barrackRef = null;
+    private WeakReference<DataSource> facebookRef = null;
 
     public BaseEntity(ID id) {
         super();
@@ -85,26 +85,26 @@ public class BaseEntity implements Entity {
 
     @Override
     public DataSource getDataSource() {
-        return barrackRef == null ? null : barrackRef.get();
+        return facebookRef == null ? null : facebookRef.get();
     }
 
     @Override
     public void setDataSource(DataSource facebook) {
-        barrackRef = facebook == null ? null : new WeakReference<>(facebook);
+        facebookRef = facebook == null ? null : new WeakReference<>(facebook);
     }
 
     @Override
     public Meta getMeta() {
-        DataSource barrack = getDataSource();
-        assert barrack != null : "entity delegate not set yet";
-        return barrack.getMeta(identifier);
+        DataSource facebook = getDataSource();
+        assert facebook != null : "entity delegate not set yet";
+        return facebook.getMeta(identifier);
     }
 
     @Override
     public List<Document> getDocuments() {
-        DataSource barrack = getDataSource();
-        assert barrack != null : "entity delegate not set yet";
-        return barrack.getDocuments(identifier);
+        DataSource facebook = getDataSource();
+        assert facebook != null : "entity delegate not set yet";
+        return facebook.getDocuments(identifier);
     }
 
 }
