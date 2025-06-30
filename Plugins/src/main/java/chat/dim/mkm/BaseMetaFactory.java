@@ -35,7 +35,6 @@ import java.util.Map;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
 import chat.dim.crypto.VerifyKey;
-import chat.dim.format.EncodeAlgorithms;
 import chat.dim.format.TransportableData;
 import chat.dim.format.UTF8;
 import chat.dim.plugins.SharedAccountExtensions;
@@ -62,7 +61,7 @@ public class BaseMetaFactory implements Meta.Factory {
         } else {
             byte[] data = UTF8.encode(seed);
             byte[] sig = sKey.sign(data);
-            fingerprint = TransportableData.create(EncodeAlgorithms.DEFAULT, sig);
+            fingerprint = TransportableData.create(sig);
         }
         VerifyKey key = ((PrivateKey) sKey).getPublicKey();
         return createMeta(key, seed, fingerprint);

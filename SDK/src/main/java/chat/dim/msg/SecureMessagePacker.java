@@ -34,7 +34,6 @@ import java.lang.ref.WeakReference;
 import java.util.Map;
 
 import chat.dim.crypto.SymmetricKey;
-import chat.dim.format.EncodeAlgorithms;
 import chat.dim.format.TransportableData;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
@@ -209,7 +208,7 @@ public class SecureMessagePacker {
         //
         //  2. Encode 'message.signature' to String (Base64)
         //
-        Object base64 = TransportableData.encode(EncodeAlgorithms.DEFAULT, signature);
+        Object base64 = TransportableData.encode(signature);
         assert base64 != null : "failed to encode signature: " + signature.length + " byte(s) "
                 + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
 

@@ -59,8 +59,8 @@ public class MessageGeneralFactory implements GeneralMessageHelper,
     private ReliableMessage.Factory reliableMessageFactory = null;
 
     @Override
-    public String getContentType(Map<?, ?> content, String defaultValueIfNull) {
-        return Converter.getString(content.get("type"), defaultValueIfNull);
+    public String getContentType(Map<?, ?> content, String defaultValue) {
+        return Converter.getString(content.get("type"), defaultValue);
     }
 
     //

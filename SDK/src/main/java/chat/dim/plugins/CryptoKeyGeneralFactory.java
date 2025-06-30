@@ -46,8 +46,8 @@ public class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
     private final Map<String, PublicKey.Factory>       publicKeyFactories = new HashMap<>();
 
     @Override
-    public String getKeyAlgorithm(Map<?, ?> key, String defaultValueIfNull) {
-        return Converter.getString(key.get("algorithm"), defaultValueIfNull);
+    public String getKeyAlgorithm(Map<?, ?> key, String defaultValue) {
+        return Converter.getString(key.get("algorithm"), defaultValue);
     }
 
     //

@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 import chat.dim.crypto.DecryptKey;
+import chat.dim.format.EncodeAlgorithms;
 import chat.dim.format.JSONMap;
 import chat.dim.format.PortableNetworkFile;
 import chat.dim.format.TransportableData;
@@ -125,8 +126,8 @@ public class FormatGeneralFactory implements GeneralFormatHelper,
     }
 
     @Override
-    public String getFormatAlgorithm(Map<?, ?> ted, String defaultValueIfNull) {
-        return Converter.getString(ted.get("algorithm"), defaultValueIfNull);
+    public String getFormatAlgorithm(Map<?, ?> ted, String defaultValue) {
+        return Converter.getString(ted.get("algorithm"), defaultValue);
     }
 
     ///
@@ -147,7 +148,10 @@ public class FormatGeneralFactory implements GeneralFormatHelper,
     }
 
     @Override
-    public TransportableData createTransportableData(String algorithm, byte[] data) {
+    public TransportableData createTransportableData(byte[] data, String algorithm) {
+        if (algorithm == null || algorithm.isEmpty()) {
+            algorithm = EncodeAlgorithms.DEFAULT;
+        }
         TransportableData.Factory factory = getTransportableDataFactory(algorithm);
         assert factory != null : "TED algorithm not support: " + algorithm;
         return factory.createTransportableData(data);

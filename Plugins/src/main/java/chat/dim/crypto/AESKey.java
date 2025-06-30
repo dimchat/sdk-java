@@ -37,7 +37,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.Random;
 
-import chat.dim.format.EncodeAlgorithms;
 import chat.dim.format.TransportableData;
 
 /**
@@ -80,7 +79,7 @@ public final class AESKey extends BaseSymmetricKey {
         // random key data
         int keySize = getKeySize();
         byte[] pwd = randomData(keySize);
-        TransportableData ted = TransportableData.create(EncodeAlgorithms.DEFAULT, pwd);
+        TransportableData ted = TransportableData.create(pwd);
 
         put("data", ted.toObject());
         /*/
@@ -200,7 +199,7 @@ public final class AESKey extends BaseSymmetricKey {
         if (extra == null) {
             assert false : "extra dict must provided to store IV for AES";
         } else {
-            TransportableData ted = TransportableData.create(EncodeAlgorithms.DEFAULT, iv);
+            TransportableData ted = TransportableData.create(iv);
             extra.put("IV", ted.toObject());
         }
         // OK

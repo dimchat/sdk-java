@@ -35,13 +35,10 @@ import java.util.Map;
 public class MessageShortener {
 
     protected void moveKey(String from, String to, Map<String, Object> info) {
-        Object value = info.get(to);
-        if (value == null) {
-            value = info.get(from);
-            if (value != null) {
-                info.remove(from);
-                info.put(to, value);
-            }
+        Object value = info.get(from);
+        if (value != null) {
+            info.remove(from);
+            info.put(to, value);
         }
     }
 
@@ -99,8 +96,8 @@ public class MessageShortener {
      *  Compress ReliableMessage
      */
     public String[] messageShortKeys = {
-            "S", "sender",
-            "R", "receiver",
+            "F", "sender",      // From
+            "R", "receiver",    // Rcpt to
             "W", "time",        // When
             "T", "type",
             "G", "group",
@@ -122,13 +119,17 @@ public class MessageShortener {
     public Map<String, Object> extractReliableMessage(Map<String, Object> msg) {
         Object keys = msg.get("K");
         if (keys == null) {
-            assert msg.get("data") != null : "message data should not empty";
-        } else if (keys instanceof Map && msg.get("keys") == null) {
+            assert msg.get("data") != null : "message data should not empty: " + msg;
+        } else if (keys instanceof Map) {
+            assert msg.get("keys") == null : "message keys duplicated: " + msg;
             msg.remove("K");
             msg.put("keys", keys);
-        } else if (keys instanceof String && msg.get("key") == null) {
+        } else if (keys instanceof String) {
+            assert msg.get("key") == null : "message key duplicated: " + msg;
             msg.remove("K");
             msg.put("key", keys);
+        } else {
+            assert false : "message key error: " + msg;
         }
         restoreKeys(messageShortKeys, msg);
         return msg;

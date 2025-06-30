@@ -60,17 +60,17 @@ public class AccountGeneralFactory implements GeneralAccountHelper,
     private final Map<String, Document.Factory> documentFactories = new HashMap<>();
 
     @Override
-    public String getMetaType(Map<?, ?> meta, String defaultValueIfNull) {
-        return Converter.getString(meta.get("type"), defaultValueIfNull);
+    public String getMetaType(Map<?, ?> meta, String defaultValue) {
+        return Converter.getString(meta.get("type"), defaultValue);
     }
 
     @Override
-    public String getDocumentType(Map<?, ?> doc, String defaultValueIfNull) {
+    public String getDocumentType(Map<?, ?> doc, String defaultValue) {
         Object type = doc.get("type");
         if (type != null) {
-            return Converter.getString(type, defaultValueIfNull);
-        } else if (defaultValueIfNull != null) {
-            return defaultValueIfNull;
+            return Converter.getString(type, defaultValue);
+        } else if (defaultValue != null) {
+            return defaultValue;
         }
         // get type for did
         ID identifier = ID.parse(doc.get("did"));

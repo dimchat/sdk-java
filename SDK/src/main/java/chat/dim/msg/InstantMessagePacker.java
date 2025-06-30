@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 
 import chat.dim.crypto.SymmetricKey;
-import chat.dim.format.EncodeAlgorithms;
 import chat.dim.format.TransportableData;
 import chat.dim.format.UTF8;
 import chat.dim.protocol.ID;
@@ -109,7 +108,7 @@ public class InstantMessagePacker {
         } else {
             // message content had been encrypted by a symmetric key,
             // so the data should be encoded here (with algorithm 'base64' as default).
-            encodedData = TransportableData.encode(EncodeAlgorithms.DEFAULT, ciphertext);
+            encodedData = TransportableData.encode(ciphertext);
         }
         assert encodedData != null : "failed to encode content data: " + Arrays.toString(ciphertext);
 
@@ -146,7 +145,7 @@ public class InstantMessagePacker {
             //
             //  6. Encode message key to String (Base64)
             //
-            encodedKey = TransportableData.encode(EncodeAlgorithms.DEFAULT, encryptedKey);
+            encodedKey = TransportableData.encode(encryptedKey);
             assert encodedKey != null : "failed to encode key data: " + Arrays.toString(encryptedKey);
             // insert as 'key'
             info.put("key", encodedKey);
@@ -167,7 +166,7 @@ public class InstantMessagePacker {
                 //
                 //  6. Encode message key to String (Base64)
                 //
-                encodedKey = TransportableData.encode(EncodeAlgorithms.DEFAULT, encryptedKey);
+                encodedKey = TransportableData.encode(encryptedKey);
                 assert encodedKey != null : "failed to encode key data: " + Arrays.toString(encryptedKey);
                 // insert to 'message.keys' with member ID
                 keys.put(receiver.toString(), encodedKey);
