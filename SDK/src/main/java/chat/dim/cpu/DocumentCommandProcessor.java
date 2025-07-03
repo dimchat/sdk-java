@@ -36,6 +36,7 @@ import java.util.List;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
+import chat.dim.core.Archivist;
 import chat.dim.mkm.DocumentUtils;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.Document;
@@ -50,6 +51,12 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
     public DocumentCommandProcessor(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
     }
+
+    protected Archivist getArchivist() {
+        Facebook facebook = getFacebook();
+        return facebook == null ? null : facebook.getArchivist();
+    }
+
     @Override
     public List<Content> processContent(Content content, ReliableMessage rMsg) {
         assert content instanceof DocumentCommand : "document command error: " + content;
@@ -146,7 +153,7 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
                 return errors;
             }
         }
-        // 2. try to save document
+        // 2. try to save documents
         errors = new ArrayList<>();
         List<Content> res;
         for (Document document : docs) {
@@ -171,7 +178,11 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
 
     // return null on success
     protected List<Content> saveDocument(Document doc, Meta meta, ID identifier, Envelope envelope, DocumentCommand content) {
-        Facebook facebook = getFacebook();
+        Archivist archivist = getArchivist();
+        if (archivist == null) {
+            assert false : "archivist not ready";
+            return null;
+        }
         // check document
         if (!checkDocument(doc, meta)) {
             // document invalid
@@ -181,7 +192,7 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
                             "did", identifier.toString()
                     )
             ));
-        } else if (!facebook.saveDocument(doc)) {
+        } else if (!archivist.saveDocument(doc)) {
             // document expired
             return respondReceipt("Document not changed.", envelope, content, newMap(
                     "template", "Document not changed: ${did}.",

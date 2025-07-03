@@ -35,6 +35,7 @@ import java.util.List;
 
 import chat.dim.Facebook;
 import chat.dim.Messenger;
+import chat.dim.core.Archivist;
 import chat.dim.mkm.MetaUtils;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.Envelope;
@@ -47,6 +48,11 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
 
     public MetaCommandProcessor(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
+    }
+
+    protected Archivist getArchivist() {
+        Facebook facebook = getFacebook();
+        return facebook == null ? null : facebook.getArchivist();
     }
 
     @Override
@@ -103,7 +109,11 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
 
     // return null on success
     protected List<Content> saveMeta(Meta meta, ID identifier, Envelope envelope, MetaCommand content) {
-        Facebook facebook = getFacebook();
+        Archivist archivist = getArchivist();
+        if (archivist == null) {
+            assert false : "archivist not ready";
+            return null;
+        }
         // check meta
         if (!checkMeta(meta, identifier)) {
             // meta invalid
@@ -113,7 +123,7 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
                             "did", identifier.toString()
                     )
             ));
-        } else if (!facebook.saveMeta(meta, identifier)) {
+        } else if (!archivist.saveMeta(meta, identifier)) {
             // DB error?
             return respondReceipt("Meta not accepted.", envelope, content, newMap(
                     "template", "Meta not accepted: ${did}.",

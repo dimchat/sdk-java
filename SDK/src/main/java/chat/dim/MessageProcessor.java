@@ -35,7 +35,6 @@ import java.util.List;
 
 import chat.dim.core.Processor;
 import chat.dim.dkd.ContentProcessor;
-import chat.dim.mkm.User;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
 import chat.dim.protocol.Envelope;
@@ -163,18 +162,17 @@ public abstract class MessageProcessor extends TwinsHelper implements Processor 
         Facebook facebook = getFacebook();
         ID sender = iMsg.getSender();
         ID receiver = iMsg.getReceiver();
-        User user = facebook.selectLocalUser(receiver);
+        ID user = facebook.selectLocalUser(receiver);
         if (user == null) {
             assert false : "receiver error: " + receiver;
             return null;
         }
-        ID me = user.getIdentifier();
         // 3. pack messages
         List<InstantMessage> messages = new ArrayList<>();
         Envelope env;
         for (Content res : responses) {
             // assert res != null : "should not happen";
-            env = Envelope.create(me, sender, null);
+            env = Envelope.create(user, sender, null);
             iMsg = InstantMessage.create(env, res);
             // assert iMsg != null : "should not happen";
             messages.add(iMsg);

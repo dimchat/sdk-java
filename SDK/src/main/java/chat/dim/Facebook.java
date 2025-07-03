@@ -33,56 +33,20 @@ package chat.dim;
 import java.util.ArrayList;
 import java.util.List;
 
+import chat.dim.core.Archivist;
 import chat.dim.core.Barrack;
 import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.VerifyKey;
 import chat.dim.mkm.Entity;
 import chat.dim.mkm.Group;
 import chat.dim.mkm.User;
-import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
-import chat.dim.protocol.Meta;
 
 public abstract class Facebook implements Entity.Delegate, User.DataSource, Group.DataSource {
 
     protected abstract Barrack getBarrack();
 
-    /**
-     *  Save meta for entity ID (must verify first)
-     *
-     * @param meta - entity meta
-     * @param identifier - entity ID
-     * @return true on success
-     */
-    public abstract boolean saveMeta(Meta meta, ID identifier);
-
-    /**
-     *  Save entity document with ID (must verify first)
-     *
-     * @param doc - entity document
-     * @return true on success
-     */
-    public abstract boolean saveDocument(Document doc);
-
-    //
-    //  Public Keys
-    //
-
-    /**
-     *  Get meta.key
-     *
-     * @param user - user ID
-     * @return null on not found
-     */
-    protected abstract VerifyKey getMetaKey(ID user);
-
-    /**
-     *  Get visa.key
-     *
-     * @param user - user ID
-     * @return null on not found
-     */
-    protected abstract EncryptKey getVisaKey(ID user);
+    public abstract Archivist getArchivist();
 
     /**
      *  Select local user for receiver
@@ -90,33 +54,48 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
      * @param receiver - user/group ID
      * @return local user
      */
-    public User selectLocalUser(ID receiver) {
-        if (receiver.isGroup()) {
-            // group message (recipient not designated)
-            // TODO: check members of group
-            return null;
-        } else {
-            assert receiver.isUser() : "receiver error: " + receiver;
-        }
-        Barrack barrack = getBarrack();
-        List<User> users = barrack.getLocalUsers();
-        if (users == null || users.isEmpty()) {
+    public ID selectLocalUser(ID receiver) {
+        Archivist archivist = getArchivist();
+        List<ID> allUsers = archivist.getLocalUsers();
+        //
+        //  1.
+        //
+        if (allUsers.isEmpty()) {
             assert false : "local users should not be empty";
             return null;
         } else if (receiver.isBroadcast()) {
             // broadcast message can be decrypted by anyone, so
             // just return current user here
-            return users.get(0);
+            return allUsers.get(0);
         }
-        // 1. personal message
-        // 2. split group message
-        for (User item : users) {
-            if (receiver.equals(item.getIdentifier())) {
-                // DISCUSS: set this item to be current user?
-                return item;
+        //
+        //  2.
+        //
+        if (receiver.isUser()) {
+            // personal message
+            for (ID item : allUsers) {
+                if (receiver.equals(item)) {
+                    // DISCUSS: set this item to be current user?
+                    return item;
+                }
             }
+        } else if (receiver.isGroup()) {
+            // group message (recipient not designated)
+            //
+            // the messenger will check group info before decrypting message,
+            // so we can trust that the group's meta & members MUST exist here.
+            List<ID> members = getMembers(receiver);
+            assert !members.isEmpty() : "members not found: " + receiver;
+            for (ID item : allUsers) {
+                if (members.contains(item)) {
+                    // DISCUSS: set this item to be current user?
+                    return item;
+                }
+            }
+        } else {
+            assert false : "receiver error: " + receiver;
         }
-        // not mine?
+        // not me?
         return null;
     }
 
@@ -191,14 +170,19 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
     @Override
     public EncryptKey getPublicKeyForEncryption(ID user) {
         assert user.isUser() : "user ID error: " + user;
-        // 1. get pubic key from visa
-        EncryptKey visaKey = getVisaKey(user);
+        Archivist archivist = getArchivist();
+        //
+        //  1. get pubic key from visa
+        //
+        EncryptKey visaKey = archivist.getVisaKey(user);
         if (visaKey != null) {
             // if visa.key exists, use it for encryption
             return visaKey;
         }
-        // 2. get key from meta
-        VerifyKey metaKey = getMetaKey(user);
+        //
+        //  2. get key from meta
+        //
+        VerifyKey metaKey = archivist.getMetaKey(user);
         if (metaKey instanceof EncryptKey) {
             // if visa.key not exists and meta.key is encrypt key,
             // use it for encryption
@@ -212,15 +196,20 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
     public List<VerifyKey> getPublicKeysForVerification(ID user) {
         // assert user.isUser() : "user ID error: " + user;
         List<VerifyKey> keys = new ArrayList<>();
-        // 1. get pubic key from visa
-        EncryptKey visaKey = getVisaKey(user);
+        Archivist archivist = getArchivist();
+        //
+        //  1. get pubic key from visa
+        //
+        EncryptKey visaKey = archivist.getVisaKey(user);
         if (visaKey instanceof VerifyKey) {
             // the sender may use communication key to sign message.data,
             // try to verify it with visa.key first
             keys.add((VerifyKey) visaKey);
         }
-        // 2. get key from meta
-        VerifyKey metaKey = getMetaKey(user);
+        //
+        //  2. get key from meta
+        //
+        VerifyKey metaKey = archivist.getMetaKey(user);
         if (metaKey != null) {
             // the sender may use identity key to sign message.data,
             // try to verify it with meta.key too

@@ -32,10 +32,10 @@ package chat.dim;
 
 import java.util.List;
 
+import chat.dim.core.Archivist;
 import chat.dim.core.Compressor;
 import chat.dim.core.Packer;
 import chat.dim.crypto.SymmetricKey;
-import chat.dim.mkm.User;
 import chat.dim.msg.InstantMessageDelegate;
 import chat.dim.msg.InstantMessagePacker;
 import chat.dim.msg.MessageUtils;
@@ -77,6 +77,11 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
     }
 
     protected abstract Compressor getCompressor();
+
+    protected Archivist getArchivist() {
+        Facebook facebook = getFacebook();
+        return facebook == null ? null : facebook.getArchivist();
+    }
 
     //
     //  InstantMessage -> SecureMessage -> ReliableMessage -> Data
@@ -173,17 +178,21 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
      * @return false on error
      */
     protected boolean checkAttachments(ReliableMessage rMsg) {
-        Facebook facebook = getFacebook();
+        Archivist archivist = getArchivist();
+        if (archivist == null) {
+            assert false : "archivist not ready";
+            return false;
+        }
         ID sender = rMsg.getSender();
         // [Meta Protocol]
         Meta meta = MessageUtils.getMeta(rMsg);
         if (meta != null) {
-            facebook.saveMeta(meta, sender);
+            archivist.saveMeta(meta, sender);
         }
         // [Visa Protocol]
         Visa visa = MessageUtils.getVisa(rMsg);
         if (visa != null) {
-            facebook.saveDocument(visa);
+            archivist.saveDocument(visa);
         }
         //
         //  TODO: check [Visa Protocol] before calling this
@@ -212,7 +221,7 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
         //       so that you will have a private key (decrypt key) to decrypt it.
         ID receiver = sMsg.getReceiver();
         Facebook facebook = getFacebook();
-        User user = facebook.selectLocalUser(receiver);
+        ID user = facebook.selectLocalUser(receiver);
         if (user == null) {
             // not for you?
             throw new NullPointerException("receiver error: " + sMsg.getReceiver()
@@ -221,7 +230,7 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
         assert sMsg.getData() != null : "message data empty: "
                 + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
         // decrypt 'data' to 'content'
-        return securePacker.decryptMessage(sMsg, user.getIdentifier());
+        return securePacker.decryptMessage(sMsg, user);
 
         // TODO: check top-secret message
         //       (do it by application)

@@ -30,8 +30,6 @@
  */
 package chat.dim.core;
 
-import java.util.List;
-
 import chat.dim.mkm.BaseGroup;
 import chat.dim.mkm.BaseUser;
 import chat.dim.mkm.Bot;
@@ -54,24 +52,9 @@ public abstract class Barrack {
 
     public abstract void cacheGroup(Group group);
 
-    //
-    //  Entity Delegate
-    //
-
     public abstract User getUser(ID identifier);
 
     public abstract Group getGroup(ID identifier);
-
-    //
-    //  Archivist
-    //
-
-    /**
-     *  Get all local users (for decrypting received message)
-     *
-     * @return users with private key
-     */
-    public abstract List<User> getLocalUsers();
 
     /**
      *  Create user when visa.key exists
