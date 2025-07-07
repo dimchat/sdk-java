@@ -83,6 +83,7 @@ public class MessageFactory implements Envelope.Factory,
         // check 'sender'
         if (env.get("sender") == null) {
             // env.sender should not empty
+            assert false : "envelope error: " + env;
             return null;
         }
         return new MessageEnvelope(env);
@@ -110,6 +111,7 @@ public class MessageFactory implements Envelope.Factory,
         if (msg.get("sender") == null || msg.get("content") == null) {
             // msg.sender should not be empty
             // msg.content should not be empty
+            assert false : "message error: " + msg;
             return null;
         }
         return new PlainMessage(msg);
@@ -124,6 +126,7 @@ public class MessageFactory implements Envelope.Factory,
         if (msg.get("sender") == null || msg.get("data") == null) {
             // msg.sender should not be empty
             // msg.data should not be empty
+            assert false : "message error: " + msg;
             return null;
         }
         // check 'signature'
@@ -143,6 +146,7 @@ public class MessageFactory implements Envelope.Factory,
             // msg.sender should not be empty
             // msg.data should not be empty
             // msg.signature should not be empty
+            assert false : "message error: " + msg;
             return null;
         }
         return new NetworkMessage(msg);

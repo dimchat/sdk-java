@@ -38,20 +38,21 @@ import chat.dim.format.UTF8;
 
 public class MessageCompressor implements Compressor {
 
-    private final MessageShortener shortener;
+    protected final Shortener shortener;
 
-    public MessageCompressor() {
-        shortener = createShortener();
+    public MessageCompressor(Shortener shortener) {
+        this.shortener = shortener;
     }
 
-    protected MessageShortener createShortener() {
-        return new MessageShortener();
-    }
+    //
+    //  Compress Content
+    //
 
     @Override
     public byte[] compressContent(Map<String, Object> content, Map<String, Object> key) {
         content = shortener.compressContent(content);
-        return UTF8.encode(JSONMap.encode(content));
+        String json = JSONMap.encode(content);
+        return UTF8.encode(json);
     }
 
     @Override
@@ -62,32 +63,46 @@ public class MessageCompressor implements Compressor {
             return null;
         }
         Map<String, Object> info = JSONMap.decode(json);
-        info = shortener.extractContent(info);
+        if (info != null) {
+            info = shortener.extractContent(info);
+        }
         return info;
     }
+
+    //
+    //  Compress SymmetricKey
+    //
 
     @Override
     public byte[] compressSymmetricKey(Map<String, Object> key) {
         key = shortener.compressSymmetricKey(key);
-        return UTF8.encode(JSONMap.encode(key));
+        String json = JSONMap.encode(key);
+        return UTF8.encode(json);
     }
 
     @Override
     public Map<String, Object> extractSymmetricKey(byte[] key) {
         String json = UTF8.decode(key);
         if (json == null) {
-            assert false : "message key data error: " + Arrays.toString(key);
+            assert false : "symmetric key data error: " + Arrays.toString(key);
             return null;
         }
         Map<String, Object> info = JSONMap.decode(json);
-        info = shortener.extractSymmetricKey(info);
+        if (info != null) {
+            info = shortener.extractSymmetricKey(info);
+        }
         return info;
     }
+
+    //
+    //  Compress ReliableMessage
+    //
 
     @Override
     public byte[] compressReliableMessage(Map<String, Object> msg) {
         msg = shortener.compressReliableMessage(msg);
-        return UTF8.encode(JSONMap.encode(msg));
+        String json = JSONMap.encode(msg);
+        return UTF8.encode(json);
     }
 
     @Override
@@ -98,7 +113,9 @@ public class MessageCompressor implements Compressor {
             return null;
         }
         Map<String, Object> info = JSONMap.decode(json);
-        info = shortener.extractReliableMessage(info);
+        if (info != null) {
+            info = shortener.extractReliableMessage(info);
+        }
         return info;
     }
 

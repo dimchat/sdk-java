@@ -60,7 +60,7 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
         //
         //  1.
         //
-        if (allUsers.isEmpty()) {
+        if (allUsers == null || allUsers.isEmpty()) {
             assert false : "local users should not be empty";
             return null;
         } else if (receiver.isBroadcast()) {
@@ -85,7 +85,10 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
             // the messenger will check group info before decrypting message,
             // so we can trust that the group's meta & members MUST exist here.
             List<ID> members = getMembers(receiver);
-            assert !members.isEmpty() : "members not found: " + receiver;
+            if (members == null || members.isEmpty()) {
+                assert false : "members not found: " + receiver;
+                return null;
+            }
             for (ID item : allUsers) {
                 if (members.contains(item)) {
                     // DISCUSS: set this item to be current user?

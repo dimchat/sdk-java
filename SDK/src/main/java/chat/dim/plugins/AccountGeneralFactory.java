@@ -180,9 +180,6 @@ public class AccountGeneralFactory implements GeneralAccountHelper,
 
     @Override
     public Meta.Factory getMetaFactory(String type) {
-        if (type == null || type.isEmpty()) {
-            return null;
-        }
         return metaFactories.get(type);
     }
 
@@ -213,8 +210,7 @@ public class AccountGeneralFactory implements GeneralAccountHelper,
             return null;
         }
         String type = getMetaType(info, null);
-        assert type != null : "meta type not found: " + meta;
-        Meta.Factory factory = getMetaFactory(type);
+        Meta.Factory factory = type == null ? null : getMetaFactory(type);
         if (factory == null) {
             // unknown meta type, get default meta factory
             factory = getMetaFactory("*");  // unknown
@@ -237,9 +233,6 @@ public class AccountGeneralFactory implements GeneralAccountHelper,
 
     @Override
     public Document.Factory getDocumentFactory(String type) {
-        if (type == null || type.isEmpty()) {
-            return null;
-        }
         return documentFactories.get(type);
     }
 
@@ -263,8 +256,7 @@ public class AccountGeneralFactory implements GeneralAccountHelper,
             return null;
         }
         String type = getDocumentType(info, null);
-        //assert type != null : "document type not found: " + doc;
-        Document.Factory factory = getDocumentFactory(type);
+        Document.Factory factory = type == null ? null : getDocumentFactory(type);
         if (factory == null) {
             // unknown document type, get default document factory
             factory = getDocumentFactory("*");  // unknown

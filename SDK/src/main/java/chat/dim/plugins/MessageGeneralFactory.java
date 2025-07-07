@@ -74,9 +74,6 @@ public class MessageGeneralFactory implements GeneralMessageHelper,
 
     @Override
     public Content.Factory getContentFactory(String type) {
-        if (type == null || type.isEmpty()) {
-            return null;
-        }
         return contentFactories.get(type);
     }
 
@@ -94,8 +91,8 @@ public class MessageGeneralFactory implements GeneralMessageHelper,
         }
         // get factory by content type
         String type = getContentType(info, null);
-        assert type != null : "content type not found: " + content;
-        Content.Factory factory = getContentFactory(type);
+        // assert type != null : "content type not found: " + content;
+        Content.Factory factory = type == null ? null : getContentFactory(type);
         if (factory == null) {
             // unknown content type, get default content factory
             factory = getContentFactory("*");  // unknown

@@ -33,6 +33,7 @@ package chat.dim.dkd;
 import java.util.Map;
 
 import chat.dim.dkd.group.BaseGroupCommand;
+import chat.dim.plugins.GeneralCommandHelper;
 import chat.dim.plugins.SharedCommandExtensions;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
@@ -41,9 +42,11 @@ public class GroupCommandFactory extends HistoryCommandFactory {
 
     @Override
     public Content parseContent(Map<String, Object> content) {
+        GeneralCommandHelper helper = SharedCommandExtensions.helper;
+        Command.Helper cmdHelper = SharedCommandExtensions.cmdHelper;
         // get factory by command name
-        String cmd = SharedCommandExtensions.helper.getCmd(content, "*");
-        Command.Factory factory = SharedCommandExtensions.cmdHelper.getCommandFactory(cmd);
+        String cmd = helper.getCmd(content, null);
+        Command.Factory factory = cmd == null ? null : cmdHelper.getCommandFactory(cmd);
         if (factory == null) {
             factory = this;
         }
@@ -52,6 +55,14 @@ public class GroupCommandFactory extends HistoryCommandFactory {
 
     @Override
     public Command parseCommand(Map<String, Object> content) {
+        // check 'sn', 'command', 'group'
+        if (content.get("sn") == null || content.get("command") == null || content.get("group") == null) {
+            // content.sn should not be empty
+            // content.command should not be empty
+            // content.group should not be empty
+            assert false : "command error: " + content;
+            return null;
+        }
         return new BaseGroupCommand(content);
     }
 }

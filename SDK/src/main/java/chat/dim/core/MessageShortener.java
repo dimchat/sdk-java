@@ -32,7 +32,7 @@ package chat.dim.core;
 
 import java.util.Map;
 
-public class MessageShortener {
+public class MessageShortener implements Shortener {
 
     protected void moveKey(String from, String to, Map<String, Object> info) {
         Object value = info.get(from);
@@ -63,11 +63,13 @@ public class MessageShortener {
             "G", "group",
     };
 
+    @Override
     public Map<String, Object> compressContent(Map<String, Object> content) {
         shortenKeys(contentShortKeys, content);
         return content;
     }
 
+    @Override
     public Map<String, Object> extractContent(Map<String, Object> content) {
         restoreKeys(contentShortKeys, content);
         return content;
@@ -82,11 +84,13 @@ public class MessageShortener {
             "I", "iv",         // Initial Vector
     };
 
+    @Override
     public Map<String, Object> compressSymmetricKey(Map<String, Object> key) {
         shortenKeys(cryptoShortKeys, key);
         return key;
     }
 
+    @Override
     public Map<String, Object> extractSymmetricKey(Map<String, Object> key) {
         restoreKeys(cryptoShortKeys, key);
         return key;
@@ -110,12 +114,14 @@ public class MessageShortener {
             "P", "visa",        // Profile
     } ;
 
+    @Override
     public Map<String, Object> compressReliableMessage(Map<String, Object> msg) {
         moveKey("keys", "K", msg);
         shortenKeys(messageShortKeys, msg);
         return msg;
     }
 
+    @Override
     public Map<String, Object> extractReliableMessage(Map<String, Object> msg) {
         Object keys = msg.get("K");
         if (keys == null) {

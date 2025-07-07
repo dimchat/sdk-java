@@ -6,12 +6,11 @@ import java.util.Map;
 
 import chat.dim.Facebook;
 import chat.dim.compat.CompatibleMetaFactory;
+import chat.dim.core.Archivist;
 import chat.dim.core.Barrack;
 import chat.dim.crypto.DecryptKey;
-import chat.dim.crypto.EncryptKey;
 import chat.dim.crypto.PrivateKey;
 import chat.dim.crypto.SignKey;
-import chat.dim.crypto.VerifyKey;
 import chat.dim.mkm.MetaUtils;
 import chat.dim.plugins.ExtensionLoader;
 import chat.dim.plugins.NativePluginLoader;
@@ -34,6 +33,11 @@ public class SharedFacebook extends Facebook {
         return null;
     }
 
+    @Override
+    public Archivist getArchivist() {
+        return null;
+    }
+
     // memory caches
     private final Map<ID, PrivateKey> privateKeyMap = new HashMap<>();
     private final Map<ID, Meta>       metaMap  = new HashMap<>();
@@ -49,28 +53,6 @@ public class SharedFacebook extends Facebook {
     protected void cacheMeta(Meta meta, ID identifier) {
         assert MetaUtils.matches(identifier, meta) : "meta not match ID: " + identifier + ", " + meta;
         metaMap.put(identifier, meta);
-    }
-
-    @Override
-    public boolean saveMeta(Meta meta, ID identifier) {
-        // TODO:
-        return false;
-    }
-
-    @Override
-    public boolean saveDocument(Document doc) {
-        // TODO:
-        return false;
-    }
-
-    @Override
-    protected VerifyKey getMetaKey(ID user) {
-        return null;
-    }
-
-    @Override
-    protected EncryptKey getVisaKey(ID user) {
-        return null;
     }
 
     //-------- Entity DataSource

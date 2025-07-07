@@ -2,12 +2,12 @@
  *
  *  DIMP : Decentralized Instant Messaging Protocol
  *
- *                                Written in 2020 by Moky <albert.moky@gmail.com>
+ *                                Written in 2025 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2020 Albert Moky
+ * Copyright (c) 2025 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,24 +28,28 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.dkd;
+package chat.dim.core;
 
 import java.util.Map;
 
-import chat.dim.dkd.cmd.BaseHistoryCommand;
-import chat.dim.protocol.Command;
+public interface Shortener {
 
-public class HistoryCommandFactory extends GeneralCommandFactory {
+    /**
+     *  Compress Content
+     */
+    Map<String, Object> compressContent(Map<String, Object> content);
+    Map<String, Object> extractContent(Map<String, Object> content);
 
-    @Override
-    public Command parseCommand(Map<String, Object> content) {
-        // check 'sn', 'command'
-        if (content.get("sn") == null || content.get("command") == null) {
-            // content.sn should not be empty
-            // content.command should not be empty
-            assert false : "command error: " + content;
-            return null;
-        }
-        return new BaseHistoryCommand(content);
-    }
+    /**
+     *  Compress SymmetricKey
+     */
+    Map<String, Object> compressSymmetricKey(Map<String, Object> key);
+    Map<String, Object> extractSymmetricKey(Map<String, Object> key);
+
+    /**
+     *  Compress ReliableMessage
+     */
+    Map<String, Object> compressReliableMessage(Map<String, Object> msg);
+    Map<String, Object> extractReliableMessage(Map<String, Object> msg);
+
 }

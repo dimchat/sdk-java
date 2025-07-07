@@ -71,7 +71,7 @@ public class BaseContentProcessorCreator extends TwinsHelper implements ContentP
                 // must return a default processor for unknown type
                 return new BaseContentProcessor(getFacebook(), getMessenger());
         }
-        assert false : "unsupported content: " + msgType;
+        //assert false : "unsupported content: " + msgType;
         return null;
     }
 

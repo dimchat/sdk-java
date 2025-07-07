@@ -52,11 +52,6 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         super(facebook, messenger);
     }
 
-    protected Archivist getArchivist() {
-        Facebook facebook = getFacebook();
-        return facebook == null ? null : facebook.getArchivist();
-    }
-
     @Override
     public List<Content> processContent(Content content, ReliableMessage rMsg) {
         assert content instanceof DocumentCommand : "document command error: " + content;

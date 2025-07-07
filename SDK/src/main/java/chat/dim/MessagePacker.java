@@ -112,8 +112,11 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
         //
         Messenger messenger = getMessenger();
         SymmetricKey password = messenger.getEncryptKey(iMsg);
-        assert password != null : "failed to get msg key: "
-                + iMsg.getSender() + " => " + receiver + ", " + iMsg.get("group");
+        if (password == null) {
+            assert false : "failed to get msg key: "
+                    + iMsg.getSender() + " => " + receiver + ", " + iMsg.get("group");
+            return null;
+        }
 
         //
         //  2. encrypt 'content' to 'data' for receiver/group members
@@ -122,7 +125,10 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
             // group message
             Facebook facebook = getFacebook();
             List<ID> members = facebook.getMembers(receiver);
-            assert !members.isEmpty() : "group not ready: " + receiver;
+            if (members == null || members.isEmpty()) {
+                assert false : "group not ready: " + receiver;
+                return null;
+            }
             // a station will never send group message, so here must be a client;
             // the client messenger should check the group's meta & members before encrypting,
             // so we can trust that the group members MUST exist here.
