@@ -40,7 +40,7 @@ import chat.dim.protocol.SecureMessage;
 public interface Packer {
 
     //
-    //  InstantMessage -> SecureMessage -> ReliableMessage -> Data
+    //  InstantMessage -> SecureMessage -> ReliableMessage
     //
 
     /**
@@ -59,25 +59,9 @@ public interface Packer {
      */
     ReliableMessage signMessage(SecureMessage sMsg);
 
-    /**
-     *  Serialize network message
-     *
-     * @param rMsg - network message
-     * @return data package
-     */
-    byte[] serializeMessage(ReliableMessage rMsg);
-
     //
-    //  Data -> ReliableMessage -> SecureMessage -> InstantMessage
+    //  ReliableMessage -> SecureMessage -> InstantMessage
     //
-
-    /**
-     *  Deserialize network message
-     *
-     * @param data - data package
-     * @return network message
-     */
-    ReliableMessage deserializeMessage(byte[] data);
 
     /**
      *  Verify encrypted content data

@@ -109,18 +109,6 @@ public abstract class Messenger extends Transceiver implements Packer, Processor
     }
 
     @Override
-    public byte[] serializeMessage(ReliableMessage rMsg) {
-        Packer packer = getPacker();
-        return packer.serializeMessage(rMsg);
-    }
-
-    @Override
-    public ReliableMessage deserializeMessage(byte[] data) {
-        Packer packer = getPacker();
-        return packer.deserializeMessage(data);
-    }
-
-    @Override
     public SecureMessage verifyMessage(ReliableMessage rMsg) {
         Packer packer = getPacker();
         return packer.verifyMessage(rMsg);

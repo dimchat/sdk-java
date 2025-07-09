@@ -55,6 +55,29 @@ public abstract class Transceiver implements InstantMessageDelegate, SecureMessa
 
     protected abstract Compressor getCompressor();
 
+    /**
+     *  Serialize network message
+     *
+     * @param rMsg - network message
+     * @return data package
+     */
+    public byte[] serializeMessage(ReliableMessage rMsg) {
+        Compressor compressor = getCompressor();
+        return compressor.compressReliableMessage(rMsg.toMap());
+    }
+
+    /**
+     *  Deserialize network message
+     *
+     * @param data - data package
+     * @return network message
+     */
+    public ReliableMessage deserializeMessage(byte[] data) {
+        Compressor compressor = getCompressor();
+        Object info = compressor.extractReliableMessage(data);
+        return ReliableMessage.parse(info);
+    }
+
     //-------- InstantMessageDelegate
 
     @Override
@@ -188,7 +211,7 @@ public abstract class Transceiver implements InstantMessageDelegate, SecureMessa
 
     @Override
     public Content deserializeContent(byte[] data, SymmetricKey password, SecureMessage sMsg) {
-        //assert sMsg.getData() != null : "message data empty";
+        //assert sMsg.getData() != null : "message data empty: " + sMsg.toMap();
         Compressor compressor = getCompressor();
         Object info = compressor.extractContent(data, password.toMap());
         return Content.parse(info);

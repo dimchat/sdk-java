@@ -33,7 +33,6 @@ package chat.dim;
 import java.util.List;
 
 import chat.dim.core.Archivist;
-import chat.dim.core.Compressor;
 import chat.dim.core.Packer;
 import chat.dim.crypto.SymmetricKey;
 import chat.dim.msg.InstantMessageDelegate;
@@ -76,15 +75,13 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
         return new ReliableMessagePacker(delegate);
     }
 
-    protected abstract Compressor getCompressor();
-
     protected Archivist getArchivist() {
         Facebook facebook = getFacebook();
         return facebook == null ? null : facebook.getArchivist();
     }
 
     //
-    //  InstantMessage -> SecureMessage -> ReliableMessage -> Data
+    //  InstantMessage -> SecureMessage -> ReliableMessage
     //
 
     @Override
@@ -160,22 +157,9 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
         return securePacker.signMessage(sMsg);
     }
 
-    @Override
-    public byte[] serializeMessage(ReliableMessage rMsg) {
-        Compressor compressor = getCompressor();
-        return compressor.compressReliableMessage(rMsg.toMap());
-    }
-
     //
-    //  Data -> ReliableMessage -> SecureMessage -> InstantMessage
+    //  ReliableMessage -> SecureMessage -> InstantMessage
     //
-
-    @Override
-    public ReliableMessage deserializeMessage(byte[] data) {
-        Compressor compressor = getCompressor();
-        Object info = compressor.extractReliableMessage(data);
-        return ReliableMessage.parse(info);
-    }
 
     /**
      *  Check meta & visa
