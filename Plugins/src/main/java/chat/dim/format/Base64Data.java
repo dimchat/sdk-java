@@ -89,8 +89,8 @@ public final class Base64Data extends Dictionary implements TransportableData {
     /**
      *  Encode with 'Content-Type'
      */
-    public String toString(String mimeType) {
+    public String encode(String mimeType) {
         // 2. "data:image/png;base64,{BASE64_ENCODE}"
-        return wrapper.toString(mimeType);
+        return wrapper.encode(mimeType);
     }
 }

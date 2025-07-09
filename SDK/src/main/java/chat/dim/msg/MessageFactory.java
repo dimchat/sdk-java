@@ -93,7 +93,7 @@ public class MessageFactory implements Envelope.Factory,
     //  InstantMessage.Factory
     //
     @Override
-    public Long generateSerialNumber(String msgType, Date time) {
+    public long generateSerialNumber(String msgType, Date time) {
         // because we must make sure all messages in a same chat box won't have
         // same serial numbers, so we can't use time-related numbers, therefore
         // the best choice is a totally random number, maybe.

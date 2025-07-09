@@ -187,7 +187,7 @@ public class MessageGeneralFactory implements GeneralMessageHelper,
     }
 
     @Override
-    public Long generateSerialNumber(String msgType, Date now) {
+    public long generateSerialNumber(String msgType, Date now) {
         InstantMessage.Factory factory = getInstantMessageFactory();
         assert factory != null : "instant message factory not ready";
         return factory.generateSerialNumber(msgType, now);
