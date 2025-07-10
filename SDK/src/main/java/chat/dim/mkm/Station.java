@@ -111,7 +111,7 @@ public class Station implements User {
                 host = docHost;
             }
             Integer docPort = Converter.getInteger(doc.getProperty("port"), null);
-            if (docPort != null) {
+            if (docPort != null && docPort > 0) {
                 assert 16 < docPort && docPort < 65536 : "station port error: " + docPort;
                 port = docPort;
             }

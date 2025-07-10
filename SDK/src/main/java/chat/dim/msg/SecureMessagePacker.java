@@ -77,13 +77,16 @@ public class SecureMessagePacker {
     public InstantMessage decryptMessage(SecureMessage sMsg, ID receiver) {
         assert receiver.isUser() : "receiver error: " + receiver;
         SecureMessageDelegate transceiver = getDelegate();
+        assert transceiver != null : "should not happen";
 
         //
         //  1. Decode 'message.key' to encrypted symmetric key data
         //
         byte[] encryptedKey = sMsg.getEncryptedKey();
-        byte[] keyData = null;
-        if (encryptedKey != null) {
+        byte[] keyData;
+        if (encryptedKey == null) {
+            keyData = null;
+        } else {
             assert encryptedKey.length > 0 : "encrypted key data should not be empty: "
                     + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup();
             //
@@ -189,6 +192,7 @@ public class SecureMessagePacker {
      */
     public ReliableMessage signMessage(SecureMessage sMsg) {
         SecureMessageDelegate transceiver = getDelegate();
+        assert transceiver != null : "should not happen";
 
         //
         //  0. decode message data

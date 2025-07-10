@@ -56,6 +56,7 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
      */
     public ID selectLocalUser(ID receiver) {
         Archivist archivist = getArchivist();
+        assert archivist != null : "archivist not ready";
         List<ID> allUsers = archivist.getLocalUsers();
         //
         //  1.
@@ -108,6 +109,7 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
     public User getUser(ID identifier) {
         assert identifier.isUser() : "user ID error: " + identifier;
         Barrack barrack = getBarrack();
+        assert barrack != null : "barrack not ready";
         //
         //  1. get from user cache
         //
@@ -119,7 +121,8 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
         //  2. check visa key
         //
         if (!identifier.isBroadcast()) {
-            if (getPublicKeyForEncryption(identifier) == null) {
+            EncryptKey visaKey = getPublicKeyForEncryption(identifier);
+            if (visaKey == null) {
                 assert false : "visa.key not found: " + identifier;
                 return null;
             }
@@ -139,6 +142,7 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
     public Group getGroup(ID identifier) {
         assert identifier.isGroup() : "group ID error: " + identifier;
         Barrack barrack = getBarrack();
+        assert barrack != null : "barrack not ready";
         //
         //  1. get from group cache
         //
@@ -174,6 +178,7 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
     public EncryptKey getPublicKeyForEncryption(ID user) {
         assert user.isUser() : "user ID error: " + user;
         Archivist archivist = getArchivist();
+        assert archivist != null : "archivist not ready";
         //
         //  1. get pubic key from visa
         //
@@ -200,6 +205,7 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
         // assert user.isUser() : "user ID error: " + user;
         List<VerifyKey> keys = new ArrayList<>();
         Archivist archivist = getArchivist();
+        assert archivist != null : "archivist not ready";
         //
         //  1. get pubic key from visa
         //

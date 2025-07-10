@@ -71,6 +71,7 @@ public class ReliableMessagePacker {
      */
     public SecureMessage verifyMessage(ReliableMessage rMsg) {
         ReliableMessageDelegate transceiver = getDelegate();
+        assert transceiver != null : "should not happen";
 
         //
         //  0. Decode 'message.data' to encrypted content data

@@ -168,6 +168,7 @@ public class FormatGeneralFactory implements GeneralFormatHelper,
             return null;
         }
         String algo = getFormatAlgorithm(info, null);
+        // assert algo != null : "TED error: " + ted;
         TransportableData.Factory factory = algo == null ? null : getTransportableDataFactory(algo);
         if (factory == null) {
             // unknown algorithm, get default factory

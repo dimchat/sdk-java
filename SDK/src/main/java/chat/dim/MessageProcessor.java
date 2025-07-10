@@ -61,15 +61,16 @@ public abstract class MessageProcessor extends TwinsHelper implements Processor 
 
     @Override
     public List<byte[]> processPackage(byte[] data) {
-        Messenger messenger = getMessenger();
+        Messenger transceiver = getMessenger();
+        assert transceiver != null : "messenger not ready";
         // 1. deserialize message
-        ReliableMessage rMsg = messenger.deserializeMessage(data);
+        ReliableMessage rMsg = transceiver.deserializeMessage(data);
         if (rMsg == null) {
             // no valid message received
             return null;
         }
         // 2. process message
-        List<ReliableMessage> responses = messenger.processReliableMessage(rMsg);
+        List<ReliableMessage> responses = transceiver.processReliableMessage(rMsg);
         if (responses == null || responses.isEmpty()) {
             // nothing to respond
             return null;
@@ -78,7 +79,7 @@ public abstract class MessageProcessor extends TwinsHelper implements Processor 
         List<byte[]> packages = new ArrayList<>();
         byte[] pack;
         for (ReliableMessage res: responses) {
-            pack = messenger.serializeMessage(res);
+            pack = transceiver.serializeMessage(res);
             if (pack == null) {
                 // should not happen
                 continue;
@@ -91,15 +92,16 @@ public abstract class MessageProcessor extends TwinsHelper implements Processor 
     @Override
     public List<ReliableMessage> processReliableMessage(ReliableMessage rMsg) {
         // TODO: override to check broadcast message before calling it
-        Messenger messenger = getMessenger();
+        Messenger transceiver = getMessenger();
+        assert transceiver != null : "messenger not ready";
         // 1. verify message
-        SecureMessage sMsg = messenger.verifyMessage(rMsg);
+        SecureMessage sMsg = transceiver.verifyMessage(rMsg);
         if (sMsg == null) {
             // TODO: suspend and waiting for sender's meta if not exists
             return null;
         }
         // 2. process message
-        List<SecureMessage> responses = messenger.processSecureMessage(sMsg, rMsg);
+        List<SecureMessage> responses = transceiver.processSecureMessage(sMsg, rMsg);
         if (responses == null || responses.isEmpty()) {
             // nothing to respond
             return null;
@@ -108,7 +110,7 @@ public abstract class MessageProcessor extends TwinsHelper implements Processor 
         List<ReliableMessage> messages = new ArrayList<>();
         ReliableMessage msg;
         for (SecureMessage res : responses) {
-            msg = messenger.signMessage(res);
+            msg = transceiver.signMessage(res);
             if (msg == null) {
                 // should not happen
                 continue;
@@ -121,16 +123,17 @@ public abstract class MessageProcessor extends TwinsHelper implements Processor 
 
     @Override
     public List<SecureMessage> processSecureMessage(SecureMessage sMsg, ReliableMessage rMsg) {
-        Messenger messenger = getMessenger();
+        Messenger transceiver = getMessenger();
+        assert transceiver != null : "messenger not ready";
         // 1. decrypt message
-        InstantMessage iMsg = messenger.decryptMessage(sMsg);
+        InstantMessage iMsg = transceiver.decryptMessage(sMsg);
         if (iMsg == null) {
             // cannot decrypt this message, not for you?
             // delivering message to other receiver?
             return null;
         }
         // 2. process message
-        List<InstantMessage> responses = messenger.processInstantMessage(iMsg, rMsg);
+        List<InstantMessage> responses = transceiver.processInstantMessage(iMsg, rMsg);
         if (responses == null || responses.isEmpty()) {
             // nothing to respond
             return null;
@@ -139,7 +142,7 @@ public abstract class MessageProcessor extends TwinsHelper implements Processor 
         List<SecureMessage> messages = new ArrayList<>();
         SecureMessage msg;
         for (InstantMessage res : responses) {
-            msg = messenger.encryptMessage(res);
+            msg = transceiver.encryptMessage(res);
             if (msg == null) {
                 // should not happen
                 continue;
@@ -151,15 +154,16 @@ public abstract class MessageProcessor extends TwinsHelper implements Processor 
 
     @Override
     public List<InstantMessage> processInstantMessage(InstantMessage iMsg, ReliableMessage rMsg) {
-        Messenger messenger = getMessenger();
+        Facebook facebook = getFacebook();
+        Messenger transceiver = getMessenger();
+        assert facebook != null && transceiver != null : "twins not ready";
         // 1. process content
-        List<Content> responses = messenger.processContent(iMsg.getContent(), rMsg);
+        List<Content> responses = transceiver.processContent(iMsg.getContent(), rMsg);
         if (responses == null || responses.isEmpty()) {
             // nothing to respond
             return null;
         }
         // 2. select a local user to build message
-        Facebook facebook = getFacebook();
         ID sender = iMsg.getSender();
         ID receiver = iMsg.getReceiver();
         ID user = facebook.selectLocalUser(receiver);

@@ -49,10 +49,8 @@ public class MessageFactory implements Envelope.Factory,
     public MessageFactory() {
         super();
         Random random = new Random();
-        sn = random.nextInt();
-        if (sn < 0) {
-            sn = -sn;
-        }
+        int r = random.nextInt();    // -0x80000000 ~ 0x7fffffff
+        sn = r >= 0 ? r : -(r + 1);  //           0 ~ 0x7fffffff
     }
 
     /**
@@ -62,7 +60,7 @@ public class MessageFactory implements Envelope.Factory,
      */
     private synchronized long next() {
         assert sn >= 0 : "serial number error: " + sn;
-        if (sn < 0x7fffffff) {
+        if (sn < 0x7fffffff) {  // 2 ** 31 - 1
             sn += 1;
         } else {
             sn = 1;

@@ -43,7 +43,7 @@ public interface Archivist {
     /**
      *  Save meta for entity ID (must verify first)
      *
-     * @param meta - entity meta
+     * @param meta       - entity meta
      * @param identifier - entity ID
      * @return true on success
      */
@@ -64,18 +64,18 @@ public interface Archivist {
     /**
      *  Get meta.key
      *
-     * @param user - user ID
+     * @param identifier - entity ID
      * @return null on not found
      */
-    VerifyKey getMetaKey(ID user);
+    VerifyKey getMetaKey(ID identifier);
 
     /**
      *  Get visa.key
      *
-     * @param user - user ID
+     * @param identifier - entity ID
      * @return null on not found
      */
-    EncryptKey getVisaKey(ID user);
+    EncryptKey getVisaKey(ID identifier);
 
     //
     //  Local Users

@@ -64,11 +64,11 @@ public abstract class Barrack {
      */
     public User createUser(ID identifier) {
         assert identifier.isUser() : "user ID error: " + identifier;
-        int type = identifier.getType();
+        int network = identifier.getType();
         // check user type
-        if (EntityType.STATION.equals(type)) {
+        if (EntityType.STATION.equals(network)) {
             return new Station(identifier);
-        } else if (EntityType.BOT.equals(type)) {
+        } else if (EntityType.BOT.equals(network)) {
             return new Bot(identifier);
         }
         // general user, or 'anyone@anywhere'
@@ -83,9 +83,9 @@ public abstract class Barrack {
      */
     public Group createGroup(ID identifier) {
         assert identifier.isGroup() : "group ID error: " + identifier;
-        int type = identifier.getType();
+        int network = identifier.getType();
         // check group type
-        if (EntityType.ISP.equals(type)) {
+        if (EntityType.ISP.equals(network)) {
             return new ServiceProvider(identifier);
         }
         // general group, or 'everyone@everywhere'

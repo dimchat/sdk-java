@@ -84,6 +84,7 @@ public class InstantMessagePacker {
         // TODO: check attachment for File/Image/Audio/Video message content
         //      (do it by application)
         InstantMessageDelegate transceiver = getDelegate();
+        assert transceiver != null : "should not happen";
 
         //
         //  1. Serialize 'message.content' to data (JsON / ProtoBuf / ...)
@@ -126,6 +127,7 @@ public class InstantMessagePacker {
             // B) reused key
             return SecureMessage.parse(info);
         }
+        // encrypt + encode key
 
         byte[] encryptedKey;
         Object encodedKey;

@@ -39,10 +39,11 @@ public class HistoryCommandFactory extends GeneralCommandFactory {
 
     @Override
     public Command parseCommand(Map<String, Object> content) {
-        // check 'sn', 'command'
-        if (content.get("sn") == null || content.get("command") == null) {
+        // check 'sn', 'command', 'time'
+        if (content.get("sn") == null || content.get("command") == null || content.get("time") == null) {
             // content.sn should not be empty
             // content.command should not be empty
+            // content.time should not be empty
             assert false : "command error: " + content;
             return null;
         }

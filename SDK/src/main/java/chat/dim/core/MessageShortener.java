@@ -59,8 +59,9 @@ public class MessageShortener implements Shortener {
     public String[] contentShortKeys = {
             "T", "type",
             "N", "sn",
-            "W", "time",   // When
+            "W", "time",        // When
             "G", "group",
+            "C", "command",
     };
 
     @Override
@@ -81,7 +82,7 @@ public class MessageShortener implements Shortener {
     public String[] cryptoShortKeys = {
             "A", "algorithm",
             "D", "data",
-            "I", "iv",         // Initial Vector
+            "I", "iv",          // Initial Vector
     };
 
     @Override
@@ -108,7 +109,7 @@ public class MessageShortener implements Shortener {
             //------------------
             "K", "key",         // or "keys"
             "D", "data",
-            "V", "signature",   // Verify
+            "V", "signature",   // Verification
             //------------------
             "M", "meta",
             "P", "visa",        // Profile

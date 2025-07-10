@@ -78,6 +78,7 @@ public class CommandGeneralFactory implements GeneralCommandHelper, Command.Help
         }
         // get factory by command name
         String name = getCmd(info, null);
+        // assert name != null : "command name error: " + content;
         Command.Factory factory = name == null ? null : getCommandFactory(name);
         if (factory == null) {
             // unknown command name, get base command factory
@@ -95,9 +96,11 @@ public class CommandGeneralFactory implements GeneralCommandHelper, Command.Help
         Content.Helper contentHelper = SharedMessageExtensions.contentHelper;
         // get factory by content type
         String type = helper.getContentType(info, null);
-        Content.Factory factory = type == null ? null : contentHelper.getContentFactory(type);
-        if (factory instanceof Command.Factory) {
-            return (Command.Factory) factory;
+        if (type != null) {
+            Content.Factory factory = contentHelper.getContentFactory(type);
+            if (factory instanceof Command.Factory) {
+                return (Command.Factory) factory;
+            }
         }
         assert false : "cannot parse command: " + info;
         return null;

@@ -81,7 +81,7 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
     }
 
     //
-    //  InstantMessage -> SecureMessage -> ReliableMessage
+    //  InstantMessage -> SecureMessage -> ReliableMessage -> Data
     //
 
     @Override
@@ -89,6 +89,9 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
         // TODO: check receiver before calling this, make sure the visa.key exists;
         //       otherwise, suspend this message for waiting receiver's visa/meta;
         //       if receiver is a group, query all members' visa too!
+        Facebook facebook = getFacebook();
+        Messenger messenger = getMessenger();
+        assert facebook != null && messenger != null : "twins not ready";
 
         SecureMessage sMsg;
         // NOTICE: before sending group message, you can decide whether expose the group ID
@@ -107,7 +110,6 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
         //
         //  1. get message key with direction (sender -> receiver) or (sender -> group)
         //
-        Messenger messenger = getMessenger();
         SymmetricKey password = messenger.getEncryptKey(iMsg);
         if (password == null) {
             assert false : "failed to get msg key: "
@@ -120,7 +122,6 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
         //
         if (receiver.isGroup()) {
             // group message
-            Facebook facebook = getFacebook();
             List<ID> members = facebook.getMembers(receiver);
             if (members == null || members.isEmpty()) {
                 assert false : "group not ready: " + receiver;
@@ -157,9 +158,26 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
         return securePacker.signMessage(sMsg);
     }
 
+    /*/
+    @Override
+    public byte[] serializeMessage(ReliableMessage rMsg) {
+        Compressor compressor = getCompressor();
+        return compressor.compressReliableMessage(rMsg.toMap());
+    }
+    /*/
+
     //
-    //  ReliableMessage -> SecureMessage -> InstantMessage
+    //  Data -> ReliableMessage -> SecureMessage -> InstantMessage
     //
+
+    /*/
+    @Override
+    public ReliableMessage deserializeMessage(byte[] data) {
+        Compressor compressor = getCompressor();
+        Object info = compressor.extractReliableMessage(data);
+        return ReliableMessage.parse(info);
+    }
+    /*/
 
     /**
      *  Check meta & visa

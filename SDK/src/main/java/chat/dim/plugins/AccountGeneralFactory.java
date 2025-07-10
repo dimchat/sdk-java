@@ -57,7 +57,7 @@ public class AccountGeneralFactory implements GeneralAccountHelper,
 
     private final Map<String, Meta.Factory> metaFactories = new HashMap<>();
 
-    private final Map<String, Document.Factory> documentFactories = new HashMap<>();
+    private final Map<String, Document.Factory> _docsFactories = new HashMap<>();
 
     @Override
     public String getMetaType(Map<?, ?> meta, String defaultValue) {
@@ -210,6 +210,7 @@ public class AccountGeneralFactory implements GeneralAccountHelper,
             return null;
         }
         String type = getMetaType(info, null);
+        // assert type != null : "meta type error: " + meta;
         Meta.Factory factory = type == null ? null : getMetaFactory(type);
         if (factory == null) {
             // unknown meta type, get default meta factory
@@ -228,12 +229,12 @@ public class AccountGeneralFactory implements GeneralAccountHelper,
 
     @Override
     public void setDocumentFactory(String type, Document.Factory factory) {
-        documentFactories.put(type, factory);
+        _docsFactories.put(type, factory);
     }
 
     @Override
     public Document.Factory getDocumentFactory(String type) {
-        return documentFactories.get(type);
+        return _docsFactories.get(type);
     }
 
     @Override
@@ -256,6 +257,7 @@ public class AccountGeneralFactory implements GeneralAccountHelper,
             return null;
         }
         String type = getDocumentType(info, null);
+        // assert type != null : "document type error: " + doc;
         Document.Factory factory = type == null ? null : getDocumentFactory(type);
         if (factory == null) {
             // unknown document type, get default document factory

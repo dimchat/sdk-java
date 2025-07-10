@@ -84,6 +84,7 @@ public class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
             return null;
         }
         String algo = getKeyAlgorithm(info, null);
+        // assert algo != null : "symmetric key error: " + key;
         SymmetricKey.Factory factory = algo == null ? null : getSymmetricKeyFactory(algo);
         if (factory == null) {
             // unknown algorithm, get default key factory
@@ -130,6 +131,7 @@ public class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
             return null;
         }
         String algo = getKeyAlgorithm(info, null);
+        // assert algo != null : "private key error: " + key;
         PrivateKey.Factory factory = algo == null ? null : getPrivateKeyFactory(algo);
         if (factory == null) {
             // unknown algorithm, get default key factory
@@ -169,6 +171,7 @@ public class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
             return null;
         }
         String algo = getKeyAlgorithm(info, null);
+        // assert algo != null : "public key error: " + key;
         PublicKey.Factory factory = algo == null ? null : getPublicKeyFactory(algo);
         if (factory == null) {
             // unknown algorithm, get default key factory

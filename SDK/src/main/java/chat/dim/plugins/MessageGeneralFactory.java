@@ -138,10 +138,7 @@ public class MessageGeneralFactory implements GeneralMessageHelper,
             return null;
         }
         Envelope.Factory factory = getEnvelopeFactory();
-        if (factory == null) {
-            assert false : "envelope factory not ready: " + env;
-            return null;
-        }
+        assert factory != null : "envelope factory not ready: " + env;
         return factory.parseEnvelope(info);
     }
 
@@ -179,10 +176,7 @@ public class MessageGeneralFactory implements GeneralMessageHelper,
             return null;
         }
         InstantMessage.Factory factory = getInstantMessageFactory();
-        if (factory == null) {
-            assert false : "instant message factory not ready: " + msg;
-            return null;
-        }
+        assert factory != null : "instant message factory not ready: " + msg;
         return factory.parseInstantMessage(info);
     }
 
@@ -220,10 +214,7 @@ public class MessageGeneralFactory implements GeneralMessageHelper,
             return null;
         }
         SecureMessage.Factory factory = getSecureMessageFactory();
-        if (factory == null) {
-            assert false : "secure message factory not ready: " + msg;
-            return null;
-        }
+        assert factory != null : "secure message factory not ready: " + msg;
         return factory.parseSecureMessage(info);
     }
 
@@ -254,10 +245,7 @@ public class MessageGeneralFactory implements GeneralMessageHelper,
             return null;
         }
         ReliableMessage.Factory factory = getReliableMessageFactory();
-        if (factory == null) {
-            assert false : "reliable message factory not ready: " + msg;
-            return null;
-        }
+        assert factory != null : "reliable message factory not ready: " + msg;
         return factory.parseReliableMessage(info);
     }
 
