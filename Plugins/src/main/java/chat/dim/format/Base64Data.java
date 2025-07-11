@@ -53,7 +53,7 @@ public final class Base64Data extends Dictionary implements TransportableData {
     }
 
     /**
-     *  encode algorithm
+     *  Encode Algorithm
      */
 
     @Override
@@ -62,7 +62,7 @@ public final class Base64Data extends Dictionary implements TransportableData {
     }
 
     /**
-     *  binary data
+     *  Binary Data
      */
 
     @Override
@@ -71,7 +71,7 @@ public final class Base64Data extends Dictionary implements TransportableData {
     }
 
     /**
-     *  encoding
+     *  Encoding
      */
 
     @Override

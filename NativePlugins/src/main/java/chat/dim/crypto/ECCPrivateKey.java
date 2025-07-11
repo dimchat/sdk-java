@@ -34,6 +34,7 @@ import chat.dim.digest.SHA256;
 import chat.dim.ecc.Secp256k1;
 import chat.dim.format.Hex;
 import chat.dim.format.PEM;
+import chat.dim.utils.CryptoUtils;
 
 /**
  *  ECC Private Key
@@ -61,7 +62,7 @@ public final class ECCPrivateKey extends BasePrivateKey {
     }
 
     private String getCurveName() {
-        return getString("curve", "secp256k1");
+        return getString("curve", CryptoUtils.SECP256K1);
     }
 
     private void copyPublicKeyData(byte[] keyBuffer) {

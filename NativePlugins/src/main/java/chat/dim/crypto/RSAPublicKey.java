@@ -37,6 +37,7 @@ import java.security.SignatureException;
 import java.util.Map;
 
 import chat.dim.format.RSAKeys;
+import chat.dim.utils.CryptoUtils;
 
 /**
  *  RSA Public Key
@@ -49,9 +50,6 @@ import chat.dim.format.RSAKeys;
  *  </pre></blockquote>
  */
 public final class RSAPublicKey extends BasePublicKey implements EncryptKey {
-
-    public final static String RSA_SHA256 = "SHA256withRSA";
-    public final static String RSA_ECB_PKCS1 = "RSA/ECB/PKCS1Padding";
 
     private final java.security.interfaces.RSAPublicKey publicKey;
 
@@ -88,7 +86,7 @@ public final class RSAPublicKey extends BasePublicKey implements EncryptKey {
             throw new InvalidParameterException("RSA plain text length error: " + plaintext.length);
         }
         try {
-            Cipher cipher = Cipher.getInstance(RSA_ECB_PKCS1);
+            Cipher cipher = Cipher.getInstance(CryptoUtils.RSA_ECB_PKCS1);
             cipher.init(Cipher.ENCRYPT_MODE, publicKey);
             return cipher.doFinal(plaintext);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException |
@@ -101,7 +99,7 @@ public final class RSAPublicKey extends BasePublicKey implements EncryptKey {
     @Override
     public boolean verify(byte[] data, byte[] signature) {
         try {
-            Signature signer = Signature.getInstance(RSA_SHA256);
+            Signature signer = Signature.getInstance(CryptoUtils.RSA_SHA256);
             signer.initVerify(publicKey);
             signer.update(data);
             return signer.verify(signature);

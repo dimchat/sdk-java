@@ -185,6 +185,12 @@ public class CryptoPluginLoader implements Runnable {
 
             @Override
             public PrivateKey parsePrivateKey(Map<String, Object> key) {
+                // check 'data'
+                if (key.get("data") == null) {
+                    // key.data should not be empty
+                    assert false : "RSA key error: " + key;
+                    return null;
+                }
                 try {
                     return new RSAPrivateKey(key);
                 } catch (NoSuchAlgorithmException e) {
@@ -201,6 +207,12 @@ public class CryptoPluginLoader implements Runnable {
 
             @Override
             public PublicKey parsePublicKey(Map<String, Object> key) {
+                // check 'data'
+                if (key.get("data") == null) {
+                    // key.data should not be empty
+                    assert false : "RSA key error: " + key;
+                    return null;
+                }
                 try {
                     return new RSAPublicKey(key);
                 } catch (NoSuchFieldException e) {
@@ -216,7 +228,7 @@ public class CryptoPluginLoader implements Runnable {
     }
     protected void registerECCKeyFactories() {
 
-        PrivateKey.setFactory(AsymmetricAlgorithms.ECC, new PrivateKey.Factory() {
+        PrivateKey.Factory eccPri = new PrivateKey.Factory() {
 
             @Override
             public PrivateKey generatePrivateKey() {
@@ -227,6 +239,12 @@ public class CryptoPluginLoader implements Runnable {
 
             @Override
             public PrivateKey parsePrivateKey(Map<String, Object> key) {
+                // check 'data'
+                if (key.get("data") == null) {
+                    // key.data should not be empty
+                    assert false : "ECC key error: " + key;
+                    return null;
+                }
                 try {
                     return new ECCPrivateKey(key);
                 } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
@@ -234,12 +252,20 @@ public class CryptoPluginLoader implements Runnable {
                     return null;
                 }
             }
-        });
+        };
+        PrivateKey.setFactory(AsymmetricAlgorithms.ECC, eccPri);
+        PrivateKey.setFactory(CryptoUtils.ECDSA_SHA256, eccPri);
 
-        PublicKey.setFactory(AsymmetricAlgorithms.ECC, new PublicKey.Factory() {
+        PublicKey.Factory eccPub = new PublicKey.Factory() {
 
             @Override
             public PublicKey parsePublicKey(Map<String, Object> key) {
+                // check 'data'
+                if (key.get("data") == null) {
+                    // key.data should not be empty
+                    assert false : "ECC key error: " + key;
+                    return null;
+                }
                 try {
                     return new ECCPublicKey(key);
                 } catch (NoSuchFieldException e) {
@@ -247,7 +273,10 @@ public class CryptoPluginLoader implements Runnable {
                     return null;
                 }
             }
-        });
+        };
+        PublicKey.setFactory(AsymmetricAlgorithms.ECC, eccPub);
+        PublicKey.setFactory(CryptoUtils.ECDSA_SHA256, eccPub);
+
     }
 
 }

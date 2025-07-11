@@ -56,16 +56,16 @@ import chat.dim.type.ConstantString;
  */
 public final class BTCAddress extends ConstantString implements Address {
 
-    private final byte network;
+    private final byte type;
 
     public BTCAddress(String string, byte network) {
         super(string);
-        this.network = network;
+        type = network;
     }
 
     @Override
     public int getNetwork() {
-        return network;
+        return type;
     }
 
     /**

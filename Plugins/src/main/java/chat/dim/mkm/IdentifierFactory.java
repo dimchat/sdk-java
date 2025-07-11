@@ -54,24 +54,24 @@ public class IdentifierFactory implements ID.Factory {
     @Override
     public ID createIdentifier(String name, Address address, String terminal) {
         String identifier = Identifier.concat(name, address, terminal);
-        ID id = identifiers.get(identifier);
-        if (id == null) {
-            id = newID(identifier, name, address, terminal);
-            identifiers.put(identifier, id);
+        ID did = identifiers.get(identifier);
+        if (did == null) {
+            did = newID(identifier, name, address, terminal);
+            identifiers.put(identifier, did);
         }
-        return id;
+        return did;
     }
 
     @Override
     public ID parseIdentifier(String identifier) {
-        ID id = identifiers.get(identifier);
-        if (id == null) {
-            id = parse(identifier);
-            if (id != null) {
-                identifiers.put(identifier, id);
+        ID did = identifiers.get(identifier);
+        if (did == null) {
+            did = parse(identifier);
+            if (did != null) {
+                identifiers.put(identifier, did);
             }
         }
-        return id;
+        return did;
     }
 
     // override for customized ID
@@ -117,4 +117,5 @@ public class IdentifierFactory implements ID.Factory {
         }
         return newID(identifier, name, address, terminal);
     }
+
 }

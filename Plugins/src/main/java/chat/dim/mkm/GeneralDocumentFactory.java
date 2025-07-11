@@ -51,6 +51,7 @@ public class GeneralDocumentFactory implements Document.Factory {
     }
 
     protected String getType(String docType, ID identifier) {
+        assert docType != null && docType.length() > 0 : "document type empty";
         if (!docType.equals("*")) {
             return docType;
         } else if (identifier.isGroup()) {
@@ -65,44 +66,66 @@ public class GeneralDocumentFactory implements Document.Factory {
     @Override
     public Document createDocument(ID identifier, String data, TransportableData signature) {
         String docType = getType(type, identifier);
-        if (data == null || signature == null/* || data.isEmpty() || signature.isEmpty()*/) {
+        if (data == null || data.isEmpty()) {
+            assert signature == null : "document error: " + identifier + ", signature: " + signature;
             // create empty document
-            if (DocumentType.VISA.equals(docType)) {
-                return new BaseVisa(identifier);
-            } else if (DocumentType.BULLETIN.equals(docType)) {
-                return new BaseBulletin(identifier);
-            } else {
-                return new BaseDocument(identifier, docType);
+            switch (docType) {
+
+                case DocumentType.VISA:
+                    return new BaseVisa(identifier);
+
+                case DocumentType.BULLETIN:
+                    return new BaseBulletin(identifier);
+
+                default:
+                    return new BaseDocument(identifier, docType);
             }
         } else {
+            assert signature != null : "document error: " + identifier + ", data: " + data;
             // create document with data & signature from local storage
-            if (DocumentType.VISA.equals(docType)) {
-                return new BaseVisa(identifier, data, signature);
-            } else if (DocumentType.BULLETIN.equals(docType)) {
-                return new BaseBulletin(identifier, data, signature);
-            } else {
-                return new BaseDocument(identifier, docType, data, signature);
+            switch (docType) {
+
+                case DocumentType.VISA:
+                    return new BaseVisa(identifier, data, signature);
+
+                case DocumentType.BULLETIN:
+                    return new BaseBulletin(identifier, data, signature);
+
+                default:
+                    return new BaseDocument(identifier, docType, data, signature);
             }
         }
     }
 
     @Override
     public Document parseDocument(Map<String, Object> doc) {
+        // check 'did', 'data', 'signature'
         ID identifier = ID.parse(doc.get("did"));
         if (identifier == null) {
-            // assert false : "document ID not found : " + doc;
+            assert false : "document ID not found : " + doc;
+            return null;
+        } else if (doc.get("data") == null || doc.get("signature") == null) {
+            // doc.data should not be empty
+            // doc.signature should not be empty
+            assert false : "document error: " + doc;
             return null;
         }
         String docType = SharedAccountExtensions.helper.getDocumentType(doc, null);
         if (docType == null) {
             docType = getType("*", identifier);
         }
-        if (DocumentType.VISA.equals(docType)) {
-            return new BaseVisa(doc);
-        } else if (DocumentType.BULLETIN.equals(docType)) {
-            return new BaseBulletin(doc);
-        } else {
-            return new BaseDocument(doc);
+        // create with document type
+        switch (docType) {
+
+            case DocumentType.VISA:
+                return new BaseVisa(doc);
+
+            case DocumentType.BULLETIN:
+                return new BaseBulletin(doc);
+
+            default:
+                return new BaseDocument(doc);
         }
     }
+
 }

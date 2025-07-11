@@ -40,6 +40,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.format.RSAKeys;
+import chat.dim.utils.CryptoUtils;
 
 /**
  *  RSA Private Key
@@ -52,9 +53,6 @@ import chat.dim.format.RSAKeys;
  *  </pre></blockquote>
  */
 public final class RSAPrivateKey extends BasePrivateKey implements DecryptKey {
-
-    public final static String RSA_SHA256 = "SHA256withRSA";
-    public final static String RSA_ECB_PKCS1 = "RSA/ECB/PKCS1Padding";
 
     private final java.security.interfaces.RSAPrivateKey privateKey;
     private final java.security.interfaces.RSAPublicKey publicKey;
@@ -142,7 +140,7 @@ public final class RSAPrivateKey extends BasePrivateKey implements DecryptKey {
             throw new InvalidParameterException("RSA cipher text length error: " + ciphertext.length);
         }
         try {
-            Cipher cipher = Cipher.getInstance(RSA_ECB_PKCS1);
+            Cipher cipher = Cipher.getInstance(CryptoUtils.RSA_ECB_PKCS1);
             cipher.init(Cipher.DECRYPT_MODE, privateKey);
             return cipher.doFinal(ciphertext);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException |
@@ -155,7 +153,7 @@ public final class RSAPrivateKey extends BasePrivateKey implements DecryptKey {
     @Override
     public byte[] sign(byte[] data) {
         try {
-            Signature signer = Signature.getInstance(RSA_SHA256);
+            Signature signer = Signature.getInstance(CryptoUtils.RSA_SHA256);
             signer.initSign(privateKey);
             signer.update(data);
             return signer.sign();

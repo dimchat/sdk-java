@@ -176,6 +176,12 @@ public class PluginLoader implements Runnable {
 
             @Override
             public PortableNetworkFile parsePortableNetworkFile(Map<String, Object> pnf) {
+                // check 'data', 'URL'
+                if (pnf.get("data") == null && pnf.get("URL") == null) {
+                    // pnf.data and pnf.URL should not be empty at the same time
+                    assert false : "PNF error: " + pnf;
+                    return null;
+                }
                 return new BaseNetworkFile(pnf);
             }
         });
@@ -191,6 +197,12 @@ public class PluginLoader implements Runnable {
 
             @Override
             public TransportableData parseTransportableData(Map<String, Object> ted) {
+                // check 'data'
+                if (ted.get("data") == null) {
+                    // ted.data should not be empty
+                    assert false : "TED error: " + ted;
+                    return null;
+                }
                 // TODO: 1. check algorithm
                 //       2. check data format
                 return new Base64Data(ted);
@@ -282,20 +294,29 @@ public class PluginLoader implements Runnable {
 
     }
     protected void registerAESKeyFactory() {
-        SymmetricKey.setFactory(SymmetricAlgorithms.AES, new SymmetricKey.Factory() {
+        SymmetricKey.Factory aes = new SymmetricKey.Factory() {
 
             @Override
             public SymmetricKey generateSymmetricKey() {
                 Map<String, Object> key = new HashMap<>();
                 key.put("algorithm", SymmetricAlgorithms.AES);
-                return parseSymmetricKey(key);
+                return new AESKey(key);
             }
 
             @Override
             public SymmetricKey parseSymmetricKey(Map<String, Object> key) {
+                // check 'data'
+                if (key.get("data") == null) {
+                    // key.data should not be empty
+                    assert false : "AES key error: " + key;
+                    return null;
+                }
                 return new AESKey(key);
             }
-        });
+        };
+        SymmetricKey.setFactory(SymmetricAlgorithms.AES, aes);
+        SymmetricKey.setFactory(AESKey.AES_CBC_PKCS7, aes);
+        //SymmetricKey.setFactory("AES/CBC/PKCS7Padding", aes);
     }
     protected void registerPlainKeyFactory() {
         SymmetricKey.setFactory(SymmetricAlgorithms.PLAIN, new SymmetricKey.Factory() {
@@ -333,9 +354,16 @@ public class PluginLoader implements Runnable {
      */
     protected void registerMetaFactories() {
 
-        Meta.setFactory(MetaType.MKM, new BaseMetaFactory(MetaType.MKM));
-        Meta.setFactory(MetaType.BTC, new BaseMetaFactory(MetaType.BTC));
-        Meta.setFactory(MetaType.ETH, new BaseMetaFactory(MetaType.ETH));
+        setMetaFactory(MetaType.MKM, "mkm", null);
+        setMetaFactory(MetaType.BTC, "btc", null);
+        setMetaFactory(MetaType.ETH, "eth", null);
+    }
+    protected void setMetaFactory(String type, String alias, Meta.Factory factory) {
+        if (factory == null) {
+            factory = new BaseMetaFactory(type);
+        }
+        Meta.setFactory(type, factory);
+        Meta.setFactory(alias, factory);
     }
 
     /**
@@ -343,10 +371,16 @@ public class PluginLoader implements Runnable {
      */
     protected void registerDocumentFactories() {
 
-        Document.setFactory("*", new GeneralDocumentFactory("*"));
-        Document.setFactory(DocumentType.VISA, new GeneralDocumentFactory(DocumentType.VISA));
-        Document.setFactory(DocumentType.PROFILE, new GeneralDocumentFactory(DocumentType.PROFILE));
-        Document.setFactory(DocumentType.BULLETIN, new GeneralDocumentFactory(DocumentType.BULLETIN));
+        setDocumentFactory("*", null);
+        setDocumentFactory(DocumentType.VISA, null);
+        setDocumentFactory(DocumentType.PROFILE, null);
+        setDocumentFactory(DocumentType.BULLETIN, null);
+    }
+    protected void setDocumentFactory(String type, Document.Factory factory) {
+        if (factory == null) {
+            factory = new GeneralDocumentFactory(type);
+        }
+        Document.setFactory(type, factory);
     }
 
 }

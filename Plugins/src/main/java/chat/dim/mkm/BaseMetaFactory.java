@@ -73,14 +73,17 @@ public class BaseMetaFactory implements Meta.Factory {
         switch (type) {
 
             case MetaType.MKM:
+            case "mkm":
                 out = new DefaultMeta(type, key, seed, fingerprint);
                 break;
 
             case MetaType.BTC:
+            case "btc":
                 out = new BTCMeta(type, key);
                 break;
 
             case MetaType.ETH:
+            case "eth":
                 out = new ETHMeta(type, key);
                 break;
 
@@ -93,25 +96,49 @@ public class BaseMetaFactory implements Meta.Factory {
 
     @Override
     public Meta parseMeta(Map<String, Object> meta) {
+        /*/
+        // check 'type', 'key', 'seed', 'fingerprint'
+        if (meta.get("type") == null || meta.get("key") == null) {
+            // meta.type should not be empty
+            // meta.key should not be empty
+            assert false : "meta error: " + meta;
+            return null;
+        } else if (meta.get("seed") == null) {
+            if (meta.get("fingerprint") == null) {
+                assert false : "meta error: " + meta;
+                return null;
+            }
+        } else if (meta.get("fingerprint") == null) {
+            assert false : "meta error: " + meta;
+            return null;
+        }
+        /*/
         Meta out;
         String version = SharedAccountExtensions.helper.getMetaType(meta, "");
         switch (version) {
 
             case MetaType.MKM:
+            case "mkm":
                 out = new DefaultMeta(meta);
                 break;
 
             case MetaType.BTC:
+            case "btc":
                 out = new BTCMeta(meta);
                 break;
 
             case MetaType.ETH:
+            case "eth":
                 out = new ETHMeta(meta);
                 break;
 
             default:
                 throw new IllegalArgumentException("unknown meta type: " + version);
         }
-        return out.isValid() ? out : null;
+        if (out.isValid()) {
+            return out;
+        }
+        assert false : "meta error: " + meta;
+        return null;
     }
 }
