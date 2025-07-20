@@ -106,11 +106,11 @@ public class Station implements User {
     public void reload() {
         Document doc = getProfile();
         if (doc != null) {
-            String docHost = Converter.getString(doc.getProperty("host"), null);
+            String docHost = Converter.getString(doc.getProperty("host"));
             if (docHost != null) {
                 host = docHost;
             }
-            Integer docPort = Converter.getInteger(doc.getProperty("port"), null);
+            Integer docPort = Converter.getInteger(doc.getProperty("port"));
             if (docPort != null && docPort > 0) {
                 assert 16 < docPort && docPort < 65536 : "station port error: " + docPort;
                 port = docPort;

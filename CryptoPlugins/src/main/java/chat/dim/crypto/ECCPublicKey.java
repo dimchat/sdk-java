@@ -56,7 +56,7 @@ public final class ECCPublicKey extends BasePublicKey {
     }
 
     private ECPublicKey getKey() throws NoSuchFieldException {
-        String data = getString("data", null);
+        String data = getString("data");
         if (data == null) {
             throw new NoSuchFieldException("ECC public key data not found");
         }

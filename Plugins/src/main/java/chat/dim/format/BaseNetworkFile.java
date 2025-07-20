@@ -148,7 +148,7 @@ public final class BaseNetworkFile extends Dictionary implements PortableNetwork
     }
 
     private String getURLString() {
-        String urlString = getString("URL", null);
+        String urlString = getString("URL");
         if (urlString == null) {
             return null;
         } else if (urlString.startsWith("data:")) {

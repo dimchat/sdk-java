@@ -47,8 +47,8 @@ import chat.dim.type.Wrapper;
  *  Message GeneralFactory
  */
 public class MessageGeneralFactory implements GeneralMessageHelper,
-                                              Content.Helper, Envelope.Helper,
-                                              InstantMessage.Helper, SecureMessage.Helper, ReliableMessage.Helper {
+                                              ContentHelper, EnvelopeHelper,
+                                              InstantMessageHelper, SecureMessageHelper, ReliableMessageHelper {
 
     private final Map<String, Content.Factory> contentFactories = new HashMap<>();
 

@@ -43,8 +43,8 @@ import chat.dim.type.Mapper;
  *  Format GeneralFactory
  */
 public class FormatGeneralFactory implements GeneralFormatHelper,
-                                             PortableNetworkFile.Helper,
-                                             TransportableData.Helper {
+                                             PortableNetworkFileHelper,
+                                             TransportableDataHelper {
 
     private final Map<String, TransportableData.Factory> tedFactories = new HashMap<>();
 

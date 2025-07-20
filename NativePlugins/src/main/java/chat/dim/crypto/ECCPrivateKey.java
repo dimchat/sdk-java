@@ -91,7 +91,7 @@ public final class ECCPrivateKey extends BasePrivateKey {
     @Override
     public byte[] getData() {
         if (privateKeyData == null) {
-            String pem = getString("data", null);
+            String pem = getString("data");
             if (pem != null) {
                 if (pem.length() == 64) {
                     // decode from Hex string

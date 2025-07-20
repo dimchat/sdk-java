@@ -130,7 +130,7 @@ public final class AESKey extends BaseSymmetricKey {
 
     protected int getKeySize() {
         // TODO: get from key data
-        Integer size = getInteger("keySize", null);
+        Integer size = getInteger("keySize");
         if (size != null) {
             return size;
         }
@@ -139,7 +139,7 @@ public final class AESKey extends BaseSymmetricKey {
 
     protected int getBlockSize() {
         // TODO: get from iv data
-        Integer size = getInteger("blockSize", null);
+        Integer size = getInteger("blockSize");
         if (size != null) {
             return size;
         }

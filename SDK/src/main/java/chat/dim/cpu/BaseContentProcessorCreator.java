@@ -50,6 +50,15 @@ public class BaseContentProcessorCreator extends TwinsHelper implements ContentP
     public ContentProcessor createContentProcessor(String msgType) {
         switch (msgType) {
 
+            /*/
+            // application customized
+            case ContentType.APPLICATION:
+            case "application":
+            case ContentType.CUSTOMIZED:
+            case "customized":
+                return new CustomizedContentProcessor(getFacebook(), getMessenger());
+            /*/
+
             // forward content
             case ContentType.FORWARD:
             case "forward":

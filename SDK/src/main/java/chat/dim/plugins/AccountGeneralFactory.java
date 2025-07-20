@@ -48,8 +48,8 @@ import chat.dim.type.Wrapper;
  *  Account GeneralFactory
  */
 public class AccountGeneralFactory implements GeneralAccountHelper,
-                                              Address.Helper, ID.Helper,
-                                              Meta.Helper, Document.Helper {
+                                              AddressHelper, IdentifierHelper,
+                                              MetaHelper, DocumentHelper {
 
     private Address.Factory addressFactory = null;
 

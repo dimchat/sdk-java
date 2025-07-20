@@ -38,8 +38,8 @@ import chat.dim.type.Wrapper;
  *  CryptographyKey GeneralFactory
  */
 public class CryptoKeyGeneralFactory implements GeneralCryptoHelper,
-                                                SymmetricKey.Helper,
-                                                PrivateKey.Helper, PublicKey.Helper {
+                                                SymmetricKeyHelper,
+                                                PrivateKeyHelper, PublicKeyHelper {
 
     private final Map<String, SymmetricKey.Factory> symmetricKeyFactories = new HashMap<>();
     private final Map<String, PrivateKey.Factory>     privateKeyFactories = new HashMap<>();

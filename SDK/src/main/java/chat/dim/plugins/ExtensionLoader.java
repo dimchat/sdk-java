@@ -30,6 +30,7 @@
  */
 package chat.dim.plugins;
 
+import chat.dim.dkd.AppCustomizedContent;
 import chat.dim.dkd.BaseContent;
 import chat.dim.dkd.BaseMoneyContent;
 import chat.dim.dkd.BaseQuoteContent;
@@ -221,6 +222,20 @@ public class ExtensionLoader implements Runnable {
 
         // unknown content type
         setContentFactory(ContentType.ANY, "*", BaseContent::new);
+
+        // Application Customized Content
+        registerCustomizedFactories();
+    }
+
+    /**
+     *  Customized content factories
+     */
+    protected void registerCustomizedFactories() {
+
+        // Application Customized
+        setContentFactory(ContentType.CUSTOMIZED, "customized", AppCustomizedContent::new);
+        //setContentFactory(ContentType.APPLICATION, "application", AppCustomizedContent::new);
+
     }
 
     protected void setContentFactory(String type, String alias, Content.Factory factory) {

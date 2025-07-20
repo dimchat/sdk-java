@@ -41,7 +41,7 @@ import chat.dim.type.Wrapper;
 /**
  *  Command GeneralFactory
  */
-public class CommandGeneralFactory implements GeneralCommandHelper, Command.Helper {
+public class CommandGeneralFactory implements GeneralCommandHelper, CommandHelper {
 
     private final Map<String, Command.Factory> commandFactories = new HashMap<>();
 
@@ -93,7 +93,7 @@ public class CommandGeneralFactory implements GeneralCommandHelper, Command.Help
 
     private static Command.Factory getDefaultFactory(Map<?, ?> info) {
         GeneralMessageHelper helper = SharedMessageExtensions.helper;
-        Content.Helper contentHelper = SharedMessageExtensions.contentHelper;
+        ContentHelper contentHelper = SharedMessageExtensions.contentHelper;
         // get factory by content type
         String type = helper.getContentType(info, null);
         if (type != null) {

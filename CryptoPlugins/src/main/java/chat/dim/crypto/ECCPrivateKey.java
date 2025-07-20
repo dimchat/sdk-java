@@ -70,7 +70,7 @@ public final class ECCPrivateKey extends BasePrivateKey {
     }
 
     private KeyPair getKeyPair() throws NoSuchAlgorithmException, InvalidAlgorithmParameterException {
-        String data = getString("data", null);
+        String data = getString("data");
         if (data == null) {
             // generate key
             return generateKeyPair(getCurveName());

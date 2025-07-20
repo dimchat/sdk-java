@@ -66,7 +66,7 @@ public final class RSAPrivateKey extends BasePrivateKey implements DecryptKey {
 
     private int keySize() {
         // TODO: get from key
-        Integer size = getInteger("keySize", null);
+        Integer size = getInteger("keySize");
         if (size != null) {
             return size;
         }
@@ -74,7 +74,7 @@ public final class RSAPrivateKey extends BasePrivateKey implements DecryptKey {
     }
 
     private KeyPair getKeyPair() throws NoSuchAlgorithmException {
-        String data = getString("data", null);
+        String data = getString("data");
         if (data == null) {
             // generate key
             return generateKeyPair(keySize() * 8);

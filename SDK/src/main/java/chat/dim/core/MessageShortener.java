@@ -37,6 +37,7 @@ public class MessageShortener implements Shortener {
     protected void moveKey(String from, String to, Map<String, Object> info) {
         Object value = info.get(from);
         if (value != null) {
+            assert info.get(to) == null : "keys conflicted: '" + from + "' -> '" + to + "', " + info;
             info.remove(from);
             info.put(to, value);
         }
