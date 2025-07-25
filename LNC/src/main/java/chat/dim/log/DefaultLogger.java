@@ -30,9 +30,9 @@
  */
 package chat.dim.log;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
-
-import chat.dim.utils.TimeUtils;
+import java.util.Locale;
 
 public class DefaultLogger implements Logger {
 
@@ -48,20 +48,13 @@ public class DefaultLogger implements Logger {
     }
 
     protected String now() {
-        if (Log.showTime) {
-            Date now = TimeUtils.currentTime();
-            return TimeUtils.getFullTimeString(now);
-        } else {
-            return null;
-        }
+        Date now = new Date();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.CHINA);
+        return formatter.format(now);
     }
 
     protected LogCaller caller() {
-        if (Log.showCaller) {
-            return LogCaller.trace("Log.java");
-        } else {
-            return null;
-        }
+        return LogCaller.trace("Log.java");
     }
 
     public static String shorten(String text, int maxLen) {
@@ -89,13 +82,12 @@ public class DefaultLogger implements Logger {
         String body = msg;
         String tail = "";
         // insert time to head
-        String time = now();
-        if (time != null) {
-            head = "[" + time + "] " + head;
+        if (Log.showTime) {
+            head = "[" + now() + "] " + head;
         }
         // insert caller to body
         LogCaller locate = caller();
-        if (locate != null) {
+        if (Log.showCaller) {
             body = locate + " >\t" + body;
         }
         printer.output(tag, locate, head, body, tail);
