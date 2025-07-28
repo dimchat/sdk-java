@@ -87,12 +87,24 @@ public class DefaultLogger implements Logger {
         //  2. build body
         //
         String body;
-        //  2.1. insert caller
+        //  2.1. insert caller & method
         LogCaller locate = caller();
+        String method = null;
+        if (Log.showMethod) {
+            method = locate.getMethodName();
+        }
         if (Log.showCaller) {
-            body = locate + " >\t" + msg;
+            if (method == null) {
+                body = locate + " >\t" + msg;
+            } else {
+                body = locate + " | " + method + " >\t" + msg;
+            }
         } else {
-            body = msg;
+            if (method == null) {
+                body = msg;
+            } else {
+                body = method + " >\t" + msg;
+            }
         }
         //  2.2. insert time
         if (Log.showTime) {

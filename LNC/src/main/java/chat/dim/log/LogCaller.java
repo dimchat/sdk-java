@@ -46,11 +46,13 @@ public class LogCaller {
 
     @Override
     public String toString() {
-        String filename = getFilename();
-        if (filename == null) {
-            return getClassName() + ":" + getLineNumber();
+        String name = getClassName();
+        if (name == null) {
+            name = getFilename();
+            if (name != null) {
+                name = name.split("\\.")[0];
+            }
         }
-        String name = filename.split("\\.")[0];
         return name + ":" + getLineNumber();
     }
 

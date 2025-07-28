@@ -47,6 +47,7 @@ public final class Log {
 
     public static boolean showTime = false;
     public static boolean showCaller = true;
+    public static boolean showMethod = false;
 
     public static Logger logger = new DefaultLogger();
 
