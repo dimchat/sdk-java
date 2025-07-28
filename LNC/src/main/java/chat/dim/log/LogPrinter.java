@@ -37,27 +37,33 @@ public class LogPrinter {
 
     public static String carriageReturn = "↩️";
 
-    public void output(String tag, LogCaller caller, String head, String body, String tail) {
+    public void output(String head, String body, String tail, String tag, LogCaller caller) {
         int size = body.length();
         if (0 < limitLength && limitLength < size) {
             body = body.substring(0, limitLength - 4) + " ...";
             size = limitLength;
         }
+        String x;
         // print chunks
         int start = 0, end = chunkLength;
         for (; end < size; start = end, end += chunkLength) {
-            println(tag, caller, head + body.substring(start, end) + tail + carriageReturn);
+            x = head + body.substring(start, end) + tail + carriageReturn;
+            println(x, tag, caller);
         }
-        if (start == 0) {
-            // too short, print the whole message
-            println(tag, caller, head + body + tail);
-        } else {
+        if (start > 0) {
             // print last chunk
-            println(tag, caller, head + body.substring(start) + tail);
+            x = head + body.substring(start) + tail;
+        } else {
+            // too short, print the whole message
+            x = head + body + tail;
         }
+        println(x, tag, caller);
     }
 
-    protected void println(String tag, LogCaller caller, String x) {
+    /**
+     *  Override for redirecting outputs
+     */
+    protected void println(String x, String tag, LogCaller caller) {
         System.out.println(x);
     }
 

@@ -34,39 +34,80 @@ import java.util.Arrays;
 
 public class LogCaller {
 
-    public final String filename;
-    public final int line;
+    private final String tag;                  // anchor tag
+    private final StackTraceElement[] stacks;  // stack traces
+    private StackTraceElement caller;
 
-    public LogCaller(String filename, int line) {
-        this.filename = filename;
-        this.line = line;
+    public LogCaller(String anchor, StackTraceElement[] traces) {
+        super();
+        tag = anchor;
+        stacks = traces;
     }
 
     @Override
     public String toString() {
+        String filename = getFilename();
+        if (filename == null) {
+            return getClassName() + ":" + getLineNumber();
+        }
         String name = filename.split("\\.")[0];
-        return name + ":" + line;
+        return name + ":" + getLineNumber();
+    }
+
+    public String getFilename() {
+        StackTraceElement element = getCaller();
+        return element == null ? null : element.getFileName();
+    }
+
+    public int getLineNumber() {
+        StackTraceElement element = getCaller();
+        return element == null ? -1 : element.getLineNumber();
+    }
+
+    public String getClassName() {
+        StackTraceElement element = getCaller();
+        return element == null ? null : element.getClassName();
+    }
+
+    public String getMethodName() {
+        StackTraceElement element = getCaller();
+        return element == null ? null : element.getMethodName();
     }
 
     //
-    //  Factory
+    //  trace caller
     //
-    public static LogCaller trace(String tag) {
-        String filename = null;
-        int line = -1;
-        StackTraceElement[] traces = Thread.currentThread().getStackTrace();
+
+    private StackTraceElement getCaller() {
+        StackTraceElement element = caller;
+        if (element == null) {
+            element = locate(tag, stacks);
+            caller = element;
+        }
+        return element;
+    }
+
+    /**
+     *  Locate the real caller: next element of the anchor(s)
+     */
+    protected StackTraceElement locate(String anchor, StackTraceElement[] traces) {
         boolean flag = false;
         for (StackTraceElement element : traces) {
-            filename = element.getFileName();
-            if (filename != null && filename.endsWith(tag)) {
+            if (checkAnchor(anchor, element)) {
+                // skip anchor(s)
                 flag = true;
             } else if (flag) {
-                line = element.getLineNumber();
-                break;
+                // get next element of the anchor(s)
+                return element;
             }
         }
-        assert filename != null && line >= 0 : "traces error: " + Arrays.toString(traces);
-        return new LogCaller(filename, line);
+        assert false : "caller not found: " + anchor + " -> " + Arrays.toString(traces);
+        return null;
+    }
+
+    protected boolean checkAnchor(String anchor, StackTraceElement element) {
+        String filename = element.getFileName();
+        return anchor.equals(filename);
     }
 
 }

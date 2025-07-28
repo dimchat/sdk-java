@@ -40,6 +40,7 @@ public class DefaultLogger implements Logger {
 
     public DefaultLogger(LogPrinter logPrinter) {
         super();
+        assert logPrinter != null : "log printer not found";
         printer = logPrinter;
     }
 
@@ -54,7 +55,8 @@ public class DefaultLogger implements Logger {
     }
 
     protected LogCaller caller() {
-        return LogCaller.trace("Log.java");
+        // Override for customized caller tracer
+        return new LogCaller("Log.java", Thread.currentThread().getStackTrace());
     }
 
     public static String shorten(String text, int maxLen) {
@@ -73,31 +75,42 @@ public class DefaultLogger implements Logger {
         return prefix + " ... " + desc + " ... " + suffix;
     }
 
-    protected void output(String tag, String msg) {
+    protected void output(String msg, String tag) {
+        //
+        //  1. shorten message
+        //
         int maxLen = Log.MAX_LEN;
         if (maxLen > 0) {
             msg = shorten(msg, maxLen);
         }
-        String head = tag + " | ";
-        String body = msg;
-        String tail = "";
-        // insert time to head
-        if (Log.showTime) {
-            head = "[" + now() + "] " + head;
-        }
-        // insert caller to body
+        //
+        //  2. build body
+        //
+        String body;
+        //  2.1. insert caller
         LogCaller locate = caller();
         if (Log.showCaller) {
-            body = locate + " >\t" + body;
+            body = locate + " >\t" + msg;
+        } else {
+            body = msg;
         }
-        printer.output(tag, locate, head, body, tail);
+        //  2.2. insert time
+        if (Log.showTime) {
+            body = "[" + now() + "] " + tag + " | " + body;
+        } else {
+            body = tag + " | " + body;
+        }
+        //
+        //  3. print
+        //
+        printer.output("", body, "", tag, locate);
     }
 
     @Override
     public void debug(String msg) {
         int flag = Log.level & Log.DEBUG_FLAG;
         if (flag > 0) {
-            output(Logger.DEBUG_TAG, msg);
+            output(msg, Logger.DEBUG_TAG);
         }
     }
 
@@ -105,7 +118,7 @@ public class DefaultLogger implements Logger {
     public void info(String msg) {
         int flag = Log.level & Log.INFO_FLAG;
         if (flag > 0) {
-            output(Logger.INFO_TAG, msg);
+            output(msg, Logger.INFO_TAG);
         }
     }
 
@@ -113,7 +126,7 @@ public class DefaultLogger implements Logger {
     public void warning(String msg) {
         int flag = Log.level & Log.WARNING_FLAG;
         if (flag > 0) {
-            output(Logger.WARNING_TAG, msg);
+            output(msg, Logger.WARNING_TAG);
         }
     }
 
@@ -121,7 +134,7 @@ public class DefaultLogger implements Logger {
     public void error(String msg) {
         int flag = Log.level & Log.ERROR_FLAG;
         if (flag > 0) {
-            output(Logger.ERROR_TAG, msg);
+            output(msg, Logger.ERROR_TAG);
         }
     }
 }
