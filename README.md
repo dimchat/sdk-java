@@ -5,7 +5,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/dimchat/sdk-java/pulls)
 [![Platform](https://img.shields.io/badge/Platform-Java%208-brightgreen.svg)](https://github.com/dimchat/sdk-java/wiki)
 [![Issues](https://img.shields.io/github/issues/dimchat/sdk-java)](https://github.com/dimchat/sdk-java/issues)
-[![Repo Size](https://img.shields.io/github/repo-size/dimchat/sdk-java)](https://github.com/dimchat/sdk-java/archive/refs/heads/main.zip)
+[![Repo Size](https://img.shields.io/github/repo-size/dimchat/sdk-java)](https://github.com/dimchat/sdk-java/archive/refs/heads/master.zip)
 [![Tags](https://img.shields.io/github/tag/dimchat/sdk-java)](https://github.com/dimchat/sdk-java/tags)
 [![Version](https://img.shields.io/maven-central/v/chat.dim/SDK)](https://mvnrepository.com/artifact/chat.dim/SDK)
 
@@ -300,7 +300,7 @@ public class LibraryLoader implements Runnable {
         }
 
         if (pluginLoader == null) {
-            this.pluginLoader = new CommonPluginLoader();
+            this.pluginLoader = new PluginLoader();
         } else {
             this.pluginLoader = pluginLoader;
         }

@@ -180,7 +180,7 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
     /*/
 
     /**
-     *  Check meta & visa
+     *  Check meta &amp; visa
      *
      * @param rMsg - received message
      * @return false on error

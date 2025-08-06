@@ -101,7 +101,7 @@ public class Station implements User {
     }
 
     /**
-     *  Reload station info: host & port, SP ID
+     *  Reload station info: host &amp; port, SP ID
      */
     public void reload() {
         Document doc = getProfile();

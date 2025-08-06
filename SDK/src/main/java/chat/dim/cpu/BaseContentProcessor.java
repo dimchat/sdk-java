@@ -75,7 +75,7 @@ public class BaseContentProcessor extends TwinsHelper implements ContentProcesso
     }
 
     /**
-     *  Create receipt command with text, original envelope, serial number & group
+     *  Create receipt command with text, original envelope, serial number &amp; group
      *
      * @param text     - text message
      * @param head     - original envelope
