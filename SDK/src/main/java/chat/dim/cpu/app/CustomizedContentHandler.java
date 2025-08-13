@@ -33,9 +33,9 @@ package chat.dim.cpu.app;
 import java.util.List;
 
 import chat.dim.protocol.Content;
-import chat.dim.protocol.CustomizedContent;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.ReliableMessage;
+import chat.dim.protocol.app.CustomizedContent;
 
 /**
  *  Handler for Customized Content

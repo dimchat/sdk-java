@@ -35,7 +35,7 @@ import java.util.Map;
 
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
-import chat.dim.protocol.GroupCommand;
+import chat.dim.protocol.group.GroupCommand;
 
 /**
  *  General ContentProcessor Factory

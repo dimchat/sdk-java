@@ -30,9 +30,7 @@
  */
 package chat.dim.plugins;
 
-import chat.dim.dkd.AppCustomizedContent;
 import chat.dim.dkd.BaseContent;
-import chat.dim.dkd.BaseMoneyContent;
 import chat.dim.dkd.BaseQuoteContent;
 import chat.dim.dkd.BaseTextContent;
 import chat.dim.dkd.CombineForwardContent;
@@ -42,8 +40,10 @@ import chat.dim.dkd.HistoryCommandFactory;
 import chat.dim.dkd.ListContent;
 import chat.dim.dkd.NameCardContent;
 import chat.dim.dkd.SecretContent;
-import chat.dim.dkd.TransferMoneyContent;
 import chat.dim.dkd.WebPageContent;
+import chat.dim.dkd.app.AppCustomizedContent;
+import chat.dim.dkd.asset.BaseMoneyContent;
+import chat.dim.dkd.asset.TransferMoneyContent;
 import chat.dim.dkd.cmd.BaseDocumentCommand;
 import chat.dim.dkd.cmd.BaseMetaCommand;
 import chat.dim.dkd.cmd.BaseReceiptCommand;
@@ -56,7 +56,6 @@ import chat.dim.dkd.group.FireGroupCommand;
 import chat.dim.dkd.group.HireGroupCommand;
 import chat.dim.dkd.group.InviteGroupCommand;
 import chat.dim.dkd.group.JoinGroupCommand;
-import chat.dim.dkd.group.QueryGroupCommand;
 import chat.dim.dkd.group.QuitGroupCommand;
 import chat.dim.dkd.group.ResetGroupCommand;
 import chat.dim.dkd.group.ResignGroupCommand;
@@ -65,10 +64,10 @@ import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
 import chat.dim.protocol.Envelope;
-import chat.dim.protocol.GroupCommand;
 import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
+import chat.dim.protocol.group.GroupCommand;
 
 /**
  *  Core Extensions Loader
@@ -263,17 +262,18 @@ public class ExtensionLoader implements Runnable {
 
         // Group Commands
         setCommandFactory("group", new GroupCommandFactory());
-        setCommandFactory(GroupCommand.INVITE, InviteGroupCommand::new);
+        setCommandFactory(GroupCommand.INVITE,  InviteGroupCommand::new);
         // 'expel' is deprecated (use 'reset' instead)
-        setCommandFactory(GroupCommand.EXPEL,  ExpelGroupCommand::new);
-        setCommandFactory(GroupCommand.JOIN,   JoinGroupCommand::new);
-        setCommandFactory(GroupCommand.QUIT,   QuitGroupCommand::new);
-        setCommandFactory(GroupCommand.QUERY,  QueryGroupCommand::new);
-        setCommandFactory(GroupCommand.RESET,  ResetGroupCommand::new);
+        setCommandFactory(GroupCommand.EXPEL,   ExpelGroupCommand::new);
+        setCommandFactory(GroupCommand.JOIN,    JoinGroupCommand::new);
+        setCommandFactory(GroupCommand.QUIT,    QuitGroupCommand::new);
+        // 'query' is deprecated
+        //setCommandFactory(GroupCommand.QUERY, QueryGroupCommand::new);
+        setCommandFactory(GroupCommand.RESET,   ResetGroupCommand::new);
         // Group Admin Commands
-        setCommandFactory(GroupCommand.HIRE,   HireGroupCommand::new);
-        setCommandFactory(GroupCommand.FIRE,   FireGroupCommand::new);
-        setCommandFactory(GroupCommand.RESIGN, ResignGroupCommand::new);
+        setCommandFactory(GroupCommand.HIRE,    HireGroupCommand::new);
+        setCommandFactory(GroupCommand.FIRE,    FireGroupCommand::new);
+        setCommandFactory(GroupCommand.RESIGN,  ResignGroupCommand::new);
     }
 
 }

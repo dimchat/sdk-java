@@ -37,9 +37,9 @@ import chat.dim.Messenger;
 import chat.dim.cpu.app.BaseCustomizedHandler;
 import chat.dim.cpu.app.CustomizedContentHandler;
 import chat.dim.protocol.Content;
-import chat.dim.protocol.CustomizedContent;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.ReliableMessage;
+import chat.dim.protocol.app.CustomizedContent;
 
 /**
  *  Customized Content Processing Unit
