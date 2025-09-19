@@ -30,11 +30,11 @@
  */
 package chat.dim.mkm;
 
-import chat.dim.crypto.VerifyKey;
 import chat.dim.format.UTF8;
 import chat.dim.protocol.Address;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
+import chat.dim.protocol.VerifyKey;
 
 public interface MetaUtils {
 

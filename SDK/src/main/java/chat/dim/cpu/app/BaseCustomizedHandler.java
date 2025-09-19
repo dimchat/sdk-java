@@ -39,11 +39,11 @@ import chat.dim.Messenger;
 import chat.dim.TwinsHelper;
 import chat.dim.cpu.BaseContentProcessor;
 import chat.dim.protocol.Content;
+import chat.dim.protocol.CustomizedContent;
 import chat.dim.protocol.Envelope;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.ReliableMessage;
-import chat.dim.protocol.app.CustomizedContent;
 
 
 /**

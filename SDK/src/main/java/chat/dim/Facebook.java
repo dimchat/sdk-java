@@ -35,12 +35,12 @@ import java.util.List;
 
 import chat.dim.core.Archivist;
 import chat.dim.core.Barrack;
-import chat.dim.crypto.EncryptKey;
-import chat.dim.crypto.VerifyKey;
 import chat.dim.mkm.Entity;
 import chat.dim.mkm.Group;
 import chat.dim.mkm.User;
+import chat.dim.protocol.EncryptKey;
 import chat.dim.protocol.ID;
+import chat.dim.protocol.VerifyKey;
 
 public abstract class Facebook implements Entity.Delegate, User.DataSource, Group.DataSource {
 

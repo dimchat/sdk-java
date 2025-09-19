@@ -32,7 +32,7 @@ package chat.dim.mkm;
 
 import java.util.Date;
 
-import chat.dim.plugins.SharedAccountExtensions;
+import chat.dim.ext.SharedAccountExtensions;
 import chat.dim.protocol.Bulletin;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.Visa;

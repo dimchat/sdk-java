@@ -29,8 +29,9 @@
 ```javascript
 allprojects {
     repositories {
-        jcenter()
+        mavenLocal()
         mavenCentral()
+        google()
     }
 }
 
@@ -277,52 +278,7 @@ public class CommonExtensionLoader extends ExtensionLoader {
 }
 ```
 
-## Usages
-
-You must load all extensions before your business run:
-
-```java
-import chat.dim.plugins.ExtensionLoader;
-import chat.dim.plugins.PluginLoader;
-
-
-public class LibraryLoader implements Runnable {
-
-    private final ExtensionLoader extensionLoader;
-    private final PluginLoader pluginLoader;
-
-    public LibraryLoader(ExtensionLoader extensionLoader, PluginLoader pluginLoader) {
-
-        if (extensionLoader == null) {
-            this.extensionLoader = new CommonExtensionLoader();
-        } else {
-            this.extensionLoader = extensionLoader;
-        }
-
-        if (pluginLoader == null) {
-            this.pluginLoader = new PluginLoader();
-        } else {
-            this.pluginLoader = pluginLoader;
-        }
-    }
-
-    @Override
-    public void run() {
-        extensionLoader.run();
-        pluginLoader.run();
-    }
-
-    public static void main(String[] args) {
-    
-        LibraryLoader loader = new LibraryLoader();
-        loader.run();
-        
-        // do your jobs after all extensions loaded.
-        
-    }
-
-}
-```
+## Usage
 
 To let your **AppCustomizedProcessor** start to work,
 you must override ```BaseContentProcessorCreator``` for message types:

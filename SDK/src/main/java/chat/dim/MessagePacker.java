@@ -34,7 +34,6 @@ import java.util.List;
 
 import chat.dim.core.Archivist;
 import chat.dim.core.Packer;
-import chat.dim.crypto.SymmetricKey;
 import chat.dim.msg.InstantMessageDelegate;
 import chat.dim.msg.InstantMessagePacker;
 import chat.dim.msg.MessageUtils;
@@ -49,6 +48,7 @@ import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.Meta;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
+import chat.dim.protocol.SymmetricKey;
 import chat.dim.protocol.Visa;
 
 public abstract class MessagePacker extends TwinsHelper implements Packer {

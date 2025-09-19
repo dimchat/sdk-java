@@ -32,12 +32,12 @@ package chat.dim.mkm;
 
 import java.util.List;
 
-import chat.dim.crypto.DecryptKey;
-import chat.dim.crypto.EncryptKey;
-import chat.dim.crypto.SignKey;
-import chat.dim.crypto.VerifyKey;
+import chat.dim.protocol.DecryptKey;
 import chat.dim.protocol.Document;
+import chat.dim.protocol.EncryptKey;
 import chat.dim.protocol.ID;
+import chat.dim.protocol.SignKey;
+import chat.dim.protocol.VerifyKey;
 import chat.dim.protocol.Visa;
 
 public class BaseUser extends BaseEntity implements User {
@@ -134,14 +134,15 @@ public class BaseUser extends BaseEntity implements User {
 
     @Override
     public Visa sign(Visa doc) {
-        assert identifier.equals(doc.getIdentifier()) : "visa ID not match: " + identifier + ", " + doc.getIdentifier();
+        ID did = doc.getIdentifier();
+        assert identifier.equals(did) : "visa ID not match: " + identifier + ", " + did;
         User.DataSource facebook = getDataSource();
         assert facebook != null : "user delegate not set yet";
         // NOTICE: only sign visa with the private key paired with your meta.key
-        SignKey sKey = facebook.getPrivateKeyForVisaSignature(identifier);
-        assert sKey != null : "failed to get sign key for visa: " + identifier;
+        SignKey sKey = facebook.getPrivateKeyForVisaSignature(did);
+        assert sKey != null : "failed to get sign key for visa: " + did;
         if (doc.sign(sKey) == null) {
-            assert false : "failed to sign visa: " + identifier + ", " + doc;
+            assert false : "failed to sign visa: " + did + ", " + doc;
             return null;
         }
         return doc;
@@ -151,12 +152,13 @@ public class BaseUser extends BaseEntity implements User {
     public boolean verify(Visa doc) {
         // NOTICE: only verify visa with meta.key
         //         (if meta not exists, user won't be created)
-        if (!identifier.equals(doc.getIdentifier())) {
+        ID did = doc.getIdentifier();
+        if (!identifier.equals(did)) {
             // visa ID not match
             return false;
         }
         VerifyKey pKey = getMeta().getPublicKey();
-        assert pKey != null : "failed to get verify key for visa: " + identifier;
+        assert pKey != null : "failed to get verify key for visa: " + did;
         return doc.verify(pKey);
     }
 

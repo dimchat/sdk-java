@@ -32,11 +32,11 @@ package chat.dim.core;
 
 import java.util.List;
 
-import chat.dim.crypto.EncryptKey;
-import chat.dim.crypto.VerifyKey;
 import chat.dim.protocol.Document;
+import chat.dim.protocol.EncryptKey;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
+import chat.dim.protocol.VerifyKey;
 
 public interface Archivist {
 

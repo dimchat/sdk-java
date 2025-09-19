@@ -36,12 +36,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import chat.dim.crypto.SymmetricKey;
-import chat.dim.format.TransportableData;
 import chat.dim.format.UTF8;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.SecureMessage;
+import chat.dim.protocol.SymmetricKey;
+import chat.dim.protocol.TransportableData;
 
 public class InstantMessagePacker {
 
