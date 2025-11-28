@@ -44,7 +44,6 @@ import chat.dim.protocol.ID;
  *      owner
  *      members
  *      administrators - Optional
- *      assistants     - group bots
  *  </pre>
  */
 public interface Group extends Entity {
@@ -59,9 +58,6 @@ public interface Group extends Entity {
     // NOTICE: the owner must be a member
     //         (usually the first one)
     List<ID> getMembers();
-
-    // group bots
-    List<ID> getAssistants();
 
     /**
      *  Group Data Source
@@ -97,12 +93,5 @@ public interface Group extends Entity {
          */
         List<ID> getMembers(ID group);
 
-        /**
-         *  Get assistants for this group
-         *
-         * @param group - group ID
-         * @return bot ID list
-         */
-        List<ID> getAssistants(ID group);
     }
 }

@@ -86,11 +86,4 @@ public class BaseGroup extends BaseEntity implements Group {
         return facebook.getMembers(identifier);
     }
 
-    @Override
-    public List<ID> getAssistants() {
-        Group.DataSource facebook = getDataSource();
-        assert facebook != null : "group delegate not set yet";
-        return facebook.getAssistants(identifier);
-    }
-
 }
