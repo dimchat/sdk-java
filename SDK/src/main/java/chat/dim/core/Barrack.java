@@ -52,44 +52,44 @@ public abstract class Barrack {
 
     public abstract void cacheGroup(Group group);
 
-    public abstract User getUser(ID identifier);
+    public abstract User getUser(ID uid);
 
-    public abstract Group getGroup(ID identifier);
+    public abstract Group getGroup(ID gid);
 
     /**
      *  Create user when visa.key exists
      *
-     * @param identifier - user ID
+     * @param uid - user ID
      * @return user, null on not ready
      */
-    public User createUser(ID identifier) {
-        assert identifier.isUser() : "user ID error: " + identifier;
-        int network = identifier.getType();
+    public User createUser(ID uid) {
+        assert uid.isUser() : "user ID error: " + uid;
+        int network = uid.getType();
         // check user type
         if (EntityType.STATION.equals(network)) {
-            return new Station(identifier);
+            return new Station(uid);
         } else if (EntityType.BOT.equals(network)) {
-            return new Bot(identifier);
+            return new Bot(uid);
         }
         // general user, or 'anyone@anywhere'
-        return new BaseUser(identifier);
+        return new BaseUser(uid);
     }
 
     /**
      *  Create group when members exist
      *
-     * @param identifier - group ID
+     * @param gid - group ID
      * @return group, null on not ready
      */
-    public Group createGroup(ID identifier) {
-        assert identifier.isGroup() : "group ID error: " + identifier;
-        int network = identifier.getType();
+    public Group createGroup(ID gid) {
+        assert gid.isGroup() : "group ID error: " + gid;
+        int network = gid.getType();
         // check group type
         if (EntityType.ISP.equals(network)) {
-            return new ServiceProvider(identifier);
+            return new ServiceProvider(gid);
         }
         // general group, or 'everyone@everywhere'
-        return new BaseGroup(identifier);
+        return new BaseGroup(gid);
     }
 
 }

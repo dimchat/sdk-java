@@ -39,9 +39,9 @@ import chat.dim.protocol.ID;
  */
 public class Bot extends BaseUser {
 
-    public Bot(ID identifier) {
-        super(identifier);
-        assert EntityType.BOT.equals(identifier.getType()) : "Bot ID error: " + identifier;
+    public Bot(ID uid) {
+        super(uid);
+        assert EntityType.BOT.equals(uid.getType()) : "Bot ID error: " + uid;
     }
 
     /**

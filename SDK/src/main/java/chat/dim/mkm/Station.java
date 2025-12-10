@@ -59,18 +59,18 @@ public class Station implements User {
 
     private ID isp;
 
-    public Station(ID identifier, String host, int port) {
+    public Station(ID sid, String host, int port) {
         super();
-        assert EntityType.STATION.equals(identifier.getType()) || EntityType.ANY.equals(identifier.getType())
-                : "station ID error: " + identifier;
-        this.user = new BaseUser(identifier);
+        assert EntityType.STATION.equals(sid.getType()) || EntityType.ANY.equals(sid.getType())
+                : "station ID error: " + sid;
+        this.user = new BaseUser(sid);
         this.host = host;
         this.port = port;
         this.isp = null;
     }
 
-    public Station(ID identifier) {
-        this(identifier, null, 0);
+    public Station(ID sid) {
+        this(sid, null, 0);
     }
 
     public Station(String host, int port) {
@@ -94,9 +94,9 @@ public class Station implements User {
     @Override
     public String toString() {
         String className = getClass().getSimpleName();
-        ID identifier = getIdentifier();
-        int network = identifier.getAddress().getNetwork();
-        return "<" + className + " id=\"" + identifier + "\" network=" + network +
+        ID sid = getIdentifier();
+        int network = sid.getAddress().getNetwork();
+        return "<" + className + " id=\"" + sid + "\" network=" + network +
                 " host=\"" + getHost() + "\" port=" + getPort() + " />";
     }
 
@@ -151,9 +151,9 @@ public class Station implements User {
         return isp;
     }
 
-    public void setIdentifier(ID identifier) {
+    public void setIdentifier(ID sid) {
         DataSource delegate = getDataSource();
-        User inner = new BaseUser(identifier);
+        User inner = new BaseUser(sid);
         inner.setDataSource(delegate);
         user = inner;
     }

@@ -42,9 +42,9 @@ import chat.dim.protocol.ID;
  */
 public class ServiceProvider extends BaseGroup {
 
-    public ServiceProvider(ID identifier) {
-        super(identifier);
-        assert EntityType.ISP.equals(identifier.getType()) : "SP ID error: " + identifier;
+    public ServiceProvider(ID pid) {
+        super(pid);
+        assert EntityType.ISP.equals(pid.getType()) : "SP ID error: " + pid;
     }
 
     /**

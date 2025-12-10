@@ -41,8 +41,8 @@ public class BaseGroup extends BaseEntity implements Group {
     // once the group founder is set, it will never change
     private ID founder = null;
 
-    public BaseGroup(ID identifier) {
-        super(identifier);
+    public BaseGroup(ID gid) {
+        super(gid);
     }
 
     @Override

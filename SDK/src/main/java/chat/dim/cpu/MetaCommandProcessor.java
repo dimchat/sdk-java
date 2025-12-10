@@ -60,40 +60,40 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
         assert content instanceof MetaCommand : "meta command error: " + content;
         MetaCommand command = (MetaCommand) content;
         Meta meta = command.getMeta();
-        ID identifier = command.getIdentifier();
-        if (identifier == null) {
+        ID did = command.getIdentifier();
+        if (did == null) {
             assert false : "meta ID cannot be empty: " + command;
             return respondReceipt("Meta command error.", rMsg.getEnvelope(), command, null);
         } else if (meta == null) {
             // query meta for ID
-            return getMeta(identifier, rMsg.getEnvelope(), command);
+            return getMeta(did, rMsg.getEnvelope(), command);
         }
         // received a meta for ID
-        return putMeta(meta, identifier, rMsg.getEnvelope(), command);
+        return putMeta(meta, did, rMsg.getEnvelope(), command);
     }
 
-    private List<Content> getMeta(ID identifier, Envelope envelope, MetaCommand content) {
+    private List<Content> getMeta(ID did, Envelope envelope, MetaCommand content) {
         Facebook facebook = getFacebook();
-        Meta meta = facebook.getMeta(identifier);
+        Meta meta = facebook.getMeta(did);
         if (meta == null) {
             return respondReceipt("Meta not found.", envelope, content, newMap(
                     "template", "Meta not found: ${did}.",
                     "replacements", newMap(
-                            "did", identifier.toString()
+                            "did", did.toString()
                     )
             ));
         }
         // meta got
-        MetaCommand res = MetaCommand.response(identifier, meta);
+        MetaCommand res = MetaCommand.response(did, meta);
         List<Content> responses = new ArrayList<>();
         responses.add(res);
         return responses;
     }
 
-    private List<Content> putMeta(Meta meta, ID identifier, Envelope envelope, MetaCommand content) {
+    private List<Content> putMeta(Meta meta, ID did, Envelope envelope, MetaCommand content) {
         List<Content> errors;
         // 1. try to save meta
-        errors = saveMeta(meta, identifier, envelope, content);
+        errors = saveMeta(meta, did, envelope, content);
         if (errors != null) {
             // failed
             return errors;
@@ -102,33 +102,33 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
         return respondReceipt("Meta received.", envelope, content, newMap(
                 "template", "Meta received: ${did}.",
                 "replacements", newMap(
-                        "did", identifier.toString()
+                        "did", did.toString()
                 )
         ));
     }
 
     // return null on success
-    protected List<Content> saveMeta(Meta meta, ID identifier, Envelope envelope, MetaCommand content) {
+    protected List<Content> saveMeta(Meta meta, ID did, Envelope envelope, MetaCommand content) {
         Archivist archivist = getArchivist();
         if (archivist == null) {
             assert false : "archivist not ready";
             return null;
         }
         // check meta
-        if (!checkMeta(meta, identifier)) {
+        if (!checkMeta(meta, did)) {
             // meta invalid
             return respondReceipt("Meta not valid.", envelope, content, newMap(
                     "template", "Meta not valid: ${did}.",
                     "replacements", newMap(
-                            "did", identifier.toString()
+                            "did", did.toString()
                     )
             ));
-        } else if (!archivist.saveMeta(meta, identifier)) {
+        } else if (!archivist.saveMeta(meta, did)) {
             // DB error?
             return respondReceipt("Meta not accepted.", envelope, content, newMap(
                     "template", "Meta not accepted: ${did}.",
                     "replacements", newMap(
-                            "did", identifier.toString()
+                            "did", did.toString()
                     )
             ));
         }
@@ -136,8 +136,8 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
         return null;
     }
 
-    protected boolean checkMeta(Meta meta, ID identifier) {
-        return meta.isValid() && MetaUtils.matches(identifier, meta);
+    protected boolean checkMeta(Meta meta, ID did) {
+        return meta.isValid() && MetaUtils.matches(did, meta);
     }
 
 }

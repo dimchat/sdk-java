@@ -44,14 +44,14 @@ public interface MetaUtils {
      *      (must call this when received a new meta from network)
      *  </p>
      *
-     * @param identifier - entity ID
+     * @param did - entity ID
      * @return true on matched
      */
-    static boolean matches(ID identifier, Meta meta) {
+    static boolean matches(ID did, Meta meta) {
         assert meta.isValid() : "meta not valid: " + meta;
         // check ID.name
         String seed = meta.getSeed();
-        String name = identifier.getName();
+        String name = did.getName();
         if (name == null || name.isEmpty()) {
             if (seed != null && seed.length() > 0) {
                 return false;
@@ -60,8 +60,8 @@ public interface MetaUtils {
             return false;
         }
         // check ID.address
-        Address old = identifier.getAddress();
-        //assert old != null : "ID error: " + identifier;
+        Address old = did.getAddress();
+        //assert old != null : "ID error: " + did;
         Address gen = Address.generate(meta, old.getNetwork());
         assert gen != null : "failed to generate address: " + old;
         return old.equals(gen);

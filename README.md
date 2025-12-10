@@ -90,17 +90,17 @@ public class AppCustomizedProcessor extends CustomizedContentProcessor {
         super(facebook, messenger);
     }
 
-    public void setHandler(String app, String mod, CustomizedContentHandler handler) {
+    public void setContentHandler(String app, String mod, CustomizedContentHandler handler) {
         handlers.put(app + ":" + mod, handler);
     }
 
-    protected CustomizedContentHandler getHandler(String app, String mod) {
+    protected CustomizedContentHandler getContentHandler(String app, String mod) {
         return handlers.get(app + ":" + mod);
     }
 
     @Override
     protected CustomizedContentHandler filter(String app, String mod, CustomizedContent content, ReliableMessage rMsg) {
-        CustomizedContentHandler handler = getHandler(app, mod);
+        CustomizedContentHandler handler = getContentHandler(app, mod);
         if (handler != null) {
             return handler;
         }
@@ -198,7 +198,7 @@ public class ClientContentProcessorCreator extends BaseContentProcessorCreator {
         AppCustomizedProcessor cpu = new AppCustomizedProcessor(facebook, messenger);
 
         // 'chat.dim.group:history'
-        cpu.setHandler(
+        cpu.setContentHandler(
                 GroupHistory.APP,
                 GroupHistory.MOD,
                 new GroupHistoryHandler(facebook, messenger)
@@ -236,45 +236,6 @@ public class ClientContentProcessorCreator extends BaseContentProcessorCreator {
         // others
         return super.createCommandProcessor(type, name);
     }
-}
-```
-
-### ExtensionLoader
-
-```java
-import chat.dim.dkd.AppCustomizedContent;
-import chat.dim.plugins.ExtensionLoader;
-import chat.dim.protocol.*;
-
-
-/**
- *  Extensions Loader
- *  ~~~~~~~~~~~~~~~~~
- */
-public class CommonExtensionLoader extends ExtensionLoader {
-
-    @Override
-    protected void registerCustomizedFactories() {
-
-        // Application Customized
-        setContentFactory(ContentType.CUSTOMIZED, "customized", AppCustomizedContent::new);
-        setContentFactory(ContentType.APPLICATION, "application", AppCustomizedContent::new);
-
-        //super.registerCustomizedFactories();
-    }
-
-    /**
-     *  Command factories
-     */
-    @Override
-    protected void registerCommandFactories() {
-        super.registerCommandFactories();
-
-        // Handshake
-        setCommandFactory(HandshakeCommand.HANDSHAKE, HandshakeCommand::new);
-
-    }
-
 }
 ```
 

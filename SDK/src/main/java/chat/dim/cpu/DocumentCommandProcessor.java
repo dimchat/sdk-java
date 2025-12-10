@@ -56,39 +56,39 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
     public List<Content> processContent(Content content, ReliableMessage rMsg) {
         assert content instanceof DocumentCommand : "document command error: " + content;
         DocumentCommand command = (DocumentCommand) content;
-        ID identifier = command.getIdentifier();
+        ID did = command.getIdentifier();
         List<Document> docs = command.getDocuments();
-        if (identifier == null) {
+        if (did == null) {
             assert false : "doc ID cannot be empty: " + command;
             return respondReceipt("Document command error.", rMsg.getEnvelope(), command, null);
         } else if (docs == null) {
             // query entity documents for ID
-            return getDocuments(identifier, rMsg.getEnvelope(), command);
+            return getDocuments(did, rMsg.getEnvelope(), command);
         }
         // check document ID
         for (Document document : docs) {
-            if (!identifier.equals(document.getIdentifier())) {
+            if (!did.equals(document.getIdentifier())) {
                 // error
                 return respondReceipt("Document ID not match.", rMsg.getEnvelope(), command, newMap(
                         "template", "Document ID not match: ${did}.",
                         "replacements", newMap(
-                                "did", identifier.toString()
+                                "did", did.toString()
                         )
                 ));
             }
         }
         // received new documents
-        return putDocuments(identifier, docs, rMsg.getEnvelope(), command);
+        return putDocuments(did, docs, rMsg.getEnvelope(), command);
     }
 
-    private List<Content> getDocuments(ID identifier, Envelope envelope, DocumentCommand content) {
+    private List<Content> getDocuments(ID did, Envelope envelope, DocumentCommand content) {
         Facebook facebook = getFacebook();
-        List<Document> documents = facebook.getDocuments(identifier);
+        List<Document> documents = facebook.getDocuments(did);
         if (documents == null || documents.isEmpty()) {
             return respondReceipt("Document not found.", envelope, content, newMap(
                     "template", "Document not found: ${did}.",
                     "replacements", newMap(
-                            "did", identifier.toString()
+                            "did", did.toString()
                     )
             ));
         }
@@ -106,43 +106,43 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
                 return respondReceipt("Document not updated.", envelope, content, newMap(
                         "template", "Document not updated: ${did}, last time: ${time}.",
                         "replacements", newMap(
-                                "did", identifier.toString(),
+                                "did", did.toString(),
                                 "time", lastTime.getTime() / 1000.0d
                         )
                 ));
             }
         }
-        Meta meta = facebook.getMeta(identifier);
+        Meta meta = facebook.getMeta(did);
         List<Content> responses = new ArrayList<>();
         // respond first document with meta
-        DocumentCommand command = DocumentCommand.response(identifier, meta, documents.get(0));
+        DocumentCommand command = DocumentCommand.response(did, meta, documents.get(0));
         responses.add(command);
         for (int i = 1; i < documents.size(); ++i) {
             // respond other documents
-            command = DocumentCommand.response(identifier, documents.get(i));
+            command = DocumentCommand.response(did, documents.get(i));
             responses.add(command);
         }
         return responses;
     }
 
-    private List<Content> putDocuments(ID identifier, List<Document> docs, Envelope envelope, DocumentCommand content) {
+    private List<Content> putDocuments(ID did, List<Document> docs, Envelope envelope, DocumentCommand content) {
         Facebook facebook = getFacebook();
         List<Content> errors;
         Meta meta = content.getMeta();
         // 0. check meta
         if (meta == null) {
-            meta = facebook.getMeta(identifier);
+            meta = facebook.getMeta(did);
             if (meta == null) {
                 return respondReceipt("Meta not found.", envelope, content, newMap(
                         "template", "Meta not found: ${did}.",
                         "replacements", newMap(
-                                "did", identifier.toString()
+                                "did", did.toString()
                         )
                 ));
             }
         } else {
             // 1. try to save meta
-            errors = saveMeta(meta, identifier, envelope, content);
+            errors = saveMeta(meta, did, envelope, content);
             if (errors != null) {
                 // failed
                 return errors;
@@ -152,7 +152,7 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         errors = new ArrayList<>();
         List<Content> res;
         for (Document document : docs) {
-            res = saveDocument(document, meta, identifier, envelope, content);
+            res = saveDocument(document, meta, did, envelope, content);
             if (res != null) {
                 // failed
                 errors.addAll(res);
@@ -166,13 +166,13 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         return respondReceipt("Document received.", envelope, content, newMap(
                 "template", "Document received: ${did}.",
                 "replacements", newMap(
-                        "did", identifier.toString()
+                        "did", did.toString()
                 )
         ));
     }
 
     // return null on success
-    protected List<Content> saveDocument(Document doc, Meta meta, ID identifier, Envelope envelope, DocumentCommand content) {
+    protected List<Content> saveDocument(Document doc, Meta meta, ID did, Envelope envelope, DocumentCommand content) {
         Archivist archivist = getArchivist();
         if (archivist == null) {
             assert false : "archivist not ready";
@@ -184,7 +184,7 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
             return respondReceipt("Document not accepted.", envelope, content, newMap(
                     "template", "Document not accepted: ${did}.",
                     "replacements", newMap(
-                            "did", identifier.toString()
+                            "did", did.toString()
                     )
             ));
         } else if (!archivist.saveDocument(doc)) {
@@ -192,7 +192,7 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
             return respondReceipt("Document not changed.", envelope, content, newMap(
                     "template", "Document not changed: ${did}.",
                     "replacements", newMap(
-                            "did", identifier.toString()
+                            "did", did.toString()
                     )
             ));
         }

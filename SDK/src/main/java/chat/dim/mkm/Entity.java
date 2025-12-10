@@ -47,7 +47,7 @@ import chat.dim.protocol.Meta;
  *      identifier - entity ID
  *      type       - entity type
  *      meta       - meta for generate ID
- *      document   - visa for user, or bulletin for group
+ *      documents  - visa for user, or bulletin for group
  *  </pre>
  */
 public interface Entity {
@@ -87,18 +87,18 @@ public interface Entity {
         /**
          *  Get meta for entity ID
          *
-         * @param identifier - entity ID
+         * @param uid - entity ID
          * @return meta object
          */
-        Meta getMeta(ID identifier);
+        Meta getMeta(ID uid);
 
         /**
          *  Get document for entity ID
          *
-         * @param identifier - entity ID
+         * @param uid - entity ID
          * @return Document
          */
-        List<Document> getDocuments(ID identifier);
+        List<Document> getDocuments(ID uid);
     }
 
     /**
@@ -109,17 +109,17 @@ public interface Entity {
         /**
          *  Create user with ID
          *
-         * @param identifier - user ID
+         * @param uid - user ID
          * @return user
          */
-        User getUser(ID identifier);
+        User getUser(ID uid);
 
         /**
          *  Create group with ID
          *
-         * @param identifier - group ID
+         * @param gid - group ID
          * @return group
          */
-        Group getGroup(ID identifier);
+        Group getGroup(ID gid);
     }
 }

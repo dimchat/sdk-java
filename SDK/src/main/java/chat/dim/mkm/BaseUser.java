@@ -42,8 +42,8 @@ import chat.dim.protocol.Visa;
 
 public class BaseUser extends BaseEntity implements User {
 
-    public BaseUser(ID identifier) {
-        super(identifier);
+    public BaseUser(ID uid) {
+        super(uid);
     }
 
     @Override

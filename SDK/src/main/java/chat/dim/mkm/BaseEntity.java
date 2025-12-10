@@ -43,9 +43,9 @@ public class BaseEntity implements Entity {
 
     private WeakReference<DataSource> facebookRef = null;
 
-    public BaseEntity(ID id) {
+    public BaseEntity(ID did) {
         super();
-        identifier = id;
+        identifier = did;
     }
 
     @Override

@@ -106,24 +106,24 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
     //-------- Entity Delegate
 
     @Override
-    public User getUser(ID identifier) {
-        assert identifier.isUser() : "user ID error: " + identifier;
+    public User getUser(ID uid) {
+        assert uid.isUser() : "user ID error: " + uid;
         Barrack barrack = getBarrack();
         assert barrack != null : "barrack not ready";
         //
         //  1. get from user cache
         //
-        User user = barrack.getUser(identifier);
+        User user = barrack.getUser(uid);
         if (user != null) {
             return user;
         }
         //
         //  2. check visa key
         //
-        if (!identifier.isBroadcast()) {
-            EncryptKey visaKey = getPublicKeyForEncryption(identifier);
+        if (!uid.isBroadcast()) {
+            EncryptKey visaKey = getPublicKeyForEncryption(uid);
             if (visaKey == null) {
-                assert false : "visa.key not found: " + identifier;
+                assert false : "visa.key not found: " + uid;
                 return null;
             }
             // NOTICE: if visa.key exists, then visa & meta must exist too.
@@ -131,7 +131,7 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
         //
         //  3. create user and cache it
         //
-        user = barrack.createUser(identifier);
+        user = barrack.createUser(uid);
         if (user != null) {
             barrack.cacheUser(user);
         }
@@ -139,24 +139,24 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
     }
 
     @Override
-    public Group getGroup(ID identifier) {
-        assert identifier.isGroup() : "group ID error: " + identifier;
+    public Group getGroup(ID gid) {
+        assert gid.isGroup() : "group ID error: " + gid;
         Barrack barrack = getBarrack();
         assert barrack != null : "barrack not ready";
         //
         //  1. get from group cache
         //
-        Group group = barrack.getGroup(identifier);
+        Group group = barrack.getGroup(gid);
         if (group != null) {
             return group;
         }
         //
         //  2. check members
         //
-        if (!identifier.isBroadcast()) {
-            List<ID> members = getMembers(identifier);
+        if (!gid.isBroadcast()) {
+            List<ID> members = getMembers(gid);
             if (members == null || members.isEmpty()) {
-                assert false : "group members not found: " + identifier;
+                assert false : "group members not found: " + gid;
                 return null;
             }
             // NOTICE: if members exist, then owner (founder) must exist,
@@ -165,7 +165,7 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
         //
         //  3. create group and cache it
         //
-        group = barrack.createGroup(identifier);
+        group = barrack.createGroup(gid);
         if (group != null) {
             barrack.cacheGroup(group);
         }
