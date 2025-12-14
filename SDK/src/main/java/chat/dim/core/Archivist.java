@@ -43,8 +43,8 @@ public interface Archivist {
     /**
      *  Save meta for entity ID (must verify first)
      *
-     * @param meta - entity meta
      * @param did  - entity ID
+     * @param meta - entity meta
      * @return true on success
      */
     boolean saveMeta(Meta meta, ID did);
@@ -52,10 +52,11 @@ public interface Archivist {
     /**
      *  Save entity document with ID (must verify first)
      *
+     * @param did  - entity ID
      * @param doc - entity document
      * @return true on success
      */
-    boolean saveDocument(Document doc);
+    boolean saveDocument(Document doc, ID did);
 
     //
     //  Public Keys

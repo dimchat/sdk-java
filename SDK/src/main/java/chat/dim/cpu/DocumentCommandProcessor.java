@@ -66,16 +66,23 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
             return getDocuments(did, rMsg.getEnvelope(), command);
         }
         // check document ID
+        Object docID;
         for (Document document : docs) {
-            if (!did.equals(document.getIdentifier())) {
-                // error
-                return respondReceipt("Document ID not match.", rMsg.getEnvelope(), command, newMap(
-                        "template", "Document ID not match: ${did}.",
-                        "replacements", newMap(
-                                "did", did.toString()
-                        )
-                ));
+            docID = document.get("did");
+            if (docID == null) {
+                assert false : "document ID not found: " + document;
+                continue;
+            } else if (did.equals(docID)) {
+                // ID matched
+                continue;
             }
+            // error
+            return respondReceipt("Document ID not match.", rMsg.getEnvelope(), command, newMap(
+                    "template", "Document ID not match: ${did}.",
+                    "replacements", newMap(
+                            "did", did.toString()
+                    )
+            ));
         }
         // received new documents
         return putDocuments(did, docs, rMsg.getEnvelope(), command);
@@ -187,7 +194,7 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
                             "did", did.toString()
                     )
             ));
-        } else if (!archivist.saveDocument(doc)) {
+        } else if (!archivist.saveDocument(doc, did)) {
             // document expired
             return respondReceipt("Document not changed.", envelope, content, newMap(
                     "template", "Document not changed: ${did}.",

@@ -200,7 +200,7 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
         // [Visa Protocol]
         Visa visa = MessageUtils.getVisa(rMsg);
         if (visa != null) {
-            archivist.saveDocument(visa);
+            archivist.saveDocument(visa, sender);
         }
         //
         //  TODO: check [Visa Protocol] before calling this
