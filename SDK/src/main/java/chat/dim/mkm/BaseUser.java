@@ -134,12 +134,12 @@ public class BaseUser extends BaseEntity implements User {
 
     @Override
     public Visa sign(Visa doc) {
-        ID did = doc.getIdentifier();
-        assert identifier.equals(did) : "visa ID not match: " + identifier + ", " + did;
+        ID did = ID.parse(doc.get("did"));
+        assert did == null || identifier.equals(did) : "visa ID not match: " + identifier + ", " + did;
         User.DataSource facebook = getDataSource();
         assert facebook != null : "user delegate not set yet";
         // NOTICE: only sign visa with the private key paired with your meta.key
-        SignKey sKey = facebook.getPrivateKeyForVisaSignature(did);
+        SignKey sKey = facebook.getPrivateKeyForVisaSignature(identifier);
         assert sKey != null : "failed to get sign key for visa: " + did;
         if (doc.sign(sKey) == null) {
             assert false : "failed to sign visa: " + did + ", " + doc;
@@ -152,11 +152,8 @@ public class BaseUser extends BaseEntity implements User {
     public boolean verify(Visa doc) {
         // NOTICE: only verify visa with meta.key
         //         (if meta not exists, user won't be created)
-        ID did = doc.getIdentifier();
-        if (!identifier.equals(did)) {
-            // visa ID not match
-            return false;
-        }
+        ID did = ID.parse(doc.get("did"));
+        assert did == null || identifier.equals(did) : "visa ID not match: " + identifier + ", " + did;
         VerifyKey pKey = getMeta().getPublicKey();
         assert pKey != null : "failed to get verify key for visa: " + did;
         return doc.verify(pKey);
