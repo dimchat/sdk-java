@@ -42,27 +42,46 @@ import chat.dim.protocol.ID;
  */
 public class ServiceProvider extends BaseGroup {
 
+    protected List<Document> documents;
+
     public ServiceProvider(ID pid) {
         super(pid);
         assert EntityType.ISP.equals(pid.getType()) : "SP ID error: " + pid;
+        this.documents = null;
     }
 
     /**
-     *  Provider Document
+     *  Reload bot info
      */
-    public Document getProfile() {
-        List<Document> documents = getDocuments();
-        return DocumentUtils.lastDocument(documents, "*");
+    public void reload() {
+        documents = getDocuments();
+    }
+
+    /**
+     *  Get last property
+     */
+    public Object getProfile(String key) {
+        List<Document> docs = documents;
+        if (docs == null) {
+            return null;
+        }
+        // TODO: sort by doc.time DESC
+        Object value;
+        for (Document doc : docs) {
+            value = doc.getProperty(key);
+            if (value != null) {
+                return value;
+            }
+        }
+        // property not found
+        return null;
     }
 
     @SuppressWarnings("unchecked")
     public List<Map<String, Object>> getStations() {
-        Document doc = getProfile();
-        if (doc != null) {
-            Object stations = doc.getProperty("stations");
-            if (stations instanceof List) {
-                return (List<Map<String, Object>>) stations;
-            }
+        Object stations = getProfile("stations");
+        if (stations instanceof List) {
+            return (List<Map<String, Object>>) stations;
         }
         // TODO: load from local storage
         return null;

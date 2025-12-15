@@ -57,8 +57,6 @@ import chat.dim.protocol.Visa;
  */
 public interface User extends Entity {
 
-    Visa getVisa();
-
     /**
      *  Get all contacts of the user
      *

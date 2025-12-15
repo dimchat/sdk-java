@@ -30,6 +30,8 @@
  */
 package chat.dim.mkm;
 
+import java.util.List;
+
 import chat.dim.protocol.Document;
 import chat.dim.protocol.EntityType;
 import chat.dim.protocol.ID;
@@ -39,16 +41,39 @@ import chat.dim.protocol.ID;
  */
 public class Bot extends BaseUser {
 
+    protected List<Document> documents;
+
     public Bot(ID uid) {
         super(uid);
         assert EntityType.BOT.equals(uid.getType()) : "Bot ID error: " + uid;
+        this.documents = null;
     }
 
     /**
-     *  Bot Document
+     *  Reload bot info
      */
-    public Document getProfile() {
-        return getVisa();
+    public void reload() {
+        documents = getDocuments();
+    }
+
+    /**
+     *  Get last property
+     */
+    public Object getProfile(String key) {
+        List<Document> docs = documents;
+        if (docs == null) {
+            return null;
+        }
+        // TODO: sort by doc.time DESC
+        Object value;
+        for (Document doc : docs) {
+            value = doc.getProperty(key);
+            if (value != null) {
+                return value;
+            }
+        }
+        // property not found
+        return null;
     }
 
     /**
@@ -57,10 +82,7 @@ public class Bot extends BaseUser {
      * @return ICP ID, bot group
      */
     public ID getProvider() {
-        Document doc = getProfile();
-        if (doc == null) {
-            return null;
-        }
-        return ID.parse(doc.getProperty("provider"));
+        return ID.parse(getProfile("provider"));
     }
+
 }

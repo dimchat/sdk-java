@@ -32,7 +32,6 @@ package chat.dim.mkm;
 
 import java.util.List;
 
-import chat.dim.protocol.Bulletin;
 import chat.dim.protocol.ID;
 
 /**
@@ -47,9 +46,6 @@ import chat.dim.protocol.ID;
  *  </pre>
  */
 public interface Group extends Entity {
-
-    // group document
-    Bulletin getBulletin();
 
     ID getFounder();
 

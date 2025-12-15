@@ -58,7 +58,7 @@ public class Station implements User {
     private String host;
     private int port;
 
-    private ID isp;
+    protected List<Document> documents;
 
     public Station(ID sid, String host, int port) {
         super();
@@ -67,7 +67,7 @@ public class Station implements User {
         this.user = new BaseUser(sid);
         this.host = host;
         this.port = port;
-        this.isp = null;
+        this.documents = null;
     }
 
     public Station(ID sid) {
@@ -105,30 +105,51 @@ public class Station implements User {
      *  Reload station info: host &amp; port, SP ID
      */
     public void reload() {
-        Document doc = getProfile();
-        if (doc != null) {
-            String docHost = Converter.getString(doc.getProperty("host"));
+        documents = getDocuments();
+        // update station host
+        if (host == null) {
+            String docHost = Converter.getString(getProfile("host"));
             if (docHost != null) {
                 host = docHost;
             }
-            Integer docPort = Converter.getInteger(doc.getProperty("port"));
+        }
+        // update station port
+        if (port == 0) {
+            Integer docPort = Converter.getInteger(getProfile("port"));
             if (docPort != null && docPort > 0) {
                 assert 16 < docPort && docPort < 65536 : "station port error: " + docPort;
                 port = docPort;
-            }
-            ID docISP = ID.parse(doc.getProperty("provider"));
-            if (docISP != null) {
-                isp = docISP;
             }
         }
     }
 
     /**
-     *  Station Document
+     *  Get last property
      */
-    public Document getProfile() {
-        List<Document> documents = getDocuments();
-        return DocumentUtils.lastDocument(documents, "*");
+    public Object getProfile(String key) {
+        List<Document> docs = documents;
+        if (docs == null) {
+            return null;
+        }
+        // TODO: sort by doc.time DESC
+        Object value;
+        for (Document doc : docs) {
+            value = doc.getProperty(key);
+            if (value != null) {
+                return value;
+            }
+        }
+        // property not found
+        return null;
+    }
+
+    /**
+     *  Get provider ID
+     *
+     * @return ISP ID, station group
+     */
+    public ID getProvider() {
+        return ID.parse(getProfile("provider"));
     }
 
     /**
@@ -143,13 +164,6 @@ public class Station implements User {
      */
     public int getPort() {
         return port;
-    }
-
-    /**
-     *  ISP ID, station group
-     */
-    public ID getProvider() {
-        return isp;
     }
 
     public void setIdentifier(ID sid) {
@@ -197,11 +211,6 @@ public class Station implements User {
     }
 
     //-------- User
-
-    @Override
-    public Visa getVisa() {
-        return user.getVisa();
-    }
 
     @Override
     public List<ID> getContacts() {

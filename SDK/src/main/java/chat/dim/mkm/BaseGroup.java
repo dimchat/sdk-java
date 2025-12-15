@@ -32,8 +32,6 @@ package chat.dim.mkm;
 
 import java.util.List;
 
-import chat.dim.protocol.Bulletin;
-import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 
 public class BaseGroup extends BaseEntity implements Group {
@@ -54,12 +52,6 @@ public class BaseGroup extends BaseEntity implements Group {
             assert facebook == null : "group data source error: " + facebook;
             return null;
         }
-    }
-
-    @Override
-    public Bulletin getBulletin() {
-        List<Document> documents = getDocuments();
-        return DocumentUtils.lastBulletin(documents);
     }
 
     @Override

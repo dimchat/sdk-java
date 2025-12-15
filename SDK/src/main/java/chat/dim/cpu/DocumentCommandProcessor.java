@@ -37,7 +37,6 @@ import java.util.List;
 import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.core.Archivist;
-import chat.dim.mkm.DocumentUtils;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.DocumentCommand;
@@ -103,7 +102,7 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         Date queryTime = content.getLastTime();
         if (queryTime != null) {
             // check last document time
-            Document last = DocumentUtils.lastDocument(documents, null);
+            Document last = getLastDocument(documents);
             assert last != null : "should not happen";
             Date lastTime = last.getTime();
             if (lastTime == null) {
@@ -130,6 +129,25 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
             responses.add(command);
         }
         return responses;
+    }
+
+    protected Document getLastDocument(Iterable<Document> documents) {
+        Document lastDoc = null;
+        Date lastTime = null;
+        Date docTIme;
+        for (Document doc : documents) {
+            docTIme = doc.getTime();
+            if (lastTime == null) {
+                // first document
+                lastDoc = doc;
+                lastTime = docTIme;
+            } else if (docTIme != null && docTIme.after(lastTime)) {
+                // new document
+                lastDoc = doc;
+                lastTime = docTIme;
+            }
+        }
+        return lastDoc;
     }
 
     private List<Content> putDocuments(ID did, List<Document> docs, Envelope envelope, DocumentCommand content) {

@@ -65,12 +65,6 @@ public class BaseUser extends BaseEntity implements User {
     }
 
     @Override
-    public Visa getVisa() {
-        List<Document> documents = getDocuments();
-        return DocumentUtils.lastVisa(documents);
-    }
-
-    @Override
     public List<ID> getContacts() {
         User.DataSource facebook = getDataSource();
         if (facebook == null) {
