@@ -204,7 +204,7 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
             return null;
         }
         // check document
-        if (!checkDocument(doc, meta)) {
+        if (!checkDocument(doc, meta, did)) {
             // document invalid
             return respondReceipt("Document not accepted.", envelope, content, newMap(
                     "template", "Document not accepted: ${did}.",
@@ -225,9 +225,14 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         return null;
     }
 
-    protected boolean checkDocument(Document doc, Meta meta) {
+    protected boolean checkDocument(Document doc, Meta meta, ID did) {
+        // check meta/document valid
         if (doc.isValid()) {
+            // already verified
             return true;
+        } else if (!checkMeta(meta, did)) {
+            // meta error
+            return false;
         }
         // NOTICE: if this is a bulletin document for group,
         //             verify it with the group owner's meta.key
