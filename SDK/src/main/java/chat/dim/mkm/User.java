@@ -31,12 +31,11 @@
 package chat.dim.mkm;
 
 import java.util.List;
+import java.util.Map;
 
 import chat.dim.protocol.DecryptKey;
-import chat.dim.protocol.EncryptKey;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.SignKey;
-import chat.dim.protocol.VerifyKey;
 import chat.dim.protocol.Visa;
 
 /**
@@ -82,7 +81,7 @@ public interface User extends Entity {
      * @param plaintext - message data
      * @return encrypted data
      */
-    byte[] encrypt(byte[] plaintext);
+    Map<String, byte[]> encrypt(byte[] plaintext);
 
     //
     //  Interfaces for Local User
@@ -143,28 +142,6 @@ public interface User extends Entity {
          * @return contacts list (ID)
          */
         List<ID> getContacts(ID user);
-
-        /**
-         *  Get user's public key for encryption
-         *  <blockquote>
-         *      (visa.key or meta.key)
-         *  </blockquote>
-         *
-         * @param user - user ID
-         * @return visa.key or meta.key
-         */
-        EncryptKey getPublicKeyForEncryption(ID user);
-
-        /**
-         *  Get user's public keys for verification
-         *  <blockquote>
-         *      ([visa.key, meta.key])
-         *  </blockquote>
-         *
-         * @param user - user ID
-         * @return public keys
-         */
-        List<VerifyKey> getPublicKeysForVerification(ID user);
 
         /**
          *  Get user's private keys for decryption

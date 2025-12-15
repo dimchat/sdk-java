@@ -30,6 +30,8 @@
  */
 package chat.dim.msg;
 
+import java.util.Map;
+
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
@@ -107,7 +109,7 @@ public interface InstantMessageDelegate {
      * @param iMsg     - instant message object
      * @return encrypted symmetric key data, null on visa not found
      */
-    byte[] encryptKey(byte[] data, ID receiver, InstantMessage iMsg);
+    Map<String, byte[]> encryptKey(byte[] data, ID receiver, InstantMessage iMsg);
 
     /*
      *  6. Encode 'message.key' to String (Base64)

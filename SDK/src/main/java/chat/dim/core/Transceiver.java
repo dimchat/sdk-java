@@ -30,6 +30,8 @@
  */
 package chat.dim.core;
 
+import java.util.Map;
+
 import chat.dim.mkm.Entity;
 import chat.dim.mkm.User;
 import chat.dim.msg.BaseMessage;
@@ -119,7 +121,7 @@ public abstract class Transceiver implements InstantMessageDelegate, SecureMessa
     }
 
     @Override
-    public byte[] encryptKey(byte[] data, ID receiver, InstantMessage iMsg) {
+    public Map<String, byte[]> encryptKey(byte[] data, ID receiver, InstantMessage iMsg) {
         assert !BaseMessage.isBroadcast(iMsg) : "broadcast message has no key: " + iMsg;
         Entity.Delegate facebook = getFacebook();
         assert facebook != null : "entity delegate not set yet";

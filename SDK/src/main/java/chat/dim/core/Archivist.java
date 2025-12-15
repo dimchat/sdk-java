@@ -33,11 +33,12 @@ package chat.dim.core;
 import java.util.List;
 
 import chat.dim.protocol.Document;
-import chat.dim.protocol.EncryptKey;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
-import chat.dim.protocol.VerifyKey;
 
+/**
+ *  Database Access
+ */
 public interface Archivist {
 
     /**
@@ -57,26 +58,6 @@ public interface Archivist {
      * @return true on success
      */
     boolean saveDocument(Document doc, ID did);
-
-    //
-    //  Public Keys
-    //
-
-    /**
-     *  Get meta.key
-     *
-     * @param did - entity ID
-     * @return null on not found
-     */
-    VerifyKey getMetaKey(ID did);
-
-    /**
-     *  Get visa.key
-     *
-     * @param did - entity ID
-     * @return null on not found
-     */
-    EncryptKey getVisaKey(ID did);
 
     //
     //  Local Users

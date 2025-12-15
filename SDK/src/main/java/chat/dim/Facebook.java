@@ -30,7 +30,6 @@
  */
 package chat.dim;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import chat.dim.core.Archivist;
@@ -38,9 +37,7 @@ import chat.dim.core.Barrack;
 import chat.dim.mkm.Entity;
 import chat.dim.mkm.Group;
 import chat.dim.mkm.User;
-import chat.dim.protocol.EncryptKey;
 import chat.dim.protocol.ID;
-import chat.dim.protocol.VerifyKey;
 
 public abstract class Facebook implements Entity.Delegate, User.DataSource, Group.DataSource {
 
@@ -109,31 +106,18 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
     public User getUser(ID uid) {
         assert uid.isUser() : "user ID error: " + uid;
         Barrack barrack = getBarrack();
-        assert barrack != null : "barrack not ready";
-        //
-        //  1. get from user cache
-        //
+        if (barrack == null) {
+            assert false : "barrack not ready";
+            return null;
+        }
+        // get from user cache
         User user = barrack.getUser(uid);
-        if (user != null) {
-            return user;
-        }
-        //
-        //  2. check visa key
-        //
-        if (!uid.isBroadcast()) {
-            EncryptKey visaKey = getPublicKeyForEncryption(uid);
-            if (visaKey == null) {
-                assert false : "visa.key not found: " + uid;
-                return null;
+        if (user == null) {
+            // create user and cache it
+            user = barrack.createUser(uid);
+            if (user != null) {
+                barrack.cacheUser(user);
             }
-            // NOTICE: if visa.key exists, then visa & meta must exist too.
-        }
-        //
-        //  3. create user and cache it
-        //
-        user = barrack.createUser(uid);
-        if (user != null) {
-            barrack.cacheUser(user);
         }
         return user;
     }
@@ -142,90 +126,21 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
     public Group getGroup(ID gid) {
         assert gid.isGroup() : "group ID error: " + gid;
         Barrack barrack = getBarrack();
-        assert barrack != null : "barrack not ready";
-        //
-        //  1. get from group cache
+        if (barrack == null) {
+            assert false : "barrack not ready";
+            return null;
+        }
+        // get from group cache
         //
         Group group = barrack.getGroup(gid);
-        if (group != null) {
-            return group;
-        }
-        //
-        //  2. check members
-        //
-        if (!gid.isBroadcast()) {
-            List<ID> members = getMembers(gid);
-            if (members == null || members.isEmpty()) {
-                assert false : "group members not found: " + gid;
-                return null;
+        if (group == null) {
+            // create group and cache it
+            group = barrack.createGroup(gid);
+            if (group != null) {
+                barrack.cacheGroup(group);
             }
-            // NOTICE: if members exist, then owner (founder) must exist,
-            //         and bulletin & meta must exist too.
-        }
-        //
-        //  3. create group and cache it
-        //
-        group = barrack.createGroup(gid);
-        if (group != null) {
-            barrack.cacheGroup(group);
         }
         return group;
-    }
-
-    //-------- User DataSource
-
-    @Override
-    public EncryptKey getPublicKeyForEncryption(ID user) {
-        assert user.isUser() : "user ID error: " + user;
-        Archivist archivist = getArchivist();
-        assert archivist != null : "archivist not ready";
-        //
-        //  1. get pubic key from visa
-        //
-        EncryptKey visaKey = archivist.getVisaKey(user);
-        if (visaKey != null) {
-            // if visa.key exists, use it for encryption
-            return visaKey;
-        }
-        //
-        //  2. get key from meta
-        //
-        VerifyKey metaKey = archivist.getMetaKey(user);
-        if (metaKey instanceof EncryptKey) {
-            // if visa.key not exists and meta.key is encrypt key,
-            // use it for encryption
-            return (EncryptKey) metaKey;
-        }
-        //throw new NullPointerException("failed to get encrypt key for user: " + user);
-        return null;
-    }
-
-    @Override
-    public List<VerifyKey> getPublicKeysForVerification(ID user) {
-        // assert user.isUser() : "user ID error: " + user;
-        List<VerifyKey> keys = new ArrayList<>();
-        Archivist archivist = getArchivist();
-        assert archivist != null : "archivist not ready";
-        //
-        //  1. get pubic key from visa
-        //
-        EncryptKey visaKey = archivist.getVisaKey(user);
-        if (visaKey instanceof VerifyKey) {
-            // the sender may use communication key to sign message.data,
-            // try to verify it with visa.key first
-            keys.add((VerifyKey) visaKey);
-        }
-        //
-        //  2. get key from meta
-        //
-        VerifyKey metaKey = archivist.getMetaKey(user);
-        if (metaKey != null) {
-            // the sender may use identity key to sign message.data,
-            // try to verify it with meta.key too
-            keys.add(metaKey);
-        }
-        assert !keys.isEmpty() : "failed to get verify key for user: " + user;
-        return keys;
     }
 
 }

@@ -31,19 +31,27 @@
 package chat.dim.mkm;
 
 import java.util.List;
+import java.util.Map;
 
 import chat.dim.protocol.DecryptKey;
 import chat.dim.protocol.Document;
-import chat.dim.protocol.EncryptKey;
 import chat.dim.protocol.ID;
+import chat.dim.protocol.Meta;
 import chat.dim.protocol.SignKey;
 import chat.dim.protocol.VerifyKey;
 import chat.dim.protocol.Visa;
 
 public class BaseUser extends BaseEntity implements User {
 
+    private final VisaAgent visaAgent;
+
     public BaseUser(ID uid) {
         super(uid);
+        visaAgent = createVisaAgent();
+    }
+
+    protected VisaAgent createVisaAgent() {
+        return new VisaAgent();
     }
 
     @Override
@@ -65,15 +73,27 @@ public class BaseUser extends BaseEntity implements User {
     @Override
     public List<ID> getContacts() {
         User.DataSource facebook = getDataSource();
-        assert facebook != null : "user delegate not set yet";
+        if (facebook == null) {
+            assert false : "user datasource not set yet";
+            return null;
+        }
         return facebook.getContacts(identifier);
     }
 
     @Override
     public boolean verify(byte[] data, byte[] signature) {
-        User.DataSource facebook = getDataSource();
-        assert facebook != null : "user delegate not set yet";
-        List<VerifyKey> keys = facebook.getPublicKeysForVerification(identifier);
+        Meta meta = getMeta();
+        List<Document> documents = getDocuments();
+        if (meta == null || documents == null) {
+            assert false : "user not ready: " + identifier;
+            return false;
+        }
+        assert !documents.isEmpty() : "documents empty: " + identifier;
+        List<VerifyKey> keys = visaAgent.getVerifyKeys(meta, documents);
+        if (keys == null) {
+            assert false : "failed to get verify keys: " + identifier;
+            return false;
+        }
         assert !keys.isEmpty() : "failed to get verify keys: " + identifier;
         for (VerifyKey key : keys) {
             if (key.verify(data, signature)) {
@@ -87,14 +107,15 @@ public class BaseUser extends BaseEntity implements User {
     }
 
     @Override
-    public byte[] encrypt(byte[] plaintext) {
-        User.DataSource facebook = getDataSource();
-        assert facebook != null : "user delegate not set yet";
-        // NOTICE: meta.key will never changed, so use visa.key to encrypt message
-        //         is a better way
-        EncryptKey pKey = facebook.getPublicKeyForEncryption(identifier);
-        assert pKey != null : "failed to get encrypt key for user: " + identifier;
-        return pKey.encrypt(plaintext, null);
+    public Map<String, byte[]> encrypt(byte[] plaintext) {
+        Meta meta = getMeta();
+        List<Document> documents = getDocuments();
+        if (meta == null || documents == null) {
+            assert false : "user not ready: " + identifier;
+            return null;
+        }
+        assert !documents.isEmpty() : "documents empty: " + identifier;
+        return visaAgent.encrypt(plaintext, meta, documents);
     }
 
     //
@@ -103,20 +124,23 @@ public class BaseUser extends BaseEntity implements User {
 
     @Override
     public byte[] sign(byte[] data) {
-        User.DataSource facebook = getDataSource();
-        assert facebook != null : "user delegate not set yet";
-        SignKey sKey = facebook.getPrivateKeyForSignature(identifier);
-        assert sKey != null : "failed to get sign key for user: " + identifier;
+        SignKey sKey = getPrivateKeyForSignature();
+        if (sKey == null) {
+            assert false : "failed to get sign key for user: " + identifier;
+            return null;
+        }
         return sKey.sign(data);
     }
 
     @Override
     public byte[] decrypt(byte[] ciphertext) {
-        User.DataSource facebook = getDataSource();
-        assert facebook != null : "user delegate not set yet";
         // NOTICE: if you provide a public key in visa for encryption,
         //         here you should return the private key paired with visa.key
-        List<DecryptKey> keys = facebook.getPrivateKeysForDecryption(identifier);
+        List<DecryptKey> keys = getPrivateKeysForDecryption();
+        if (keys == null) {
+            assert false : "failed to get decrypt keys for user: " + identifier;
+            return null;
+        }
         assert !keys.isEmpty() : "failed to get decrypt keys for user: " + identifier;
         byte[] plaintext;
         for (DecryptKey key : keys) {
@@ -135,12 +159,13 @@ public class BaseUser extends BaseEntity implements User {
     @Override
     public Visa sign(Visa doc) {
         ID did = ID.parse(doc.get("did"));
-        assert did == null || identifier.equals(did) : "visa ID not match: " + identifier + ", " + did;
-        User.DataSource facebook = getDataSource();
-        assert facebook != null : "user delegate not set yet";
+        assert did == null || identifier.getAddress().equals(did.getAddress()) : "visa ID not match: " + identifier + ", " + did;
         // NOTICE: only sign visa with the private key paired with your meta.key
-        SignKey sKey = facebook.getPrivateKeyForVisaSignature(identifier);
-        assert sKey != null : "failed to get sign key for visa: " + did;
+        SignKey sKey = getPrivateKeyForVisaSignature();
+        if (sKey == null) {
+            assert false : "failed to get sign key for visa: " + did;
+            return null;
+        }
         if (doc.sign(sKey) == null) {
             assert false : "failed to sign visa: " + did + ", " + doc;
             return null;
@@ -153,10 +178,49 @@ public class BaseUser extends BaseEntity implements User {
         // NOTICE: only verify visa with meta.key
         //         (if meta not exists, user won't be created)
         ID did = ID.parse(doc.get("did"));
-        assert did == null || identifier.equals(did) : "visa ID not match: " + identifier + ", " + did;
-        VerifyKey pKey = getMeta().getPublicKey();
-        assert pKey != null : "failed to get verify key for visa: " + did;
+        assert did == null || identifier.getAddress().equals(did.getAddress()) : "visa ID not match: " + identifier + ", " + did;
+        Meta meta = getMeta();
+        if (meta == null) {
+            assert false : "failed to get meta: " + identifier;
+            return false;
+        }
+        VerifyKey pKey = meta.getPublicKey();
+        if (pKey == null) {
+            assert false : "failed to get verify key for visa: " + did;
+            return false;
+        }
         return doc.verify(pKey);
+    }
+
+    //
+    //  Private Keys
+    //
+
+    protected SignKey getPrivateKeyForSignature() {
+        User.DataSource facebook = getDataSource();
+        if (facebook == null) {
+            assert false : "user datasource not set yet";
+            return null;
+        }
+        return facebook.getPrivateKeyForSignature(identifier);
+    }
+
+    protected List<DecryptKey> getPrivateKeysForDecryption() {
+        User.DataSource facebook = getDataSource();
+        if (facebook == null) {
+            assert false : "user datasource not set yet";
+            return null;
+        }
+        return facebook.getPrivateKeysForDecryption(identifier);
+    }
+
+    protected SignKey getPrivateKeyForVisaSignature() {
+        User.DataSource facebook = getDataSource();
+        if (facebook == null) {
+            assert false : "user datasource not set yet";
+            return null;
+        }
+        return facebook.getPrivateKeyForVisaSignature(identifier);
     }
 
 }

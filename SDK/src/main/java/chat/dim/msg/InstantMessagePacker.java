@@ -31,12 +31,14 @@
 package chat.dim.msg;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import chat.dim.format.UTF8;
+import chat.dim.mkm.Identifier;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.SecureMessage;
@@ -129,58 +131,56 @@ public class InstantMessagePacker {
         }
         // encrypt + encode key
 
-        byte[] encryptedKey;
-        Object encodedKey;
-        if (members == null) // personal message
-        {
+        if (members == null) {
+            // personal message
             ID receiver = iMsg.getReceiver();
             assert receiver.isUser() : "message.receiver error: " + receiver;
-            //
-            //  5. Encrypt key data to 'message.key/keys' with receiver's public key
-            //
-            encryptedKey = transceiver.encryptKey(pwd, receiver, iMsg);
-            if (encryptedKey == null) {
-                // public key for encryption not found
-                // TODO: suspend this message for waiting receiver's visa
-                return null;
-            }
-            //
-            //  6. Encode message key to String (Base64)
-            //
-            encodedKey = TransportableData.encode(encryptedKey);
-            assert encodedKey != null : "failed to encode key data: " + Arrays.toString(encryptedKey);
-            // insert as 'key'
-            info.put("key", encodedKey);
+            members = new ArrayList<>();
+            members.add(receiver);
         }
-        else // group message
-        {
-            Map<String, Object> keys = new HashMap<>();
-            for (ID receiver : members) {
-                //
-                //  5. Encrypt key data to 'message.keys' with member's public key
-                //
-                encryptedKey = transceiver.encryptKey(pwd, receiver, iMsg);
-                if (encryptedKey == null) {
-                    // public key for member not found
-                    // TODO: suspend this message for waiting member's visa
-                    continue;
-                }
+
+        Map<String, Object> keys = new HashMap<>();
+        Map<String, byte[]> results;
+        String target;
+        byte[] encryptedKey;
+        Object encodedKey;
+        for (ID receiver : members) {
+            //
+            //  5. Encrypt key data to 'message.keys' with member's public keys
+            //
+            results = transceiver.encryptKey(pwd, receiver, iMsg);
+            if (results == null) {
+                // public key for member not found
+                // TODO: suspend this message for waiting member's visa
+                continue;
+            }
+
+            for (Map.Entry<String, byte[]> entry : results.entrySet()) {
+                target = entry.getKey();
+                encryptedKey = entry.getValue();
                 //
                 //  6. Encode message key to String (Base64)
                 //
                 encodedKey = TransportableData.encode(encryptedKey);
                 assert encodedKey != null : "failed to encode key data: " + Arrays.toString(encryptedKey);
-                // insert to 'message.keys' with member ID
-                keys.put(receiver.toString(), encodedKey);
+                if (target.isEmpty() || target.equals("*")) {
+                    target = receiver.toString();
+                } else {
+                    target = Identifier.concat(receiver.getName(), receiver.getAddress(), target);
+                }
+                // insert to 'message.keys' with ID + terminal
+                keys.put(target, encodedKey);
             }
-            if (keys.isEmpty()) {
-                // public key for member(s) not found
-                // TODO: suspend this message for waiting member's visa
-                return null;
-            }
-            // insert as 'keys'
-            info.put("keys", keys);
         }
+        if (keys.isEmpty()) {
+            // public key for member(s) not found
+            // TODO: suspend this message for waiting member's visa
+            return null;
+        }
+        // TODO: put key digest
+
+        // insert as 'keys'
+        info.put("keys", keys);
 
         // OK, pack message
         return SecureMessage.parse(info);

@@ -31,6 +31,7 @@
 package chat.dim.mkm;
 
 import java.util.List;
+import java.util.Map;
 
 import chat.dim.protocol.Address;
 import chat.dim.protocol.Document;
@@ -213,7 +214,7 @@ public class Station implements User {
     }
 
     @Override
-    public byte[] encrypt(byte[] plaintext) {
+    public Map<String, byte[]> encrypt(byte[] plaintext) {
         return user.encrypt(plaintext);
     }
 
