@@ -30,14 +30,8 @@
  */
 package chat.dim.core;
 
-import chat.dim.mkm.BaseGroup;
-import chat.dim.mkm.BaseUser;
-import chat.dim.mkm.Bot;
 import chat.dim.mkm.Group;
-import chat.dim.mkm.ServiceProvider;
-import chat.dim.mkm.Station;
 import chat.dim.mkm.User;
-import chat.dim.protocol.EntityType;
 import chat.dim.protocol.ID;
 
 /**
@@ -46,15 +40,15 @@ import chat.dim.protocol.ID;
  *      Entity pool to manage User/Group instances
  *  </p>
  */
-public abstract class Barrack {
+public interface Barrack {
 
-    public abstract void cacheUser(User user);
+    void cacheUser(User user);
 
-    public abstract void cacheGroup(Group group);
+    void cacheGroup(Group group);
 
-    public abstract User getUser(ID uid);
+    User getUser(ID uid);
 
-    public abstract Group getGroup(ID gid);
+    Group getGroup(ID gid);
 
     /**
      *  Create user when visa.key exists
@@ -62,18 +56,7 @@ public abstract class Barrack {
      * @param uid - user ID
      * @return user, null on not ready
      */
-    public User createUser(ID uid) {
-        assert uid.isUser() : "user ID error: " + uid;
-        int network = uid.getType();
-        // check user type
-        if (EntityType.STATION.equals(network)) {
-            return new Station(uid);
-        } else if (EntityType.BOT.equals(network)) {
-            return new Bot(uid);
-        }
-        // general user, or 'anyone@anywhere'
-        return new BaseUser(uid);
-    }
+    User createUser(ID uid);
 
     /**
      *  Create group when members exist
@@ -81,15 +64,6 @@ public abstract class Barrack {
      * @param gid - group ID
      * @return group, null on not ready
      */
-    public Group createGroup(ID gid) {
-        assert gid.isGroup() : "group ID error: " + gid;
-        int network = gid.getType();
-        // check group type
-        if (EntityType.ISP.equals(network)) {
-            return new ServiceProvider(gid);
-        }
-        // general group, or 'everyone@everywhere'
-        return new BaseGroup(gid);
-    }
+    Group createGroup(ID gid);
 
 }
