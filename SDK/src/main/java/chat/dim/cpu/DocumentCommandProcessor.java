@@ -226,11 +226,8 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
     }
 
     protected boolean checkDocument(Document doc, Meta meta, ID did) {
-        // check meta/document valid
-        if (doc.isValid()) {
-            // already verified
-            return true;
-        } else if (!checkMeta(meta, did)) {
+        // check meta with ID
+        if (!checkMeta(meta, did)) {
             // meta error
             return false;
         }
