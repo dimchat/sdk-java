@@ -37,6 +37,7 @@ import java.util.List;
 import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.core.Archivist;
+import chat.dim.protocol.Address;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.DocumentCommand;
@@ -55,33 +56,14 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
     public List<Content> processContent(Content content, ReliableMessage rMsg) {
         assert content instanceof DocumentCommand : "document command error: " + content;
         DocumentCommand command = (DocumentCommand) content;
-        ID did = command.getIdentifier();
         List<Document> docs = command.getDocuments();
+        ID did = command.getIdentifier();
         if (did == null) {
             assert false : "doc ID cannot be empty: " + command;
             return respondReceipt("Document command error.", rMsg.getEnvelope(), command, null);
         } else if (docs == null) {
             // query entity documents for ID
             return getDocuments(did, rMsg.getEnvelope(), command);
-        }
-        // check document ID
-        Object docID;
-        for (Document document : docs) {
-            docID = document.get("did");
-            if (docID == null) {
-                assert false : "document ID not found: " + document;
-                continue;
-            } else if (did.equals(docID)) {
-                // ID matched
-                continue;
-            }
-            // error
-            return respondReceipt("Document ID not match.", rMsg.getEnvelope(), command, newMap(
-                    "template", "Document ID not match: ${did}.",
-                    "replacements", newMap(
-                            "did", did.toString()
-                    )
-            ));
         }
         // received new documents
         return putDocuments(did, docs, rMsg.getEnvelope(), command);
@@ -119,15 +101,9 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
             }
         }
         Meta meta = facebook.getMeta(did);
+        DocumentCommand res = DocumentCommand.response(did, meta, documents);
         List<Content> responses = new ArrayList<>();
-        // respond first document with meta
-        DocumentCommand command = DocumentCommand.response(did, meta, documents.get(0));
-        responses.add(command);
-        for (int i = 1; i < documents.size(); ++i) {
-            // respond other documents
-            command = DocumentCommand.response(did, documents.get(i));
-            responses.add(command);
-        }
+        responses.add(res);
         return responses;
     }
 
@@ -137,10 +113,18 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         Date docTIme;
         for (Document doc : documents) {
             docTIme = doc.getTime();
-            if (lastTime == null) {
+            if (lastDoc == null) {
                 // first document
                 lastDoc = doc;
                 lastTime = docTIme;
+            } else if (lastTime == null) {
+                // the first document has no time (old version),
+                // if this document has time, use the new one
+                if (docTIme != null) {
+                    // first document with time
+                    lastDoc = doc;
+                    lastTime = docTIme;
+                }
             } else if (docTIme != null && docTIme.after(lastTime)) {
                 // new document
                 lastDoc = doc;
@@ -151,11 +135,11 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
     }
 
     private List<Content> putDocuments(ID did, List<Document> docs, Envelope envelope, DocumentCommand content) {
-        Facebook facebook = getFacebook();
         List<Content> errors;
         Meta meta = content.getMeta();
         // 0. check meta
         if (meta == null) {
+            Facebook facebook = getFacebook();
             meta = facebook.getMeta(did);
             if (meta == null) {
                 return respondReceipt("Meta not found.", envelope, content, newMap(
@@ -175,12 +159,12 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         }
         // 2. try to save documents
         errors = new ArrayList<>();
-        List<Content> res;
+        List<Content> responses;
         for (Document document : docs) {
-            res = saveDocument(document, meta, did, envelope, content);
-            if (res != null) {
+            responses = saveDocument(document, meta, did, envelope, content);
+            if (responses != null) {
                 // failed
-                errors.addAll(res);
+                errors.addAll(responses);
             }
         }
         if (!errors.isEmpty()) {
@@ -230,6 +214,18 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         if (!checkMeta(meta, did)) {
             // meta error
             return false;
+        }
+        // check document ID
+        ID docID = ID.parse(doc.get("did"));
+        if (docID != null) {
+            Address inc = docID.getAddress();
+            Address out = did.getAddress();
+            if (!inc.equals(out)) {
+                assert false : "ID not matched: " + did + ", " + doc.toMap();
+                return false;
+            }
+        } else {
+            assert false : "document ID not found: " + doc.toMap();
         }
         // NOTICE: if this is a bulletin document for group,
         //             verify it with the group owner's meta.key
