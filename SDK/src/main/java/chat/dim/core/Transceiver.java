@@ -30,8 +30,11 @@
  */
 package chat.dim.core;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
+import chat.dim.crypto.EncryptedData;
 import chat.dim.mkm.Entity;
 import chat.dim.mkm.User;
 import chat.dim.msg.BaseMessage;
@@ -121,7 +124,7 @@ public abstract class Transceiver implements InstantMessageDelegate, SecureMessa
     }
 
     @Override
-    public Map<String, byte[]> encryptKey(byte[] data, ID receiver, InstantMessage iMsg) {
+    public EncryptedData encryptKey(byte[] data, ID receiver, InstantMessage iMsg) {
         assert !BaseMessage.isBroadcast(iMsg) : "broadcast message has no key: " + iMsg;
         Entity.Delegate facebook = getFacebook();
         assert facebook != null : "entity delegate not set yet";
@@ -136,28 +139,41 @@ public abstract class Transceiver implements InstantMessageDelegate, SecureMessa
         return contact.encrypt(data);
     }
 
-    /*/
     @Override
-    public Object encodeKey(byte[] data, InstantMessage iMsg) {
+    public Map<String, Object> encodeKey(EncryptedData data, ID receiver, InstantMessage iMsg) {
         assert !BaseMessage.isBroadcast(iMsg) : "broadcast message has no key: " + iMsg;
         // message key had been encrypted by a public key,
         // so the data should be encode here (with algorithm 'base64' as default).
-        return TransportableData.encode(data);
+        return data.encode(receiver);
+        // TODO: check for wildcard
     }
-    /*/
 
     //-------- SecureMessageDelegate
 
-    /*/
     @Override
-    public byte[] decodeKey(Object key, SecureMessage sMsg) {
+    public EncryptedData decodeKey(Map<String, Object> keys, ID receiver, SecureMessage sMsg) {
         assert !BaseMessage.isBroadcast(sMsg) : "broadcast message has no key: " + sMsg;
-        return TransportableData.decode(key);
+        Entity.Delegate facebook = getFacebook();
+        assert facebook != null : "entity delegate not set yet";
+        assert receiver.isUser() : "receiver error: " + receiver;
+        User user = facebook.getUser(receiver);
+        if (user == null) {
+            assert false : "failed to decode key: " + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup();
+            return null;
+        }
+        List<String> terminals = user.getTerminals();
+        EncryptedData data = EncryptedData.decode(keys, receiver, terminals);
+        // check for wildcard
+        if (data.isEmpty() && !terminals.contains("*")) {
+            terminals = new ArrayList<>();
+            terminals.add("*");
+            data = EncryptedData.decode(keys, receiver, terminals);
+        }
+        return data;
     }
-    /*/
 
     @Override
-    public byte[] decryptKey(byte[] key, ID receiver, SecureMessage sMsg) {
+    public byte[] decryptKey(EncryptedData key, ID receiver, SecureMessage sMsg) {
         // NOTICE: the receiver must be a member ID
         //         if it's a group message
         assert !BaseMessage.isBroadcast(sMsg) : "broadcast message has no key: " + sMsg;

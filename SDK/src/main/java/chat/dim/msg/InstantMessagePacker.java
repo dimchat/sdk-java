@@ -37,8 +37,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import chat.dim.crypto.EncryptedData;
 import chat.dim.format.UTF8;
-import chat.dim.mkm.Identifier;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.SecureMessage;
@@ -140,37 +140,25 @@ public class InstantMessagePacker {
         }
 
         Map<String, Object> keys = new HashMap<>();
-        Map<String, byte[]> results;
-        String target;
-        byte[] encryptedKey;
-        Object encodedKey;
+        EncryptedData encryptedKeyData;
+        Map<String, Object> encodedKeyData;
         for (ID receiver : members) {
             //
             //  5. Encrypt key data to 'message.keys' with member's public keys
             //
-            results = transceiver.encryptKey(pwd, receiver, iMsg);
-            if (results == null) {
+            encryptedKeyData = transceiver.encryptKey(pwd, receiver, iMsg);
+            if (encryptedKeyData == null || encryptedKeyData.isEmpty()) {
                 // public key for member not found
                 // TODO: suspend this message for waiting member's visa
                 continue;
             }
-
-            for (Map.Entry<String, byte[]> entry : results.entrySet()) {
-                target = entry.getKey();
-                encryptedKey = entry.getValue();
-                //
-                //  6. Encode message key to String (Base64)
-                //
-                encodedKey = TransportableData.encode(encryptedKey);
-                assert encodedKey != null : "failed to encode key data: " + Arrays.toString(encryptedKey);
-                if (target.isEmpty() || target.equals("*")) {
-                    target = receiver.toString();
-                } else {
-                    target = Identifier.concat(receiver.getName(), receiver.getAddress(), target);
-                }
-                // insert to 'message.keys' with ID + terminal
-                keys.put(target, encodedKey);
-            }
+            //
+            //  6. Encode message key to String (Base64)
+            //
+            encodedKeyData = transceiver.encodeKey(encryptedKeyData, receiver, iMsg);
+            assert encodedKeyData != null && !encodedKeyData.isEmpty() : "failed to encode key data: " + receiver;
+            // insert to 'message.keys' with ID + terminal
+            keys.putAll(encodedKeyData);
         }
         if (keys.isEmpty()) {
             // public key for member(s) not found

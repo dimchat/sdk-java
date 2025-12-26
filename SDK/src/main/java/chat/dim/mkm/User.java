@@ -31,8 +31,8 @@
 package chat.dim.mkm;
 
 import java.util.List;
-import java.util.Map;
 
+import chat.dim.crypto.EncryptedData;
 import chat.dim.protocol.DecryptKey;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.SignKey;
@@ -65,6 +65,13 @@ public interface User extends Entity {
     List<ID> getContacts();
 
     /**
+     *  Get visa.terminal
+     *
+     * @return terminal list
+     */
+    List<String> getTerminals();
+
+    /**
      *  Verify data and signature with user's public keys
      *
      * @param data - message data
@@ -79,7 +86,7 @@ public interface User extends Entity {
      * @param plaintext - message data
      * @return encrypted data
      */
-    Map<String, byte[]> encrypt(byte[] plaintext);
+    EncryptedData encrypt(byte[] plaintext);
 
     //
     //  Interfaces for Local User
@@ -99,7 +106,7 @@ public interface User extends Entity {
      * @param ciphertext - encrypted data
      * @return plain text
      */
-    byte[] decrypt(byte[] ciphertext);
+    byte[] decrypt(EncryptedData ciphertext);
 
     //
     //  Interfaces for Visa

@@ -30,6 +30,9 @@
  */
 package chat.dim.msg;
 
+import java.util.Map;
+
+import chat.dim.crypto.EncryptedData;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.SecureMessage;
@@ -58,24 +61,24 @@ public interface SecureMessageDelegate {
     //  Decrypt Key
     //
 
-    /*
+    /**
      *  1. Decode 'message.key' to encrypted symmetric key data
      *
-     * @param key  - base64 string object
+     * @param keys - encoded key data and target (ID + terminal)
      * @param sMsg - secure message object
-     * @return encrypted symmetric key data
+     * @return encrypted symmetric key data and target (ID terminal)
      */
-    //byte[] decodeKey(Object key, SecureMessage sMsg);
+    EncryptedData decodeKey(Map<String, Object> keys, ID receiver, SecureMessage sMsg);
 
     /**
      *  2. Decrypt 'message.key' with receiver's private key
      *
-     *  @param key      - encrypted symmetric key data
+     *  @param data     - encrypted symmetric key data and target (ID terminal)
      *  @param receiver - actual receiver (user, or group member)
      *  @param sMsg     - secure message object
-     *  @return serialized symmetric key
+     *  @return serialized data of symmetric key
      */
-    byte[] decryptKey(byte[] key, ID receiver, SecureMessage sMsg);
+    byte[] decryptKey(EncryptedData data, ID receiver, SecureMessage sMsg);
 
     /**
      *  3. Deserialize message key from data (JsON / ProtoBuf / ...)

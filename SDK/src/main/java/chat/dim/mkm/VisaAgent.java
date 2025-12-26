@@ -31,10 +31,10 @@
 package chat.dim.mkm;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
+import chat.dim.crypto.EncryptedData;
+import chat.dim.crypto.UserEncryptedData;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.EncryptKey;
 import chat.dim.protocol.ID;
@@ -45,10 +45,10 @@ import chat.dim.protocol.Visa;
 
 public class VisaAgent {
 
-    public Map<String, byte[]> encrypt(byte[] plaintext, Meta meta, List<Document> documents) {
+    public EncryptedData encrypt(byte[] plaintext, Meta meta, List<Document> documents) {
         // NOTICE: meta.key will never changed, so use visa.key to encrypt message
         //         is a better way
-        Map<String, byte[]> results = new HashMap<>();
+        EncryptedData results = new UserEncryptedData();
         String terminal;
         EncryptKey pubKey;
         byte[] ciphertext;
@@ -77,9 +77,9 @@ public class VisaAgent {
             //
             //  2. encrypt with meta key
             //
-            VerifyKey visaKey = meta.getPublicKey();
-            if (visaKey instanceof EncryptKey) {
-                pubKey = (EncryptKey) visaKey;
+            VerifyKey metaKey = meta.getPublicKey();
+            if (metaKey instanceof EncryptKey) {
+                pubKey = (EncryptKey) metaKey;
                 //terminal = "*";
                 ciphertext = pubKey.encrypt(plaintext, null);
                 results.put("*", ciphertext);
@@ -168,6 +168,23 @@ public class VisaAgent {
             }
         }
         return terminal;
+    }
+
+    public List<String> getTerminals(List<Document> documents) {
+        List<String> array = new ArrayList<>();
+        String terminal;
+        for (Document doc : documents) {
+            terminal = getTerminal(doc);
+            if (terminal == null || terminal.isEmpty()) {
+                terminal = "*";
+            }
+            if (array.contains(terminal)) {
+                assert false : "duplicated terminal: " + terminal + " => " + documents;
+                continue;
+            }
+            array.add(terminal);
+        }
+        return array;
     }
 
 }

@@ -31,8 +31,9 @@
 package chat.dim.mkm;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
+import chat.dim.crypto.EncryptedData;
 import chat.dim.protocol.DecryptKey;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
@@ -75,6 +76,16 @@ public class BaseUser extends BaseEntity implements User {
     }
 
     @Override
+    public List<String> getTerminals() {
+        List<Document> documents = getDocuments();
+        if (documents == null) {
+            assert false : "failed to get documents: " + identifier;
+            return null;
+        }
+        return visaAgent.getTerminals(documents);
+    }
+
+    @Override
     public boolean verify(byte[] data, byte[] signature) {
         Meta meta = getMeta();
         List<Document> documents = getDocuments();
@@ -101,7 +112,7 @@ public class BaseUser extends BaseEntity implements User {
     }
 
     @Override
-    public Map<String, byte[]> encrypt(byte[] plaintext) {
+    public EncryptedData encrypt(byte[] plaintext) {
         Meta meta = getMeta();
         List<Document> documents = getDocuments();
         if (meta == null || documents == null) {
@@ -127,22 +138,26 @@ public class BaseUser extends BaseEntity implements User {
     }
 
     @Override
-    public byte[] decrypt(byte[] ciphertext) {
+    public byte[] decrypt(EncryptedData data) {
         // NOTICE: if you provide a public key in visa for encryption,
         //         here you should return the private key paired with visa.key
-        List<DecryptKey> keys = getPrivateKeysForDecryption();
-        if (keys == null) {
+        List<DecryptKey> privateKeys = getPrivateKeysForDecryption();
+        if (privateKeys == null) {
             assert false : "failed to get decrypt keys for user: " + identifier;
             return null;
         }
-        assert !keys.isEmpty() : "failed to get decrypt keys for user: " + identifier;
+        assert !privateKeys.isEmpty() : "failed to get decrypt keys for user: " + identifier;
+        Set<byte[]> values = data.values();
+        assert !values.isEmpty() : "data empty: " + data;
         byte[] plaintext;
-        for (DecryptKey key : keys) {
+        for (DecryptKey key : privateKeys) {
             // try decrypting it with each private key
-            plaintext = key.decrypt(ciphertext, null);
-            if (plaintext != null) {
-                // OK!
-                return plaintext;
+            for (byte[] ciphertext : values) {
+                plaintext = key.decrypt(ciphertext, null);
+                if (plaintext != null) {
+                    // OK!
+                    return plaintext;
+                }
             }
         }
         // decryption failed
@@ -153,7 +168,7 @@ public class BaseUser extends BaseEntity implements User {
     @Override
     public Visa sign(Visa doc) {
         ID did = ID.parse(doc.get("did"));
-        assert did == null || identifier.getAddress().equals(did.getAddress()) : "visa ID not match: " + identifier + ", " + did;
+        assert did == null || did.getAddress().equals(identifier.getAddress()) : "visa ID not match: " + did + ", " + identifier;
         // NOTICE: only sign visa with the private key paired with your meta.key
         SignKey sKey = getPrivateKeyForVisaSignature();
         if (sKey == null) {
@@ -172,7 +187,7 @@ public class BaseUser extends BaseEntity implements User {
         // NOTICE: only verify visa with meta.key
         //         (if meta not exists, user won't be created)
         ID did = ID.parse(doc.get("did"));
-        assert did == null || identifier.getAddress().equals(did.getAddress()) : "visa ID not match: " + identifier + ", " + did;
+        assert did == null || did.getAddress().equals(identifier.getAddress()) : "visa ID not match: " + did + ", " + identifier;
         Meta meta = getMeta();
         if (meta == null) {
             assert false : "failed to get meta: " + identifier;

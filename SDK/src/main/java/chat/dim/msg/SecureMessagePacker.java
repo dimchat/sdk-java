@@ -31,10 +31,9 @@
 package chat.dim.msg;
 
 import java.lang.ref.WeakReference;
-import java.util.Iterator;
 import java.util.Map;
 
-import chat.dim.mkm.Identifier;
+import chat.dim.crypto.EncryptedData;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
@@ -54,65 +53,6 @@ public class SecureMessagePacker {
 
     protected SecureMessageDelegate getDelegate() {
         return transceiver.get();
-    }
-
-    protected byte[] getEncryptedKey(SecureMessage sMsg, ID receiver) {
-        // get from 'key'
-        Object base64 = sMsg.get("key");
-        if (base64 == null) {
-            // get from 'keys'
-            Map<String, Object> keys = sMsg.getEncryptedKeys();
-            if (keys != null) {
-                assert keys.size() > 0 : "encrypted keys empty: " + sMsg.toMap();
-                //ID receiver = sMsg.getReceiver();
-                assert receiver.isUser() : "receiver error: " + receiver;
-                // get by receiver
-                base64 = getEncodedKey(keys, receiver);
-            }
-        }
-        TransportableData ted = TransportableData.parse(base64);
-        if (ted == null) {
-            assert false : "key data error: " + base64;
-            return null;
-        }
-        return ted.getData();
-    }
-
-    protected Object getEncodedKey(Map<String, Object> keys, ID receiver) {
-        // get by receiver directly
-        String target = receiver.toString();
-        Object base64 = keys.get(target);
-        if (base64 != null) {
-            return base64;
-        }
-        // remove 'terminal' from receiver
-        if (receiver.getTerminal() != null) {
-            target = Identifier.concat(receiver.getName(), receiver.getAddress(), null);
-            // get by receiver without 'terminal'
-            base64 = keys.get(target);
-            if (base64 != null) {
-                return base64;
-            }
-        }
-        // check all keys
-        Iterator<Map.Entry<String, Object>> iterator = keys.entrySet().iterator();
-        Map.Entry<String, Object> entry;
-        String itemKey;
-        int pos;
-        while (iterator.hasNext()) {
-            entry = iterator.next();
-            itemKey = entry.getKey();
-            // check key without 'terminal'
-            pos = itemKey.indexOf("/");
-            if (pos > 0) {
-                itemKey = itemKey.substring(0, pos);
-            }
-            if (target.equals(itemKey)) {
-                return entry.getValue();
-            }
-        }
-        // key not found
-        return null;
     }
 
     /*
@@ -140,25 +80,25 @@ public class SecureMessagePacker {
         SecureMessageDelegate transceiver = getDelegate();
         assert transceiver != null : "should not happen";
 
+        byte[] keyData;
+
         //
         //  1. Decode 'message.key' to encrypted symmetric key data
         //
-        byte[] encryptedKey = getEncryptedKey(sMsg, receiver);
-        byte[] keyData;
-        if (encryptedKey == null) {
+        EncryptedData data = transceiver.decodeKey(sMsg.getEncryptedKeys(), receiver, sMsg);
+        if (data == null || data.isEmpty()) {
+            // broadcast message?
+            // reused key?
             keyData = null;
         } else {
-            assert encryptedKey.length > 0 : "encrypted key data should not be empty: "
-                    + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup();
             //
             //  2. Decrypt 'message.key' with receiver's private key
             //
-            keyData = transceiver.decryptKey(encryptedKey, receiver, sMsg);
+            keyData = transceiver.decryptKey(data, receiver, sMsg);
             if (keyData == null) {
                 // A: my visa updated but the sender doesn't got the new one;
                 // B: key data error.
-                throw new NullPointerException("failed to decrypt message key: "
-                        + encryptedKey.length + " byte(s) "
+                throw new NullPointerException("failed to decrypt message key: " + data
                         + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup());
                 // TODO: check whether my visa key is changed, push new visa to this contact
             }
