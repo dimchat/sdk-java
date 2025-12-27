@@ -96,14 +96,20 @@ public class BaseEntity implements Entity {
     @Override
     public Meta getMeta() {
         DataSource facebook = getDataSource();
-        assert facebook != null : "entity delegate not set yet";
+        if (facebook == null) {
+            assert false : "entity datasource not set yet";
+            return null;
+        }
         return facebook.getMeta(identifier);
     }
 
     @Override
     public List<Document> getDocuments() {
         DataSource facebook = getDataSource();
-        assert facebook != null : "entity delegate not set yet";
+        if (facebook == null) {
+            assert false : "entity datasource not set yet";
+            return null;
+        }
         return facebook.getDocuments(identifier);
     }
 

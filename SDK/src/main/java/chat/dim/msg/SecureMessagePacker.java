@@ -31,6 +31,7 @@
 package chat.dim.msg;
 
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.crypto.EncryptedData;
@@ -68,6 +69,27 @@ public class SecureMessagePacker {
      *    +----------+
      */
 
+    protected EncryptedData decodeKey(SecureMessage sMsg, ID receiver) {
+        Map<String, Object> keys = sMsg.getEncryptedKeys();
+        if (keys == null) {
+            // get from 'key'
+            Object base64 = sMsg.get("key");
+            if (base64 == null) {
+                // broadcast message?
+                // reused key?
+                return null;
+            }
+            keys = new HashMap<>();
+            keys.put(receiver.toString(), base64);
+        }
+        SecureMessageDelegate transceiver = getDelegate();
+        if (transceiver == null) {
+            assert false : "secure message delegate not found";
+            return null;
+        }
+        return transceiver.decodeKey(keys, receiver, sMsg);
+    }
+
     /**
      *  Decrypt message, replace encrypted 'data' with 'content' field
      *
@@ -78,14 +100,17 @@ public class SecureMessagePacker {
     public InstantMessage decryptMessage(SecureMessage sMsg, ID receiver) {
         assert receiver.isUser() : "receiver error: " + receiver;
         SecureMessageDelegate transceiver = getDelegate();
-        assert transceiver != null : "should not happen";
+        if (transceiver == null) {
+            assert false : "secure message delegate not found";
+            return null;
+        }
 
         byte[] keyData;
 
         //
         //  1. Decode 'message.key' to encrypted symmetric key data
         //
-        EncryptedData data = transceiver.decodeKey(sMsg.getEncryptedKeys(), receiver, sMsg);
+        EncryptedData data = decodeKey(sMsg, receiver);
         if (data == null || data.isEmpty()) {
             // broadcast message?
             // reused key?
@@ -193,7 +218,10 @@ public class SecureMessagePacker {
      */
     public ReliableMessage signMessage(SecureMessage sMsg) {
         SecureMessageDelegate transceiver = getDelegate();
-        assert transceiver != null : "should not happen";
+        if (transceiver == null) {
+            assert false : "secure message delegate not found";
+            return null;
+        }
 
         //
         //  0. decode message data

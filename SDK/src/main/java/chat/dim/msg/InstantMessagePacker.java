@@ -86,7 +86,10 @@ public class InstantMessagePacker {
         // TODO: check attachment for File/Image/Audio/Video message content
         //      (do it by application)
         InstantMessageDelegate transceiver = getDelegate();
-        assert transceiver != null : "should not happen";
+        if (transceiver == null) {
+            assert false : "instant message delegate not found";
+            return null;
+        }
 
         //
         //  1. Serialize 'message.content' to data (JsON / ProtoBuf / ...)
@@ -139,39 +142,58 @@ public class InstantMessagePacker {
             members.add(receiver);
         }
 
-        Map<String, Object> keys = new HashMap<>();
+        //
+        //  5. Encrypt key data to 'message.keys' with member's public keys
+        //
+        Map<ID, EncryptedData> encryptedKeyDataMap = new HashMap<>();
         EncryptedData encryptedKeyData;
-        Map<String, Object> encodedKeyData;
         for (ID receiver : members) {
-            //
-            //  5. Encrypt key data to 'message.keys' with member's public keys
-            //
             encryptedKeyData = transceiver.encryptKey(pwd, receiver, iMsg);
             if (encryptedKeyData == null || encryptedKeyData.isEmpty()) {
                 // public key for member not found
                 // TODO: suspend this message for waiting member's visa
                 continue;
             }
-            //
-            //  6. Encode message key to String (Base64)
-            //
-            encodedKeyData = transceiver.encodeKey(encryptedKeyData, receiver, iMsg);
-            assert encodedKeyData != null && !encodedKeyData.isEmpty() : "failed to encode key data: " + receiver;
-            // insert to 'message.keys' with ID + terminal
-            keys.putAll(encodedKeyData);
+            encryptedKeyDataMap.put(receiver, encryptedKeyData);
         }
-        if (keys.isEmpty()) {
+
+        //
+        //  6. Encode message key to String (Base64)
+        //
+        Map<String, Object> keys = encodeKeys(encryptedKeyDataMap, iMsg);
+        if (keys == null || keys.isEmpty()) {
             // public key for member(s) not found
             // TODO: suspend this message for waiting member's visa
             return null;
         }
-        // TODO: put key digest
 
         // insert as 'keys'
         info.put("keys", keys);
 
         // OK, pack message
         return SecureMessage.parse(info);
+    }
+
+    protected Map<String, Object> encodeKeys(Map<ID, EncryptedData> encryptedKeyDataMap, InstantMessage iMsg) {
+        InstantMessageDelegate transceiver = getDelegate();
+        if (transceiver == null) {
+            assert false : "instant message delegate not found";
+            return null;
+        }
+        Map<String, Object> keys = new HashMap<>();
+        ID receiver;
+        EncryptedData data;
+        Map<String, Object> encodedKeyData;
+        for (Map.Entry<ID, EncryptedData> entry : encryptedKeyDataMap.entrySet()) {
+            receiver = entry.getKey();
+            data = entry.getValue();
+            encodedKeyData = transceiver.encodeKey(data, receiver, iMsg);
+            assert encodedKeyData != null && !encodedKeyData.isEmpty() : "failed to encode key data: " + receiver;
+            // insert to 'message.keys' with ID + terminal
+            keys.putAll(encodedKeyData);
+        }
+        // TODO: put key digest
+        return keys;
     }
 
 }

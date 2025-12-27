@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Set;
 
 import chat.dim.crypto.EncryptedData;
+import chat.dim.crypto.VisaAgent;
 import chat.dim.protocol.DecryptKey;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;

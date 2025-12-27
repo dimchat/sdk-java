@@ -28,13 +28,11 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.mkm;
+package chat.dim.crypto;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import chat.dim.crypto.EncryptedData;
-import chat.dim.crypto.UserEncryptedData;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.EncryptKey;
 import chat.dim.protocol.ID;

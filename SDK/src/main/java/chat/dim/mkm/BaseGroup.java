@@ -56,25 +56,36 @@ public class BaseGroup extends BaseEntity implements Group {
 
     @Override
     public ID getFounder() {
-        if (founder == null) {
+        ID user = founder;
+        if (user == null) {
             Group.DataSource facebook = getDataSource();
-            assert facebook != null : "group delegate not set yet";
-            founder = facebook.getFounder(identifier);
+            if (facebook != null) {
+                user = facebook.getFounder(identifier);
+                founder = user;
+            } else {
+                assert false : "group datasource not set yet";
+            }
         }
-        return founder;
+        return user;
     }
 
     @Override
     public ID getOwner() {
         Group.DataSource facebook = getDataSource();
-        assert facebook != null : "group delegate not set yet";
+        if (facebook == null) {
+            assert false : "group datasource not set yet";
+            return null;
+        }
         return facebook.getOwner(identifier);
     }
 
     @Override
     public List<ID> getMembers() {
         Group.DataSource facebook = getDataSource();
-        assert facebook != null : "group delegate not set yet";
+        if (facebook == null) {
+            assert false : "group datasource not set yet";
+            return null;
+        }
         return facebook.getMembers(identifier);
     }
 
