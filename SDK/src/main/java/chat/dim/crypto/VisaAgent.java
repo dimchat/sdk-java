@@ -31,7 +31,9 @@
 package chat.dim.crypto;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import chat.dim.protocol.Document;
 import chat.dim.protocol.EncryptKey;
@@ -168,21 +170,17 @@ public class VisaAgent {
         return terminal;
     }
 
-    public List<String> getTerminals(List<Document> documents) {
-        List<String> array = new ArrayList<>();
+    public Set<String> getTerminals(List<Document> documents) {
+        Set<String> devices = new HashSet<>();
         String terminal;
         for (Document doc : documents) {
             terminal = getTerminal(doc);
             if (terminal == null || terminal.isEmpty()) {
                 terminal = "*";
             }
-            if (array.contains(terminal)) {
-                assert false : "duplicated terminal: " + terminal + " => " + documents;
-                continue;
-            }
-            array.add(terminal);
+            devices.add(terminal);
         }
-        return array;
+        return devices;
     }
 
 }

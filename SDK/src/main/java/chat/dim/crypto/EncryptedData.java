@@ -30,7 +30,6 @@
  */
 package chat.dim.crypto;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -94,7 +93,7 @@ public interface EncryptedData {
      * @param terminals - visa terminals
      * @return decrypted key data with terminals
      */
-    static EncryptedData decode(Map<String, Object> keys, ID did, List<String> terminals) {
+    static EncryptedData decode(Map<String, Object> keys, ID did, Iterable<String> terminals) {
         EncryptedData result = new UserEncryptedData();
         //
         //  0. ID string without terminal

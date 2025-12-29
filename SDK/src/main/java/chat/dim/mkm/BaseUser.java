@@ -77,7 +77,7 @@ public class BaseUser extends BaseEntity implements User {
     }
 
     @Override
-    public List<String> getTerminals() {
+    public Set<String> getTerminals() {
         List<Document> documents = getDocuments();
         if (documents == null) {
             assert false : "failed to get documents: " + identifier;

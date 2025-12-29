@@ -30,9 +30,9 @@
  */
 package chat.dim.core;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import chat.dim.crypto.EncryptedData;
 import chat.dim.mkm.Entity;
@@ -161,11 +161,11 @@ public abstract class Transceiver implements InstantMessageDelegate, SecureMessa
             assert false : "failed to decode key: " + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup();
             return null;
         }
-        List<String> terminals = user.getTerminals();
+        Set<String> terminals = user.getTerminals();
         EncryptedData data = EncryptedData.decode(keys, receiver, terminals);
         // check for wildcard
         if (data.isEmpty() && !terminals.contains("*")) {
-            terminals = new ArrayList<>();
+            terminals = new HashSet<>();
             terminals.add("*");
             data = EncryptedData.decode(keys, receiver, terminals);
         }

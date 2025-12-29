@@ -31,6 +31,7 @@
 package chat.dim.mkm;
 
 import java.util.List;
+import java.util.Set;
 
 import chat.dim.crypto.EncryptedData;
 import chat.dim.protocol.DecryptKey;
@@ -69,7 +70,7 @@ public interface User extends Entity {
      *
      * @return terminal list
      */
-    List<String> getTerminals();
+    Set<String> getTerminals();
 
     /**
      *  Verify data and signature with user's public keys
