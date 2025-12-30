@@ -30,40 +30,8 @@
  */
 package chat.dim.crypto;
 
-import java.util.List;
-import java.util.Set;
+public final class SharedVisaAgent {
 
-import chat.dim.protocol.Document;
-import chat.dim.protocol.Meta;
-import chat.dim.protocol.VerifyKey;
-
-public interface VisaAgent {
-
-    /**
-     *  Encrypt plaintext to ciphertexts with all visa keys
-     *
-     * @param plaintext - key data
-     * @param meta      - meta for public key
-     * @param documents - visa documents for public keys
-     * @return encrypted data with terminals
-     */
-    EncryptedData encryptData(byte[] plaintext, Meta meta, List<Document> documents);
-
-    /**
-     *  Get all verify keys from documents and meta
-     *
-     * @param meta      - meta for public key
-     * @param documents - visa documents for public keys
-     * @return verify keys
-     */
-    List<VerifyKey> getVerifyKeys(Meta meta, List<Document> documents);
-
-    /**
-     *  Get all terminals from documents
-     *
-     * @param documents - visa documents
-     * @return terminals
-     */
-    Set<String> getTerminals(List<Document> documents);
+    public static VisaAgent agent = new DefaultVisaAgent();
 
 }

@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Set;
 
 import chat.dim.crypto.EncryptedData;
+import chat.dim.crypto.SharedVisaAgent;
 import chat.dim.crypto.VisaAgent;
 import chat.dim.protocol.DecryptKey;
 import chat.dim.protocol.Document;
@@ -45,15 +46,8 @@ import chat.dim.protocol.Visa;
 
 public class BaseUser extends BaseEntity implements User {
 
-    private final VisaAgent visaAgent;
-
     public BaseUser(ID uid) {
         super(uid);
-        visaAgent = createVisaAgent();
-    }
-
-    protected VisaAgent createVisaAgent() {
-        return new VisaAgent();
     }
 
     @Override
@@ -83,6 +77,7 @@ public class BaseUser extends BaseEntity implements User {
             assert false : "failed to get documents: " + identifier;
             return null;
         }
+        VisaAgent visaAgent = SharedVisaAgent.agent;
         return visaAgent.getTerminals(documents);
     }
 
@@ -95,6 +90,7 @@ public class BaseUser extends BaseEntity implements User {
             return false;
         }
         assert !documents.isEmpty() : "documents empty: " + identifier;
+        VisaAgent visaAgent = SharedVisaAgent.agent;
         List<VerifyKey> keys = visaAgent.getVerifyKeys(meta, documents);
         if (keys == null) {
             assert false : "failed to get verify keys: " + identifier;
@@ -121,7 +117,8 @@ public class BaseUser extends BaseEntity implements User {
             return null;
         }
         assert !documents.isEmpty() : "documents empty: " + identifier;
-        return visaAgent.encrypt(plaintext, meta, documents);
+        VisaAgent visaAgent = SharedVisaAgent.agent;
+        return visaAgent.encryptData(plaintext, meta, documents);
     }
 
     //
