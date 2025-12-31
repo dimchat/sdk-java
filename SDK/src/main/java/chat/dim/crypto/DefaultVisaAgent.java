@@ -46,10 +46,10 @@ import chat.dim.protocol.Visa;
 public class DefaultVisaAgent implements VisaAgent {
 
     @Override
-    public EncryptedData encryptData(byte[] plaintext, Meta meta, List<Document> documents) {
+    public EncryptedBundle encryptBundle(byte[] plaintext, Meta meta, List<Document> documents) {
         // NOTICE: meta.key will never changed, so use visa.key to encrypt message
         //         is a better way
-        EncryptedData results = new UserEncryptedData();
+        EncryptedBundle bundle = new UserEncryptedBundle();
         String terminal;
         EncryptKey pubKey;
         byte[] ciphertext;
@@ -67,14 +67,14 @@ public class DefaultVisaAgent implements VisaAgent {
             if (terminal == null || terminal.isEmpty()) {
                 terminal = "*";
             }
-            if (results.get(terminal) != null) {
+            if (bundle.get(terminal) != null) {
                 assert false : "duplicated visa key: " + doc;
                 continue;
             }
             ciphertext = pubKey.encrypt(plaintext, null);
-            results.put(terminal, ciphertext);
+            bundle.put(terminal, ciphertext);
         }
-        if (results.isEmpty()) {
+        if (bundle.isEmpty()) {
             //
             //  2. encrypt with meta key
             //
@@ -83,11 +83,11 @@ public class DefaultVisaAgent implements VisaAgent {
                 pubKey = (EncryptKey) metaKey;
                 //terminal = "*";
                 ciphertext = pubKey.encrypt(plaintext, null);
-                results.put("*", ciphertext);
+                bundle.put("*", ciphertext);
             }
         }
         // OK
-        return results;
+        return bundle;
     }
 
     @Override

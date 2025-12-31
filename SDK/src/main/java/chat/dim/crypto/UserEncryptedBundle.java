@@ -40,11 +40,11 @@ import chat.dim.mkm.Identifier;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.TransportableData;
 
-public class UserEncryptedData implements EncryptedData {
+public class UserEncryptedBundle implements EncryptedBundle {
 
     private final Map<String, byte[]> map = new HashMap<>();
 
-    public UserEncryptedData() {
+    public UserEncryptedBundle() {
         super();
     }
 
@@ -104,7 +104,7 @@ public class UserEncryptedData implements EncryptedData {
     public Map<String, Object> encode(ID did) {
         assert did.getTerminal() == null : "ID should not contain terminal here: " + did;
         String identifier = Identifier.concat(did.getName(), did.getAddress(), null);
-        Map<String, Object> results = new HashMap<>();
+        Map<String, Object> bundle = new HashMap<>();
         String target;
         byte[] data;
         Object base64;
@@ -120,9 +120,9 @@ public class UserEncryptedData implements EncryptedData {
                 target = identifier + "/" + target;
             }
             // insert to 'message.keys' with ID + terminal
-            results.put(target, base64);
+            bundle.put(target, base64);
         }
-        return results;
+        return bundle;
     }
 
 }

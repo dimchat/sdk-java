@@ -33,7 +33,7 @@ package chat.dim.mkm;
 import java.util.List;
 import java.util.Set;
 
-import chat.dim.crypto.EncryptedData;
+import chat.dim.crypto.EncryptedBundle;
 import chat.dim.protocol.DecryptKey;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.SignKey;
@@ -85,9 +85,9 @@ public interface User extends Entity {
      *  Encrypt data, try visa.key first, if not found, use meta.key
      *
      * @param plaintext - message data
-     * @return encrypted data
+     * @return encrypted data with targets (ID terminals)
      */
-    EncryptedData encrypt(byte[] plaintext);
+    EncryptedBundle encryptBundle(byte[] plaintext);
 
     //
     //  Interfaces for Local User
@@ -104,10 +104,10 @@ public interface User extends Entity {
     /**
      *  Decrypt data with user's private key(s)
      *
-     * @param ciphertext - encrypted data
+     * @param bundle - encrypted data with targets (ID terminals)
      * @return plain text
      */
-    byte[] decrypt(EncryptedData ciphertext);
+    byte[] decryptBundle(EncryptedBundle bundle);
 
     //
     //  Interfaces for Visa

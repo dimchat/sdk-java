@@ -34,7 +34,7 @@ import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.crypto.EncryptedData;
+import chat.dim.crypto.EncryptedBundle;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
@@ -69,9 +69,9 @@ public class SecureMessagePacker {
      *    +----------+
      */
 
-    protected EncryptedData decodeKey(SecureMessage sMsg, ID receiver) {
-        Map<String, Object> keys = sMsg.getEncryptedKeys();
-        if (keys == null) {
+    protected EncryptedBundle decodeKey(SecureMessage sMsg, ID receiver) {
+        Map<String, Object> msgKeys = sMsg.getEncryptedKeys();
+        if (msgKeys == null) {
             // get from 'key'
             Object base64 = sMsg.get("key");
             if (base64 == null) {
@@ -79,15 +79,15 @@ public class SecureMessagePacker {
                 // reused key?
                 return null;
             }
-            keys = new HashMap<>();
-            keys.put(receiver.toString(), base64);
+            msgKeys = new HashMap<>();
+            msgKeys.put(receiver.toString(), base64);
         }
         SecureMessageDelegate transceiver = getDelegate();
         if (transceiver == null) {
             assert false : "secure message delegate not found";
             return null;
         }
-        return transceiver.decodeKey(keys, receiver, sMsg);
+        return transceiver.decodeKey(msgKeys, receiver, sMsg);
     }
 
     /**
@@ -110,8 +110,8 @@ public class SecureMessagePacker {
         //
         //  1. Decode 'message.key' to encrypted symmetric key data
         //
-        EncryptedData data = decodeKey(sMsg, receiver);
-        if (data == null || data.isEmpty()) {
+        EncryptedBundle bundle = decodeKey(sMsg, receiver);
+        if (bundle == null || bundle.isEmpty()) {
             // broadcast message?
             // reused key?
             keyData = null;
@@ -119,16 +119,14 @@ public class SecureMessagePacker {
             //
             //  2. Decrypt 'message.key' with receiver's private key
             //
-            keyData = transceiver.decryptKey(data, receiver, sMsg);
-            if (keyData == null) {
+            keyData = transceiver.decryptKey(bundle, receiver, sMsg);
+            if (keyData == null || keyData.length == 0) {
                 // A: my visa updated but the sender doesn't got the new one;
                 // B: key data error.
-                throw new NullPointerException("failed to decrypt message key: " + data
-                        + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup());
+                throw new NullPointerException("failed to decrypt message key: " + bundle
+                        + ", " + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup());
                 // TODO: check whether my visa key is changed, push new visa to this contact
             }
-            assert keyData.length > 0 : "message key data should not be empty: "
-                    + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup();
         }
 
         //
@@ -159,7 +157,7 @@ public class SecureMessagePacker {
         //  5. Decrypt 'message.data' with symmetric key
         //
         byte[] body = transceiver.decryptContent(ciphertext, password, sMsg);
-        if (body == null) {
+        if (body == null || body.length == 0) {
             // A: password is a reused key loaded from local storage, but it's expired;
             // B: key error.
             throw new NullPointerException("failed to decrypt message data with key: " + password
@@ -167,8 +165,6 @@ public class SecureMessagePacker {
                     + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup());
             // TODO: ask the sender to send again
         }
-        assert body.length > 0 : "message data should not be empty: "
-                + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup();
 
         //
         //  6. Deserialize message content from data (JsON / ProtoBuf / ...)
@@ -227,23 +223,31 @@ public class SecureMessagePacker {
         //  0. decode message data
         //
         byte[] ciphertext = sMsg.getData();
-        assert ciphertext != null && ciphertext.length > 0 : "failed to decode message data: "
-                + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
+        if (ciphertext == null || ciphertext.length == 0) {
+            assert false : "failed to decode message data: "
+                    + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
+            return null;
+        }
 
         //
         //  1. Sign 'message.data' with sender's private key
         //
         byte[] signature = transceiver.signData(ciphertext, sMsg);
-        assert signature != null && signature.length > 0 : "failed to sign message: "
-                + ciphertext.length + " byte(s) "
-                + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
+        if (signature == null || signature.length == 0) {
+            assert false : "failed to sign message: " + ciphertext.length + " byte(s) "
+                    + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
+            return null;
+        }
 
         //
         //  2. Encode 'message.signature' to String (Base64)
         //
         Object base64 = TransportableData.encode(signature);
-        assert base64 != null : "failed to encode signature: " + signature.length + " byte(s) "
-                + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
+        if (base64 == null) {
+            assert false : "failed to encode signature: " + signature.length + " byte(s) "
+                    + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
+            return null;
+        }
 
         // OK, pack message
         Map<String, Object> map = sMsg.copyMap(false);

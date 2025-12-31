@@ -32,7 +32,7 @@ package chat.dim.msg;
 
 import java.util.Map;
 
-import chat.dim.crypto.EncryptedData;
+import chat.dim.crypto.EncryptedBundle;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.SecureMessage;
@@ -64,21 +64,22 @@ public interface SecureMessageDelegate {
     /**
      *  1. Decode 'message.key' to encrypted symmetric key data
      *
-     * @param keys - encoded key data and target (ID + terminal)
-     * @param sMsg - secure message object
-     * @return encrypted symmetric key data and target (ID terminal)
+     * @param msgKeys  - encoded key data and targets (ID + terminals)
+     * @param receiver - actual receiver (user, or group member)
+     * @param sMsg     - secure message object
+     * @return encrypted symmetric key data and targets (ID terminals)
      */
-    EncryptedData decodeKey(Map<String, Object> keys, ID receiver, SecureMessage sMsg);
+    EncryptedBundle decodeKey(Map<String, Object> msgKeys, ID receiver, SecureMessage sMsg);
 
     /**
      *  2. Decrypt 'message.key' with receiver's private key
      *
-     *  @param data     - encrypted symmetric key data and target (ID terminal)
-     *  @param receiver - actual receiver (user, or group member)
-     *  @param sMsg     - secure message object
-     *  @return serialized data of symmetric key
+     * @param bundle   - encrypted symmetric key data and targets (ID terminals)
+     * @param receiver - actual receiver (user, or group member)
+     * @param sMsg     - secure message object
+     * @return serialized data of symmetric key
      */
-    byte[] decryptKey(EncryptedData data, ID receiver, SecureMessage sMsg);
+    byte[] decryptKey(EncryptedBundle bundle, ID receiver, SecureMessage sMsg);
 
     /**
      *  3. Deserialize message key from data (JsON / ProtoBuf / ...)
@@ -108,10 +109,10 @@ public interface SecureMessageDelegate {
     /**
      *  5. Decrypt 'message.data' with symmetric key
      *
-     *  @param data     - encrypt content data
-     *  @param password - symmetric key
-     *  @param sMsg     - secure message object
-     *  @return serialized message content
+     * @param data     - encrypt content data
+     * @param password - symmetric key
+     * @param sMsg     - secure message object
+     * @return serialized message content
      */
     byte[] decryptContent(byte[] data, SymmetricKey password, SecureMessage sMsg);
 
@@ -146,9 +147,9 @@ public interface SecureMessageDelegate {
     /**
      *  1. Sign 'message.data' with sender's private key
      *
-     *  @param data - encrypted message data
-     *  @param sMsg - secure message object
-     *  @return signature of encrypted message data
+     * @param data - encrypted message data
+     * @param sMsg - secure message object
+     * @return signature of encrypted message data
      */
     byte[] signData(byte[] data, SecureMessage sMsg);
 

@@ -33,7 +33,7 @@ package chat.dim.mkm;
 import java.util.List;
 import java.util.Set;
 
-import chat.dim.crypto.EncryptedData;
+import chat.dim.crypto.EncryptedBundle;
 import chat.dim.crypto.SharedVisaAgent;
 import chat.dim.crypto.VisaAgent;
 import chat.dim.protocol.DecryptKey;
@@ -109,7 +109,7 @@ public class BaseUser extends BaseEntity implements User {
     }
 
     @Override
-    public EncryptedData encrypt(byte[] plaintext) {
+    public EncryptedBundle encryptBundle(byte[] plaintext) {
         Meta meta = getMeta();
         List<Document> documents = getDocuments();
         if (meta == null || documents == null) {
@@ -118,7 +118,7 @@ public class BaseUser extends BaseEntity implements User {
         }
         assert !documents.isEmpty() : "documents empty: " + identifier;
         VisaAgent visaAgent = SharedVisaAgent.agent;
-        return visaAgent.encryptData(plaintext, meta, documents);
+        return visaAgent.encryptBundle(plaintext, meta, documents);
     }
 
     //
@@ -136,7 +136,7 @@ public class BaseUser extends BaseEntity implements User {
     }
 
     @Override
-    public byte[] decrypt(EncryptedData data) {
+    public byte[] decryptBundle(EncryptedBundle bundle) {
         // NOTICE: if you provide a public key in visa for encryption,
         //         here you should return the private key paired with visa.key
         List<DecryptKey> privateKeys = getPrivateKeysForDecryption();
@@ -145,14 +145,14 @@ public class BaseUser extends BaseEntity implements User {
             return null;
         }
         assert !privateKeys.isEmpty() : "failed to get decrypt keys for user: " + identifier;
-        Set<byte[]> values = data.values();
-        assert !values.isEmpty() : "data empty: " + data;
+        Set<byte[]> values = bundle.values();
+        assert !values.isEmpty() : "key data empty: " + bundle;
         byte[] plaintext;
-        for (DecryptKey key : privateKeys) {
+        for (byte[] ciphertext : values) {
             // try decrypting it with each private key
-            for (byte[] ciphertext : values) {
+            for (DecryptKey key : privateKeys) {
                 plaintext = key.decrypt(ciphertext, null);
-                if (plaintext != null) {
+                if (plaintext != null && plaintext.length > 0) {
                     // OK!
                     return plaintext;
                 }

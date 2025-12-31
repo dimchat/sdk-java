@@ -47,7 +47,7 @@ public interface VisaAgent {
      * @param documents - visa documents for public keys
      * @return encrypted data with terminals
      */
-    EncryptedData encryptData(byte[] plaintext, Meta meta, List<Document> documents);
+    EncryptedBundle encryptBundle(byte[] plaintext, Meta meta, List<Document> documents);
 
     /**
      *  Get all verify keys from documents and meta

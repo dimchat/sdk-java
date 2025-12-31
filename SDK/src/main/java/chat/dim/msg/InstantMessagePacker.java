@@ -32,12 +32,11 @@ package chat.dim.msg;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import chat.dim.crypto.EncryptedData;
+import chat.dim.crypto.EncryptedBundle;
 import chat.dim.format.UTF8;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
@@ -95,13 +94,19 @@ public class InstantMessagePacker {
         //  1. Serialize 'message.content' to data (JsON / ProtoBuf / ...)
         //
         byte[] body = transceiver.serializeContent(iMsg.getContent(), password, iMsg);
-        assert body != null : "failed to serialize content: " + iMsg.getContent();
+        if (body == null || body.length == 0) {
+            assert false : "failed to serialize content: " + iMsg.getContent();
+            return null;
+        }
 
         //
         //  2. Encrypt content data to 'message.data' with symmetric key
         //
         byte[] ciphertext = transceiver.encryptContent(body, password, iMsg);
-        assert ciphertext != null : "failed to encrypt content with key: " + password;
+        if (ciphertext == null || ciphertext.length == 0) {
+            assert false : "failed to encrypt content with key: " + password;
+            return null;
+        }
 
         //
         //  3. Encode 'message.data' to String (Base64)
@@ -116,7 +121,10 @@ public class InstantMessagePacker {
             // so the data should be encoded here (with algorithm 'base64' as default).
             encodedData = TransportableData.encode(ciphertext);
         }
-        assert encodedData != null : "failed to encode content data: " + Arrays.toString(ciphertext);
+        if (encodedData == null) {
+            assert false : "failed to encode content data: " + ciphertext.length + " byte(s)";
+            return null;
+        }
 
         // replace 'content' with encrypted 'data'
         Map<String, Object> info = iMsg.copyMap(false);
@@ -142,58 +150,61 @@ public class InstantMessagePacker {
             members.add(receiver);
         }
 
-        //
-        //  5. Encrypt key data to 'message.keys' with member's public keys
-        //
-        Map<ID, EncryptedData> encryptedKeyDataMap = new HashMap<>();
-        EncryptedData encryptedKeyData;
+        Map<ID, EncryptedBundle> bundleMap = new HashMap<>();
+        EncryptedBundle bundle;
         for (ID receiver : members) {
-            encryptedKeyData = transceiver.encryptKey(pwd, receiver, iMsg);
-            if (encryptedKeyData == null || encryptedKeyData.isEmpty()) {
+            //
+            //  5. Encrypt key data to 'message.keys' with member's public keys
+            //
+            bundle = transceiver.encryptKey(pwd, receiver, iMsg);
+            if (bundle == null || bundle.isEmpty()) {
                 // public key for member not found
                 // TODO: suspend this message for waiting member's visa
                 continue;
             }
-            encryptedKeyDataMap.put(receiver, encryptedKeyData);
+            bundleMap.put(receiver, bundle);
         }
 
         //
         //  6. Encode message key to String (Base64)
         //
-        Map<String, Object> keys = encodeKeys(encryptedKeyDataMap, iMsg);
-        if (keys == null || keys.isEmpty()) {
+        Map<String, Object> msgKeys = encodeKeys(bundleMap, iMsg);
+        if (msgKeys == null || msgKeys.isEmpty()) {
             // public key for member(s) not found
             // TODO: suspend this message for waiting member's visa
             return null;
         }
 
         // insert as 'keys'
-        info.put("keys", keys);
+        info.put("keys", msgKeys);
 
         // OK, pack message
         return SecureMessage.parse(info);
     }
 
-    protected Map<String, Object> encodeKeys(Map<ID, EncryptedData> encryptedKeyDataMap, InstantMessage iMsg) {
+    protected Map<String, Object> encodeKeys(Map<ID, EncryptedBundle> bundleMap, InstantMessage iMsg) {
         InstantMessageDelegate transceiver = getDelegate();
         if (transceiver == null) {
             assert false : "instant message delegate not found";
             return null;
         }
-        Map<String, Object> keys = new HashMap<>();
+        Map<String, Object> msgKeys = new HashMap<>();
         ID receiver;
-        EncryptedData data;
-        Map<String, Object> encodedKeyData;
-        for (Map.Entry<ID, EncryptedData> entry : encryptedKeyDataMap.entrySet()) {
+        EncryptedBundle bundle;
+        Map<String, Object> encodedKeys;
+        for (Map.Entry<ID, EncryptedBundle> entry : bundleMap.entrySet()) {
             receiver = entry.getKey();
-            data = entry.getValue();
-            encodedKeyData = transceiver.encodeKey(data, receiver, iMsg);
-            assert encodedKeyData != null && !encodedKeyData.isEmpty() : "failed to encode key data: " + receiver;
-            // insert to 'message.keys' with ID + terminal
-            keys.putAll(encodedKeyData);
+            bundle = entry.getValue();
+            encodedKeys = transceiver.encodeKey(bundle, receiver, iMsg);
+            if (encodedKeys != null && !encodedKeys.isEmpty()) {
+                // insert to 'message.keys' with ID + terminal
+                msgKeys.putAll(encodedKeys);
+            } else {
+                assert false : "failed to encode key data: " + receiver;
+            }
         }
         // TODO: put key digest
-        return keys;
+        return msgKeys;
     }
 
 }

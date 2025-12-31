@@ -34,7 +34,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import chat.dim.crypto.EncryptedData;
+import chat.dim.crypto.EncryptedBundle;
 import chat.dim.mkm.Entity;
 import chat.dim.mkm.User;
 import chat.dim.msg.BaseMessage;
@@ -124,7 +124,7 @@ public abstract class Transceiver implements InstantMessageDelegate, SecureMessa
     }
 
     @Override
-    public EncryptedData encryptKey(byte[] data, ID receiver, InstantMessage iMsg) {
+    public EncryptedBundle encryptKey(byte[] data, ID receiver, InstantMessage iMsg) {
         assert !BaseMessage.isBroadcast(iMsg) : "broadcast message has no key: " + iMsg;
         Entity.Delegate facebook = getFacebook();
         assert facebook != null : "entity delegate not set yet";
@@ -136,22 +136,22 @@ public abstract class Transceiver implements InstantMessageDelegate, SecureMessa
             return null;
         }
         // encrypt with public key of the receiver (or group member)
-        return contact.encrypt(data);
+        return contact.encryptBundle(data);
     }
 
     @Override
-    public Map<String, Object> encodeKey(EncryptedData data, ID receiver, InstantMessage iMsg) {
+    public Map<String, Object> encodeKey(EncryptedBundle bundle, ID receiver, InstantMessage iMsg) {
         assert !BaseMessage.isBroadcast(iMsg) : "broadcast message has no key: " + iMsg;
         // message key had been encrypted by a public key,
         // so the data should be encode here (with algorithm 'base64' as default).
-        return data.encode(receiver);
+        return bundle.encode(receiver);
         // TODO: check for wildcard
     }
 
     //-------- SecureMessageDelegate
 
     @Override
-    public EncryptedData decodeKey(Map<String, Object> keys, ID receiver, SecureMessage sMsg) {
+    public EncryptedBundle decodeKey(Map<String, Object> msgKeys, ID receiver, SecureMessage sMsg) {
         assert !BaseMessage.isBroadcast(sMsg) : "broadcast message has no key: " + sMsg;
         Entity.Delegate facebook = getFacebook();
         assert facebook != null : "entity delegate not set yet";
@@ -162,18 +162,18 @@ public abstract class Transceiver implements InstantMessageDelegate, SecureMessa
             return null;
         }
         Set<String> terminals = user.getTerminals();
-        EncryptedData data = EncryptedData.decode(keys, receiver, terminals);
+        EncryptedBundle bundle = EncryptedBundle.decode(msgKeys, receiver, terminals);
         // check for wildcard
-        if (data.isEmpty() && !terminals.contains("*")) {
+        if (bundle.isEmpty() && !terminals.contains("*")) {
             terminals = new HashSet<>();
             terminals.add("*");
-            data = EncryptedData.decode(keys, receiver, terminals);
+            bundle = EncryptedBundle.decode(msgKeys, receiver, terminals);
         }
-        return data;
+        return bundle;
     }
 
     @Override
-    public byte[] decryptKey(EncryptedData key, ID receiver, SecureMessage sMsg) {
+    public byte[] decryptKey(EncryptedBundle bundle, ID receiver, SecureMessage sMsg) {
         // NOTICE: the receiver must be a member ID
         //         if it's a group message
         assert !BaseMessage.isBroadcast(sMsg) : "broadcast message has no key: " + sMsg;
@@ -186,7 +186,7 @@ public abstract class Transceiver implements InstantMessageDelegate, SecureMessa
             return null;
         }
         // decrypt with private key of the receiver (or group member)
-        return user.decrypt(key);
+        return user.decryptBundle(bundle);
     }
 
     @Override

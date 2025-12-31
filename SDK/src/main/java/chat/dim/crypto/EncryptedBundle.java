@@ -40,7 +40,7 @@ import chat.dim.protocol.TransportableData;
 /**
  *  User Encrypted Key Data with Terminals
  */
-public interface EncryptedData {
+public interface EncryptedBundle {
 
     Map<String, byte[]> toMap();
 
@@ -81,20 +81,20 @@ public interface EncryptedData {
      *  Encode key data
      *
      * @param did - user ID
-     * @return encoded key data with target (ID + terminal)
+     * @return encoded key data with targets (ID + terminals)
      */
     Map<String, Object> encode(ID did);
 
     /**
      *  Decode key data from 'message.keys'
      *
-     * @param keys      - encoded key data with target (ID + terminal)
+     * @param keys      - encoded key data with targets (ID + terminals)
      * @param did       - receiver ID
      * @param terminals - visa terminals
-     * @return decrypted key data with terminals
+     * @return decrypted key data with targets (ID terminals)
      */
-    static EncryptedData decode(Map<String, Object> keys, ID did, Iterable<String> terminals) {
-        EncryptedData result = new UserEncryptedData();
+    static EncryptedBundle decode(Map<String, Object> keys, ID did, Iterable<String> terminals) {
+        EncryptedBundle bundle = new UserEncryptedBundle();
         //
         //  0. ID string without terminal
         //
@@ -127,13 +127,13 @@ public interface EncryptedData {
                 continue;
             }
             //
-            //  3. got data with target (ID + terminal)
+            //  3. put data for target (ID terminal)
             //
-            data = result.put(target, data);
+            data = bundle.put(target, data);
             assert data == null : "duplicated terminal: " + item + ", " + keys;
         }
         // OK
-        return result;
+        return bundle;
     }
 
 }
