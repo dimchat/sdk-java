@@ -126,21 +126,26 @@ public class InstantMessagePacker {
             return null;
         }
 
-        // replace 'content' with encrypted 'data'
-        Map<String, Object> info = iMsg.copyMap(false);
-        info.remove("content");
-        info.put("data", encodedData);
-
         //
         //  4. Serialize message key to data (JsON / ProtoBuf / ...)
         //
         byte[] pwd = transceiver.serializeKey(password, iMsg);
+        // NOTICE:
+        //    if the key is reused, iMsg must be updated with key digest.
+        Map<String, Object> info = iMsg.copyMap(false);
+
+        // replace 'content' with encrypted and encoded 'data'
+        info.remove("content");
+        info.put("data", encodedData);
+
+        // check serialized key data,
+        // if key data is null here, build the secure message directly.
         if (pwd == null) {
             // A) broadcast message has no key
             // B) reused key
             return SecureMessage.parse(info);
         }
-        // encrypt + encode key
+        // encrypt and encode key
 
         if (members == null) {
             // personal message

@@ -105,7 +105,7 @@ public class SecureMessagePacker {
             return null;
         }
 
-        byte[] keyData;
+        byte[] pwd;  // serialized symmetric key data
 
         //
         //  1. Decode 'message.key' to encrypted symmetric key data
@@ -114,13 +114,13 @@ public class SecureMessagePacker {
         if (bundle == null || bundle.isEmpty()) {
             // broadcast message?
             // reused key?
-            keyData = null;
+            pwd = null;
         } else {
             //
             //  2. Decrypt 'message.key' with receiver's private key
             //
-            keyData = transceiver.decryptKey(bundle, receiver, sMsg);
-            if (keyData == null || keyData.length == 0) {
+            pwd = transceiver.decryptKey(bundle, receiver, sMsg);
+            if (pwd == null || pwd.length == 0) {
                 // A: my visa updated but the sender doesn't got the new one;
                 // B: key data error.
                 throw new NullPointerException("failed to decrypt message key: " + bundle
@@ -133,12 +133,12 @@ public class SecureMessagePacker {
         //  3. Deserialize message key from data (JsON / ProtoBuf / ...)
         //     (if key is empty, means it should be reused, get it from key cache)
         //
-        SymmetricKey password = transceiver.deserializeKey(keyData, sMsg);
+        SymmetricKey password = transceiver.deserializeKey(pwd, sMsg);
         if (password == null) {
             // A: key data is empty, and cipher key not found from local storage;
             // B: key data error.
             throw new NullPointerException("failed to get message key: "
-                    + (keyData == null ? 0 : keyData.length) + " byte(s) "
+                    + (pwd == null ? 0 : pwd.length) + " byte(s) "
                     + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup());
             // TODO: ask the sender to send again (with new message key)
         }
