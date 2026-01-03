@@ -150,16 +150,7 @@ public class DefaultVisaAgent implements VisaAgent {
     }
 
     protected String getTerminal(Document doc) {
-        String terminal;
-        // get from visa
-        if (doc instanceof Visa) {
-            terminal = ((Visa) doc).getTerminal();
-            if (terminal != null) {
-                return terminal;
-            }
-        }
-        // get from document
-        terminal = doc.getString("terminal");
+        String terminal = doc.getString("terminal");
         if (terminal == null) {
             // get from document ID
             ID did = ID.parse(doc.get("did"));
@@ -167,6 +158,7 @@ public class DefaultVisaAgent implements VisaAgent {
                 terminal = did.getTerminal();
             } else {
                 assert false : "document ID not found: " + doc;
+                // TODO: get from property?
             }
         }
         return terminal;
