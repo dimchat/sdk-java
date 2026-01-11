@@ -153,6 +153,11 @@ public class InstantMessagePacker {
             assert receiver.isUser() : "message.receiver error: " + receiver;
             members = new ArrayList<>();
             members.add(receiver);
+        } else {
+            // group message
+            ID receiver = iMsg.getReceiver();
+            assert receiver.isGroup() : "message.receiver error: " + receiver;
+            assert !members.isEmpty() : "group members empty: " + receiver;
         }
 
         Map<ID, EncryptedBundle> bundleMap = new HashMap<>();
@@ -201,12 +206,12 @@ public class InstantMessagePacker {
             receiver = entry.getKey();
             bundle = entry.getValue();
             encodedKeys = transceiver.encodeKey(bundle, receiver, iMsg);
-            if (encodedKeys != null && !encodedKeys.isEmpty()) {
-                // insert to 'message.keys' with ID + terminal
-                msgKeys.putAll(encodedKeys);
-            } else {
+            if (encodedKeys == null || encodedKeys.isEmpty()) {
                 assert false : "failed to encode key data: " + receiver;
+                continue;
             }
+            // insert to 'message.keys' with ID + terminal
+            msgKeys.putAll(encodedKeys);
         }
         // TODO: put key digest
         return msgKeys;

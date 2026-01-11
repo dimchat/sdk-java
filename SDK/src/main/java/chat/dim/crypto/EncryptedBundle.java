@@ -31,7 +31,6 @@
 package chat.dim.crypto;
 
 import java.util.Map;
-import java.util.Set;
 
 import chat.dim.mkm.Identifier;
 import chat.dim.protocol.ID;
@@ -69,13 +68,6 @@ public interface EncryptedBundle {
      * @return encrypted key data
      */
     byte[] get(String terminal);
-
-    /**
-     *  Get all data values
-     *
-     * @return data list
-     */
-    Set<byte[]> values();
 
     /**
      *  Encode key data

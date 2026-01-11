@@ -163,11 +163,20 @@ public abstract class Transceiver implements InstantMessageDelegate, SecureMessa
         }
         Set<String> terminals = user.getTerminals();
         EncryptedBundle bundle = EncryptedBundle.decode(msgKeys, receiver, terminals);
+        if (!bundle.isEmpty()) {
+            // OK
+            return bundle;
+        } else if (terminals.contains("*")) {
+            assert false : "failed to decode key: " + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup();
+            return null;
+        }
         // check for wildcard
-        if (bundle.isEmpty() && !terminals.contains("*")) {
-            terminals = new HashSet<>();
-            terminals.add("*");
-            bundle = EncryptedBundle.decode(msgKeys, receiver, terminals);
+        terminals = new HashSet<>();
+        terminals.add("*");
+        bundle = EncryptedBundle.decode(msgKeys, receiver, terminals);
+        if (bundle.isEmpty()) {
+            assert false : "failed to decode key: " + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup();
+            return null;
         }
         return bundle;
     }

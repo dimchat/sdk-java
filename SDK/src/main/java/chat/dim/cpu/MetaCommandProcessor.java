@@ -84,6 +84,12 @@ public class MetaCommandProcessor extends BaseCommandProcessor {
             ));
         }
         // meta got
+        return respondMeta(did, meta, envelope.getSender());
+    }
+
+    protected List<Content> respondMeta(ID did, Meta meta, ID receiver) {
+        assert receiver.equals(did) : "cycled response";
+        // TODO: check response expired
         MetaCommand res = MetaCommand.response(did, meta);
         List<Content> responses = new ArrayList<>();
         responses.add(res);

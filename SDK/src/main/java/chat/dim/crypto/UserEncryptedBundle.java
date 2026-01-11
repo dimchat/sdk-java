@@ -32,9 +32,7 @@ package chat.dim.crypto;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import chat.dim.mkm.Identifier;
 import chat.dim.protocol.ID;
@@ -96,11 +94,6 @@ public class UserEncryptedBundle implements EncryptedBundle {
     }
 
     @Override
-    public Set<byte[]> values() {
-        return new HashSet<>(map.values());
-    }
-
-    @Override
     public Map<String, Object> encode(ID did) {
         assert did.getTerminal() == null : "ID should not contain terminal here: " + did;
         String identifier = Identifier.concat(did.getName(), did.getAddress(), null);
@@ -122,6 +115,7 @@ public class UserEncryptedBundle implements EncryptedBundle {
             // insert to 'message.keys' with ID + terminal
             bundle.put(target, base64);
         }
+        // OK
         return bundle;
     }
 

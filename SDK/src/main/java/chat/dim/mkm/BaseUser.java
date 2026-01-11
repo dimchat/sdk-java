@@ -31,6 +31,7 @@
 package chat.dim.mkm;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import chat.dim.crypto.EncryptedBundle;
@@ -97,8 +98,8 @@ public class BaseUser extends BaseEntity implements User {
             return false;
         }
         assert !keys.isEmpty() : "failed to get verify keys: " + identifier;
-        for (VerifyKey key : keys) {
-            if (key.verify(data, signature)) {
+        for (VerifyKey pubKey : keys) {
+            if (pubKey.verify(data, signature)) {
                 // matched!
                 return true;
             }
@@ -117,6 +118,8 @@ public class BaseUser extends BaseEntity implements User {
             return null;
         }
         assert !documents.isEmpty() : "documents empty: " + identifier;
+        // NOTICE: meta.key will never changed, so use visa.key to encrypt message
+        //         is a better way
         VisaAgent visaAgent = SharedVisaAgent.agent;
         return visaAgent.encryptBundle(plaintext, meta, documents);
     }
@@ -139,19 +142,24 @@ public class BaseUser extends BaseEntity implements User {
     public byte[] decryptBundle(EncryptedBundle bundle) {
         // NOTICE: if you provide a public key in visa for encryption,
         //         here you should return the private key paired with visa.key
-        List<DecryptKey> privateKeys = getPrivateKeysForDecryption();
-        if (privateKeys == null) {
-            assert false : "failed to get decrypt keys for user: " + identifier;
-            return null;
-        }
-        assert !privateKeys.isEmpty() : "failed to get decrypt keys for user: " + identifier;
-        Set<byte[]> values = bundle.values();
-        assert !values.isEmpty() : "key data empty: " + bundle;
+        Map<String, byte[]> map = bundle.toMap();
+        assert !map.isEmpty() : "key data empty: " + bundle;
+        String terminal;
+        byte[] ciphertext;
         byte[] plaintext;
-        for (byte[] ciphertext : values) {
+        List<DecryptKey> keys;
+        for (Map.Entry<String, byte[]> entry : map.entrySet()) {
+            terminal = entry.getKey();
+            ciphertext = entry.getValue();
+            // get private keys for terminal
+            keys = getPrivateKeysForDecryption(terminal);
+            if (keys == null) {
+                assert false : "failed to get decrypt keys for user: " + identifier + ", terminal: " + terminal;
+                continue;
+            }
             // try decrypting it with each private key
-            for (DecryptKey key : privateKeys) {
-                plaintext = key.decrypt(ciphertext, null);
+            for (DecryptKey priKey : keys) {
+                plaintext = priKey.decrypt(ciphertext, null);
                 if (plaintext != null && plaintext.length > 0) {
                     // OK!
                     return plaintext;
@@ -203,6 +211,19 @@ public class BaseUser extends BaseEntity implements User {
     //  Private Keys
     //
 
+    protected List<DecryptKey> getPrivateKeysForDecryption(String terminal) {
+        User.DataSource facebook = getDataSource();
+        if (facebook == null) {
+            assert false : "user datasource not set yet";
+            return null;
+        }
+        if (terminal == null || terminal.isEmpty() || terminal.equals("*")) {
+            return facebook.getPrivateKeysForDecryption(identifier);
+        }
+        ID uid = ID.create(identifier.getName(), identifier.getAddress(), terminal);
+        return facebook.getPrivateKeysForDecryption(uid);
+    }
+
     protected SignKey getPrivateKeyForSignature() {
         User.DataSource facebook = getDataSource();
         if (facebook == null) {
@@ -210,15 +231,6 @@ public class BaseUser extends BaseEntity implements User {
             return null;
         }
         return facebook.getPrivateKeyForSignature(identifier);
-    }
-
-    protected List<DecryptKey> getPrivateKeysForDecryption() {
-        User.DataSource facebook = getDataSource();
-        if (facebook == null) {
-            assert false : "user datasource not set yet";
-            return null;
-        }
-        return facebook.getPrivateKeysForDecryption(identifier);
     }
 
     protected SignKey getPrivateKeyForVisaSignature() {

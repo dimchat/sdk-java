@@ -56,17 +56,17 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
     public List<Content> processContent(Content content, ReliableMessage rMsg) {
         assert content instanceof DocumentCommand : "document command error: " + content;
         DocumentCommand command = (DocumentCommand) content;
-        List<Document> docs = command.getDocuments();
+        List<Document> documents = command.getDocuments();
         ID did = command.getIdentifier();
         if (did == null) {
             assert false : "doc ID cannot be empty: " + command;
             return respondReceipt("Document command error.", rMsg.getEnvelope(), command, null);
-        } else if (docs == null) {
+        } else if (documents == null) {
             // query entity documents for ID
             return getDocuments(did, rMsg.getEnvelope(), command);
         }
         // received new documents
-        return putDocuments(did, docs, rMsg.getEnvelope(), command);
+        return putDocuments(did, documents, rMsg.getEnvelope(), command);
     }
 
     private List<Content> getDocuments(ID did, Envelope envelope, DocumentCommand content) {
@@ -100,8 +100,12 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
                 ));
             }
         }
-        Meta meta = facebook.getMeta(did);
-        DocumentCommand res = DocumentCommand.response(did, meta, documents);
+        // documents got
+        return respondDocuments(did, documents, envelope.getSender());
+    }
+
+    protected List<Content> respondDocuments(ID did, List<Document> documents, ID receiver) {
+        DocumentCommand res = DocumentCommand.response(did, null, documents);
         List<Content> responses = new ArrayList<>();
         responses.add(res);
         return responses;
@@ -110,31 +114,31 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
     protected Document getLastDocument(Iterable<Document> documents) {
         Document lastDoc = null;
         Date lastTime = null;
-        Date docTIme;
+        Date docTime;
         for (Document doc : documents) {
-            docTIme = doc.getTime();
+            docTime = doc.getTime();
             if (lastDoc == null) {
                 // first document
                 lastDoc = doc;
-                lastTime = docTIme;
+                lastTime = docTime;
             } else if (lastTime == null) {
                 // the first document has no time (old version),
                 // if this document has time, use the new one
-                if (docTIme != null) {
+                if (docTime != null) {
                     // first document with time
                     lastDoc = doc;
-                    lastTime = docTIme;
+                    lastTime = docTime;
                 }
-            } else if (docTIme != null && docTIme.after(lastTime)) {
+            } else if (docTime != null && docTime.after(lastTime)) {
                 // new document
                 lastDoc = doc;
-                lastTime = docTIme;
+                lastTime = docTime;
             }
         }
         return lastDoc;
     }
 
-    private List<Content> putDocuments(ID did, List<Document> docs, Envelope envelope, DocumentCommand content) {
+    private List<Content> putDocuments(ID did, List<Document> documents, Envelope envelope, DocumentCommand content) {
         List<Content> errors;
         Meta meta = content.getMeta();
         // 0. check meta
@@ -160,8 +164,8 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         // 2. try to save documents
         errors = new ArrayList<>();
         List<Content> responses;
-        for (Document document : docs) {
-            responses = saveDocument(document, meta, did, envelope, content);
+        for (Document doc : documents) {
+            responses = saveDocument(doc, meta, did, envelope, content);
             if (responses != null) {
                 // failed
                 errors.addAll(responses);
@@ -218,9 +222,9 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         // check document ID
         ID docID = ID.parse(doc.get("did"));
         if (docID != null) {
-            Address inc = docID.getAddress();
-            Address out = did.getAddress();
-            if (!inc.equals(out)) {
+            Address inside = docID.getAddress();
+            Address outside = did.getAddress();
+            if (!inside.equals(outside)) {
                 assert false : "ID not matched: " + did + ", " + doc.toMap();
                 return false;
             }
