@@ -105,7 +105,11 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
     }
 
     protected List<Content> respondDocuments(ID did, List<Document> documents, ID receiver) {
-        DocumentCommand res = DocumentCommand.response(did, null, documents);
+        assert !receiver.equals(did) : "cycled response: " + did;
+        // TODO: check response expired
+        Facebook facebook = getFacebook();
+        Meta meta = facebook.getMeta(did);
+        DocumentCommand res = DocumentCommand.response(did, meta, documents);
         List<Content> responses = new ArrayList<>();
         responses.add(res);
         return responses;

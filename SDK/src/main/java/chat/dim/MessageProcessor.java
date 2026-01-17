@@ -166,8 +166,8 @@ public abstract class MessageProcessor extends TwinsHelper implements Processor 
         // 2. select a local user to build message
         ID sender = iMsg.getSender();
         ID receiver = iMsg.getReceiver();
-        ID user = facebook.selectLocalUser(receiver);
-        if (user == null) {
+        ID me = facebook.selectLocalUser(receiver);
+        if (me == null) {
             assert false : "receiver error: " + receiver;
             return null;
         }
@@ -176,7 +176,7 @@ public abstract class MessageProcessor extends TwinsHelper implements Processor 
         Envelope env;
         for (Content res : responses) {
             // assert res != null : "should not happen";
-            env = Envelope.create(user, sender, null);
+            env = Envelope.create(me, sender, null);
             iMsg = InstantMessage.create(env, res);
             // assert iMsg != null : "should not happen";
             messages.add(iMsg);

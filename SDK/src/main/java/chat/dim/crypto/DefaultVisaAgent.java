@@ -122,7 +122,7 @@ public class DefaultVisaAgent implements VisaAgent {
             if (visaKey instanceof VerifyKey) {
                 return (VerifyKey) visaKey;
             }
-            assert false : "failed to get visa key: " + doc;
+            assert false : "visa key error: " + visaKey + ", " + doc;
             return null;
         }
         // public key in user profile?

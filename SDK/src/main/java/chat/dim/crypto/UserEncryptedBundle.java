@@ -77,10 +77,10 @@ public class UserEncryptedBundle implements EncryptedBundle {
     @Override
     public byte[] put(String terminal, byte[] data) {
         if (data == null) {
-            assert false : "should not happen";
-            return remove(terminal);
+            return map.remove(terminal);
+        } else {
+            return map.put(terminal, data);
         }
-        return map.put(terminal, data);
     }
 
     @Override

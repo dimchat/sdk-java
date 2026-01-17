@@ -213,9 +213,7 @@ public class ClientContentProcessorCreator extends BaseContentProcessorCreator {
 
             // application customized
             case ContentType.APPLICATION:
-            case "application":
             case ContentType.CUSTOMIZED:
-            case "customized":
                 return createCustomizedContentProcessor(getFacebook(), getMessenger());
 
             // ...
@@ -251,5 +249,5 @@ and then set your **creator** for ```GeneralContentProcessorFactory``` in the ``
 
 ----
 
-Copyright &copy; 2018-2025 Albert Moky
+Copyright &copy; 2018-2026 Albert Moky
 [![Followers](https://img.shields.io/github/followers/moky)](https://github.com/moky?tab=followers)
