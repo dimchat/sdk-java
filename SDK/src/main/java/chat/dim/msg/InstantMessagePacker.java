@@ -37,7 +37,8 @@ import java.util.List;
 import java.util.Map;
 
 import chat.dim.crypto.EncryptedBundle;
-import chat.dim.format.UTF8;
+import chat.dim.format.Base64Data;
+import chat.dim.format.PlainData;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.SecureMessage;
@@ -111,17 +112,17 @@ public class InstantMessagePacker {
         //
         //  3. Encode 'message.data' to String (Base64)
         //
-        Object encodedData;
+        TransportableData encodedData;
         if (BaseMessage.isBroadcast(iMsg)) {
             // broadcast message content will not be encrypted (just encoded to JsON),
             // so no need to encode to Base64 here
-            encodedData = UTF8.decode(ciphertext);
+            encodedData = PlainData.create(ciphertext);  // UTF8.decode(ciphertext);
         } else {
             // message content had been encrypted by a symmetric key,
             // so the data should be encoded here (with algorithm 'base64' as default).
-            encodedData = TransportableData.encode(ciphertext);
+            encodedData = Base64Data.create(ciphertext);
         }
-        if (encodedData == null) {
+        if (encodedData.isEmpty()) {
             assert false : "failed to encode content data: " + ciphertext.length + " byte(s)";
             return null;
         }
@@ -136,7 +137,7 @@ public class InstantMessagePacker {
 
         // replace 'content' with encrypted and encoded 'data'
         info.remove("content");
-        info.put("data", encodedData);
+        info.put("data", encodedData.serialize());
 
         // check serialized key data,
         // if key data is null here, build the secure message directly.
@@ -153,11 +154,11 @@ public class InstantMessagePacker {
             assert receiver.isUser() : "message.receiver error: " + receiver;
             members = new ArrayList<>();
             members.add(receiver);
-        } else {
-            // group message
-            ID receiver = iMsg.getReceiver();
-            assert receiver.isGroup() : "message.receiver error: " + receiver;
-            assert !members.isEmpty() : "group members empty: " + receiver;
+        //} else {
+        //    // group message
+        //    ID receiver = iMsg.getReceiver();
+        //    assert receiver.isGroup() : "message.receiver error: " + receiver;
+        //    assert !members.isEmpty() : "group members empty: " + receiver;
         }
 
         Map<ID, EncryptedBundle> bundleMap = new HashMap<>();

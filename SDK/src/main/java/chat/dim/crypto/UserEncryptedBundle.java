@@ -34,9 +34,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import chat.dim.format.Base64;
 import chat.dim.mkm.Identifier;
 import chat.dim.protocol.ID;
-import chat.dim.protocol.TransportableData;
 
 public class UserEncryptedBundle implements EncryptedBundle {
 
@@ -100,12 +100,12 @@ public class UserEncryptedBundle implements EncryptedBundle {
         Map<String, Object> bundle = new HashMap<>();
         String target;
         byte[] data;
-        Object base64;
+        String base64;
         for (Map.Entry<String, byte[]> entry : map.entrySet()) {
             target = entry.getKey();
             data = entry.getValue();
             // encode data
-            base64 = TransportableData.encode(data);
+            base64 = Base64.encode(data);
             assert base64 != null : "failed to encode data: " + Arrays.toString(data);
             if (target.isEmpty() || target.equals("*")) {
                 target = identifier;

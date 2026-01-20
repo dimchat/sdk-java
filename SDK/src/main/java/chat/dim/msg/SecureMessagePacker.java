@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.crypto.EncryptedBundle;
+import chat.dim.format.Base64Data;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
@@ -146,8 +147,8 @@ public class SecureMessagePacker {
         //
         //  4. Decode 'message.data' to encrypted content data
         //
-        byte[] ciphertext = sMsg.getData();
-        if (ciphertext == null || ciphertext.length == 0) {
+        TransportableData ciphertext = sMsg.getData();
+        if (ciphertext == null || ciphertext.isEmpty()) {
             assert false : "failed to decode message data: "
                     + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup();
             return null;
@@ -156,12 +157,12 @@ public class SecureMessagePacker {
         //
         //  5. Decrypt 'message.data' with symmetric key
         //
-        byte[] body = transceiver.decryptContent(ciphertext, password, sMsg);
+        byte[] body = transceiver.decryptContent(ciphertext.getBytes(), password, sMsg);
         if (body == null || body.length == 0) {
             // A: password is a reused key loaded from local storage, but it's expired;
             // B: key error.
             throw new NullPointerException("failed to decrypt message data with key: " + password
-                    + ", data length: " + ciphertext.length + " byte(s) "
+                    + ", data length: " + ciphertext.length() + " byte(s) "
                     + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup());
             // TODO: ask the sender to send again
         }
@@ -222,8 +223,8 @@ public class SecureMessagePacker {
         //
         //  0. decode message data
         //
-        byte[] ciphertext = sMsg.getData();
-        if (ciphertext == null || ciphertext.length == 0) {
+        TransportableData ciphertext = sMsg.getData();
+        if (ciphertext == null || ciphertext.isEmpty()) {
             assert false : "failed to decode message data: "
                     + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
             return null;
@@ -232,9 +233,9 @@ public class SecureMessagePacker {
         //
         //  1. Sign 'message.data' with sender's private key
         //
-        byte[] signature = transceiver.signData(ciphertext, sMsg);
+        byte[] signature = transceiver.signData(ciphertext.getBytes(), sMsg);
         if (signature == null || signature.length == 0) {
-            assert false : "failed to sign message: " + ciphertext.length + " byte(s) "
+            assert false : "failed to sign message: " + ciphertext.length() + " byte(s) "
                     + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
             return null;
         }
@@ -242,8 +243,8 @@ public class SecureMessagePacker {
         //
         //  2. Encode 'message.signature' to String (Base64)
         //
-        Object base64 = TransportableData.encode(signature);
-        if (base64 == null) {
+        TransportableData base64 = Base64Data.create(signature);
+        if (base64.isEmpty()) {
             assert false : "failed to encode signature: " + signature.length + " byte(s) "
                     + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
             return null;
@@ -251,7 +252,7 @@ public class SecureMessagePacker {
 
         // OK, pack message
         Map<String, Object> map = sMsg.copyMap(false);
-        map.put("signature", base64);
+        map.put("signature", base64.serialize());
         return ReliableMessage.parse(map);
     }
 

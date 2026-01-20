@@ -113,7 +113,7 @@ public interface EncryptedBundle {
             //  2. decode data
             //
             ted = TransportableData.parse(base64);
-            data = ted == null ? null : ted.getData();
+            data = ted == null ? null : ted.getBytes();
             if (data == null) {
                 assert false : "key data error: " + item + " -> " + base64;
                 continue;

@@ -35,6 +35,7 @@ import java.util.Map;
 
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
+import chat.dim.protocol.TransportableData;
 
 public class ReliableMessagePacker {
 
@@ -79,8 +80,8 @@ public class ReliableMessagePacker {
         //
         //  0. Decode 'message.data' to encrypted content data
         //
-        byte[] ciphertext = rMsg.getData();
-        if (ciphertext == null || ciphertext.length == 0) {
+        TransportableData ciphertext = rMsg.getData();
+        if (ciphertext == null || ciphertext.isEmpty()) {
             assert false : "failed to decode message data: "
                     + rMsg.getSender() + " => " + rMsg.getReceiver() + ", " + rMsg.getGroup();
             return null;
@@ -89,8 +90,8 @@ public class ReliableMessagePacker {
         //
         //  1. Decode 'message.signature' from String (Base64)
         //
-        byte[] signature = rMsg.getSignature();
-        if (signature == null || signature.length == 0) {
+        TransportableData signature = rMsg.getSignature();
+        if (signature == null || signature.isEmpty()) {
             assert false : "failed to decode message signature: "
                     + rMsg.getSender() + " => " + rMsg.getReceiver() + ", " + rMsg.getGroup();
             return null;
@@ -99,7 +100,7 @@ public class ReliableMessagePacker {
         //
         //  2. Verify the message data and signature with sender's public key
         //
-        boolean ok = transceiver.verifyDataSignature(ciphertext, signature, rMsg);
+        boolean ok = transceiver.verifyDataSignature(ciphertext.getBytes(), signature.getBytes(), rMsg);
         if (!ok) {
             assert false : "message signature not match: "
                     + rMsg.getSender() + " => " + rMsg.getReceiver() + ", " + rMsg.getGroup();
