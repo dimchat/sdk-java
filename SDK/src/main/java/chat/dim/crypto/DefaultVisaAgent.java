@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import chat.dim.ext.SharedAccountExtensions;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.EncryptKey;
 import chat.dim.protocol.ID;
@@ -153,7 +154,7 @@ public class DefaultVisaAgent implements VisaAgent {
         String terminal = doc.getString("terminal");
         if (terminal == null) {
             // get from document ID
-            ID did = ID.parse(doc.get("did"));
+            ID did = SharedAccountExtensions.helper.getDocumentID(doc);
             if (did != null) {
                 terminal = did.getTerminal();
             } else {

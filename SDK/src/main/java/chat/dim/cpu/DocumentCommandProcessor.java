@@ -37,7 +37,7 @@ import java.util.List;
 import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.core.Archivist;
-import chat.dim.protocol.Address;
+import chat.dim.ext.SharedAccountExtensions;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.DocumentCommand;
@@ -224,16 +224,12 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
             return false;
         }
         // check document ID
-        ID docID = ID.parse(doc.get("did"));
-        if (docID != null) {
-            Address inside = docID.getAddress();
-            Address outside = did.getAddress();
-            if (!inside.equals(outside)) {
-                assert false : "ID not matched: " + did + ", " + doc.toMap();
-                return false;
-            }
-        } else {
+        ID docID = SharedAccountExtensions.helper.getDocumentID(doc);
+        if (docID == null) {
             assert false : "document ID not found: " + doc.toMap();
+        } else if (!docID.getAddress().equals(did.getAddress())) {
+            assert false : "document ID not matched: " + did + ", " + doc.toMap();
+            return false;
         }
         // NOTICE: if this is a bulletin document for group,
         //             verify it with the group owner's meta.key

@@ -37,6 +37,7 @@ import java.util.Set;
 import chat.dim.crypto.EncryptedBundle;
 import chat.dim.crypto.SharedVisaAgent;
 import chat.dim.crypto.VisaAgent;
+import chat.dim.ext.SharedAccountExtensions;
 import chat.dim.protocol.DecryptKey;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
@@ -173,16 +174,21 @@ public class BaseUser extends BaseEntity implements User {
 
     @Override
     public Visa sign(Visa doc) {
-        ID did = ID.parse(doc.get("did"));
-        assert did == null || did.getAddress().equals(identifier.getAddress()) : "visa ID not match: " + did + ", " + identifier;
+        ID docID = SharedAccountExtensions.helper.getDocumentID(doc);
+        if (docID == null) {
+            assert false : "visa ID not found: " + doc.toMap();
+        } else if (!docID.getAddress().equals(identifier.getAddress())) {
+            assert false : "visa ID not matched: " + identifier + ", " + doc.toMap();
+            return null;
+        }
         // NOTICE: only sign visa with the private key paired with your meta.key
         SignKey sKey = getPrivateKeyForVisaSignature();
         if (sKey == null) {
-            assert false : "failed to get sign key for visa: " + did;
+            assert false : "failed to get sign key for visa: " + docID;
             return null;
         }
         if (doc.sign(sKey) == null) {
-            assert false : "failed to sign visa: " + did + ", " + doc;
+            assert false : "failed to sign visa: " + identifier + ", " + doc;
             return null;
         }
         return doc;
@@ -192,8 +198,13 @@ public class BaseUser extends BaseEntity implements User {
     public boolean verify(Visa doc) {
         // NOTICE: only verify visa with meta.key
         //         (if meta not exists, user won't be created)
-        ID did = ID.parse(doc.get("did"));
-        assert did == null || did.getAddress().equals(identifier.getAddress()) : "visa ID not match: " + did + ", " + identifier;
+        ID docID = SharedAccountExtensions.helper.getDocumentID(doc);
+        if (docID == null) {
+            assert false : "visa ID not found: " + doc.toMap();
+        } else if (!docID.getAddress().equals(identifier.getAddress())) {
+            assert false : "document ID not matched: " + identifier + ", " + doc.toMap();
+            return false;
+        }
         Meta meta = getMeta();
         if (meta == null) {
             assert false : "failed to get meta: " + identifier;
@@ -201,7 +212,7 @@ public class BaseUser extends BaseEntity implements User {
         }
         VerifyKey pKey = meta.getPublicKey();
         if (pKey == null) {
-            assert false : "failed to get verify key for visa: " + did;
+            assert false : "failed to get verify key for visa: " + docID;
             return false;
         }
         return doc.verify(pKey);
