@@ -2,12 +2,12 @@
  *
  *  DIMP : Decentralized Instant Messaging Protocol
  *
- *                                Written in 2025 by Moky <albert.moky@gmail.com>
+ *                                Written in 2026 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2025 Albert Moky
+ * Copyright (c) 2026 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,47 +35,16 @@ import java.util.Map;
 import chat.dim.protocol.ID;
 
 
-/**
- *  User Encrypted Key Data with Terminals
- */
-public interface EncryptedBundle {
-
-    // terminal -> encrypted key.data
-    Map<String, byte[]> toMap();
-
-    boolean isEmpty();
-
-    /**
-     *  Put encrypted key data for terminal
-     *
-     * @param terminal - ID terminal
-     * @param data     - encrypted key data
-     */
-    byte[] put(String terminal, byte[] data);
-
-    /**
-     *  Remove encrypted key data for terminal
-     *
-     * @param terminal - ID terminal
-     * @return removed data
-     */
-    byte[] remove(String terminal);
-
-    /**
-     *  Get encrypted key data for terminal
-     *
-     * @param terminal - ID terminal
-     * @return encrypted key data
-     */
-    byte[] get(String terminal);
+public interface EncryptedBundleHelper {
 
     /**
      *  Encode key data
      *
-     * @param did - user ID
+     * @param bundle - encrypted key data with targets (ID terminals)
+     * @param did    - user ID
      * @return encoded key data with targets (ID + terminals)
      */
-    Map<String, Object> encode(ID did);
+    Map<String, Object> encodeBundle(EncryptedBundle bundle, ID did);
 
     /**
      *  Decode key data from 'message.keys'
@@ -85,8 +54,6 @@ public interface EncryptedBundle {
      * @param terminals   - visa terminals
      * @return encrypted key data with targets (ID terminals)
      */
-    static EncryptedBundle decode(Map<String, Object> encodedKeys, ID did, Iterable<String> terminals) {
-        return SharedVisaAgent.helper.decodeBundle(encodedKeys, did, terminals);
-    }
+    EncryptedBundle decodeBundle(Map<String, Object> encodedKeys, ID did, Iterable<String> terminals);
 
 }

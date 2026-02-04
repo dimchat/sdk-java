@@ -30,16 +30,15 @@
  */
 package chat.dim.crypto;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import chat.dim.format.Base64;
-import chat.dim.mkm.Identifier;
 import chat.dim.protocol.ID;
+
 
 public class UserEncryptedBundle implements EncryptedBundle {
 
+    // terminal -> encrypted key.data
     private final Map<String, byte[]> map = new HashMap<>();
 
     public UserEncryptedBundle() {
@@ -95,28 +94,7 @@ public class UserEncryptedBundle implements EncryptedBundle {
 
     @Override
     public Map<String, Object> encode(ID did) {
-        assert did.getTerminal() == null : "ID should not contain terminal here: " + did;
-        String identifier = Identifier.concat(did.getName(), did.getAddress(), null);
-        Map<String, Object> bundle = new HashMap<>();
-        String target;
-        byte[] data;
-        String base64;
-        for (Map.Entry<String, byte[]> entry : map.entrySet()) {
-            target = entry.getKey();
-            data = entry.getValue();
-            // encode data
-            base64 = Base64.encode(data);
-            assert base64 != null : "failed to encode data: " + Arrays.toString(data);
-            if (target.isEmpty() || target.equals("*")) {
-                target = identifier;
-            } else {
-                target = identifier + "/" + target;
-            }
-            // insert to 'message.keys' with ID + terminal
-            bundle.put(target, base64);
-        }
-        // OK
-        return bundle;
+        return SharedVisaAgent.helper.encodeBundle(this, did);
     }
 
 }

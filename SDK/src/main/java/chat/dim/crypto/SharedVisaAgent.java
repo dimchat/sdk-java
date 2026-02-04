@@ -34,4 +34,6 @@ public final class SharedVisaAgent {
 
     public static VisaAgent agent = new DefaultVisaAgent();
 
+    public static EncryptedBundleHelper helper = new DefaultBundleHelper();
+
 }
