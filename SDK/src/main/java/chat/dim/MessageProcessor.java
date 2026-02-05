@@ -35,6 +35,7 @@ import java.util.List;
 
 import chat.dim.core.Processor;
 import chat.dim.dkd.ContentProcessor;
+import chat.dim.mkm.User;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
 import chat.dim.protocol.Envelope;
@@ -154,9 +155,8 @@ public abstract class MessageProcessor extends TwinsHelper implements Processor 
 
     @Override
     public List<InstantMessage> processInstantMessage(InstantMessage iMsg, ReliableMessage rMsg) {
-        Facebook facebook = getFacebook();
         Messenger transceiver = getMessenger();
-        assert facebook != null && transceiver != null : "twins not ready";
+        assert transceiver != null : "twins not ready";
         // 1. process content
         List<Content> responses = transceiver.processContent(iMsg.getContent(), rMsg);
         if (responses == null || responses.isEmpty()) {
@@ -166,8 +166,8 @@ public abstract class MessageProcessor extends TwinsHelper implements Processor 
         // 2. select a local user to build message
         ID sender = iMsg.getSender();
         ID receiver = iMsg.getReceiver();
-        ID me = facebook.selectLocalUser(receiver);
-        if (me == null) {
+        User user = selectLocalUser(receiver);
+        if (user == null) {
             assert false : "receiver error: " + receiver;
             return null;
         }
@@ -176,7 +176,7 @@ public abstract class MessageProcessor extends TwinsHelper implements Processor 
         Envelope env;
         for (Content res : responses) {
             // assert res != null : "should not happen";
-            env = Envelope.create(me, sender, null);
+            env = Envelope.create(user.getIdentifier(), sender, null);
             iMsg = InstantMessage.create(env, res);
             // assert iMsg != null : "should not happen";
             messages.add(iMsg);

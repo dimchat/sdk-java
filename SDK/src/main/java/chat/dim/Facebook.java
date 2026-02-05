@@ -48,10 +48,11 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
     /**
      *  Select local user for receiver
      *
-     * @param receiver - user/group ID
+     * @param receiver - user/broadcast ID
      * @return local user
      */
-    public ID selectLocalUser(ID receiver) {
+    public ID selectUser(ID receiver) {
+        assert receiver.isUser() || receiver.isBroadcast() : "user ID error: " + receiver;
         Archivist archivist = getArchivist();
         assert archivist != null : "archivist not ready";
         List<ID> allUsers = archivist.getLocalUsers();
@@ -67,34 +68,46 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
             return allUsers.get(0);
         }
         //
-        //  2.
+        //  2. personal message
         //
-        if (receiver.isUser()) {
-            // personal message
-            for (ID item : allUsers) {
-                if (receiver.equals(item)) {
-                    // DISCUSS: set this item to be current user?
-                    return item;
-                }
+        for (ID item : allUsers) {
+            if (receiver.equals(item)) {
+                // DISCUSS: set this item to be current user?
+                return item;
             }
-        } else if (receiver.isGroup()) {
-            // group message (recipient not designated)
-            //
-            // the messenger will check group info before decrypting message,
-            // so we can trust that the group's meta & members MUST exist here.
-            List<ID> members = getMembers(receiver);
-            if (members == null || members.isEmpty()) {
-                assert false : "members not found: " + receiver;
-                return null;
+        }
+        // not me?
+        return null;
+    }
+
+    /**
+     *  Select local user for group members
+     *
+     * @param members - group members
+     * @return local user
+     */
+    public ID selectMember(List<ID> members) {
+        assert members != null && !members.isEmpty() : "group members not found";
+        Archivist archivist = getArchivist();
+        assert archivist != null : "archivist not ready";
+        List<ID> allUsers = archivist.getLocalUsers();
+        //
+        //  1.
+        //
+        if (allUsers == null || allUsers.isEmpty()) {
+            assert false : "local users should not be empty";
+            return null;
+        }
+        //
+        //  2. group message (recipient not designated)
+        //
+        // the messenger will check group info before decrypting message,
+        // so we can trust that the group's meta & members MUST exist here.
+        for (ID item : allUsers) {
+            if (members.contains(item)) {
+                // DISCUSS: set this item to be current user?
+                return item;
             }
-            for (ID item : allUsers) {
-                if (members.contains(item)) {
-                    // DISCUSS: set this item to be current user?
-                    return item;
-                }
-            }
-        } else {
-            assert false : "receiver error: " + receiver;
         }
         // not me?
         return null;
@@ -131,7 +144,6 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
             return null;
         }
         // get from group cache
-        //
         Group group = barrack.getGroup(gid);
         if (group == null) {
             // create group and cache it

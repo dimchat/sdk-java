@@ -32,7 +32,12 @@ package chat.dim;
 
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import chat.dim.mkm.User;
+import chat.dim.protocol.ID;
+
 
 public class TwinsHelper {
 
@@ -51,6 +56,34 @@ public class TwinsHelper {
 
     protected Messenger getMessenger() {
         return messengerRef.get();
+    }
+
+    protected User selectLocalUser(ID receiver) {
+        Facebook facebook = getFacebook();
+        ID me;
+        if (receiver.isBroadcast()) {
+            // broadcast message can be decrypted by anyone
+            me = facebook.selectUser(receiver);
+        } else if (receiver.isUser()) {
+            // check local users
+            me = facebook.selectUser(receiver);
+        } else if (receiver.isGroup()) {
+            // check local users for the group members
+            List<ID> members = facebook.getMembers(receiver);
+            if (members == null || members.isEmpty()) {
+                assert false : "failed to get group members: " + receiver;
+                return null;
+            }
+            me = facebook.selectMember(members);
+        } else {
+            assert false : "unknown receiver: " + receiver;
+            return null;
+        }
+        if (me == null) {
+            // not for me?
+            return null;
+        }
+        return facebook.getUser(me);
     }
 
     //

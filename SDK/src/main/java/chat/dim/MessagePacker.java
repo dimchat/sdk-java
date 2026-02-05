@@ -33,6 +33,7 @@ package chat.dim;
 import java.util.List;
 
 import chat.dim.core.Packer;
+import chat.dim.mkm.User;
 import chat.dim.msg.InstantMessageDelegate;
 import chat.dim.msg.InstantMessagePacker;
 import chat.dim.msg.ReliableMessageDelegate;
@@ -183,8 +184,7 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
         //       or you are a member of the group when this is a group message,
         //       so that you will have a private key (decrypt key) to decrypt it.
         ID receiver = sMsg.getReceiver();
-        Facebook facebook = getFacebook();
-        ID user = facebook.selectLocalUser(receiver);
+        User user = selectLocalUser(receiver);
         if (user == null) {
             // not for you?
             throw new NullPointerException("receiver error: " + sMsg.getReceiver()
@@ -193,7 +193,7 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
         assert sMsg.getData() != null : "message data empty: "
                 + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
         // decrypt 'data' to 'content'
-        return securePacker.decryptMessage(sMsg, user);
+        return securePacker.decryptMessage(sMsg, user.getIdentifier());
 
         // TODO: check top-secret message
         //       (do it by application)
