@@ -31,17 +31,15 @@
 package chat.dim.cpu.app;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import chat.dim.Facebook;
 import chat.dim.Messenger;
-import chat.dim.TwinsHelper;
 import chat.dim.cpu.BaseContentProcessor;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.CustomizedContent;
 import chat.dim.protocol.Envelope;
-import chat.dim.protocol.ID;
 import chat.dim.protocol.ReceiptCommand;
 import chat.dim.protocol.ReliableMessage;
 
@@ -49,16 +47,17 @@ import chat.dim.protocol.ReliableMessage;
 /**
  *  Default Handler
  */
-public class BaseCustomizedHandler extends TwinsHelper implements CustomizedContentHandler {
+public class BaseCustomizedHandler implements CustomizedContentHandler {
 
-    public BaseCustomizedHandler(Facebook facebook, Messenger messenger) {
-        super(facebook, messenger);
+    public BaseCustomizedHandler() {
+        super();
     }
 
     @Override
-    public List<Content> handleAction(String act, ID sender, CustomizedContent content, ReliableMessage rMsg) {
+    public List<Content> handleContent(CustomizedContent content, ReliableMessage rMsg, Messenger messenger) {
         String app = content.getApplication();
         String mod = content.getModule();
+        String act = content.getAction();
         return respondReceipt("Content not support.", rMsg.getEnvelope(), content, newMap(
                 "template", "Customized content (app: ${app}, mod: ${mod}, act: ${act}) not support yet!",
                 "replacements", newMap(
@@ -79,6 +78,33 @@ public class BaseCustomizedHandler extends TwinsHelper implements CustomizedCont
         List<Content> responses = new ArrayList<>();
         responses.add(res);
         return responses;
+    }
+
+    //
+    //  Mapping
+    //
+
+    /**
+     *  Create a new map with key values
+     *
+     * @param keyValues - key1, value1, key2, value2, ...
+     * @return map
+     */
+    public static Map<String, Object> newMap(Object... keyValues) {
+        Map<String, Object> info = new HashMap<>();
+        Object key, value;
+        for (int i = 1; i < keyValues.length; i += 2) {
+            key = keyValues[i - 1];
+            value = keyValues[i];
+            if (key == null || value == null) {
+                assert value == null : "map key should not be empty";
+                continue;
+            } else {
+                assert key instanceof String : "key error: " + key;
+            }
+            info.put((String) key, value);
+        }
+        return info;
     }
 
 }

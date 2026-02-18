@@ -2,12 +2,12 @@
  *
  *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
- *                                Written in 2022 by Moky <albert.moky@gmail.com>
+ *                                Written in 2026 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2022 Albert Moky
+ * Copyright (c) 2026 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,43 +28,25 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.cpu;
+package chat.dim.cpu.app;
 
-import java.util.List;
-
-import chat.dim.Facebook;
-import chat.dim.Messenger;
-import chat.dim.cpu.app.CustomizedContentHandler;
-import chat.dim.cpu.app.SharedCustomizedFilter;
-import chat.dim.protocol.Content;
 import chat.dim.protocol.CustomizedContent;
 import chat.dim.protocol.ReliableMessage;
 
-/**
- *  Customized Content Processing Unit
- *  <p>
- *      Handle content for application customized
- *  </p>
- */
-public class CustomizedContentProcessor extends BaseContentProcessor {
+public class DefaultCustomizedFilter implements CustomizedContentFilter {
 
-    public CustomizedContentProcessor(Facebook facebook, Messenger messenger) {
-        super(facebook, messenger);
+    private final CustomizedContentHandler defaultHandler;
+
+    public DefaultCustomizedFilter() {
+        super();
+        defaultHandler = new BaseCustomizedHandler();
     }
 
     @Override
-    public List<Content> processContent(Content content, ReliableMessage rMsg) {
-        assert content instanceof CustomizedContent : "customized content error: " + content;
-        CustomizedContent customized = (CustomizedContent) content;
-        // get handler for 'app' & 'mod'
-        CustomizedContentHandler handler = SharedCustomizedFilter.filter.filterContent(customized, rMsg);
-        if (handler == null) {
-            assert false : "should not happen";
-            return null;
-        }
-        // handle the action
-        Messenger messenger = getMessenger();
-        return handler.handleContent(customized, rMsg, messenger);
+    public CustomizedContentHandler filterContent(CustomizedContent content, ReliableMessage rMsg) {
+        // if the application has too many modules, I suggest you to
+        // use different handler to do the jobs for each module.
+        return defaultHandler;
     }
 
 }

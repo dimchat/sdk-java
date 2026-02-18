@@ -2,12 +2,12 @@
  *
  *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
- *                                Written in 2022 by Moky <albert.moky@gmail.com>
+ *                                Written in 2026 by Moky <albert.moky@gmail.com>
  *
  * ==============================================================================
  * The MIT License (MIT)
  *
- * Copyright (c) 2022 Albert Moky
+ * Copyright (c) 2026 Albert Moky
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,25 +30,8 @@
  */
 package chat.dim.cpu.app;
 
-import java.util.List;
+public final class SharedCustomizedFilter {
 
-import chat.dim.Messenger;
-import chat.dim.protocol.Content;
-import chat.dim.protocol.CustomizedContent;
-import chat.dim.protocol.ReliableMessage;
+    public static CustomizedContentFilter filter = new DefaultCustomizedFilter();
 
-/**
- *  Handler for Customized Content
- */
-public interface CustomizedContentHandler {
-
-    /**
-     *  Do your job
-     *
-     * @param content   - customized content
-     * @param rMsg      - network message
-     * @param messenger - message transceiver
-     * @return responses
-     */
-    List<Content> handleContent(CustomizedContent content, ReliableMessage rMsg, Messenger messenger);
 }
