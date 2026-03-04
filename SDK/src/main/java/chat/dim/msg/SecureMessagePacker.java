@@ -46,15 +46,15 @@ import chat.dim.protocol.TransportableData;
 
 public class SecureMessagePacker {
 
-    private final WeakReference<SecureMessageDelegate> transceiver;
+    private final WeakReference<SecureMessageDelegate> transformerRef;
 
     public SecureMessagePacker(SecureMessageDelegate messenger) {
         super();
-        transceiver = new WeakReference<>(messenger);
+        transformerRef = new WeakReference<>(messenger);
     }
 
     protected SecureMessageDelegate getDelegate() {
-        return transceiver.get();
+        return transformerRef.get();
     }
 
     /*
@@ -83,12 +83,12 @@ public class SecureMessagePacker {
             msgKeys = new HashMap<>();
             msgKeys.put(receiver.toString(), base64);
         }
-        SecureMessageDelegate transceiver = getDelegate();
-        if (transceiver == null) {
+        SecureMessageDelegate transformer = getDelegate();
+        if (transformer == null) {
             assert false : "secure message delegate not found";
             return null;
         }
-        return transceiver.decodeKey(msgKeys, receiver, sMsg);
+        return transformer.decodeKey(msgKeys, receiver, sMsg);
     }
 
     /**
@@ -100,8 +100,8 @@ public class SecureMessagePacker {
      */
     public InstantMessage decryptMessage(SecureMessage sMsg, ID receiver) {
         assert receiver.isUser() : "receiver error: " + receiver;
-        SecureMessageDelegate transceiver = getDelegate();
-        if (transceiver == null) {
+        SecureMessageDelegate transformer = getDelegate();
+        if (transformer == null) {
             assert false : "secure message delegate not found";
             return null;
         }
@@ -120,7 +120,7 @@ public class SecureMessagePacker {
             //
             //  2. Decrypt 'message.key' with receiver's private key
             //
-            pwd = transceiver.decryptKey(bundle, receiver, sMsg);
+            pwd = transformer.decryptKey(bundle, receiver, sMsg);
             if (pwd == null || pwd.length == 0) {
                 // A: my visa updated but the sender doesn't got the new one;
                 // B: key data error.
@@ -134,7 +134,7 @@ public class SecureMessagePacker {
         //  3. Deserialize message key from data (JsON / ProtoBuf / ...)
         //     (if key is empty, means it should be reused, get it from key cache)
         //
-        SymmetricKey password = transceiver.deserializeKey(pwd, sMsg);
+        SymmetricKey password = transformer.deserializeKey(pwd, sMsg);
         if (password == null) {
             // A: key data is empty, and cipher key not found from local storage;
             // B: key data error.
@@ -157,7 +157,7 @@ public class SecureMessagePacker {
         //
         //  5. Decrypt 'message.data' with symmetric key
         //
-        byte[] body = transceiver.decryptContent(ciphertext.getBytes(), password, sMsg);
+        byte[] body = transformer.decryptContent(ciphertext.getBytes(), password, sMsg);
         if (body == null || body.length == 0) {
             // A: password is a reused key loaded from local storage, but it's expired;
             // B: key error.
@@ -170,7 +170,7 @@ public class SecureMessagePacker {
         //
         //  6. Deserialize message content from data (JsON / ProtoBuf / ...)
         //
-        Content content = transceiver.deserializeContent(body, password, sMsg);
+        Content content = transformer.deserializeContent(body, password, sMsg);
         if (content == null) {
             assert false : "failed to deserialize content: " + body.length + " byte(s) "
                     + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup();
@@ -214,8 +214,8 @@ public class SecureMessagePacker {
      * @return ReliableMessage object
      */
     public ReliableMessage signMessage(SecureMessage sMsg) {
-        SecureMessageDelegate transceiver = getDelegate();
-        if (transceiver == null) {
+        SecureMessageDelegate transformer = getDelegate();
+        if (transformer == null) {
             assert false : "secure message delegate not found";
             return null;
         }
@@ -233,7 +233,7 @@ public class SecureMessagePacker {
         //
         //  1. Sign 'message.data' with sender's private key
         //
-        byte[] signature = transceiver.signData(ciphertext.getBytes(), sMsg);
+        byte[] signature = transformer.signData(ciphertext.getBytes(), sMsg);
         if (signature == null || signature.length == 0) {
             assert false : "failed to sign message: " + ciphertext.length() + " byte(s) "
                     + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();

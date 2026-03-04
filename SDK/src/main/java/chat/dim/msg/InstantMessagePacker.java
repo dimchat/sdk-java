@@ -47,15 +47,15 @@ import chat.dim.protocol.TransportableData;
 
 public class InstantMessagePacker {
 
-    private final WeakReference<InstantMessageDelegate> transceiver;
+    private final WeakReference<InstantMessageDelegate> transformerRef;
 
     public InstantMessagePacker(InstantMessageDelegate messenger) {
         super();
-        transceiver = new WeakReference<>(messenger);
+        transformerRef = new WeakReference<>(messenger);
     }
 
     protected InstantMessageDelegate getDelegate() {
-        return transceiver.get();
+        return transformerRef.get();
     }
 
     /*
@@ -85,8 +85,8 @@ public class InstantMessagePacker {
     public SecureMessage encryptMessage(InstantMessage iMsg, SymmetricKey password, List<ID> members) {
         // TODO: check attachment for File/Image/Audio/Video message content
         //      (do it by application)
-        InstantMessageDelegate transceiver = getDelegate();
-        if (transceiver == null) {
+        InstantMessageDelegate transformer = getDelegate();
+        if (transformer == null) {
             assert false : "instant message delegate not found";
             return null;
         }
@@ -94,7 +94,7 @@ public class InstantMessagePacker {
         //
         //  1. Serialize 'message.content' to data (JsON / ProtoBuf / ...)
         //
-        byte[] body = transceiver.serializeContent(iMsg.getContent(), password, iMsg);
+        byte[] body = transformer.serializeContent(iMsg.getContent(), password, iMsg);
         if (body == null || body.length == 0) {
             assert false : "failed to serialize content: " + iMsg.getContent();
             return null;
@@ -103,7 +103,7 @@ public class InstantMessagePacker {
         //
         //  2. Encrypt content data to 'message.data' with symmetric key
         //
-        byte[] ciphertext = transceiver.encryptContent(body, password, iMsg);
+        byte[] ciphertext = transformer.encryptContent(body, password, iMsg);
         if (ciphertext == null || ciphertext.length == 0) {
             assert false : "failed to encrypt content with key: " + password;
             return null;
@@ -130,7 +130,7 @@ public class InstantMessagePacker {
         //
         //  4. Serialize message key to data (JsON / ProtoBuf / ...)
         //
-        byte[] pwd = transceiver.serializeKey(password, iMsg);
+        byte[] pwd = transformer.serializeKey(password, iMsg);
         // NOTICE:
         //    if the key is reused, iMsg must be updated with key digest.
         Map<String, Object> info = iMsg.copyMap(false);
@@ -167,7 +167,7 @@ public class InstantMessagePacker {
             //
             //  5. Encrypt key data to 'message.keys' with member's public keys
             //
-            bundle = transceiver.encryptKey(pwd, receiver, iMsg);
+            bundle = transformer.encryptKey(pwd, receiver, iMsg);
             if (bundle == null || bundle.isEmpty()) {
                 // public key for member not found
                 // TODO: suspend this message for waiting member's visa
@@ -194,8 +194,8 @@ public class InstantMessagePacker {
     }
 
     protected Map<String, Object> encodeKeys(Map<ID, EncryptedBundle> bundleMap, InstantMessage iMsg) {
-        InstantMessageDelegate transceiver = getDelegate();
-        if (transceiver == null) {
+        InstantMessageDelegate transformer = getDelegate();
+        if (transformer == null) {
             assert false : "instant message delegate not found";
             return null;
         }
@@ -206,7 +206,7 @@ public class InstantMessagePacker {
         for (Map.Entry<ID, EncryptedBundle> entry : bundleMap.entrySet()) {
             receiver = entry.getKey();
             bundle = entry.getValue();
-            encodedKeys = transceiver.encodeKey(bundle, receiver, iMsg);
+            encodedKeys = transformer.encodeKey(bundle, receiver, iMsg);
             if (encodedKeys == null || encodedKeys.isEmpty()) {
                 assert false : "failed to encode key data: " + receiver;
                 continue;

@@ -39,15 +39,15 @@ import chat.dim.protocol.TransportableData;
 
 public class ReliableMessagePacker {
 
-    private final WeakReference<ReliableMessageDelegate> transceiver;
+    private final WeakReference<ReliableMessageDelegate> transformerRef;
 
     public ReliableMessagePacker(ReliableMessageDelegate messenger) {
         super();
-        transceiver = new WeakReference<>(messenger);
+        transformerRef = new WeakReference<>(messenger);
     }
 
     protected ReliableMessageDelegate getDelegate() {
-        return transceiver.get();
+        return transformerRef.get();
     }
 
     /*
@@ -71,8 +71,8 @@ public class ReliableMessagePacker {
      * @return SecureMessage object
      */
     public SecureMessage verifyMessage(ReliableMessage rMsg) {
-        ReliableMessageDelegate transceiver = getDelegate();
-        if (transceiver == null) {
+        ReliableMessageDelegate transformer = getDelegate();
+        if (transformer == null) {
             assert false : "reliable message delegate not found";
             return null;
         }
@@ -100,7 +100,7 @@ public class ReliableMessagePacker {
         //
         //  2. Verify the message data and signature with sender's public key
         //
-        boolean ok = transceiver.verifyDataSignature(ciphertext.getBytes(), signature.getBytes(), rMsg);
+        boolean ok = transformer.verifyDataSignature(ciphertext.getBytes(), signature.getBytes(), rMsg);
         if (!ok) {
             assert false : "message signature not match: "
                     + rMsg.getSender() + " => " + rMsg.getReceiver() + ", " + rMsg.getGroup();

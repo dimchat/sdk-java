@@ -49,12 +49,12 @@ import chat.dim.protocol.SecureMessage;
 import chat.dim.protocol.SymmetricKey;
 
 /**
- *  Message Transceiver
+ *  Message Transformer
  *  <p>
  *      Converting message format between PlainMessage and NetworkMessage
  *  </p>
  */
-public abstract class Transceiver implements InstantMessageDelegate, SecureMessageDelegate, ReliableMessageDelegate {
+public abstract class Transformer implements InstantMessageDelegate, SecureMessageDelegate, ReliableMessageDelegate {
 
     protected abstract Entity.Delegate getFacebook();
 
@@ -88,7 +88,7 @@ public abstract class Transceiver implements InstantMessageDelegate, SecureMessa
     @Override
     public byte[] serializeContent(Content content, SymmetricKey password, InstantMessage iMsg) {
         // NOTICE: check attachment for File/Image/Audio/Video message content
-        //         before serialize content, this job should be do in subclass
+        //         before serialize content, this job should be done in subclass
         Compressor compressor = getCompressor();
         return compressor.compressContent(content.toMap(), password.toMap());
     }
@@ -143,7 +143,7 @@ public abstract class Transceiver implements InstantMessageDelegate, SecureMessa
     public Map<String, Object> encodeKey(EncryptedBundle bundle, ID receiver, InstantMessage iMsg) {
         assert !BaseMessage.isBroadcast(iMsg) : "broadcast message has no key: " + iMsg;
         // message key had been encrypted by a public key,
-        // so the data should be encode here (with algorithm 'base64' as default).
+        // so the data should be encoded here (with algorithm 'base64' as default).
         return bundle.encode(receiver);
         // TODO: check for wildcard
     }
@@ -244,7 +244,7 @@ public abstract class Transceiver implements InstantMessageDelegate, SecureMessa
         Object info = compressor.extractContent(data, password.toMap());
         return Content.parse(info);
         // NOTICE: check attachment for File/Image/Audio/Video message content
-        //         after deserialize content, this job should be do in subclass
+        //         after deserialize content, this job should be done in subclass
     }
 
     @Override
