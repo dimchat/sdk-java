@@ -32,6 +32,7 @@ package chat.dim.core;
 
 import java.util.Map;
 
+
 public class MessageShortener implements Shortener {
 
     protected void moveKey(String from, String to, Map<String, Object> info) {
@@ -62,7 +63,7 @@ public class MessageShortener implements Shortener {
             "N", "sn",
             "W", "time",        // When
             "G", "group",
-            "C", "command",
+            "C", "command",     // Command name
     };
 
     @Override

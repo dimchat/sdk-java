@@ -20,42 +20,10 @@
 
 | Name | Version | Description |
 |------|---------|-------------|
+| [Cryptography](https://github.com/dimchat/mkm-java) | [![Version](https://img.shields.io/maven-central/v/chat.dim/Crypto)](https://mvnrepository.com/artifact/chat.dim/Crypto) | Crypto Keys |
 | [Ming Ke Ming (名可名)](https://github.com/dimchat/mkm-java) | [![Version](https://img.shields.io/maven-central/v/chat.dim/MingKeMing)](https://mvnrepository.com/artifact/chat.dim/MingKeMing) | Decentralized User Identity Authentication |
 | [Dao Ke Dao (道可道)](https://github.com/dimchat/dkd-java) | [![Version](https://img.shields.io/maven-central/v/chat.dim/DaoKeDao)](https://mvnrepository.com/artifact/chat.dim/DaoKeDao) | Universal Message Module |
 | [DIMP (去中心化通讯协议)](https://github.com/dimchat/core-java) | [![Version](https://img.shields.io/maven-central/v/chat.dim/DIMP)](https://mvnrepository.com/artifact/chat.dim/DIMP) | Decentralized Instant Messaging Protocol |
-
-* build.gradle
-
-```javascript
-allprojects {
-    repositories {
-        mavenLocal()
-        mavenCentral()
-        google()
-    }
-}
-
-dependencies {
-    // https://central.sonatype.com/artifact/chat.dim/SDK
-    implementation group: 'chat.dim', name: 'SDK', version: '2.0.0'
-}
-```
-
-* pom.xml
-
-```xml
-<dependencies>
-
-    <!-- https://mvnrepository.com/artifact/chat.dim/SDK -->
-    <dependency>
-        <groupId>chat.dim</groupId>
-        <artifactId>SDK</artifactId>
-        <version>2.0.0</version>
-        <type>pom</type>
-    </dependency>
-
-</dependencies>
-```
 
 ## Extensions
 
@@ -66,28 +34,144 @@ extends [CustomizedContent](https://github.com/dimchat/core-java#extends-content
 ### ContentProcessor
 
 ```java
-import java.util.HashMap;
-import java.util.Map;
-
-import chat.dim.Facebook;
-import chat.dim.Messenger;
-import chat.dim.cpu.app.CustomizedContentHandler;
-import chat.dim.protocol.CustomizedContent;
-import chat.dim.protocol.ReliableMessage;
-
-
 /**
  *  Customized Content Processing Unit
  *  <p>
  *      Handle content for application customized
  *  </p>
  */
-public class AppCustomizedProcessor extends CustomizedContentProcessor {
+public class CustomizedContentProcessor extends BaseContentProcessor {
 
-    private final Map<String, CustomizedContentHandler> handlers = new HashMap<>();
-
-    public AppCustomizedProcessor(Facebook facebook, Messenger messenger) {
+    public CustomizedContentProcessor(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
+    }
+
+    @Override
+    public List<Content> processContent(Content content, ReliableMessage rMsg) {
+        assert content instanceof CustomizedContent : "customized content error: " + content;
+        CustomizedContent customized = (CustomizedContent) content;
+        CustomizedContentFilter filter = SharedCustomizedFilter.customizedFilter;
+        // get handler for 'app' & 'mod'
+        CustomizedContentHandler handler = filter.filterContent(customized, rMsg);
+        if (handler == null) {
+            assert false : "should not happen";
+            return null;
+        }
+        // handle the action
+        Messenger messenger = getMessenger();
+        return handler.handleContent(customized, rMsg, messenger);
+    }
+
+}
+```
+
+- CustomizedContentHandler
+
+
+```java
+/**
+ *  Handler for Customized Content
+ */
+public interface CustomizedContentHandler {
+
+    /**
+     *  Do your job
+     *
+     * @param content   - customized content
+     * @param rMsg      - network message
+     * @param messenger - message transceiver
+     * @return responses
+     */
+    List<Content> handleContent(CustomizedContent content, ReliableMessage rMsg, Messenger messenger);
+}
+```
+
+```java
+/**
+ *  Default Handler
+ */
+public class BaseCustomizedContentHandler implements CustomizedContentHandler {
+
+    public BaseCustomizedContentHandler() {
+        super();
+    }
+
+    @Override
+    public List<Content> handleContent(CustomizedContent content, ReliableMessage rMsg, Messenger messenger) {
+        //String app = content.getApplication();
+        String app = content.getString("app");
+        String mod = content.getModule();
+        String act = content.getAction();
+        return respondReceipt("Content not support.", rMsg.getEnvelope(), content, TwinsHelper.newMap(
+                "template", "Customized content (app: ${app}, mod: ${mod}, act: ${act}) not support yet!",
+                "replacements", TwinsHelper.newMap(
+                        "app", app,
+                        "mod", mod,
+                        "act", act
+                )
+        ));
+    }
+
+    //
+    //  Convenient responding
+    //
+
+    protected List<Content> respondReceipt(String text, Envelope envelope, Content content, Map<String, Object> extra) {
+        // create base receipt command with text & original envelope
+        ReceiptCommand res = BaseContentProcessor.createReceipt(text, envelope, content, extra);
+        List<Content> responses = new ArrayList<>();
+        responses.add(res);
+        return responses;
+    }
+
+}
+```
+
+- CustomizedContentFilter
+
+```java
+/**
+ *  Filter for Customized Content Handler
+ */
+public interface CustomizedContentFilter {
+
+    /**
+     *  Fetch a handler for 'app' and 'mod'
+     *
+     * @param content - customized content
+     * @param rMsg    - message with envelope
+     * @return customized handler
+     */
+    CustomizedContentHandler filterContent(CustomizedContent content, ReliableMessage rMsg);
+
+}
+```
+
+```java
+/**
+ *  CustomizedContent Extensions
+ */
+public final class SharedCustomizedFilter {
+
+    public static CustomizedContentFilter customizedFilter = new AppCustomizedFilter();
+
+}
+```
+
+```java
+/**
+ *  General CustomizedContent Filter
+ */
+public class AppCustomizedFilter implements CustomizedContentFilter {
+
+    private final Map<String, CustomizedContentHandler> handlers;
+
+    private final CustomizedContentHandler defaultHandler;
+
+    public AppCustomizedFilter() {
+        super();
+        handlers = new HashMap<>();
+        defaultHandler = new BaseCustomizedContentHandler();
     }
 
     public void setContentHandler(String app, String mod, CustomizedContentHandler handler) {
@@ -99,28 +183,26 @@ public class AppCustomizedProcessor extends CustomizedContentProcessor {
     }
 
     @Override
-    protected CustomizedContentHandler filter(String app, String mod, CustomizedContent content, ReliableMessage rMsg) {
+    public CustomizedContentHandler filterContent(CustomizedContent content, ReliableMessage rMsg) {
+        //String app = content.getApplication();
+        String app = content.getString("app");
+        String mod = content.getModule();
         CustomizedContentHandler handler = getContentHandler(app, mod);
         if (handler != null) {
             return handler;
         }
-        // default handler
-        return super.filter(app, mod, content, rMsg);
+        // if the application has too many modules, I suggest you to
+        // use different handler to do the jobs for each module.
+        return defaultHandler;
     }
 
 }
 ```
 
+- Example for group querying
+
+
 ```java
-import java.util.List;
-import java.util.Map;
-
-import chat.dim.Facebook;
-import chat.dim.Messenger;
-import chat.dim.protocol.*;
-import chat.dim.protocol.group.*;
-
-
 /*  Command Transform:
 
     +===============================+===============================+
@@ -137,36 +219,30 @@ import chat.dim.protocol.group.*;
     |   "last_time" : 0             |   "last_time" : 0             |
     +===============================+===============================+
  */
-public final class GroupHistoryHandler extends BaseCustomizedHandler {
-
-    public GroupHistoryHandler(Facebook facebook, Messenger messenger) {
-        super(facebook, messenger);
-    }
+public final class GroupHistoryHandler extends BaseCustomizedContentHandler {
 
     @Override
-    public List<Content> handleAction(String act, ID sender, CustomizedContent content, ReliableMessage rMsg) {
+    public List<Content> handleContent(CustomizedContent content, ReliableMessage rMsg,
+                                       Messenger messenger) {
         if (content.getGroup() == null) {
-            assert false : "group command error: " + content + ", sender: " + sender;
+            assert false : "group command error: " + content + ", sender: " + rMsg.getSender();
             return respondReceipt("Group command error.", rMsg.getEnvelope(), content, null);
         }
+        String act = content.getAction();
         if (GroupHistory.ACT_QUERY.equals(act)) {
-            assert GroupHistory.APP.equals(content.getApplication());
+            //assert GroupHistory.APP.equals(content.getApplication());
             assert GroupHistory.MOD.equals(content.getModule());
-            return transformQueryCommand(content, rMsg);
+            return transformQueryCommand(content, rMsg, messenger);
         }
-        assert false : "unknown action: " + act + ", " + content + ", sender: " + sender;
-        return super.handleAction(act, sender, content, rMsg);
+        assert false : "unknown action: " + act + ", " + content + ", sender: " + rMsg.getSender();
+        return super.handleContent(content, rMsg, messenger);
     }
 
-    private List<Content> transformQueryCommand(CustomizedContent content, ReliableMessage rMsg) {
-        Messenger messenger = getMessenger();
-        if (messenger == null) {
-            assert false : "messenger lost";
-            return null;
-        }
+    private List<Content> transformQueryCommand(CustomizedContent content, ReliableMessage rMsg,
+                                                Messenger messenger) {
         Map<String, Object> info = content.copyMap(false);
         info.put("type", ContentType.COMMAND);
-        info.put("command", GroupCommand.QUERY);
+        info.put("command", QueryCommand.QUERY);
         Content query = Content.parse(info);
         if (query instanceof QueryCommand) {
             return messenger.processContent(query, rMsg);
@@ -176,6 +252,18 @@ public final class GroupHistoryHandler extends BaseCustomizedHandler {
     }
 
 }
+
+
+//  void registerCustomizedHandlers() {
+//      AppCustomizedFilter filter = new AppCustomizedFilter();
+//      // 'chat.dim.group:history'
+//      filter.setContentHandler(
+//              GroupHistory.APP,
+//              GroupHistory.MOD,
+//              new GroupHistoryHandler()
+//      );
+//      SharedCustomizedFilter.customizedFilter = filter;
+//  }
 ```
 
 ### ContentProcessorCreator
@@ -183,28 +271,15 @@ public final class GroupHistoryHandler extends BaseCustomizedHandler {
 ```java
 import chat.dim.Facebook;
 import chat.dim.Messenger;
-import chat.dim.cpu.app.GroupHistoryHandler;
-import chat.dim.dkd.ContentProcessor;
-import chat.dim.protocol.*;
-import chat.dim.protocol.group.GroupHistory;
+import chat.dim.protocol.ContentType;
+import chat.dim.protocol.HandshakeCommand;
+import chat.dim.protocol.group.QueryCommand;
+
 
 public class ClientContentProcessorCreator extends BaseContentProcessorCreator {
 
     public ClientContentProcessorCreator(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
-    }
-
-    protected AppCustomizedProcessor createCustomizedContentProcessor(Facebook facebook, Messenger messenger) {
-        AppCustomizedProcessor cpu = new AppCustomizedProcessor(facebook, messenger);
-
-        // 'chat.dim.group:history'
-        cpu.setContentHandler(
-                GroupHistory.APP,
-                GroupHistory.MOD,
-                new GroupHistoryHandler(facebook, messenger)
-        );
-
-        return cpu;
     }
 
     @Override
@@ -214,8 +289,8 @@ public class ClientContentProcessorCreator extends BaseContentProcessorCreator {
             // application customized
             case ContentType.APPLICATION:
             case ContentType.CUSTOMIZED:
-                return createCustomizedContentProcessor(getFacebook(), getMessenger());
-
+                return new CustomizedContentProcessor(getFacebook(), getMessenger());
+            
             // ...
         }
         // others
@@ -228,7 +303,7 @@ public class ClientContentProcessorCreator extends BaseContentProcessorCreator {
 
             case HandshakeCommand.HANDSHAKE:
                 return new HandshakeCommandProcessor(getFacebook(), getMessenger());
-
+            
             // ...
         }
         // others

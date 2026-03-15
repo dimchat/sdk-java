@@ -39,6 +39,7 @@ import chat.dim.mkm.Group;
 import chat.dim.mkm.User;
 import chat.dim.protocol.ID;
 
+
 public abstract class Facebook implements Entity.Delegate, User.DataSource, Group.DataSource {
 
     protected abstract Barrack getBarrack();
@@ -56,9 +57,6 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
         Archivist archivist = getArchivist();
         assert archivist != null : "archivist not ready";
         List<ID> allUsers = archivist.getLocalUsers();
-        //
-        //  1.
-        //
         if (allUsers == null || allUsers.isEmpty()) {
             assert false : "local users should not be empty";
             return null;
@@ -67,16 +65,14 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
             // just return current user here
             return allUsers.get(0);
         }
-        //
-        //  2. personal message
-        //
+        // personal message
         for (ID item : allUsers) {
             if (receiver.equals(item)) {
                 // DISCUSS: set this item to be current user?
                 return item;
             }
         }
-        // not me?
+        // not for me?
         return null;
     }
 
@@ -91,25 +87,18 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
         Archivist archivist = getArchivist();
         assert archivist != null : "archivist not ready";
         List<ID> allUsers = archivist.getLocalUsers();
-        //
-        //  1.
-        //
         if (allUsers == null || allUsers.isEmpty()) {
             assert false : "local users should not be empty";
             return null;
         }
-        //
-        //  2. group message (recipient not designated)
-        //
-        // the messenger will check group info before decrypting message,
-        // so we can trust that the group's meta & members MUST exist here.
+        // group message (recipient not designated)
         for (ID item : allUsers) {
             if (members.contains(item)) {
                 // DISCUSS: set this item to be current user?
                 return item;
             }
         }
-        // not me?
+        // not for me?
         return null;
     }
 

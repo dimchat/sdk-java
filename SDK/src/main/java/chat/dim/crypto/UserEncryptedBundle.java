@@ -94,7 +94,8 @@ public class UserEncryptedBundle implements EncryptedBundle {
 
     @Override
     public Map<String, Object> encode(ID did) {
-        return SharedVisaAgent.helper.encodeBundle(this, did);
+        EncryptedBundleHelper helper = SharedVisaAgent.bundleHelper;
+        return helper.encodeBundle(this, did);
     }
 
 }

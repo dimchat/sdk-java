@@ -44,11 +44,12 @@ import chat.dim.protocol.PublicKey;
 import chat.dim.protocol.VerifyKey;
 import chat.dim.protocol.Visa;
 
+
 public class DefaultVisaAgent implements VisaAgent {
 
     @Override
     public EncryptedBundle encryptBundle(byte[] plaintext, Meta meta, List<Document> documents) {
-        // NOTICE: meta.key will never changed, so use visa.key to encrypt message
+        // NOTICE: meta.key will never be changed, so use visa.key to encrypt message
         //         is a better way
         EncryptedBundle bundle = new UserEncryptedBundle();
         String terminal;
@@ -154,7 +155,7 @@ public class DefaultVisaAgent implements VisaAgent {
         String terminal = doc.getString("terminal");
         if (terminal == null) {
             // get from document ID
-            ID did = SharedAccountExtensions.helper.getDocumentID(doc);
+            ID did = SharedAccountExtensions.helper.getDocumentID(doc.toMap());
             if (did != null) {
                 terminal = did.getTerminal();
             } else {

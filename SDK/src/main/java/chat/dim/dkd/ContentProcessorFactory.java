@@ -37,6 +37,7 @@ import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.group.GroupCommand;
 
+
 /**
  *  General ContentProcessor Factory
  */
@@ -58,7 +59,7 @@ public final class ContentProcessorFactory implements ContentProcessor.Factory {
         String msgType = content.getType();
         if (content instanceof Command) {
             String cmd = ((Command) content).getCmd();
-            // assert cmd != null && cmd.length() > 0 : "command name error: " + cmd;
+            // assert cmd != null && !cmd.isEmpty() : "command name error: " + cmd;
             cpu = getCommandProcessor(msgType, cmd);
             if (cpu != null) {
                 return cpu;

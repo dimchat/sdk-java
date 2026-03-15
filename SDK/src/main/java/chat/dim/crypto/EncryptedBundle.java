@@ -86,7 +86,8 @@ public interface EncryptedBundle {
      * @return encrypted key data with targets (ID terminals)
      */
     static EncryptedBundle decode(Map<String, Object> encodedKeys, ID did, Iterable<String> terminals) {
-        return SharedVisaAgent.helper.decodeBundle(encodedKeys, did, terminals);
+        EncryptedBundleHelper helper = SharedVisaAgent.bundleHelper;
+        return helper.decodeBundle(encodedKeys, did, terminals);
     }
 
 }

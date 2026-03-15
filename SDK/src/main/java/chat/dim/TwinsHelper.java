@@ -70,6 +70,8 @@ public class TwinsHelper {
         } else if (receiver.isGroup()) {
             // check local users for the group members
             List<ID> members = facebook.getMembers(receiver);
+            // the messenger will check group info before decrypting message,
+            // so we can trust that the group's meta & members MUST exist here.
             if (members == null || members.isEmpty()) {
                 assert false : "failed to get group members: " + receiver;
                 return null;

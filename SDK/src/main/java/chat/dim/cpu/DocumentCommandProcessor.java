@@ -46,6 +46,7 @@ import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 import chat.dim.protocol.ReliableMessage;
 
+
 public class DocumentCommandProcessor extends MetaCommandProcessor {
 
     public DocumentCommandProcessor(Facebook facebook, Messenger messenger) {
@@ -66,7 +67,7 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
             return getDocuments(did, rMsg.getEnvelope(), command);
         }
         // received new documents
-        return putDocuments(did, documents, rMsg.getEnvelope(), command);
+        return putDocuments(documents, did, rMsg.getEnvelope(), command);
     }
 
     private List<Content> getDocuments(ID did, Envelope envelope, DocumentCommand content) {
@@ -84,11 +85,11 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         Date queryTime = content.getLastTime();
         if (queryTime != null) {
             // check last document time
-            Document last = getLastDocument(documents);
-            assert last != null : "should not happen";
-            Date lastTime = last.getTime();
+            Document lastDoc = getLastDocument(documents);
+            assert lastDoc != null : "should not happen";
+            Date lastTime = lastDoc.getTime();
             if (lastTime == null) {
-                assert false : "document error: " + last;
+                assert false : "document error: " + lastDoc;
             } else if (!lastTime.after(queryTime)) {
                 // document not updated
                 return respondReceipt("Document not updated.", envelope, content, newMap(
@@ -142,7 +143,7 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         return lastDoc;
     }
 
-    private List<Content> putDocuments(ID did, List<Document> documents, Envelope envelope, DocumentCommand content) {
+    private List<Content> putDocuments(List<Document> documents, ID did, Envelope envelope, DocumentCommand content) {
         List<Content> errors;
         Meta meta = content.getMeta();
         // 0. check meta
@@ -224,7 +225,7 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
             return false;
         }
         // check document ID
-        ID docID = SharedAccountExtensions.helper.getDocumentID(doc);
+        ID docID = SharedAccountExtensions.helper.getDocumentID(doc.toMap());
         if (docID == null) {
             assert false : "document ID not found: " + doc.toMap();
         } else if (!docID.getAddress().equals(did.getAddress())) {

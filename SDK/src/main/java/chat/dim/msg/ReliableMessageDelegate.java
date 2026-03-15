@@ -64,10 +64,10 @@ public interface ReliableMessageDelegate/* extends SecureMessageDelegate*/ {
     /**
      *  2. Verify the message data and signature with sender's public key
      *
-     *  @param data      - message content(encrypted) data
-     *  @param signature - signature for message content(encrypted) data
-     *  @param rMsg      - reliable message object
-     *  @return YES on signature matched
+     * @param data      - message content(encrypted) data
+     * @param signature - signature for message content(encrypted) data
+     * @param rMsg      - reliable message object
+     * @return YES on signature matched
      */
     boolean verifyDataSignature(byte[] data, byte[] signature, ReliableMessage rMsg);
 }

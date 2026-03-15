@@ -36,6 +36,7 @@ import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 
+
 /**
  *  Database Access
  */
@@ -53,11 +54,11 @@ public interface Archivist {
     /**
      *  Save entity document with ID (must verify first)
      *
-     * @param did  - entity ID
-     * @param doc - entity document
+     * @param did      - entity ID
+     * @param document - entity document
      * @return true on success
      */
-    boolean saveDocument(Document doc, ID did);
+    boolean saveDocument(Document document, ID did);
 
     //
     //  Local Users

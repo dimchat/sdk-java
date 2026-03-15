@@ -46,6 +46,7 @@ import chat.dim.protocol.SignKey;
 import chat.dim.protocol.VerifyKey;
 import chat.dim.protocol.Visa;
 
+
 public class BaseUser extends BaseEntity implements User {
 
     public BaseUser(ID uid) {
@@ -79,8 +80,8 @@ public class BaseUser extends BaseEntity implements User {
             assert false : "failed to get documents: " + identifier;
             return null;
         }
-        VisaAgent visaAgent = SharedVisaAgent.agent;
-        return visaAgent.getTerminals(documents);
+        VisaAgent agent = SharedVisaAgent.visaAgent;
+        return agent.getTerminals(documents);
     }
 
     @Override
@@ -92,8 +93,8 @@ public class BaseUser extends BaseEntity implements User {
             return false;
         }
         assert !documents.isEmpty() : "documents empty: " + identifier;
-        VisaAgent visaAgent = SharedVisaAgent.agent;
-        List<VerifyKey> keys = visaAgent.getVerifyKeys(meta, documents);
+        VisaAgent agent = SharedVisaAgent.visaAgent;
+        List<VerifyKey> keys = agent.getVerifyKeys(meta, documents);
         if (keys == null) {
             assert false : "failed to get verify keys: " + identifier;
             return false;
@@ -119,10 +120,10 @@ public class BaseUser extends BaseEntity implements User {
             return null;
         }
         assert !documents.isEmpty() : "documents empty: " + identifier;
-        // NOTICE: meta.key will never changed, so use visa.key to encrypt message
+        // NOTICE: meta.key will never be changed, so use visa.key to encrypt message
         //         is a better way
-        VisaAgent visaAgent = SharedVisaAgent.agent;
-        return visaAgent.encryptBundle(plaintext, meta, documents);
+        VisaAgent agent = SharedVisaAgent.visaAgent;
+        return agent.encryptBundle(plaintext, meta, documents);
     }
 
     //
@@ -174,7 +175,7 @@ public class BaseUser extends BaseEntity implements User {
 
     @Override
     public Visa sign(Visa doc) {
-        ID docID = SharedAccountExtensions.helper.getDocumentID(doc);
+        ID docID = SharedAccountExtensions.helper.getDocumentID(doc.toMap());
         if (docID == null) {
             assert false : "visa ID not found: " + doc.toMap();
         } else if (!docID.getAddress().equals(identifier.getAddress())) {
@@ -198,7 +199,7 @@ public class BaseUser extends BaseEntity implements User {
     public boolean verify(Visa doc) {
         // NOTICE: only verify visa with meta.key
         //         (if meta not exists, user won't be created)
-        ID docID = SharedAccountExtensions.helper.getDocumentID(doc);
+        ID docID = SharedAccountExtensions.helper.getDocumentID(doc.toMap());
         if (docID == null) {
             assert false : "visa ID not found: " + doc.toMap();
         } else if (!docID.getAddress().equals(identifier.getAddress())) {

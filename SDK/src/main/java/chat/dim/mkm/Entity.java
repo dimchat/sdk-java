@@ -36,6 +36,7 @@ import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 
+
 /**
  *  Entity (User/Group)
  *  <p>
@@ -87,18 +88,18 @@ public interface Entity {
         /**
          *  Get meta for entity ID
          *
-         * @param uid - entity ID
-         * @return meta object
+         * @param did - entity ID
+         * @return Meta object
          */
-        Meta getMeta(ID uid);
+        Meta getMeta(ID did);
 
         /**
-         *  Get document for entity ID
+         *  Get documents for entity ID
          *
-         * @param uid - entity ID
-         * @return Document
+         * @param did - entity ID
+         * @return Document list
          */
-        List<Document> getDocuments(ID uid);
+        List<Document> getDocuments(ID did);
     }
 
     /**

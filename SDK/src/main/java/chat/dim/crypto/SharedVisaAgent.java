@@ -30,10 +30,11 @@
  */
 package chat.dim.crypto;
 
+
 public final class SharedVisaAgent {
 
-    public static VisaAgent agent = new DefaultVisaAgent();
+    public static VisaAgent visaAgent = new DefaultVisaAgent();
 
-    public static EncryptedBundleHelper helper = new DefaultBundleHelper();
+    public static EncryptedBundleHelper bundleHelper = new DefaultBundleHelper();
 
 }
