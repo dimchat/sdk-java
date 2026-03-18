@@ -34,12 +34,11 @@ import java.util.List;
 
 import chat.dim.core.Packer;
 import chat.dim.mkm.User;
-import chat.dim.msg.InstantMessageDelegate;
 import chat.dim.msg.InstantMessagePacker;
-import chat.dim.msg.ReliableMessageDelegate;
+import chat.dim.msg.MessagePackerFactory;
 import chat.dim.msg.ReliableMessagePacker;
-import chat.dim.msg.SecureMessageDelegate;
 import chat.dim.msg.SecureMessagePacker;
+import chat.dim.msg.SharedMessagePacker;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.Envelope;
 import chat.dim.protocol.ID;
@@ -56,20 +55,10 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
 
     public MessagePacker(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
-        instantPacker  = createInstantMessagePacker(messenger);
-        securePacker   = createSecureMessagePacker(messenger);
-        reliablePacker = createReliableMessagePacker(messenger);
-    }
-
-    // Message packers
-    protected InstantMessagePacker createInstantMessagePacker(InstantMessageDelegate delegate) {
-        return new InstantMessagePacker(delegate);
-    }
-    protected SecureMessagePacker  createSecureMessagePacker(SecureMessageDelegate delegate) {
-        return new SecureMessagePacker(delegate);
-    }
-    protected ReliableMessagePacker createReliableMessagePacker(ReliableMessageDelegate delegate) {
-        return new ReliableMessagePacker(delegate);
+        MessagePackerFactory factory = SharedMessagePacker.packerFactory;
+        instantPacker  = factory.createInstantMessagePacker(messenger);
+        securePacker   = factory.createSecureMessagePacker(messenger);
+        reliablePacker = factory.createReliableMessagePacker(messenger);
     }
 
     //
