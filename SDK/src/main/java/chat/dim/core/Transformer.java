@@ -30,7 +30,6 @@
  */
 package chat.dim.core;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -163,23 +162,7 @@ public abstract class Transformer implements InstantMessageDelegate, SecureMessa
         }
         // decode key bundle for all terminals
         Set<String> terminals = user.getTerminals();
-        EncryptedBundle bundle = EncryptedBundle.decode(msgKeys, receiver, terminals);
-        if (bundle.isEmpty()) {
-            // check for wildcard
-            if (terminals.contains("*")) {
-                assert false : "failed to decode key: " + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup();
-                return null;
-            }
-            // decode key bundle for '*'
-            terminals = new HashSet<>();
-            terminals.add("*");
-            bundle = EncryptedBundle.decode(msgKeys, receiver, terminals);
-            if (bundle.isEmpty()) {
-                assert false : "failed to decode key: " + sMsg.getSender() + " => " + receiver + ", " + sMsg.getGroup();
-                return null;
-            }
-        }
-        return bundle;
+        return EncryptedBundle.decode(msgKeys, receiver, terminals);
     }
 
     @Override

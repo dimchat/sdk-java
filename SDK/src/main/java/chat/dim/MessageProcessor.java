@@ -36,6 +36,7 @@ import java.util.List;
 import chat.dim.core.Processor;
 import chat.dim.dkd.ContentProcessor;
 import chat.dim.mkm.User;
+import chat.dim.protocol.ArrayContent;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ContentType;
 import chat.dim.protocol.Envelope;
@@ -174,6 +175,7 @@ public abstract class MessageProcessor extends TwinsHelper implements Processor 
         // 3. pack messages
         List<InstantMessage> messages = new ArrayList<>();
         Envelope env;
+        /*/
         for (Content res : responses) {
             // assert res != null : "should not happen";
             env = Envelope.create(user.getIdentifier(), sender, null);
@@ -181,6 +183,15 @@ public abstract class MessageProcessor extends TwinsHelper implements Processor 
             // assert iMsg != null : "should not happen";
             messages.add(iMsg);
         }
+        /*/
+        // pack all responses in one message
+        env = Envelope.create(user.getIdentifier(), sender, null);
+        if (responses.size() == 1) {
+            iMsg = InstantMessage.create(env, responses.get(0));
+        } else {
+            iMsg = InstantMessage.create(env, ArrayContent.create(responses));
+        }
+        messages.add(iMsg);
         return messages;
     }
 
