@@ -52,7 +52,7 @@ public interface InstantMessageDelegate {
      *    | time     |  ->  | time     |
      *    |          |      |          |
      *    | content  |      | data     |  1. data = encrypt(content, PW)
-     *    +----------+      | key/keys |  2. key  = encrypt(PW, receiver.PK)
+     *    +----------+      | keys     |  2. key  = encrypt(PW, receiver.PK)
      *                      +----------+
      */
 
@@ -103,23 +103,23 @@ public interface InstantMessageDelegate {
     byte[] serializeKey(SymmetricKey password, InstantMessage iMsg);
 
     /**
-     *  5. Encrypt key data to 'message.key/keys' with receiver's public key
+     *  5. Encrypt key data to a bundle with receiver's public key
      *
      * @param data     - serialized data of symmetric key
      * @param receiver - actual receiver (user, or group member)
      * @param iMsg     - instant message object
-     * @return encrypted symmetric key data and targets (ID terminals)
+     * @return encrypted key bundle with terminal-specific data
      */
     EncryptedBundle encryptKey(byte[] data, ID receiver, InstantMessage iMsg);
 
     /**
-     *  6. Encode 'message.key' to String (Base64)
+     *  6. Encode the bundle of encrypted symmetric key data to 'message.keys'
      *
-     * @param bundle   - encrypted symmetric key data and targets (ID terminals)
+     * @param bundle   - encrypted key bundle with terminal-specific data
      * @param receiver - actual receiver (user, or group member)
      * @param iMsg     - instant message object
-     * @return encoded key data and targets (ID + terminals)
+     * @return encoded key map (terminal → base64-encoded encrypted key data)
      */
-    Map<String, Object> encodeKey(EncryptedBundle bundle, ID receiver, InstantMessage iMsg);
+    Map<String, Object> encodeKeys(EncryptedBundle bundle, ID receiver, InstantMessage iMsg);
 
 }

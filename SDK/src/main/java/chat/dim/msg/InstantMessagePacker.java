@@ -67,7 +67,7 @@ public class InstantMessagePacker {
      *    | time     |  ->  | time     |
      *    |          |      |          |
      *    | content  |      | data     |  1. data = encrypt(content, PW)
-     *    +----------+      | key/keys |  2. key  = encrypt(PW, receiver.PK)
+     *    +----------+      | keys     |  2. key  = encrypt(PW, receiver.PK)
      *                      +----------+
      */
 
@@ -206,7 +206,7 @@ public class InstantMessagePacker {
         for (Map.Entry<ID, EncryptedBundle> entry : bundleMap.entrySet()) {
             receiver = entry.getKey();
             bundle = entry.getValue();
-            encodedKeys = transformer.encodeKey(bundle, receiver, iMsg);
+            encodedKeys = transformer.encodeKeys(bundle, receiver, iMsg);
             if (encodedKeys == null || encodedKeys.isEmpty()) {
                 assert false : "failed to encode key data: " + receiver;
                 continue;

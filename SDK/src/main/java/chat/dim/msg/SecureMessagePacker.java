@@ -31,7 +31,6 @@
 package chat.dim.msg;
 
 import java.lang.ref.WeakReference;
-import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.crypto.EncryptedBundle;
@@ -66,29 +65,23 @@ public class SecureMessagePacker {
      *    | time     |  ->  | time     |
      *    |          |      |          |  1. PW      = decrypt(key, receiver.SK)
      *    | data     |      | content  |  2. content = decrypt(data, PW)
-     *    | key/keys |      +----------+
+     *    | keys     |      +----------+
      *    +----------+
      */
 
-    protected EncryptedBundle decodeKey(SecureMessage sMsg, ID receiver) {
+    protected EncryptedBundle decodeKeys(SecureMessage sMsg, ID receiver) {
         Map<String, Object> msgKeys = sMsg.getEncryptedKeys();
         if (msgKeys == null) {
-            // get from 'key'
-            Object base64 = sMsg.get("key");
-            if (base64 == null) {
-                // broadcast message?
-                // reused key?
-                return null;
-            }
-            msgKeys = new HashMap<>();
-            msgKeys.put(receiver.toString(), base64);
+            // broadcast message?
+            // reused key?
+            return null;
         }
         SecureMessageDelegate transformer = getDelegate();
         if (transformer == null) {
             assert false : "secure message delegate not found";
             return null;
         }
-        return transformer.decodeKey(msgKeys, receiver, sMsg);
+        return transformer.decodeKeys(msgKeys, receiver, sMsg);
     }
 
     /**
@@ -109,16 +102,16 @@ public class SecureMessagePacker {
         byte[] pwd;  // serialized symmetric key data
 
         //
-        //  1. Decode 'message.key' to encrypted symmetric key data
+        //  1. Decode 'message.keys' to encrypted symmetric key data
         //
-        EncryptedBundle bundle = decodeKey(sMsg, receiver);
+        EncryptedBundle bundle = decodeKeys(sMsg, receiver);
         if (bundle == null || bundle.isEmpty()) {
             // broadcast message?
             // reused key?
             pwd = null;
         } else {
             //
-            //  2. Decrypt 'message.key' with receiver's private key
+            //  2. Decrypt 'message.keys' with receiver's private key
             //
             pwd = transformer.decryptKey(bundle, receiver, sMsg);
             if (pwd == null || pwd.length == 0) {
@@ -186,7 +179,6 @@ public class SecureMessagePacker {
 
         // OK, pack message
         Map<String, Object> map = sMsg.copyMap(false);
-        map.remove("key");
         map.remove("keys");
         map.remove("data");
         map.put("content", content.toMap());
@@ -202,7 +194,7 @@ public class SecureMessagePacker {
      *    | time     |  ->  | time     |
      *    |          |      |          |
      *    | data     |      | data     |
-     *    | key/keys |      | key/keys |
+     *    | keys     |      | keys     |
      *    +----------+      | signature|  1. signature = sign(data, sender.SK)
      *                      +----------+
      */

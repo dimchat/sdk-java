@@ -139,7 +139,7 @@ public abstract class Transformer implements InstantMessageDelegate, SecureMessa
     }
 
     @Override
-    public Map<String, Object> encodeKey(EncryptedBundle bundle, ID receiver, InstantMessage iMsg) {
+    public Map<String, Object> encodeKeys(EncryptedBundle bundle, ID receiver, InstantMessage iMsg) {
         assert !BaseMessage.isBroadcast(iMsg) : "broadcast message has no key: " + iMsg;
         // message key had been encrypted by a public key,
         // so the data should be encoded here (with algorithm 'base64' as default).
@@ -150,7 +150,7 @@ public abstract class Transformer implements InstantMessageDelegate, SecureMessa
     //-------- SecureMessageDelegate
 
     @Override
-    public EncryptedBundle decodeKey(Map<String, Object> msgKeys, ID receiver, SecureMessage sMsg) {
+    public EncryptedBundle decodeKeys(Map<String, Object> msgKeys, ID receiver, SecureMessage sMsg) {
         assert !BaseMessage.isBroadcast(sMsg) : "broadcast message has no key: " + sMsg;
         Entity.Delegate facebook = getFacebook();
         assert facebook != null : "entity delegate not set yet";

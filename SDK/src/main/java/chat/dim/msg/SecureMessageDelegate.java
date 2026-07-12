@@ -53,7 +53,7 @@ public interface SecureMessageDelegate {
      *    | time     |  ->  | time     |
      *    |          |      |          |  1. PW      = decrypt(key, receiver.SK)
      *    | data     |      | content  |  2. content = decrypt(data, PW)
-     *    | key/keys |      +----------+
+     *    | keys     |      +----------+
      *    +----------+
      */
 
@@ -62,19 +62,19 @@ public interface SecureMessageDelegate {
     //
 
     /**
-     *  1. Decode 'message.key' to encrypted symmetric key data
+     *  1. Decode 'message.keys' to a bundle of encrypted symmetric key data
      *
-     * @param msgKeys  - encoded key data and targets (ID + terminals)
+     * @param msgKeys  - encoded key map (terminal → base64-encoded encrypted key data)
      * @param receiver - actual receiver (user, or group member)
      * @param sMsg     - secure message object
-     * @return encrypted symmetric key data and targets (ID terminals)
+     * @return encrypted key bundle with terminal-specific data
      */
-    EncryptedBundle decodeKey(Map<String, Object> msgKeys, ID receiver, SecureMessage sMsg);
+    EncryptedBundle decodeKeys(Map<String, Object> msgKeys, ID receiver, SecureMessage sMsg);
 
     /**
-     *  2. Decrypt 'message.key' with receiver's private key
+     *  2. Decrypt key data from a bundle with receiver's private key
      *
-     * @param bundle   - encrypted symmetric key data and targets (ID terminals)
+     * @param bundle   - encrypted key bundle with terminal-specific data
      * @param receiver - actual receiver (user, or group member)
      * @param sMsg     - secure message object
      * @return serialized data of symmetric key
@@ -87,7 +87,7 @@ public interface SecureMessageDelegate {
      *      (if key data is empty, means it should be reused, get it from key cache)
      *  </p>
      *
-     * @param key      - serialized key data, null for reused key
+     * @param key      - serialized key data, null for reused (or broadcast message)
      * @param sMsg     - secure message object
      * @return symmetric key
      */
@@ -135,7 +135,7 @@ public interface SecureMessageDelegate {
      *    | time     |  ->  | time     |
      *    |          |      |          |
      *    | data     |      | data     |
-     *    | key/keys |      | key/keys |
+     *    | keys     |      | keys     |
      *    +----------+      | signature|  1. signature = sign(data, sender.SK)
      *                      +----------+
      */

@@ -44,7 +44,7 @@ import java.util.Map;
     "F"   |   "sender"                                       |   (From)
     "G"   |   "group"        "group"                         |
     "I"   |                                 "iv"             |
-    "K"   |   "key", "keys"                                  |
+    "K"   |   "keys"                                         |
     "M"   |   "meta"                                         |
     "N"   |                  "sn"                            |   (Number)
     "P"   |   "visa"                                         |   (Profile)

@@ -30,7 +30,10 @@
  */
 package chat.dim.msg;
 
-public class SharedMessagePacker {
+public final class SharedMessagePacker {
+    private SharedMessagePacker() {
+        throw new AssertionError("Utility class cannot be instantiated");
+    }
 
     public static MessagePackerFactory packerFactory = new MessagePackerFactory();
 

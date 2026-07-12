@@ -106,7 +106,10 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
     }
 
     protected List<Content> respondDocuments(ID did, List<Document> documents, ID receiver) {
-        assert !receiver.equals(did) : "cycled response: " + did;
+        if (receiver.isSameAs(did)) {
+            assert false : "cycled response: " + did;
+            return null;
+        }
         // TODO: check response expired
         Facebook facebook = getFacebook();
         Meta meta = facebook.getMeta(did);
@@ -228,7 +231,7 @@ public class DocumentCommandProcessor extends MetaCommandProcessor {
         ID docID = SharedAccountExtensions.helper.getDocumentID(doc.toMap());
         if (docID == null) {
             assert false : "document ID not found: " + doc.toMap();
-        } else if (!docID.getAddress().equals(did.getAddress())) {
+        } else if (!docID.isSameAs(did)) {
             assert false : "document ID not matched: " + did + ", " + doc.toMap();
             return false;
         }

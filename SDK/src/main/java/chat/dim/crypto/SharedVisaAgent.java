@@ -32,6 +32,9 @@ package chat.dim.crypto;
 
 
 public final class SharedVisaAgent {
+    private SharedVisaAgent() {
+        throw new AssertionError("Utility class cannot be instantiated");
+    }
 
     public static VisaAgent visaAgent = new DefaultVisaAgent();
 

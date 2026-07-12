@@ -67,7 +67,7 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
         }
         // personal message
         for (ID item : allUsers) {
-            if (receiver.equals(item)) {
+            if (receiver.isSameAs(item)) {
                 // DISCUSS: set this item to be current user?
                 return item;
             }
@@ -93,9 +93,11 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
         }
         // group message (recipient not designated)
         for (ID item : allUsers) {
-            if (members.contains(item)) {
-                // DISCUSS: set this item to be current user?
-                return item;
+            for (ID did : members) {
+                if (did.isSameAs(item)) {
+                    // DISCUSS: set this item to be current user?
+                    return item;
+                }
             }
         }
         // not for me?

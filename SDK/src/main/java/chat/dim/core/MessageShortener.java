@@ -109,7 +109,7 @@ public class MessageShortener implements Shortener {
             "T", "type",
             "G", "group",
             //------------------
-            "K", "key",         // or "keys"
+            "K", "keys",
             "D", "data",
             "V", "signature",   // Verification
             //------------------
@@ -119,27 +119,12 @@ public class MessageShortener implements Shortener {
 
     @Override
     public Map<String, Object> compressReliableMessage(Map<String, Object> msg) {
-        moveKey("keys", "K", msg);
         shortenKeys(messageShortKeys, msg);
         return msg;
     }
 
     @Override
     public Map<String, Object> extractReliableMessage(Map<String, Object> msg) {
-        Object keys = msg.get("K");
-        if (keys == null) {
-            assert msg.get("data") != null : "message data should not empty: " + msg;
-        } else if (keys instanceof Map) {
-            assert msg.get("keys") == null : "message keys duplicated: " + msg;
-            msg.remove("K");
-            msg.put("keys", keys);
-        } else if (keys instanceof String) {
-            assert msg.get("key") == null : "message key duplicated: " + msg;
-            msg.remove("K");
-            msg.put("key", keys);
-        } else {
-            assert false : "message key error: " + msg;
-        }
         restoreKeys(messageShortKeys, msg);
         return msg;
     }

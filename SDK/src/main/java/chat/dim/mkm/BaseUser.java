@@ -175,17 +175,12 @@ public class BaseUser extends BaseEntity implements User {
 
     @Override
     public Visa sign(Visa doc) {
-        ID docID = SharedAccountExtensions.helper.getDocumentID(doc.toMap());
-        if (docID == null) {
-            assert false : "visa ID not found: " + doc.toMap();
-        } else if (!docID.getAddress().equals(identifier.getAddress())) {
-            assert false : "visa ID not matched: " + identifier + ", " + doc.toMap();
-            return null;
-        }
+        ID did = SharedAccountExtensions.helper.getDocumentID(doc.toMap());
+        assert did == null || did.isSameAs(identifier) : "visa ID not matched: " + identifier + ", " + did;
         // NOTICE: only sign visa with the private key paired with your meta.key
         SignKey sKey = getPrivateKeyForVisaSignature();
         if (sKey == null) {
-            assert false : "failed to get sign key for visa: " + docID;
+            assert false : "failed to get sign key for visa: " + identifier;
             return null;
         }
         if (doc.sign(sKey) == null) {
@@ -199,13 +194,8 @@ public class BaseUser extends BaseEntity implements User {
     public boolean verify(Visa doc) {
         // NOTICE: only verify visa with meta.key
         //         (if meta not exists, user won't be created)
-        ID docID = SharedAccountExtensions.helper.getDocumentID(doc.toMap());
-        if (docID == null) {
-            assert false : "visa ID not found: " + doc.toMap();
-        } else if (!docID.getAddress().equals(identifier.getAddress())) {
-            assert false : "document ID not matched: " + identifier + ", " + doc.toMap();
-            return false;
-        }
+        ID did = SharedAccountExtensions.helper.getDocumentID(doc.toMap());
+        assert did == null || did.isSameAs(identifier) : "visa ID not matched: " + identifier + ", " + did;
         Meta meta = getMeta();
         if (meta == null) {
             assert false : "failed to get meta: " + identifier;
@@ -213,7 +203,7 @@ public class BaseUser extends BaseEntity implements User {
         }
         VerifyKey pKey = meta.getPublicKey();
         if (pKey == null) {
-            assert false : "failed to get verify key for visa: " + docID;
+            assert false : "failed to get verify key for visa: " + identifier;
             return false;
         }
         return doc.verify(pKey);
@@ -229,10 +219,12 @@ public class BaseUser extends BaseEntity implements User {
             assert false : "user datasource not set yet";
             return null;
         }
+        ID uid = identifier;
         if (terminal == null || terminal.isEmpty() || terminal.equals("*")) {
-            return facebook.getPrivateKeysForDecryption(identifier);
+            uid = uid.withoutTerminal();
+        } else {
+            uid = ID.create(uid.getName(), uid.getAddress(), terminal);
         }
-        ID uid = ID.create(identifier.getName(), identifier.getAddress(), terminal);
         return facebook.getPrivateKeysForDecryption(uid);
     }
 
