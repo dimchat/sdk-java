@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import chat.dim.format.Base64;
-import chat.dim.mkm.Identifier;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.TransportableData;
 
@@ -45,7 +44,7 @@ public class DefaultBundleHelper implements EncryptedBundleHelper {
     @Override
     public Map<String, Object> encodeBundle(EncryptedBundle bundle, ID did) {
         assert did.getTerminal() == null : "ID should not contain terminal here: " + did;
-        String identifier = Identifier.concat(did.getName(), did.getAddress(), null);
+        String identifier = did.withoutTerminal().toString();
         Map<String, Object> encodedKeys = new HashMap<>();
         String target;
         byte[] data;
@@ -75,7 +74,7 @@ public class DefaultBundleHelper implements EncryptedBundleHelper {
         //
         //  0. ID string without terminal
         //
-        String identifier = Identifier.concat(did.getName(), did.getAddress(), null);
+        String identifier = did.withoutTerminal().toString();
         String target;
         Object base64;
         TransportableData ted;

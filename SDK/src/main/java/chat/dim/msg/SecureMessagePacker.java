@@ -188,15 +188,15 @@ public class SecureMessagePacker {
     /*
      *  Sign the Secure Message to Reliable Message
      *
-     *    +----------+      +----------+
-     *    | sender   |      | sender   |
-     *    | receiver |      | receiver |
-     *    | time     |  ->  | time     |
-     *    |          |      |          |
-     *    | data     |      | data     |
-     *    | keys     |      | keys     |
-     *    +----------+      | signature|  1. signature = sign(data, sender.SK)
-     *                      +----------+
+     *    +----------+      +-----------+
+     *    | sender   |      | sender    |
+     *    | receiver |      | receiver  |
+     *    | time     |  ->  | time      |
+     *    |          |      |           |
+     *    | data     |      | data      |
+     *    | keys     |      | keys      |
+     *    +----------+      | signature |  1. signature = sign(data, sender.SK)
+     *                      +-----------+
      */
 
     /**

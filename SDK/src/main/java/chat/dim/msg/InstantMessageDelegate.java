@@ -118,7 +118,7 @@ public interface InstantMessageDelegate {
      * @param bundle   - encrypted key bundle with terminal-specific data
      * @param receiver - actual receiver (user, or group member)
      * @param iMsg     - instant message object
-     * @return encoded key map (terminal → base64-encoded encrypted key data)
+     * @return encoded key map (ID+terminal → base64-encoded encrypted key data)
      */
     Map<String, Object> encodeKeys(EncryptedBundle bundle, ID receiver, InstantMessage iMsg);
 

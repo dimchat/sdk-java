@@ -64,7 +64,7 @@ public interface SecureMessageDelegate {
     /**
      *  1. Decode 'message.keys' to a bundle of encrypted symmetric key data
      *
-     * @param msgKeys  - encoded key map (terminal → base64-encoded encrypted key data)
+     * @param msgKeys  - encoded key map (ID+terminal → base64-encoded encrypted key data)
      * @param receiver - actual receiver (user, or group member)
      * @param sMsg     - secure message object
      * @return encrypted key bundle with terminal-specific data
@@ -129,15 +129,15 @@ public interface SecureMessageDelegate {
     /*
      *  Sign the Secure Message to Reliable Message
      *
-     *    +----------+      +----------+
-     *    | sender   |      | sender   |
-     *    | receiver |      | receiver |
-     *    | time     |  ->  | time     |
-     *    |          |      |          |
-     *    | data     |      | data     |
-     *    | keys     |      | keys     |
-     *    +----------+      | signature|  1. signature = sign(data, sender.SK)
-     *                      +----------+
+     *    +----------+      +-----------+
+     *    | sender   |      | sender    |
+     *    | receiver |      | receiver  |
+     *    | time     |  ->  | time      |
+     *    |          |      |           |
+     *    | data     |      | data      |
+     *    | keys     |      | keys      |
+     *    +----------+      | signature |  1. signature = sign(data, sender.SK)
+     *                      +-----------+
      */
 
     //
