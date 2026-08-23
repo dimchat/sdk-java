@@ -34,13 +34,12 @@ import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.TwinsHelper;
 import chat.dim.dkd.ContentProcessor;
-import chat.dim.protocol.Command;
 import chat.dim.protocol.ContentType;
 
 /**
  *  Base ContentProcessor Creator
  */
-public class BaseContentProcessorCreator extends TwinsHelper implements ContentProcessor.Creator {
+public abstract class BaseContentProcessorCreator extends TwinsHelper implements ContentProcessor.Creator {
 
     public BaseContentProcessorCreator(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
@@ -68,22 +67,6 @@ public class BaseContentProcessorCreator extends TwinsHelper implements ContentP
                 return new BaseContentProcessor(getFacebook(), getMessenger());
         }
         //assert false : "unsupported content: " + msgType;
-        return null;
-    }
-
-    @Override
-    public ContentProcessor createCommandProcessor(String msgType, String cmdName) {
-        switch (cmdName) {
-
-            // meta command
-            case Command.META:
-                return new MetaCommandProcessor(getFacebook(), getMessenger());
-
-            // document command
-            case Command.DOCUMENTS:
-                return new DocumentCommandProcessor(getFacebook(), getMessenger());
-        }
-        assert false : "unsupported command: " + cmdName;
         return null;
     }
 

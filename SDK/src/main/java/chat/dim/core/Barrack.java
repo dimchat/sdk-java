@@ -30,6 +30,8 @@
  */
 package chat.dim.core;
 
+import java.util.List;
+
 import chat.dim.mkm.Group;
 import chat.dim.mkm.User;
 import chat.dim.protocol.ID;
@@ -65,5 +67,16 @@ public interface Barrack {
      * @return group, null on not ready
      */
     Group createGroup(ID gid);
+
+    //
+    //  Archivist
+    //
+
+    /**
+     *  Get all local users (for decrypting received message)
+     *
+     * @return users with private key
+     */
+    List<ID> getLocalUsers();
 
 }

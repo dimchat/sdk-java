@@ -35,13 +35,12 @@ import java.util.Map;
 
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
-import chat.dim.protocol.group.GroupCommand;
 
 
 /**
  *  General ContentProcessor Factory
  */
-public final class ContentProcessorFactory implements ContentProcessor.Factory {
+public class ContentProcessorFactory implements ContentProcessor.Factory {
 
     private final Map<String, ContentProcessor> contentProcessors = new HashMap<>();
     private final Map<String, ContentProcessor> commandProcessors = new HashMap<>();
@@ -63,12 +62,6 @@ public final class ContentProcessorFactory implements ContentProcessor.Factory {
             cpu = getCommandProcessor(msgType, cmd);
             if (cpu != null) {
                 return cpu;
-            } else if (content instanceof GroupCommand/* || content.containsKey("group")*/) {
-                // assert !name.equals("group") : "command name error: " + content;
-                cpu = getCommandProcessor(msgType, "group");
-                if (cpu != null) {
-                    return cpu;
-                }
             }
         }
         // content processor
@@ -87,7 +80,7 @@ public final class ContentProcessorFactory implements ContentProcessor.Factory {
         return cpu;
     }
 
-    private ContentProcessor getCommandProcessor(String msgType, String cmdName) {
+    protected ContentProcessor getCommandProcessor(String msgType, String cmdName) {
         ContentProcessor cpu = commandProcessors.get(cmdName);
         if (cpu == null) {
             cpu = creator.createCommandProcessor(msgType, cmdName);

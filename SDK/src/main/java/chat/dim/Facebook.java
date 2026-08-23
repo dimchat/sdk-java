@@ -32,7 +32,6 @@ package chat.dim;
 
 import java.util.List;
 
-import chat.dim.core.Archivist;
 import chat.dim.core.Barrack;
 import chat.dim.mkm.Entity;
 import chat.dim.mkm.Group;
@@ -44,8 +43,6 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
 
     protected abstract Barrack getBarrack();
 
-    public abstract Archivist getArchivist();
-
     /**
      *  Select local user for receiver
      *
@@ -54,7 +51,7 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
      */
     public ID selectUser(ID receiver) {
         assert receiver.isUser() || receiver.isBroadcast() : "user ID error: " + receiver;
-        Archivist archivist = getArchivist();
+        Barrack archivist = getBarrack();
         assert archivist != null : "archivist not ready";
         List<ID> allUsers = archivist.getLocalUsers();
         if (allUsers == null || allUsers.isEmpty()) {
@@ -84,7 +81,7 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
      */
     public ID selectMember(List<ID> members) {
         assert members != null && !members.isEmpty() : "group members not found";
-        Archivist archivist = getArchivist();
+        Barrack archivist = getBarrack();
         assert archivist != null : "archivist not ready";
         List<ID> allUsers = archivist.getLocalUsers();
         if (allUsers == null || allUsers.isEmpty()) {
