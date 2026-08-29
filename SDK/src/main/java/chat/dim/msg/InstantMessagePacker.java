@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 import chat.dim.crypto.EncryptedBundle;
+import chat.dim.ext.SharedMessageExtensions;
 import chat.dim.format.Base64Data;
 import chat.dim.format.PlainData;
 import chat.dim.protocol.ID;
@@ -113,7 +114,7 @@ public class InstantMessagePacker {
         //  3. Encode 'message.data' to String (Base64)
         //
         TransportableData encodedData;
-        if (BaseMessage.isBroadcast(iMsg)) {
+        if (SharedMessageExtensions.helper.isBroadcast(iMsg)) {
             // broadcast message content will not be encrypted (just encoded to JsON),
             // so no need to encode to Base64 here
             encodedData = PlainData.create(ciphertext);  // UTF8.decode(ciphertext);
