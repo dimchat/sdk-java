@@ -49,14 +49,6 @@ public abstract class BaseContentProcessorCreator extends TwinsHelper implements
     public ContentProcessor createContentProcessor(String msgType) {
         switch (msgType) {
 
-            // forward content
-            case ContentType.FORWARD:
-                return new ForwardContentProcessor(getFacebook(), getMessenger());
-
-            // array content
-            case ContentType.ARRAY:
-                return new ArrayContentProcessor(getFacebook(), getMessenger());
-
             // default commands
             case ContentType.COMMAND:
                 return new BaseCommandProcessor(getFacebook(), getMessenger());
