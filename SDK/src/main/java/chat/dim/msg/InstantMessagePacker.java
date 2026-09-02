@@ -36,15 +36,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import chat.dim.crypto.EncryptedBundle;
-import chat.dim.ext.SharedMessageExtensions;
-import chat.dim.format.Base64Data;
-import chat.dim.format.PlainData;
+import chat.dim.dkd.EncryptedBundle;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.SecureMessage;
 import chat.dim.protocol.SymmetricKey;
-import chat.dim.protocol.TransportableData;
 
 public class InstantMessagePacker {
 
@@ -113,20 +109,7 @@ public class InstantMessagePacker {
         //
         //  3. Encode 'message.data' to String (Base64)
         //
-        TransportableData encodedData;
-        if (SharedMessageExtensions.helper.isBroadcast(iMsg)) {
-            // broadcast message content will not be encrypted (just encoded to JsON),
-            // so no need to encode to Base64 here
-            encodedData = PlainData.create(ciphertext);  // UTF8.decode(ciphertext);
-        } else {
-            // message content had been encrypted by a symmetric key,
-            // so the data should be encoded here (with algorithm 'base64' as default).
-            encodedData = Base64Data.create(ciphertext);
-        }
-        if (encodedData.isEmpty()) {
-            assert false : "failed to encode content data: " + ciphertext.length + " byte(s)";
-            return null;
-        }
+        // ... do it in SecureMessage.Factory::createSecureMessage()
 
         //
         //  4. Serialize message key to data (JsON / ProtoBuf / ...)
@@ -134,18 +117,13 @@ public class InstantMessagePacker {
         byte[] pwd = transformer.serializeKey(password, iMsg);
         // NOTICE:
         //    if the key is reused, iMsg must be updated with key digest.
-        Map<String, Object> info = iMsg.copyMap(false);
-
-        // replace 'content' with encrypted and encoded 'data'
-        info.remove("content");
-        info.put("data", encodedData.serialize());
 
         // check serialized key data,
         // if key data is null here, build the secure message directly.
         if (pwd == null) {
             // A) broadcast message has no key
             // B) reused key
-            return SecureMessage.parse(info);
+            return SecureMessage.create(iMsg, ciphertext, null);
         }
         // encrypt and encode key
 
@@ -180,43 +158,11 @@ public class InstantMessagePacker {
         //
         //  6. Encode message key to String (Base64)
         //
-        Map<String, Object> msgKeys = encodeKeys(bundleMap, iMsg);
-        if (msgKeys == null || msgKeys.isEmpty()) {
-            // public key for member(s) not found
-            // TODO: suspend this message for waiting member's visa
-            return null;
-        }
-
-        // insert as 'keys'
-        info.put("keys", msgKeys);
+        // ... do it in SecureMessage.Factory::createSecureMessage()
 
         // OK, pack message
-        return SecureMessage.parse(info);
-    }
-
-    protected Map<String, Object> encodeKeys(Map<ID, EncryptedBundle> bundleMap, InstantMessage iMsg) {
-        InstantMessageDelegate transformer = getDelegate();
-        if (transformer == null) {
-            assert false : "instant message delegate not found";
-            return null;
-        }
-        Map<String, Object> msgKeys = new HashMap<>();
-        ID receiver;
-        EncryptedBundle bundle;
-        Map<String, Object> encodedKeys;
-        for (Map.Entry<ID, EncryptedBundle> entry : bundleMap.entrySet()) {
-            receiver = entry.getKey();
-            bundle = entry.getValue();
-            encodedKeys = transformer.encodeKeys(bundle, receiver, iMsg);
-            if (encodedKeys == null || encodedKeys.isEmpty()) {
-                assert false : "failed to encode key data: " + receiver;
-                continue;
-            }
-            // insert to 'message.keys' with ID + terminal
-            msgKeys.putAll(encodedKeys);
-        }
+        return SecureMessage.create(iMsg, ciphertext, bundleMap);
         // TODO: put key digest
-        return msgKeys;
     }
 
 }

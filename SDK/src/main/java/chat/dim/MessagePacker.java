@@ -182,7 +182,7 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
         assert sMsg.getData() != null : "message data empty: "
                 + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
         // decrypt 'data' to 'content'
-        return securePacker.decryptMessage(sMsg, user.getIdentifier());
+        return securePacker.decryptMessage(sMsg, user.getIdentifier(), user.getTerminals());
 
         // TODO: check top-secret message
         //       (do it by application)

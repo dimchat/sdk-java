@@ -30,9 +30,7 @@
  */
 package chat.dim.msg;
 
-import java.util.Map;
-
-import chat.dim.crypto.EncryptedBundle;
+import chat.dim.dkd.EncryptedBundle;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.SecureMessage;
@@ -61,7 +59,7 @@ public interface SecureMessageDelegate {
     //  Decrypt Key
     //
 
-    /**
+    /*
      *  1. Decode 'message.keys' to a bundle of encrypted symmetric key data
      *
      * @param msgKeys  - encoded key map (ID+terminal → base64-encoded encrypted key data)
@@ -69,7 +67,7 @@ public interface SecureMessageDelegate {
      * @param sMsg     - secure message object
      * @return encrypted key bundle with terminal-specific data
      */
-    EncryptedBundle decodeKeys(Map<String, Object> msgKeys, ID receiver, SecureMessage sMsg);
+    //EncryptedBundle decodeKeys(Map<String, Object> msgKeys, ID receiver, SecureMessage sMsg);
 
     /**
      *  2. Decrypt key data from a bundle with receiver's private key

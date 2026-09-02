@@ -35,6 +35,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import chat.dim.dkd.EncryptedBundle;
+import chat.dim.dkd.UserEncryptedBundle;
+import chat.dim.ext.AccountHandler;
 import chat.dim.ext.SharedAccountExtensions;
 import chat.dim.protocol.Document;
 import chat.dim.protocol.EncryptKey;
@@ -42,7 +45,6 @@ import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 import chat.dim.protocol.PublicKey;
 import chat.dim.protocol.VerifyKey;
-import chat.dim.protocol.Visa;
 
 
 public class DefaultVisaAgent implements VisaAgent {
@@ -119,27 +121,11 @@ public class DefaultVisaAgent implements VisaAgent {
     }
 
     protected VerifyKey getVerifyKey(Document doc) {
-        if (doc instanceof Visa) {
-            EncryptKey visaKey = ((Visa) doc).getPublicKey();
-            if (visaKey instanceof VerifyKey) {
-                return (VerifyKey) visaKey;
-            }
-            assert false : "visa key error: " + visaKey + ", " + doc;
-            return null;
-        }
         // public key in user profile?
         return PublicKey.parse(doc.getProperty("key"));
     }
 
     protected EncryptKey getEncryptKey(Document doc) {
-        if (doc instanceof Visa) {
-            EncryptKey visaKey = ((Visa) doc).getPublicKey();
-            if (visaKey != null) {
-                return visaKey;
-            }
-            assert false : "failed to get visa key: " + doc;
-            return null;
-        }
         PublicKey pubKey = PublicKey.parse(doc.getProperty("key"));
         if (pubKey == null) {
             // profile document?
@@ -155,7 +141,8 @@ public class DefaultVisaAgent implements VisaAgent {
         String terminal = doc.getString("terminal");
         if (terminal == null) {
             // get from document ID
-            ID did = SharedAccountExtensions.helper.getDocumentID(doc.toMap());
+            AccountHandler helper = SharedAccountExtensions.handler;
+            ID did = helper.getDocumentID(doc.toMap());
             if (did != null) {
                 terminal = did.getTerminal();
             } else {

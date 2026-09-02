@@ -32,9 +32,9 @@ package chat.dim.msg;
 
 import java.lang.ref.WeakReference;
 import java.util.Map;
+import java.util.Set;
 
-import chat.dim.crypto.EncryptedBundle;
-import chat.dim.format.Base64Data;
+import chat.dim.dkd.EncryptedBundle;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
@@ -69,29 +69,20 @@ public class SecureMessagePacker {
      *    +----------+
      */
 
-    protected EncryptedBundle decodeKeys(SecureMessage sMsg, ID receiver) {
-        Map<String, Object> msgKeys = sMsg.getEncryptedKeys();
-        if (msgKeys == null) {
-            // broadcast message?
-            // reused key?
-            return null;
-        }
-        SecureMessageDelegate transformer = getDelegate();
-        if (transformer == null) {
-            assert false : "secure message delegate not found";
-            return null;
-        }
-        return transformer.decodeKeys(msgKeys, receiver, sMsg);
+    protected EncryptedBundle decodeKeys(SecureMessage sMsg, ID receiver, Set<String> terminals) {
+        // TODO: check key digest
+        return sMsg.decodeKeyBundle(receiver, terminals);
     }
 
     /**
      *  Decrypt message, replace encrypted 'data' with 'content' field
      *
-     * @param sMsg     - encrypted message
-     * @param receiver - actual receiver (local user)
+     * @param sMsg      - encrypted message
+     * @param receiver  - actual receiver (local user)
+     * @param terminals - login devices of receiver
      * @return InstantMessage object
      */
-    public InstantMessage decryptMessage(SecureMessage sMsg, ID receiver) {
+    public InstantMessage decryptMessage(SecureMessage sMsg, ID receiver, Set<String> terminals) {
         assert receiver.isUser() : "receiver error: " + receiver;
         SecureMessageDelegate transformer = getDelegate();
         if (transformer == null) {
@@ -104,7 +95,7 @@ public class SecureMessagePacker {
         //
         //  1. Decode 'message.keys' to encrypted symmetric key data
         //
-        EncryptedBundle bundle = decodeKeys(sMsg, receiver);
+        EncryptedBundle bundle = decodeKeys(sMsg, receiver, terminals);
         if (bundle == null || bundle.isEmpty()) {
             // broadcast message?
             // reused key?
@@ -235,17 +226,10 @@ public class SecureMessagePacker {
         //
         //  2. Encode 'message.signature' to String (Base64)
         //
-        TransportableData base64 = Base64Data.create(signature);
-        if (base64.isEmpty()) {
-            assert false : "failed to encode signature: " + signature.length + " byte(s) "
-                    + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
-            return null;
-        }
+        // ... do it in ReliableMessage.Factory::createReliableMessage()
 
         // OK, pack message
-        Map<String, Object> map = sMsg.copyMap(false);
-        map.put("signature", base64.serialize());
-        return ReliableMessage.parse(map);
+        return ReliableMessage.create(sMsg, signature);
     }
 
 }

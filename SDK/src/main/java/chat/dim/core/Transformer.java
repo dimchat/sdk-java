@@ -30,10 +30,7 @@
  */
 package chat.dim.core;
 
-import java.util.Map;
-import java.util.Set;
-
-import chat.dim.crypto.EncryptedBundle;
+import chat.dim.dkd.EncryptedBundle;
 import chat.dim.ext.SharedMessageExtensions;
 import chat.dim.mkm.Entity;
 import chat.dim.mkm.User;
@@ -101,7 +98,7 @@ public abstract class Transformer implements InstantMessageDelegate, SecureMessa
     /*/
     @Override
     public Object encodeData(byte[] data, InstantMessage iMsg) {
-        if (SharedMessageExtensions.helper.isBroadcast(iMsg)) {
+        if (SharedMessageExtensions.handler.isBroadcast(iMsg)) {
             // broadcast message content will not be encrypted (just encoded to JsON),
             // so no need to encode to Base64 here
             return UTF8.decode(data);
@@ -114,7 +111,7 @@ public abstract class Transformer implements InstantMessageDelegate, SecureMessa
 
     @Override
     public byte[] serializeKey(SymmetricKey password, InstantMessage iMsg) {
-        if (SharedMessageExtensions.helper.isBroadcast(iMsg)) {
+        if (SharedMessageExtensions.handler.isBroadcast(iMsg)) {
             // broadcast message has no key
             return null;
         }
@@ -124,7 +121,7 @@ public abstract class Transformer implements InstantMessageDelegate, SecureMessa
 
     @Override
     public EncryptedBundle encryptKey(byte[] data, ID receiver, InstantMessage iMsg) {
-        assert !SharedMessageExtensions.helper.isBroadcast(iMsg) : "broadcast message has no key: " + iMsg;
+        assert !SharedMessageExtensions.handler.isBroadcast(iMsg) : "broadcast message has no key: " + iMsg;
         Entity.Delegate facebook = getFacebook();
         assert facebook != null : "entity delegate not set yet";
         // TODO: make sure the receiver's public key exists
@@ -138,20 +135,23 @@ public abstract class Transformer implements InstantMessageDelegate, SecureMessa
         return contact.encryptBundle(data);
     }
 
+    /*/
     @Override
     public Map<String, Object> encodeKeys(EncryptedBundle bundle, ID receiver, InstantMessage iMsg) {
-        assert !SharedMessageExtensions.helper.isBroadcast(iMsg) : "broadcast message has no key: " + iMsg;
+        assert !SharedMessageExtensions.handler.isBroadcast(iMsg) : "broadcast message has no key: " + iMsg;
         // message key had been encrypted by a public key,
         // so the data should be encoded here (with algorithm 'base64' as default).
         return bundle.encode(receiver);
         // TODO: check for wildcard
     }
+    /*/
 
     //-------- SecureMessageDelegate
 
+    /*/
     @Override
     public EncryptedBundle decodeKeys(Map<String, Object> msgKeys, ID receiver, SecureMessage sMsg) {
-        assert !SharedMessageExtensions.helper.isBroadcast(sMsg) : "broadcast message has no key: " + sMsg;
+        assert !SharedMessageExtensions.handler.isBroadcast(sMsg) : "broadcast message has no key: " + sMsg;
         Entity.Delegate facebook = getFacebook();
         assert facebook != null : "entity delegate not set yet";
         assert receiver.isUser() : "receiver error: " + receiver;
@@ -164,12 +164,13 @@ public abstract class Transformer implements InstantMessageDelegate, SecureMessa
         Set<String> terminals = user.getTerminals();
         return EncryptedBundle.decode(msgKeys, receiver, terminals);
     }
+    /*/
 
     @Override
     public byte[] decryptKey(EncryptedBundle bundle, ID receiver, SecureMessage sMsg) {
         // NOTICE: the receiver must be a member ID
         //         if it's a group message
-        assert !SharedMessageExtensions.helper.isBroadcast(sMsg) : "broadcast message has no key: " + sMsg;
+        assert !SharedMessageExtensions.handler.isBroadcast(sMsg) : "broadcast message has no key: " + sMsg;
         Entity.Delegate facebook = getFacebook();
         assert facebook != null : "entity delegate not set yet";
         assert receiver.isUser() : "receiver error: " + receiver;
@@ -184,7 +185,7 @@ public abstract class Transformer implements InstantMessageDelegate, SecureMessa
 
     @Override
     public SymmetricKey deserializeKey(byte[] key, SecureMessage sMsg) {
-        assert !SharedMessageExtensions.helper.isBroadcast(sMsg) : "broadcast message has no key: " + sMsg.toMap();
+        assert !SharedMessageExtensions.handler.isBroadcast(sMsg) : "broadcast message has no key: " + sMsg.toMap();
         if (key == null) {
             assert false : "reused key? get it from local cache: "
                     + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
@@ -198,7 +199,7 @@ public abstract class Transformer implements InstantMessageDelegate, SecureMessa
     /*/
     @Override
     public byte[] decodeData(Object data, SecureMessage sMsg) {
-        if (SharedMessageExtensions.helper.isBroadcast(sMsg)) {
+        if (SharedMessageExtensions.handler.isBroadcast(sMsg)) {
             // broadcast message content will not be encrypted (just encoded to JsON),
             // so return the string data directly
             if (data instanceof String) {
