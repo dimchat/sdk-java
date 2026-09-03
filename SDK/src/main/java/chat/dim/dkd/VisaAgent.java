@@ -28,16 +28,27 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.crypto;
+package chat.dim.dkd;
 
 import java.util.List;
 import java.util.Set;
 
 import chat.dim.protocol.Document;
+import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
+import chat.dim.protocol.SecureMessage;
 import chat.dim.protocol.VerifyKey;
 
 public interface VisaAgent {
+
+    /**
+     *  Decrypt key bundle for receiver
+     *
+     * @param sMsg     - received message
+     * @param receiver - actual receiver (user, or group member)
+     * @return encrypted data with terminals
+     */
+    EncryptedBundle decodeBundle(SecureMessage sMsg, ID receiver);
 
     /**
      *  Encrypt plaintext to ciphertexts with all visa keys

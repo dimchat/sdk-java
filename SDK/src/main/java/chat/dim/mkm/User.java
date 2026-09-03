@@ -33,11 +33,11 @@ package chat.dim.mkm;
 import java.util.List;
 import java.util.Set;
 
-import chat.dim.crypto.EncryptedBundle;
+import chat.dim.dkd.EncryptedBundle;
 import chat.dim.protocol.DecryptKey;
+import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.SignKey;
-import chat.dim.protocol.Visa;
 
 /**
  *  User account for communication
@@ -112,9 +112,9 @@ public interface User extends Entity {
     //
     //  Interfaces for Visa
     //
-    Visa sign(Visa doc);
+    Document signDocument(Document visa);
 
-    boolean verify(Visa doc);
+    boolean verifyDocument(Document visa);
 
     /**
      *  User Data Source

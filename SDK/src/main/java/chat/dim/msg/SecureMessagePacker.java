@@ -32,9 +32,10 @@ package chat.dim.msg;
 
 import java.lang.ref.WeakReference;
 import java.util.Map;
-import java.util.Set;
 
 import chat.dim.dkd.EncryptedBundle;
+import chat.dim.dkd.SharedVisaAgent;
+import chat.dim.dkd.VisaAgent;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
@@ -69,20 +70,14 @@ public class SecureMessagePacker {
      *    +----------+
      */
 
-    protected EncryptedBundle decodeKeys(SecureMessage sMsg, ID receiver, Set<String> terminals) {
-        // TODO: check key digest
-        return sMsg.decodeKeyBundle(receiver, terminals);
-    }
-
     /**
      *  Decrypt message, replace encrypted 'data' with 'content' field
      *
      * @param sMsg      - encrypted message
      * @param receiver  - actual receiver (local user)
-     * @param terminals - login devices of receiver
      * @return InstantMessage object
      */
-    public InstantMessage decryptMessage(SecureMessage sMsg, ID receiver, Set<String> terminals) {
+    public InstantMessage decryptMessage(SecureMessage sMsg, ID receiver) {
         assert receiver.isUser() : "receiver error: " + receiver;
         SecureMessageDelegate transformer = getDelegate();
         if (transformer == null) {
@@ -95,7 +90,8 @@ public class SecureMessagePacker {
         //
         //  1. Decode 'message.keys' to encrypted symmetric key data
         //
-        EncryptedBundle bundle = decodeKeys(sMsg, receiver, terminals);
+        VisaAgent agent = SharedVisaAgent.visaAgent;
+        EncryptedBundle bundle = agent.decodeBundle(sMsg, receiver);
         if (bundle == null || bundle.isEmpty()) {
             // broadcast message?
             // reused key?

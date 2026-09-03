@@ -34,9 +34,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import chat.dim.crypto.EncryptedBundle;
-import chat.dim.crypto.SharedVisaAgent;
-import chat.dim.crypto.VisaAgent;
+import chat.dim.dkd.SharedVisaAgent;
+import chat.dim.dkd.VisaAgent;
+import chat.dim.dkd.EncryptedBundle;
+import chat.dim.ext.AccountHandler;
 import chat.dim.ext.SharedAccountExtensions;
 import chat.dim.protocol.DecryptKey;
 import chat.dim.protocol.Document;
@@ -44,7 +45,6 @@ import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 import chat.dim.protocol.SignKey;
 import chat.dim.protocol.VerifyKey;
-import chat.dim.protocol.Visa;
 
 
 public class BaseUser extends BaseEntity implements User {
@@ -174,28 +174,30 @@ public class BaseUser extends BaseEntity implements User {
     }
 
     @Override
-    public Visa sign(Visa doc) {
-        ID did = SharedAccountExtensions.helper.getDocumentID(doc.toMap());
+    public Document signDocument(Document visa) {
+        AccountHandler helper = SharedAccountExtensions.handler;
+        ID did = helper.getDocumentID(visa.toMap());
         assert did == null || did.isSameAs(identifier) : "visa ID not matched: " + identifier + ", " + did;
         // NOTICE: only sign visa with the private key paired with your meta.key
         SignKey sKey = getPrivateKeyForVisaSignature();
         if (sKey == null) {
-            assert false : "failed to get sign key for visa: " + identifier;
+            assert false : "failed to get sign key for visa document: " + identifier;
             return null;
         }
-        if (doc.sign(sKey) == null) {
-            assert false : "failed to sign visa: " + identifier + ", " + doc;
+        if (visa.sign(sKey) == null) {
+            assert false : "failed to sign visa document: " + identifier + ", " + visa;
             return null;
         }
-        return doc;
+        return visa;
     }
 
     @Override
-    public boolean verify(Visa doc) {
+    public boolean verifyDocument(Document visa) {
         // NOTICE: only verify visa with meta.key
         //         (if meta not exists, user won't be created)
-        ID did = SharedAccountExtensions.helper.getDocumentID(doc.toMap());
-        assert did == null || did.isSameAs(identifier) : "visa ID not matched: " + identifier + ", " + did;
+        AccountHandler helper = SharedAccountExtensions.handler;
+        ID did = helper.getDocumentID(visa.toMap());
+        assert did == null || did.isSameAs(identifier) : "visa document ID not matched: " + identifier + ", " + did;
         Meta meta = getMeta();
         if (meta == null) {
             assert false : "failed to get meta: " + identifier;
@@ -203,10 +205,10 @@ public class BaseUser extends BaseEntity implements User {
         }
         VerifyKey pKey = meta.getPublicKey();
         if (pKey == null) {
-            assert false : "failed to get verify key for visa: " + identifier;
+            assert false : "failed to get verify key for visa document: " + identifier;
             return false;
         }
-        return doc.verify(pKey);
+        return visa.verify(pKey);
     }
 
     //
@@ -220,7 +222,7 @@ public class BaseUser extends BaseEntity implements User {
             return null;
         }
         ID uid = identifier;
-        if (terminal == null || terminal.equals("*")) {
+        if (terminal == null || terminal.equals("/")) {
             uid = uid.withoutTerminal();
         } else {
             uid = uid.withTerminal(terminal);

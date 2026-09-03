@@ -28,15 +28,14 @@
  * SOFTWARE.
  * ==============================================================================
  */
-package chat.dim.crypto;
+package chat.dim.dkd;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import chat.dim.dkd.EncryptedBundle;
-import chat.dim.dkd.UserEncryptedBundle;
 import chat.dim.ext.AccountHandler;
 import chat.dim.ext.SharedAccountExtensions;
 import chat.dim.protocol.Document;
@@ -44,10 +43,31 @@ import chat.dim.protocol.EncryptKey;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 import chat.dim.protocol.PublicKey;
+import chat.dim.protocol.SecureMessage;
 import chat.dim.protocol.VerifyKey;
 
 
 public class DefaultVisaAgent implements VisaAgent {
+
+    @Override
+    public EncryptedBundle decodeBundle(SecureMessage sMsg, ID receiver) {
+        // TODO: check key digest
+        Map<String, Object> keys = sMsg.getEncryptedKeys();
+        if (keys == null || keys.isEmpty()) {
+            return null;
+        }
+        // TODO: get terminal(s) for local user
+        String terminal = receiver.getTerminal();
+        if (terminal == null || terminal.isEmpty()) {
+            // get full bundle
+            return EncryptedBundle.decode(keys, receiver, null);
+        }
+        // get single bundle
+        Set<String> devices = new HashSet<>();
+        devices.add(terminal);
+        receiver = receiver.withoutTerminal();
+        return EncryptedBundle.decode(keys, receiver, devices);
+    }
 
     @Override
     public EncryptedBundle encryptBundle(byte[] plaintext, Meta meta, List<Document> documents) {
@@ -68,9 +88,11 @@ public class DefaultVisaAgent implements VisaAgent {
             }
             // get visa.terminal
             terminal = getTerminal(doc);
+            /*/
             if (terminal == null || terminal.isEmpty()) {
-                terminal = "*";
+                terminal = "/";
             }
+            /*/
             if (bundle.get(terminal) != null) {
                 assert false : "duplicated visa key: " + doc;
                 continue;
@@ -85,9 +107,9 @@ public class DefaultVisaAgent implements VisaAgent {
             VerifyKey metaKey = meta.getPublicKey();
             if (metaKey instanceof EncryptKey) {
                 pubKey = (EncryptKey) metaKey;
-                //terminal = "*";
+                //terminal = "/";
                 ciphertext = pubKey.encrypt(plaintext, null);
-                bundle.put("*", ciphertext);
+                bundle.put("/", ciphertext);
             }
         }
         // OK
@@ -150,6 +172,9 @@ public class DefaultVisaAgent implements VisaAgent {
                 // TODO: get from property?
             }
         }
+        if (terminal == null || terminal.isEmpty() || terminal.equals("*")) {
+            terminal = "/";
+        }
         return terminal;
     }
 
@@ -159,9 +184,11 @@ public class DefaultVisaAgent implements VisaAgent {
         String terminal;
         for (Document doc : documents) {
             terminal = getTerminal(doc);
+            /*/
             if (terminal == null || terminal.isEmpty()) {
-                terminal = "*";
+                terminal = "/";
             }
+            /*/
             devices.add(terminal);
         }
         return devices;
