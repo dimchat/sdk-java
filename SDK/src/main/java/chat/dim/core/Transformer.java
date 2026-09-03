@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  DIMP : Decentralized Instant Messaging Protocol
+ *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
  *                                Written in 2021 by Moky <albert.moky@gmail.com>
  *
@@ -30,6 +30,7 @@
  */
 package chat.dim.core;
 
+import chat.dim.dkd.Compressor;
 import chat.dim.dkd.EncryptedBundle;
 import chat.dim.ext.SharedMessageExtensions;
 import chat.dim.mkm.Entity;

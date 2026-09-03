@@ -38,7 +38,7 @@ import chat.dim.Facebook;
 import chat.dim.Messenger;
 import chat.dim.TwinsHelper;
 import chat.dim.dkd.ContentProcessor;
-import chat.dim.ext.GeneralCommandHelper;
+import chat.dim.ext.CommandHandler;
 import chat.dim.ext.SharedCommandExtensions;
 import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
@@ -88,7 +88,7 @@ public class BaseContentProcessor extends TwinsHelper implements ContentProcesso
     public static Command createReceipt(String text, Envelope head, Content body, Map<String, Object> extra) {
         assert text != null && head != null : "params error";
         // create base receipt command with text, original envelope, serial number & group ID
-        GeneralCommandHelper helper = SharedCommandExtensions.helper;
+        CommandHandler helper = SharedCommandExtensions.handler;
         Command res = helper.createReceipt(text, head, body);
         // add extra key-value
         if (extra != null) {
