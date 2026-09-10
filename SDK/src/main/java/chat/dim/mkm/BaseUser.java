@@ -222,7 +222,7 @@ public class BaseUser extends BaseEntity implements User {
             return null;
         }
         ID uid = identifier;
-        if (terminal == null || terminal.equals("/")) {
+        if (terminal == null || terminal.isEmpty() || terminal.equals("/")) {
             uid = uid.withoutTerminal();
         } else {
             uid = uid.withTerminal(terminal);

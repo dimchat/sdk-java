@@ -41,6 +41,7 @@ public class MessageCompressor implements Compressor {
     protected final Shortener shortener;
 
     public MessageCompressor(Shortener shortener) {
+        super();
         this.shortener = shortener;
     }
 
@@ -63,10 +64,11 @@ public class MessageCompressor implements Compressor {
             return null;
         }
         Map<String, Object> info = JSONMap.decode(json);
-        if (info != null) {
-            info = shortener.extractContent(info);
+        if (info == null) {
+            assert false : "failed to decode content: " + json;
+            return null;
         }
-        return info;
+        return shortener.extractContent(info);
     }
 
     //
@@ -88,10 +90,11 @@ public class MessageCompressor implements Compressor {
             return null;
         }
         Map<String, Object> info = JSONMap.decode(json);
-        if (info != null) {
-            info = shortener.extractSymmetricKey(info);
+        if (info == null) {
+            assert false : "failed to decode symmetric key: " + json;
+            return null;
         }
-        return info;
+        return shortener.extractSymmetricKey(info);
     }
 
     //
@@ -113,10 +116,11 @@ public class MessageCompressor implements Compressor {
             return null;
         }
         Map<String, Object> info = JSONMap.decode(json);
-        if (info != null) {
-            info = shortener.extractReliableMessage(info);
+        if (info == null) {
+            assert false : "failed to decode message: " + json;
+            return null;
         }
-        return info;
+        return shortener.extractReliableMessage(info);
     }
 
 }

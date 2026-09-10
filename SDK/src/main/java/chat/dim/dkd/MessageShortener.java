@@ -30,103 +30,136 @@
  */
 package chat.dim.dkd;
 
+import java.util.HashMap;
 import java.util.Map;
 
 
 public class MessageShortener implements Shortener {
 
-    protected void moveKey(String from, String to, Map<String, Object> info) {
-        Object value = info.get(from);
-        if (value != null) {
-            assert info.get(to) == null : "keys conflicted: '" + from + "' -> '" + to + "', " + info;
-            info.remove(from);
-            info.put(to, value);
+    /**
+     *  Key maps holder (short-to-long & long-to-short)
+     */
+    protected static class KeyMaps {
+        public final Map<String, String> shortToLong;
+        public final Map<String, String> longToShort;
+
+        public KeyMaps(Map<String, String> shortToLong, Map<String, String> longToShort) {
+            this.shortToLong = shortToLong;
+            this.longToShort = longToShort;
         }
     }
 
-    protected void shortenKeys(String[] keys, Map<String, Object> info) {
+    public MessageShortener() {
+        super();
+
+        KeyMaps pair;
+
+        // build for message
+        pair = buildMessageKeyMaps();
+        messageShortToLong = pair.shortToLong;
+        messageLongToShort = pair.longToShort;
+
+        // build for content
+        pair = buildContentKeyMaps();
+        contentShortToLong = pair.shortToLong;
+        contentLongToShort = pair.longToShort;
+
+        // build for symmetric key
+        pair = buildCryptoKeyMaps();
+        cryptoShortToLong = pair.shortToLong;
+        cryptoLongToShort = pair.longToShort;
+
+    }
+
+    protected KeyMaps buildMessageKeyMaps() {
+        return build(messageShortKeys);
+    }
+
+    protected KeyMaps buildContentKeyMaps() {
+        return build(contentShortKeys);
+    }
+
+    protected KeyMaps buildCryptoKeyMaps() {
+        return build(cryptoShortKeys);
+    }
+
+    protected static KeyMaps build(String[] keys) {
+        Map<String, String> shortToLong = new HashMap<>();
+        Map<String, String> longToShort = new HashMap<>();
+        String shortKey, longKey;
         for (int i = 1; i < keys.length; i += 2) {
-            moveKey(keys[i], keys[i - 1], info);
+            shortKey = keys[i - 1];
+            longKey = keys[i];
+            assert shortKey.length() < longKey.length() : "key pair error: " + shortKey + ", " + longKey;
+            shortToLong.put(shortKey, longKey);
+            longToShort.put(longKey, shortKey);
         }
+        return new KeyMaps(shortToLong, longToShort);
     }
-    protected void restoreKeys(String[] keys, Map<String, Object> info) {
-        for (int i = 1; i < keys.length; i += 2) {
-            moveKey(keys[i - 1], keys[i], info);
+
+    protected Map<String, Object> translate(Map<String, Object> info, Map<String, String> dictionary) {
+        // NOTICE: do not modify the original map, create a new one instead
+        Map<String, Object> result = new HashMap<>();
+        String name;
+        for (Map.Entry<String, Object> entry : info.entrySet()) {
+            name = dictionary.get(entry.getKey());
+            if (name == null) {
+                name = entry.getKey();
+            }
+            result.put(name, entry.getValue());
         }
+        return result;
     }
 
-    /**
-     *  Compress Content
-     */
-    public String[] contentShortKeys = {
-            "T", "type",
-            "N", "sn",
-            "W", "time",        // When
-            "G", "group",
-            "C", "command",     // Command name
-    };
+    // -------------------------------------------------------------------------
+    //  ReliableMessage Key Mapping
+    // -------------------------------------------------------------------------
 
-    @Override
-    public Map<String, Object> compressContent(Map<String, Object> content) {
-        shortenKeys(contentShortKeys, content);
-        return content;
-    }
-
-    @Override
-    public Map<String, Object> extractContent(Map<String, Object> content) {
-        restoreKeys(contentShortKeys, content);
-        return content;
-    }
-
-    /**
-     *  Compress SymmetricKey
-     */
-    public String[] cryptoShortKeys = {
-            "A", "algorithm",
-            "D", "data",
-            "I", "iv",          // Initial Vector
-    };
-
-    @Override
-    public Map<String, Object> compressSymmetricKey(Map<String, Object> key) {
-        shortenKeys(cryptoShortKeys, key);
-        return key;
-    }
-
-    @Override
-    public Map<String, Object> extractSymmetricKey(Map<String, Object> key) {
-        restoreKeys(cryptoShortKeys, key);
-        return key;
-    }
-
-    /**
-     *  Compress ReliableMessage
-     */
-    public String[] messageShortKeys = {
-            "F", "sender",      // From
-            "R", "receiver",    // Rcpt to
-            "W", "time",        // When
-            "T", "type",
-            "G", "group",
-            //------------------
-            "K", "keys",
-            "D", "data",
-            "V", "signature",   // Verification
-            //------------------
-            "M", "meta",
-            "P", "visa",        // Profile
-    } ;
+    protected final Map<String, String> messageShortToLong;
+    protected final Map<String, String> messageLongToShort;
 
     @Override
     public Map<String, Object> compressReliableMessage(Map<String, Object> msg) {
-        shortenKeys(messageShortKeys, msg);
-        return msg;
+        return translate(msg, messageLongToShort);
     }
 
     @Override
     public Map<String, Object> extractReliableMessage(Map<String, Object> msg) {
-        restoreKeys(messageShortKeys, msg);
-        return msg;
+        return translate(msg, messageShortToLong);
+    }
+
+    // -------------------------------------------------------------------------
+    //  Content Key Mapping
+    // -------------------------------------------------------------------------
+
+    protected final Map<String, String> contentShortToLong;
+    protected final Map<String, String> contentLongToShort;
+
+    @Override
+    public Map<String, Object> compressContent(Map<String, Object> content) {
+        return translate(content, contentLongToShort);
+    }
+
+    @Override
+    public Map<String, Object> extractContent(Map<String, Object> content) {
+        return translate(content, contentShortToLong);
+    }
+
+    // -------------------------------------------------------------------------
+    //  Symmetric Key Mapping
+    // -------------------------------------------------------------------------
+
+    protected final Map<String, String> cryptoShortToLong;
+    protected final Map<String, String> cryptoLongToShort;
+
+    @Override
+    public Map<String, Object> compressSymmetricKey(Map<String, Object> key) {
+        return translate(key, cryptoLongToShort);
+    }
+
+    @Override
+    public Map<String, Object> extractSymmetricKey(Map<String, Object> key) {
+        return translate(key, cryptoShortToLong);
     }
 
 }

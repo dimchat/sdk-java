@@ -64,6 +64,44 @@ import java.util.Map;
 public interface Shortener {
 
     /**
+     *  Compress ReliableMessage
+     */
+    String[] messageShortKeys = {
+            "F", "sender",      // From
+            "R", "receiver",    // Rcpt to
+            "W", "time",        // When
+            "T", "type",
+            "G", "group",
+            //------------------
+            "K", "keys",
+            "D", "data",
+            "V", "signature",   // Verification
+            //------------------
+            "M", "meta",
+            "P", "visa",        // Profile
+    };
+
+    /**
+     *  Compress Content
+     */
+    String[] contentShortKeys = {
+            "T", "type",
+            "N", "sn",
+            "W", "time",        // When
+            "G", "group",
+            "C", "command",     // Command name
+    };
+
+    /**
+     *  Compress SymmetricKey
+     */
+    String[] cryptoShortKeys = {
+            "A", "algorithm",
+            "D", "data",
+            "I", "iv",          // Initial Vector
+    };
+
+    /**
      *  Compress Content
      */
     Map<String, Object> compressContent(Map<String, Object> content);
