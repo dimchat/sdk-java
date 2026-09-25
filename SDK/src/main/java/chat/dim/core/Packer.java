@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  DIMP : Decentralized Instant Messaging Protocol
+ *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
  *                                Written in 2021 by Moky <albert.moky@gmail.com>
  *
@@ -34,8 +34,20 @@ import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 
+// -----------------------------------------------------------------------------
+//  Message Packer (Encryption/Signature/Serialization)
+// -----------------------------------------------------------------------------
+
 /**
- *  Message Packer
+ *  Message packing/unpacking interface (encryption &rarr; signature &rarr; serialization).
+ *  <p>
+ *      Core workflow (packing):
+ *      {@code InstantMessage} (plain) &rarr; {@code SecureMessage} (encrypted) &rarr; {@code ReliableMessage} (signed) &rarr; {@code byte[]} (binary)
+ *  </p>
+ *  <p>
+ *      Core workflow (unpacking):
+ *      {@code byte[]} (binary) &rarr; {@code ReliableMessage} (signed) &rarr; {@code SecureMessage} (encrypted) &rarr; {@code InstantMessage} (plain)
+ *  </p>
  */
 public interface Packer {
 
@@ -44,26 +56,26 @@ public interface Packer {
     //
 
     /**
-     *  Encrypt message content
+     *  Encrypts the content of a plain instant message to create a secure message.
      *
-     * @param iMsg - plain message
-     * @return encrypted message
+     * @param iMsg is the plain instant message to encrypt (contains unencrypted content).
+     * @return the encrypted secure message (null if encryption fails).
      */
     SecureMessage encryptMessage(InstantMessage iMsg);
 
     /**
-     *  Sign content data
+     *  Signs the encrypted data of a secure message to create a reliable message.
      *
-     * @param sMsg - encrypted message
-     * @return network message
+     * @param sMsg is the encrypted secure message to sign (contains encrypted data).
+     * @return the signed reliable message (null if signing fails).
      */
     ReliableMessage signMessage(SecureMessage sMsg);
 
     /*
-     *  Serialize network message
+     *  Serializes a signed reliable message to binary data (network transport format).
      *
-     * @param rMsg - network message
-     * @return data package
+     * @param rMsg is the signed reliable message to serialize.
+     * @return the binary data package (null if serialization fails).
      */
     //byte[] serializeMessage(ReliableMessage rMsg);
 
@@ -72,26 +84,26 @@ public interface Packer {
     //
 
     /*
-     *  Deserialize network message
+     *  Deserializes binary data back to a reliable message (reverse of serialize).
      *
-     * @param data - data package
-     * @return network message
+     * @param data is the binary data package to deserialize.
+     * @return the deserialized reliable message (null if deserialization fails).
      */
     //ReliableMessage deserializeMessage(byte[] data);
 
     /**
-     *  Verify encrypted content data
+     *  Verifies the signature of a reliable message to retrieve the secure message.
      *
-     * @param rMsg - network message
-     * @return encrypted message
+     * @param rMsg is the reliable message to verify (checks signature validity).
+     * @return the verified secure message (null if verification fails).
      */
     SecureMessage verifyMessage(ReliableMessage rMsg);
 
     /**
-     *  Decrypt message content
+     *  Decrypts the data of a secure message to retrieve the plain instant message.
      *
-     * @param sMsg - encrypted message
-     * @return plain message
+     * @param sMsg is the encrypted secure message to decrypt.
+     * @return the decrypted plain instant message (null if decryption fails).
      */
     InstantMessage decryptMessage(SecureMessage sMsg);
 }

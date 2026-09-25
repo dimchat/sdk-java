@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  DIMP : Decentralized Instant Messaging Protocol
+ *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
  *                                Written in 2021 by Moky <albert.moky@gmail.com>
  *
@@ -37,34 +37,71 @@ import chat.dim.mkm.User;
 import chat.dim.protocol.ID;
 
 /**
- *  Entity Factory
+ *  Entity pool for managing and caching User/Group instances (account entity manager).
  *  <p>
- *      Entity pool to manage User/Group instances
+ *      Core responsibilities:
+ *      1. In-memory caching of User/Group entities to avoid repeated creation
+ *      2. Lazy creation of User/Group entities when required metadata is available
+ *      3. Fast lookup of entities by ID (identifier)
+ *  </p>
+ *  <p>
+ *      Key design: Acts as a "barracks" (entity pool) to centralize entity management,
+ *      ensuring only one instance exists per ID and reducing redundant data loading.
  *  </p>
  */
 public interface Barrack {
 
+    /**
+     *  Caches a User entity in memory (overwrites existing entry for the same ID).
+     *
+     * @param user is the user entity to cache (must have a valid ID).
+     */
     void cacheUser(User user);
 
+    /**
+     *  Caches a Group entity in memory (overwrites existing entry for the same ID).
+     *
+     * @param group is the group entity to cache (must have a valid ID).
+     */
     void cacheGroup(Group group);
 
+    /**
+     *  Retrieves a cached User entity by ID.
+     *
+     * @param uid is the unique ID of the target user.
+     * @return a cached User instance (null if not found in cache).
+     */
     User getUser(ID uid);
 
+    /**
+     *  Retrieves a cached Group entity by ID.
+     *
+     * @param gid is the unique ID of the target group.
+     * @return a cached Group instance (null if not found in cache).
+     */
     Group getGroup(ID gid);
 
     /**
-     *  Create user when visa.key exists
+     *  Creates a User entity if the required visa key metadata exists.
+     *  <p>
+     *      Lazy creation rule: Only creates a User when the user's visa.key (public key)
+     *      is available (entity is "ready" for use). Does not cache the created user automatically.
+     *  </p>
      *
-     * @param uid - user ID
-     * @return user, null on not ready
+     * @param uid is the unique ID of the user to create.
+     * @return a new User instance (null if visa.key is missing/entity not ready).
      */
     User createUser(ID uid);
 
     /**
-     *  Create group when members exist
+     *  Creates a Group entity if the required member list exists.
+     *  <p>
+     *      Lazy creation rule: Only creates a Group when the group's member list is available
+     *      (entity is "ready" for use). Does not cache the created group automatically.
+     *  </p>
      *
-     * @param gid - group ID
-     * @return group, null on not ready
+     * @param gid is the unique ID of the group to create.
+     * @return a new Group instance (null if members are missing/entity not ready).
      */
     Group createGroup(ID gid);
 
@@ -72,10 +109,18 @@ public interface Barrack {
     //  Archivist
     //
 
+    // -------------------------------------------------------------------------
+    //  Local User Management (Critical for Message Decryption)
+    // -------------------------------------------------------------------------
+
     /**
-     *  Get all local users (for decrypting received message)
+     *  Retrieves all local user IDs (used for decrypting received messages).
+     *  <p>
+     *      Local users are accounts logged into the current device with private keys,
+     *      required to decrypt incoming personal/group messages targeted to the device.
+     *  </p>
      *
-     * @return users with private key
+     * @return the list of local user IDs (non-empty in normal operation).
      */
     List<ID> getLocalUsers();
 

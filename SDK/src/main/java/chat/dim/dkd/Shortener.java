@@ -33,8 +33,8 @@ package chat.dim.dkd;
 import java.util.Map;
 
 
-/** Short Keys
-<pre>
+/*  Short Keys
+
     ======+==================================================+==================
           |   Message        Content        Symmetric Key    |    Description
     ------+--------------------------------------------------+------------------
@@ -56,15 +56,25 @@ import java.util.Map;
     ======+==================================================+==================
 
     Note:
-        "S" - deprecated (ambiguous for "sender" and "signature")
-</pre>
+    "S" - deprecated (ambiguous for "sender" and "signature")
  */
 
 
+/**
+ * Interface for bidirectional short key mapping (long string keys ↔ single-char keys).
+ *
+ * Core function: Replace system-defined long string keys with pre-defined single-character
+ * short keys (and vice versa) to reduce the size of JSON-serialized data.
+ *
+ * Key features:
+ * - Bi-directional conversion (compress → extract)
+ * - Preserves data structure, only replaces key names
+ * - Maintains compatibility with core message components
+ */
 public interface Shortener {
 
     /**
-     *  Compress ReliableMessage
+     * Compress ReliableMessage
      */
     String[] messageShortKeys = {
             "F", "sender",      // From

@@ -39,10 +39,20 @@ import chat.dim.protocol.Content;
 import chat.dim.protocol.ReliableMessage;
 
 /**
- *  CPU - Command Processing Unit
+ *  Base implementation of {@link chat.dim.dkd.ContentProcessor} for command content.
+ *  <p>
+ *      Specializes {@link BaseContentProcessor} for command handling, providing default
+ *      "command not supported" responses for unsupported commands.
+ *  </p>
  */
 public class BaseCommandProcessor extends BaseContentProcessor {
 
+    /**
+     *  Creates a {@link BaseCommandProcessor} with required twin dependencies.
+     *
+     * @param facebook is the entity management service (user/group operations).
+     * @param messenger is the messaging service (packing/processing).
+     */
     public BaseCommandProcessor(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
     }

@@ -44,8 +44,21 @@ import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 
+/**
+ *  Concrete implementation of {@link Processor} with twin dependencies (Facebook + Messenger).
+ *  <p>
+ *      Implements the full message processing pipeline, delegating content processing
+ *      to a {@link chat.dim.dkd.ContentProcessor.Factory} for different content types.
+ *  </p>
+ */
 public abstract class MessageProcessor extends TwinsHelper implements Processor {
 
+    /**
+     *  Factory for creating content processors (internal use only).
+     *  <p>
+     *      CPU = Content Processor Unit
+     *  </p>
+     */
     protected final ContentProcessor.Factory factory;
 
     public MessageProcessor(Facebook facebook, Messenger messenger) {
@@ -53,12 +66,18 @@ public abstract class MessageProcessor extends TwinsHelper implements Processor 
         factory = createFactory(facebook, messenger);
     }
 
-    // CPU factory
+    /**
+     *  Creates a {@link chat.dim.dkd.ContentProcessor.Factory} instance (must be overridden by subclasses).
+     *
+     * @param facebook is the entity management service.
+     * @param messenger is the messaging service.
+     * @return a new {@link chat.dim.dkd.ContentProcessor.Factory} instance.
+     */
     protected abstract ContentProcessor.Factory createFactory(Facebook facebook, Messenger messenger);
 
-    //
-    //  Processing Message
-    //
+    // -------------------------------------------------------------------------
+    //  Message Processing Pipeline
+    // -------------------------------------------------------------------------
 
     @Override
     public List<byte[]> processPackage(byte[] data) {
@@ -156,7 +175,7 @@ public abstract class MessageProcessor extends TwinsHelper implements Processor 
     @Override
     public List<InstantMessage> processInstantMessage(InstantMessage iMsg, ReliableMessage rMsg) {
         Messenger messenger = getMessenger();
-        assert messenger != null : "twins not ready";
+        assert messenger != null : "messenger not ready";
         // 1. process content
         List<Content> responses = messenger.processContent(iMsg.getContent(), rMsg);
         if (responses == null || responses.isEmpty()) {

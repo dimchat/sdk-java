@@ -36,8 +36,17 @@ import java.util.Map;
 import chat.dim.format.JSONMap;
 import chat.dim.format.UTF8;
 
+/**
+ * Concrete implementation of {@link Compressor} (Shortener + JSON + UTF8).
+ *
+ * Uses {@link MessageShortener} for key mapping, JSON for serialization,
+ * and UTF8 for binary encoding/decoding.
+ */
 public class MessageCompressor implements Compressor {
 
+    /**
+     * Short key mapper used for key conversion.
+     */
     protected final Shortener shortener;
 
     public MessageCompressor(Shortener shortener) {
@@ -45,9 +54,9 @@ public class MessageCompressor implements Compressor {
         this.shortener = shortener;
     }
 
-    //
-    //  Compress Content
-    //
+    // -------------------------------------------------------------------------
+    //  Content Compression/Extraction
+    // -------------------------------------------------------------------------
 
     @Override
     public byte[] compressContent(Map<String, Object> content, Map<String, Object> key) {
@@ -71,9 +80,9 @@ public class MessageCompressor implements Compressor {
         return shortener.extractContent(info);
     }
 
-    //
-    //  Compress SymmetricKey
-    //
+    // -------------------------------------------------------------------------
+    //  Symmetric Key Compression/Extraction
+    // -------------------------------------------------------------------------
 
     @Override
     public byte[] compressSymmetricKey(Map<String, Object> key) {
@@ -97,9 +106,9 @@ public class MessageCompressor implements Compressor {
         return shortener.extractSymmetricKey(info);
     }
 
-    //
-    //  Compress ReliableMessage
-    //
+    // -------------------------------------------------------------------------
+    //  ReliableMessage Compression/Extraction
+    // -------------------------------------------------------------------------
 
     @Override
     public byte[] compressReliableMessage(Map<String, Object> msg) {

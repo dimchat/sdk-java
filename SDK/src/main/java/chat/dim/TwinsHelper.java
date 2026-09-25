@@ -39,27 +39,87 @@ import chat.dim.mkm.User;
 import chat.dim.protocol.ID;
 
 
+/**
+ *  Base helper class that provides unified access to Facebook and Messenger dependencies.
+ *  <p>
+ *      "Twins" refers to the paired core services:
+ *      - <b>Facebook</b>: Entity management (user/group metadata, local user selection)
+ *      - <b>Messenger</b>: Messaging core (packing/unpacking, encryption/decryption, key management)
+ *  </p>
+ *  <p>
+ *      Key design features:
+ *      1. Uses <b>WeakReference</b> to hold dependencies, preventing memory leaks (avoids circular references)
+ *      2. Provides a unified entry point for local user selection (critical for message decryption)
+ *      3. Serves as the parent class for all core messaging components (Packer/Processor/ContentProcessor)
+ *  </p>
+ *  <p>
+ *      All subclasses inherit access to Facebook/Messenger and the local user selection logic,
+ *      ensuring consistent dependency management across the messaging system.
+ *  </p>
+ */
 public class TwinsHelper {
 
     private final WeakReference<Facebook> facebookRef;
     private final WeakReference<Messenger> messengerRef;
 
+    /**
+     *  Creates a {@link TwinsHelper} with references to the core Facebook and Messenger services.
+     *  <p>
+     *      Note: Uses WeakReference to store dependencies to avoid memory leaks.
+     *  </p>
+     *
+     * @param facebook is the entity management service (user/group operations).
+     * @param messenger is the core messaging service (packing/processing/key management).
+     */
     public TwinsHelper(Facebook facebook, Messenger messenger) {
         super();
         facebookRef = new WeakReference<>(facebook);
         messengerRef = new WeakReference<>(messenger);
     }
 
+    /**
+     *  Retrieves the Facebook service instance (nullable - may be GC'd).
+     *
+     * @return the facebook instance (null if garbage collected or not initialized).
+     */
     protected Facebook getFacebook() {
         return facebookRef.get();
     }
 
+    /**
+     *  Retrieves the Messenger service instance (nullable - may be GC'd).
+     *
+     * @return the messenger instance (null if garbage collected or not initialized).
+     */
     protected Messenger getMessenger() {
         return messengerRef.get();
     }
 
+    /**
+     *  Selects the local User entity for decrypting messages to a target receiver (unified entry).
+     *  <p>
+     *      Orchestration logic (receiver type routing):
+     *      1. Broadcast receiver &rarr; use {@link Facebook#selectUser(ID)} (any local user can decrypt)
+     *      2. User receiver &rarr; use {@link Facebook#selectUser(ID)} (matching local user for personal message)
+     *      3. Group receiver &rarr;
+     *          a. Get group members via Facebook (guaranteed to exist per precondition)
+     *          b. Use {@link Facebook#selectMember(List)} (find local user in group member list)
+     *      4. Convert selected user ID to full User entity (via {@link Facebook#getUser(ID)})
+     *  </p>
+     *  <p>
+     *      Precondition: Group member list is guaranteed to exist
+     *  </p>
+     *
+     * @param receiver is the target receiver ID (supports broadcast/user/group types).
+     * @return the local User entity for decryption (null if no matching local user found).
+     * @throws AssertionError when:
+     *      - Facebook service is unavailable (null)
+     *      - Receiver type is invalid (not broadcast/user/group)
+     *      - Group member list is empty/missing (violates precondition)
+     */
     protected User selectLocalUser(ID receiver) {
         Facebook facebook = getFacebook();
+        assert facebook != null : "facebook not ready";
         ID me;
         if (receiver.isBroadcast()) {
             // broadcast message can be decrypted by anyone

@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  DIMP : Decentralized Instant Messaging Protocol
+ *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
  *                                Written in 2021 by Moky <albert.moky@gmail.com>
  *
@@ -37,51 +37,62 @@ import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 
+// -----------------------------------------------------------------------------
+//  Message Processor (Processing Pipeline)
+// -----------------------------------------------------------------------------
+
 /**
- *  Message Processor
+ *  Message processing interface (handles received messages and generates responses).
+ *  <p>
+ *      Processes messages through a layered pipeline:
+ *      Binary package &rarr; ReliableMessage &rarr; SecureMessage &rarr; InstantMessage &rarr; Content
+ *  </p>
+ *  <p>
+ *      Generates response messages by reversing the pipeline.
+ *  </p>
  */
 public interface Processor {
 
     /**
-     *  Process data package
+     *  Processes a binary data package to generate response packages.
      *
-     * @param data - data to be processed
-     * @return responses
+     * @param data is the binary data package to process (received from network).
+     * @return the list of binary response packages (empty if no response needed).
      */
     List<byte[]> processPackage(byte[] data);
 
     /**
-     *  Process network message
+     *  Processes a reliable message to generate response reliable messages.
      *
-     * @param rMsg - message to be processed
-     * @return response messages
+     * @param rMsg is the reliable message to process (after deserialization).
+     * @return the list of reliable response messages (empty if no response needed).
      */
     List<ReliableMessage> processReliableMessage(ReliableMessage rMsg);
 
     /**
-     *  Process encrypted message
+     *  Processes a secure message to generate response secure messages.
      *
-     * @param sMsg - message to be processed
-     * @param rMsg - message received
-     * @return response messages
+     * @param sMsg is the secure message to process (after verification).
+     * @param rMsg is the original reliable message (for context).
+     * @return the list of secure response messages (empty if no response needed).
      */
     List<SecureMessage> processSecureMessage(SecureMessage sMsg, ReliableMessage rMsg);
 
     /**
-     *  Process plain message
+     *  Processes a plain instant message to generate response instant messages.
      *
-     * @param iMsg - message to be processed
-     * @param rMsg - message received
-     * @return response messages
+     * @param iMsg is the instant message to process (after decryption).
+     * @param rMsg is the original reliable message (for context).
+     * @return the list of instant response messages (empty if no response needed).
      */
     List<InstantMessage> processInstantMessage(InstantMessage iMsg, ReliableMessage rMsg);
 
     /**
-     *  Process message content
+     *  Processes message content to generate response content items.
      *
-     * @param content - content to be processed
-     * @param rMsg - message received
-     * @return response contents
+     * @param content is the message content to process (extracted from instant message).
+     * @param rMsg is the original reliable message (for context).
+     * @return the list of response content items (empty if no response needed).
      */
     List<Content> processContent(Content content, ReliableMessage rMsg);
 }

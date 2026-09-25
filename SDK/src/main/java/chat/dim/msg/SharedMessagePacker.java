@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  DIMP : Decentralized Instant Messaging Protocol
+ *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
  *                                Written in 2026 by Moky <albert.moky@gmail.com>
  *
@@ -30,11 +30,20 @@
  */
 package chat.dim.msg;
 
+/**
+ * MessagePacker Extensions.
+ *
+ * Global {@link MessagePackerFactory} instance (shared singleton) for creating
+ * message packers.
+ */
 public final class SharedMessagePacker {
     private SharedMessagePacker() {
         throw new AssertionError("Utility class cannot be instantiated");
     }
 
+    /**
+     * The shared {@link MessagePackerFactory} instance.
+     */
     public static MessagePackerFactory packerFactory = new MessagePackerFactory();
 
 }

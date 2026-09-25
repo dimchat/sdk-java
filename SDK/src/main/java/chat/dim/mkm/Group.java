@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  DIMP : Decentralized Instant Messaging Protocol
+ *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
  *                                Written in 2019 by Moky <albert.moky@gmail.com>
  *
@@ -34,58 +34,90 @@ import java.util.List;
 
 import chat.dim.protocol.ID;
 
+
+// -----------------------------------------------------------------------------
+//  Group Entity
+// -----------------------------------------------------------------------------
+
 /**
- *  Group for organizing users
+ * Group entity interface representing a chat group.
  *
- * <pre>
- *  roles:
- *      founder
- *      owner
- *      members
- *      administrators - Optional
- *  </pre>
+ * Extends {@link Entity} with group-specific properties and role management.
+ *
+ * Groups have a hierarchical role structure:
+ * - Founder        : Original creator of the group (immutable)
+ * - Owner          : Current administrator of the group (can be transferred)
+ * - Members        : Regular participants in the group
+ * - Administrators : Optional role for privileged members (assistants)
+ *
+ * Important note: The group owner must always be a member of the group (usually the first member).
  */
 public interface Group extends Entity {
 
+    /**
+     * Founder ID of the group.
+     *
+     * The original creator of the group (cannot be changed after group creation).
+     * The founder's private key is used to generate the group's Meta.
+     *
+     * @return the group founder's ID
+     */
     ID getFounder();
 
+    /**
+     * Current owner ID of the group.
+     *
+     * The user with administrative control over the group (can be transferred via abdicate command).
+     * Must be a member of the group.
+     *
+     * @return the current group owner's ID
+     */
     ID getOwner();
 
+    /**
+     * List of all member IDs in the group.
+     *
+     * Includes the owner and all regular members (excludes founder if not a member).
+     *
+     * @return the list of group member IDs (empty list if none)
+     */
     // NOTICE: the owner must be a member
     //         (usually the first one)
     List<ID> getMembers();
 
     /**
-     *  Group Data Source
+     * Data source interface for retrieving group-specific data.
      *
-     *  <pre>
-     *  1. founder has the same public key with the group's meta.key
-     *  2. owner and members should be set complying with consensus algorithm
-     *  </pre>
+     * Extends {@link Entity.DataSource} with group role and membership management, defining
+     * the contract for fetching group-specific data (founder, owner, members).
+     *
+     * Key rules:
+     * 1. Founder's public key matches the group Meta's public key
+     * 2. Owner/members must be managed according to the system's consensus algorithm
      */
     interface DataSource extends Entity.DataSource {
 
         /**
-         *  Get founder of the group
+         * Retrieves the founder ID of a group.
          *
-         * @param group - group ID
-         * @return fonder ID
+         * @param group is the unique ID of the target group
+         * @return the founder ID (null if the group does not exist)
          */
         ID getFounder(ID group);
 
         /**
-         *  Get current owner of the group
+         * Retrieves the current owner ID of a group.
          *
-         * @param group - group ID
-         * @return owner ID
+         * @param group is the unique ID of the target group
+         * @return the owner ID (null if the group does not exist or has no owner)
          */
         ID getOwner(ID group);
 
         /**
-         *  Get all members in the group
+         * Retrieves the list of member IDs for a group.
          *
-         * @param group - group ID
-         * @return members list (ID)
+         * @param group is the unique ID of the target group
+         * @return the list of member IDs (empty list if the group has no members)
          */
         List<ID> getMembers(ID group);
 

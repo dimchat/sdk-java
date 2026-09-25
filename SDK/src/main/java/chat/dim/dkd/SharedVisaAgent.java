@@ -31,11 +31,21 @@
 package chat.dim.dkd;
 
 
+/**
+ *  VisaAgent Extensions
+ *  <p>
+ *      Global {@link VisaAgent} instance (shared singleton) for visa-based
+ *      cryptographic operations, accessible via {@code AccountExtensions}.
+ *  </p>
+ */
 public final class SharedVisaAgent {
     private SharedVisaAgent() {
         throw new AssertionError("Utility class cannot be instantiated");
     }
 
+    /**
+     *  The shared {@link VisaAgent} instance (getter/setter).
+     */
     public static VisaAgent visaAgent = new DefaultVisaAgent();
 
 }

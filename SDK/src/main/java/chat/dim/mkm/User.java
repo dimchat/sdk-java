@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  DIMP : Decentralized Instant Messaging Protocol
+ *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
  *                                Written in 2019 by Moky <albert.moky@gmail.com>
  *
@@ -39,143 +39,173 @@ import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.SignKey;
 
+
+// -----------------------------------------------------------------------------
+//  User Entity (with Visa-based Crypto)
+// -----------------------------------------------------------------------------
+
 /**
- *  User account for communication
- *  <p>
- *      This class is for creating user account
- *  </p>
+ * User account interface for secure communication (with Visa terminal support).
  *
- *  <pre>
- *  functions:
- *      (User)
- *      1. verify(data, signature) - verify (encrypted content) data and signature
- *      2. encrypt(data)           - encrypt (symmetric key) data
+ * Extends {@link Entity} with user-specific cryptographic operations, contact management,
+ * and Visa-based terminal encryption.
  *
- *      (LocalUser)
- *      3. sign(data)    - calculate signature of (encrypted content) data
- *      4. decrypt(data) - decrypt (symmetric key) data
- *  </pre>
+ * Supports core secure communication functions:
+ *   1. Verification : Verify message signatures using Meta/Visa public keys
+ *   2. Encryption   : Encrypt data for specific user terminals (via EncryptedBundle)
+ *   3. Signing      : Generate message signatures (local user only)
+ *   4. Decryption   : Decrypt terminal-specific data (local user only)
  */
 public interface User extends Entity {
 
     /**
-     *  Get all contacts of the user
+     * List of contact IDs associated with the user.
      *
-     * @return contact list
+     * Represents the user's address book/contacts list in the communication system.
+     *
+     * @return the list of user contact IDs (empty list if none)
      */
     List<ID> getContacts();
 
     /**
-     *  Get visa.terminal
+     * Set of terminal identifiers associated with the user's Visa documents.
      *
-     * @return terminal list
+     * Terminals represent different devices/sessions the user is logged into (e.g., "mobile", "desktop").
+     * Retrieved via {@link chat.dim.dkd.VisaAgent#getTerminals(List)} from the user's Visa documents.
+     *
+     * @return the set of unique terminal identifiers (empty set if none)
      */
     Set<String> getTerminals();
 
     /**
-     *  Verify data and signature with user's public keys
+     * Verifies data and its signature using the user's Meta/Visa public keys.
      *
-     * @param data - message data
-     * @param signature - message signature
-     * @return true on correct
+     * Uses verification keys from {@link chat.dim.dkd.VisaAgent#getVerifyKeys(Meta, List)} to validate message authenticity.
+     *
+     * @param data is the raw message data to verify
+     * @param signature is the digital signature of the data
+     * @return true if the signature is valid, false otherwise
      */
     boolean verify(byte[] data, byte[] signature);
 
     /**
-     *  Encrypt data, try visa.key first, if not found, use meta.key
+     * Encrypts plaintext data for the user's terminals.
      *
-     * @param plaintext - message data
-     * @return encrypted data with targets (ID terminals)
+     * Uses {@link chat.dim.dkd.VisaAgent#encryptBundle(byte[], Meta, List)} to create terminal-specific encrypted data:
+     * 1. Tries Visa public keys first (terminal-specific encryption)
+     * 2. Falls back to Meta public key (wildcard/* encryption)
+     *
+     * @param plaintext is the raw data to encrypt (usually a symmetric message key)
+     * @return an EncryptedBundle with terminal-specific encrypted data
      */
     EncryptedBundle encryptBundle(byte[] plaintext);
 
-    //
-    //  Interfaces for Local User
-    //
+    // -------------------------------------------------------------------------
+    //  Local User Only Interfaces (Private Key Operations)
+    // -------------------------------------------------------------------------
 
     /**
-     *  Sign data with user's private key
+     * Signs data with the user's private key (local user only).
      *
-     * @param data - message data
-     * @return signature
+     * Generates a digital signature for the data using the private key paired with
+     * the user's Visa/Meta public key (non-repudiation).
+     *
+     * @param data is the raw message data to sign
+     * @return the digital signature of the data
      */
     byte[] sign(byte[] data);
 
     /**
-     *  Decrypt data with user's private key(s)
+     * Decrypts a terminal-specific EncryptedBundle (local user only).
      *
-     * @param bundle - encrypted data with targets (ID terminals)
-     * @return plain text
+     * Uses private keys from {@link DataSource#getPrivateKeysForDecryption(ID)} to decrypt
+     * the bundle, extracting the original plaintext data for the user's terminals.
+     *
+     * @param bundle is the encrypted data bundle with terminal-specific data
+     * @return the decrypted plaintext (null if decryption fails)
      */
     byte[] decryptBundle(EncryptedBundle bundle);
 
-    //
-    //  Interfaces for Visa
-    //
+    // -------------------------------------------------------------------------
+    //  Visa Document Management
+    // -------------------------------------------------------------------------
+
+    /**
+     * Signs a Visa document with the user's Meta private key.
+     *
+     * Uses {@link DataSource#getPrivateKeyForVisaSignature(ID)} to sign the Visa,
+     * verifying the document's authenticity (only Meta key is used for Visa signing).
+     *
+     * @param visa is the visa document to sign
+     * @return the signed Visa document (null if signing fails)
+     */
     Document signDocument(Document visa);
 
+    /**
+     * Verifies the signature of a Visa document.
+     *
+     * Uses the user's Meta public key (only) to verify the Visa signature,
+     * ensuring the document was signed by the user's Meta private key.
+     *
+     * @param visa is the visa document to verify
+     * @return true if the Visa signature is valid, false otherwise
+     */
     boolean verifyDocument(Document visa);
 
     /**
-     *  User Data Source
+     * Data source interface for user-specific data and cryptographic keys.
      *
-     *  <pre>
-     *  (Encryption/decryption)
-     *  1. public key for encryption
-     *     if visa.key not exists, means it is the same key with meta.key
-     *  2. private keys for decryption
-     *     the private keys paired with [visa.key, meta.key]
+     * Extends {@link Entity.DataSource} with user-specific key management, defining the contract
+     * for fetching private keys (local user only) and contact information.
      *
-     *  (Signature/Verification)
-     *  3. private key for signature
-     *     the private key paired with visa.key or meta.key
-     *  4. public keys for verification
-     *     [visa.key, meta.key]
-     *
-     *  (Visa Document)
-     *  5. private key for visa signature
-     *     the private key pared with meta.key
-     *  6. public key for visa verification
-     *     meta.key only
-     *  </pre>
+     * Core cryptographic responsibilities (Visa/Meta key pairs):
+     * 1. Encryption        : Use Visa public key (terminal-specific) or Meta key (fallback)
+     * 2. Decryption        : Use private keys paired with Visa/Meta public keys
+     * 3. Signing           : Use private key paired with Visa/Meta public key
+     * 4. Verification      : Use Visa/Meta public keys
+     * 5. Visa Signing      : Use private key paired with Meta public key (only)
+     * 6. Visa Verification : Use Meta public key (only)
      */
     interface DataSource extends Entity.DataSource {
 
         /**
-         *  Get contacts list
+         * Retrieves the contact list for a user.
          *
-         * @param user - user ID
-         * @return contacts list (ID)
+         * @param user is the unique ID of the target user
+         * @return the list of contact IDs (empty list if the user has no contacts)
          */
         List<ID> getContacts(ID user);
 
         /**
-         *  Get user's private keys for decryption
-         *  <blockquote>
-         *      (which paired with [visa.key, meta.key])
-         *  </blockquote>
+         * Retrieves private keys for decryption (local user only).
          *
-         * @param user - user ID
-         * @return private keys
+         * Returns the private keys paired with the user's Visa/Meta public keys, used to
+         * decrypt terminal-specific {@link EncryptedBundle} data.
+         *
+         * @param user is the unique ID of the target user
+         * @return the list of decryption keys (empty list if no keys are available)
          */
         List<DecryptKey> getPrivateKeysForDecryption(ID user);
 
         /**
-         *  Get user's private key for signature
-         *  <blockquote>
-         *      (which paired with visa.key or meta.key)
-         *  </blockquote>
+         * Retrieves the private key for message signing (local user only).
          *
-         * @param user - user ID
-         * @return private key
+         * Returns the private key paired with the user's Visa/Meta public key, used to
+         * generate digital signatures for messages.
+         *
+         * @param user is the unique ID of the target user
+         * @return the signing key (null if no key is available)
          */
         SignKey getPrivateKeyForSignature(ID user);
 
         /**
-         *  Get user's private key for signing visa
+         * Retrieves the private key for Visa signing (local user only).
          *
-         * @param user - user ID
-         * @return private key
+         * Returns the private key paired with the user's Meta public key (only), used to
+         * sign the user's Visa documents (identity verification).
+         *
+         * @param user is the unique ID of the target user
+         * @return the signing key for Visa documents (null if no key is available)
          */
         SignKey getPrivateKeyForVisaSignature(ID user);
     }

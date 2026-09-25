@@ -37,10 +37,20 @@ import chat.dim.dkd.ContentProcessor;
 import chat.dim.protocol.ContentType;
 
 /**
- *  Base ContentProcessor Creator
+ *  Base implementation of {@link ContentProcessor.Creator} for standard content/command types.
+ *  <p>
+ *      Creates concrete processors for standard commands (meta, documents, ...),
+ *      falling back to base processors for unsupported types/commands.
+ *  </p>
  */
 public abstract class BaseContentProcessorCreator extends TwinsHelper implements ContentProcessor.Creator {
 
+    /**
+     *  Creates a {@link BaseContentProcessorCreator} with required twin dependencies.
+     *
+     * @param facebook is the entity management service (user/group operations).
+     * @param messenger is the messaging service (packing/processing).
+     */
     public BaseContentProcessorCreator(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
     }

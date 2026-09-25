@@ -37,10 +37,19 @@ import chat.dim.protocol.Document;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.Meta;
 
+//
+//  Base Entity
+//
+
+/**
+ * Base class implementation of {@link Entity}.
+ */
 public class BaseEntity implements Entity {
 
+    // entity ID
     protected final ID identifier;
 
+    // facebook
     private WeakReference<DataSource> facebookRef = null;
 
     public BaseEntity(ID did) {

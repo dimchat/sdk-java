@@ -47,6 +47,12 @@ import chat.dim.protocol.SecureMessage;
 import chat.dim.protocol.VerifyKey;
 
 
+/**
+ * Default implementation of {@link VisaAgent}.
+ *
+ * Extracts public keys from Visa documents and Meta for encryption, and collects
+ * verification keys and terminal identifiers for message processing.
+ */
 public class DefaultVisaAgent implements VisaAgent {
 
     @Override
@@ -94,7 +100,7 @@ public class DefaultVisaAgent implements VisaAgent {
             }
             /*/
             if (bundle.get(terminal) != null) {
-                assert false : "duplicated visa key: " + doc;
+                assert false : "duplicated visa key: " + terminal + ", bundle: " + bundle + ", " + documents.size() + " document(s): " + doc;
                 continue;
             }
             ciphertext = pubKey.encrypt(plaintext, null);
@@ -142,11 +148,30 @@ public class DefaultVisaAgent implements VisaAgent {
         return keys;
     }
 
+    /**
+     *  Extracts the public verification key from a user document (Visa).
+     *  <p>
+     *      Parses the "key" property of the document as a {@link PublicKey}.
+     *  </p>
+     *
+     * @param doc is the user document (Visa) containing the public key.
+     * @return the verification key (null if the document has no valid key).
+     */
     protected VerifyKey getVerifyKey(Document doc) {
         // public key in user profile?
         return PublicKey.parse(doc.getProperty("key"));
     }
 
+    /**
+     *  Extracts the public encryption key from a user document (Visa).
+     *  <p>
+     *      Parses the "key" property of the document as a {@link PublicKey}; only keys
+     *      implementing {@link EncryptKey} can be used for encryption.
+     *  </p>
+     *
+     * @param doc is the user document (Visa) containing the public key.
+     * @return the encryption key (null if not an encryptable key).
+     */
     protected EncryptKey getEncryptKey(Document doc) {
         PublicKey pubKey = PublicKey.parse(doc.getProperty("key"));
         if (pubKey == null) {
@@ -159,6 +184,16 @@ public class DefaultVisaAgent implements VisaAgent {
         return null;
     }
 
+    /**
+     *  Determines the terminal identifier for a user document (Visa).
+     *  <p>
+     *      Reads the "terminal" property from the document; if missing, extracts it
+     *      from the document ID. Falls back to "/" (wildcard) when empty or "*".
+     *  </p>
+     *
+     * @param doc is the user document (Visa) to get terminal from.
+     * @return the terminal string ("/" for wildcard).
+     */
     protected String getTerminal(Document doc) {
         String terminal = doc.getString("terminal");
         if (terminal == null) {

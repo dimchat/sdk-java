@@ -43,15 +43,48 @@ import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 import chat.dim.protocol.SymmetricKey;
 
+// -----------------------------------------------------------------------------
+//  Messenger (Unified Messaging Service)
+// -----------------------------------------------------------------------------
+
+/**
+ *  Unified messaging service (combines packing, processing, and key management).
+ *  <p>
+ *      Acts as a facade for all messaging operations:
+ *      1. Delegates packing/unpacking to a {@link Packer} implementation
+ *      2. Delegates message processing to a {@link Processor} implementation
+ *      3. Manages directional symmetric keys via {@link CipherKeyDelegate}
+ *  </p>
+ *  <p>
+ *      Implements: {@link Transformer}, {@link Packer}, {@link Processor}
+ *  </p>
+ */
 public abstract class Messenger extends Transformer implements Packer, Processor {
 
+    /**
+     *  Key management delegate (directional symmetric keys) - internal use only.
+     *
+     * @return cipher key delegate
+     */
     protected abstract CipherKeyDelegate getCipherKeyDelegate();
 
+    /**
+     *  Message packer implementation (delegated packing/unpacking) - internal use only.
+     *
+     * @return packer
+     */
     protected abstract Packer getPacker();
 
+    /**
+     *  Message processor implementation (delegated processing) - internal use only.
+     *
+     * @return processor
+     */
     protected abstract Processor getProcessor();
 
-    //-------- SecureMessageDelegate
+    // -------------------------------------------------------------------------
+    //  SecureMessageDelegate Overrides (Key Caching)
+    // -------------------------------------------------------------------------
 
     @Override
     public SymmetricKey deserializeKey(byte[] key, SecureMessage sMsg) {
@@ -68,16 +101,35 @@ public abstract class Messenger extends Transformer implements Packer, Processor
         return password;
     }
 
-    //
-    //  Interfaces for Cipher Key
-    //
+    // -------------------------------------------------------------------------
+    //  Cipher Key Management (Directional Symmetric Keys)
+    // -------------------------------------------------------------------------
 
+    /**
+     *  Retrieves the encryption key for an instant message (generates if missing).
+     *  <p>
+     *      Uses directional key scoping (sender &rarr; target) via {@link CipherKeyDelegate}.
+     *  </p>
+     *
+     * @param iMsg is the instant message to get encryption key for.
+     * @return the directional symmetric encryption key (null if unavailable).
+     */
     public SymmetricKey getEncryptKey(InstantMessage iMsg) {
         ID sender = iMsg.getSender();
         ID target = CipherKeyDelegate.getDestination(iMsg);
         CipherKeyDelegate db = getCipherKeyDelegate();
         return db.getCipherKey(sender, target, true);
     }
+
+    /**
+     *  Retrieves the decryption key for a secure message (does not generate).
+     *  <p>
+     *      Uses directional key scoping (sender &rarr; target) via {@link CipherKeyDelegate}.
+     *  </p>
+     *
+     * @param sMsg is the secure message to get decryption key for.
+     * @return the directional symmetric decryption key (null if unavailable).
+     */
     public SymmetricKey getDecryptKey(SecureMessage sMsg) {
         ID sender = sMsg.getSender();
         ID target = CipherKeyDelegate.getDestination(sMsg);
@@ -85,6 +137,12 @@ public abstract class Messenger extends Transformer implements Packer, Processor
         return db.getCipherKey(sender, target, false);
     }
 
+    /**
+     *  Caches a decryption key for future use (directional scoping).
+     *
+     * @param key is the symmetric key to cache.
+     * @param sMsg is the secure message (for direction context).
+     */
     public void cacheDecryptKey(SymmetricKey key, SecureMessage sMsg) {
         ID sender = sMsg.getSender();
         ID target = CipherKeyDelegate.getDestination(sMsg);
@@ -92,9 +150,9 @@ public abstract class Messenger extends Transformer implements Packer, Processor
         db.cacheCipherKey(sender, target, key);
     }
 
-    //
-    //  Interfaces for Packing Message
-    //
+    // -------------------------------------------------------------------------
+    //  Packer Interface Delegation
+    // -------------------------------------------------------------------------
 
     @Override
     public SecureMessage encryptMessage(InstantMessage iMsg) {
@@ -134,9 +192,9 @@ public abstract class Messenger extends Transformer implements Packer, Processor
         return packer.decryptMessage(sMsg);
     }
 
-    //
-    //  Interfaces for Processing Message
-    //
+    // -------------------------------------------------------------------------
+    //  Processor Interface Delegation
+    // -------------------------------------------------------------------------
 
     @Override
     public List<byte[]> processPackage(byte[] data) {

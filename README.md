@@ -118,7 +118,7 @@ public class BaseCustomizedContentHandler implements CustomizedContentHandler {
 
     protected List<Content> respondReceipt(String text, Envelope envelope, Content content, Map<String, Object> extra) {
         // create base receipt command with text & original envelope
-        ReceiptCommand res = BaseContentProcessor.createReceipt(text, envelope, content, extra);
+        Command res = BaseContentProcessor.createReceipt(text, envelope, content, extra);
         List<Content> responses = new ArrayList<>();
         responses.add(res);
         return responses;
@@ -153,7 +153,11 @@ public interface CustomizedContentFilter {
  */
 public final class SharedCustomizedFilter {
 
-    public static CustomizedContentFilter customizedFilter = new AppCustomizedFilter();
+    private SharedCustomizedFilter() {
+        throw new AssertionError("Utility class cannot be instantiated");
+    }
+
+    public static CustomizedContentFilter customizedFilter = new DefaultCustomizedFilter();
 
 }
 ```
@@ -276,7 +280,7 @@ import chat.dim.protocol.HandshakeCommand;
 import chat.dim.protocol.group.QueryCommand;
 
 
-public class ClientContentProcessorCreator extends BaseContentProcessorCreator {
+public class ClientContentProcessorCreator extends CommonContentProcessorCreator {
 
     public ClientContentProcessorCreator(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
@@ -314,7 +318,7 @@ public class ClientContentProcessorCreator extends BaseContentProcessorCreator {
 
 ## Usage
 
-To let your **AppCustomizedProcessor** start to work,
+To let your **CustomizedContentProcessor** start to work,
 you must override ```BaseContentProcessorCreator``` for message types:
 
 1. ContentType.APPLICATION 

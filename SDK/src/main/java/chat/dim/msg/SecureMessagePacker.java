@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  DIMP : Decentralized Instant Messaging Protocol
+ *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
  *                                Written in 2023 by Moky <albert.moky@gmail.com>
  *
@@ -44,6 +44,13 @@ import chat.dim.protocol.SecureMessage;
 import chat.dim.protocol.SymmetricKey;
 import chat.dim.protocol.TransportableData;
 
+/**
+ * Packer class for decrypting SecureMessage and signing to ReliableMessage.
+ *
+ * Implements two core workflows:
+ * 1. Decryption: SecureMessage → InstantMessage (reverse of encryption)
+ * 2. Signing: SecureMessage → ReliableMessage (add sender signature)
+ */
 public class SecureMessagePacker {
 
     private final WeakReference<SecureMessageDelegate> transformerRef;
@@ -71,11 +78,14 @@ public class SecureMessagePacker {
      */
 
     /**
-     *  Decrypt message, replace encrypted 'data' with 'content' field
+     * Decrypts a SecureMessage back to an InstantMessage (for local user).
      *
-     * @param sMsg      - encrypted message
-     * @param receiver  - actual receiver (local user)
-     * @return InstantMessage object
+     * Replaces the encrypted 'data' field with plaintext 'content' by decrypting the
+     * symmetric key (with receiver's private key) and then decrypting the content.
+     *
+     * @param sMsg     the encrypted secure message to decrypt
+     * @param receiver the actual target receiver (local user ID, must be a user)
+     * @return the decrypted InstantMessage (throws NullPointerException if decryption fails)
      */
     public InstantMessage decryptMessage(SecureMessage sMsg, ID receiver) {
         assert receiver.isUser() : "receiver error: " + receiver;
@@ -187,10 +197,13 @@ public class SecureMessagePacker {
      */
 
     /**
-     *  Sign message.data, add 'signature' field
+     * Signs a SecureMessage to create a ReliableMessage (adds sender signature).
      *
-     * @param sMsg - encrypted message
-     * @return ReliableMessage object
+     * Generates a digital signature for the encrypted 'data' field using the sender's
+     * private key, and adds it as the 'signature' field in ReliableMessage.
+     *
+     * @param sMsg the encrypted secure message to sign
+     * @return the signed ReliableMessage (null if signing/encoding fails)
      */
     public ReliableMessage signMessage(SecureMessage sMsg) {
         SecureMessageDelegate transformer = getDelegate();

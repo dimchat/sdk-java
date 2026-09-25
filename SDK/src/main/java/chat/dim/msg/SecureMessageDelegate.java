@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  Dao-Ke-Dao: Universal Message Module
+ *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
  *                                Written in 2019 by Moky <albert.moky@gmail.com>
  *
@@ -38,7 +38,11 @@ import chat.dim.protocol.SymmetricKey;
 
 
 /**
- *  Secure Message Delegate
+ * Delegate interface for decrypting SecureMessage and signing to ReliableMessage.
+ *
+ * Handles two core workflows:
+ * 1. Decryption: SecureMessage → InstantMessage (reverse of encryption pipeline)
+ * 2. Signing: SecureMessage → ReliableMessage (add sender signature)
  */
 public interface SecureMessageDelegate {
 
@@ -55,72 +59,87 @@ public interface SecureMessageDelegate {
      *    +----------+
      */
 
-    //
-    //  Decrypt Key
-    //
+    // -------------------------------------------------------------------------
+    //  Key Decryption Pipeline (Steps 1-3)
+    // -------------------------------------------------------------------------
 
     /*
-     *  1. Decode 'message.keys' to a bundle of encrypted symmetric key data
+     *  Decodes encrypted key map to EncryptedBundle (Step 1).
      *
-     * @param msgKeys  - encoded key map (ID+terminal → base64-encoded encrypted key data)
-     * @param receiver - actual receiver (user, or group member)
-     * @param sMsg     - secure message object
-     * @return encrypted key bundle with terminal-specific data
+     *  Converts the SecureMessage's 'keys' map back to an EncryptedBundle
+     *  containing terminal-specific encrypted key data.
+     *
+     *  @param msgKeys the encoded key map (ID+terminal → base64 data) from SecureMessage
+     *  @param receiver the actual target receiver (user/group member ID)
+     *  @param sMsg    the parent secure message object (context)
+     *  @return the decoded encrypted key bundle (null if decoding fails)
      */
     //EncryptedBundle decodeKeys(Map<String, Object> msgKeys, ID receiver, SecureMessage sMsg);
 
     /**
-     *  2. Decrypt key data from a bundle with receiver's private key
+     * Decrypts encrypted key bundle with receiver's private key (Step 2).
      *
-     * @param bundle   - encrypted key bundle with terminal-specific data
-     * @param receiver - actual receiver (user, or group member)
-     * @param sMsg     - secure message object
-     * @return serialized data of symmetric key
+     * Uses the receiver's private key to decrypt the EncryptedBundle,
+     * retrieving the serialized symmetric key data.
+     *
+     * @param bundle   the encrypted key bundle with terminal-specific data
+     * @param receiver the actual target receiver (user/group member ID)
+     * @param sMsg     the parent secure message object (context)
+     * @return the serialized binary data of the symmetric key (null if decryption fails)
      */
     byte[] decryptKey(EncryptedBundle bundle, ID receiver, SecureMessage sMsg);
 
     /**
-     *  3. Deserialize message key from data (JsON / ProtoBuf / ...)
-     *  <p>
-     *      (if key data is empty, means it should be reused, get it from key cache)
-     *  </p>
+     * Deserializes symmetric key from binary data (Step 3).
      *
-     * @param key      - serialized key data, null for reused (or broadcast message)
-     * @param sMsg     - secure message object
-     * @return symmetric key
+     * Converts serialized key data back to a SymmetricKey object. If key is null,
+     * retrieves the reused key from cache (for broadcast/reused keys).
+     *
+     * @param key  the serialized binary data of the symmetric key (null for reused keys)
+     * @param sMsg the parent secure message object (context)
+     * @return the deserialized symmetric key (null if key is invalid/missing)
      */
     SymmetricKey deserializeKey(byte[] key, SecureMessage sMsg);
 
-    //
-    //  Decrypt Content
-    //
+    // -------------------------------------------------------------------------
+    //  Content Decryption Pipeline (Steps 4-6)
+    // -------------------------------------------------------------------------
 
     /*
-     *  4. Decode 'message.data' to encrypted content data
+     *  Decodes Base64 content string to encrypted binary data (Step 4).
      *
-     * @param data - base64 string object
-     * @param sMsg - secure message object
-     * @return encrypted content data
+     *  Converts the SecureMessage's Base64-encoded 'data' field back to raw
+     *  encrypted binary data for decryption.
+     *
+     *  @param data the base64-encoded string of the encrypted content
+     *  @param sMsg the parent secure message object (context)
+     *  @return the encrypted binary data of the content (null if decoding fails)
      */
     //byte[] decodeData(Object data, SecureMessage sMsg);
 
     /**
-     *  5. Decrypt 'message.data' with symmetric key
+     * Decrypts encrypted content data with symmetric key (Step 5).
      *
-     * @param data     - encrypt content data
-     * @param password - symmetric key
-     * @param sMsg     - secure message object
-     * @return serialized message content
+     * Uses the symmetric key to decrypt the SecureMessage's 'data' field,
+     * retrieving the serialized content data.
+     *
+     * @param data     the encrypted binary data of the content
+     * @param password the symmetric key for decryption
+     * @param sMsg     the parent secure message object (context)
+     * @return the serialized binary data of the content (null if decryption fails)
      */
     byte[] decryptContent(byte[] data, SymmetricKey password, SecureMessage sMsg);
 
     /**
-     *  6. Deserialize message content from data (JsON / ProtoBuf / ...)
+     * Deserializes content from binary data (Step 6).
      *
-     * @param data     - serialized content data
-     * @param password - symmetric key (includes data compression algorithm)
-     * @param sMsg     - secure message object
-     * @return message content
+     * Converts decrypted serialized content data back to a structured Content object,
+     * using compression algorithm specified in the symmetric key.
+     *
+     * @param data     the serialized binary data of the content
+     * @param password the symmetric key (includes compression algorithm metadata)
+     * @param sMsg     the parent secure message object (context)
+     * @return the deserialized structured content (null if deserialization fails)
      */
     Content deserializeContent(byte[] data, SymmetricKey password, SecureMessage sMsg);
 
@@ -138,25 +157,31 @@ public interface SecureMessageDelegate {
      *                      +-----------+
      */
 
-    //
-    //  Signature
-    //
+    // -------------------------------------------------------------------------
+    //  Signature Pipeline (Step 1-2)
+    // -------------------------------------------------------------------------
 
     /**
-     *  1. Sign 'message.data' with sender's private key
+     * Signs encrypted content data with sender's private key (Step 1).
      *
-     * @param data - encrypted message data
-     * @param sMsg - secure message object
-     * @return signature of encrypted message data
+     * Generates a digital signature for the SecureMessage's 'data' field
+     * using the sender's private key (Meta/Visa), for non-repudiation.
+     *
+     * @param data the encrypted binary data of the content
+     * @param sMsg the parent secure message object (context)
+     * @return the digital signature of the encrypted content data
      */
     byte[] signData(byte[] data, SecureMessage sMsg);
 
     /*
-     *  2. Encode 'message.signature' to String (Base64)
+     *  Encodes signature data to Base64 string (Step 2).
      *
-     * @param signature - signature of message.data
-     * @param sMsg      - secure message object
-     * @return String object
+     *  Converts raw signature binary data to a Base64-encoded string for
+     *  transmission/storage in the ReliableMessage's 'signature' field.
+     *
+     *  @param signature the raw binary signature of the encrypted content data
+     *  @param sMsg      the parent secure message object (context)
+     *  @return the base64-encoded string of the signature data
      */
     //Object encodeSignature(byte[] signature, SecureMessage sMsg);
 }

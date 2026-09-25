@@ -39,41 +39,67 @@ import chat.dim.protocol.Meta;
 import chat.dim.protocol.SecureMessage;
 import chat.dim.protocol.VerifyKey;
 
+/**
+ *  Agent interface for Visa-based cryptographic operations.
+ *  <p>
+ *      Provides core functionality for working with user Visa documents:
+ *      - Encrypting data for multiple user terminals using Visa/Meta public keys
+ *      - Extracting verification keys from Meta/Visa documents
+ *      - Collecting terminal identifiers from Visa documents
+ *  </p>
+ *  <p>
+ *      Acts as a helper to abstract complex Visa-based encryption logic from User entity.
+ *  </p>
+ */
 public interface VisaAgent {
 
     /**
-     *  Decrypt key bundle for receiver
+     *  Decrypts key bundle for the receiver.
      *
-     * @param sMsg     - received message
-     * @param receiver - actual receiver (user, or group member)
-     * @return encrypted data with terminals
+     * @param sMsg is the received message.
+     * @param receiver is the actual receiver (user, or group member).
+     * @return the encrypted bundle with terminals.
      */
     EncryptedBundle decodeBundle(SecureMessage sMsg, ID receiver);
 
     /**
-     *  Encrypt plaintext to ciphertexts with all visa keys
+     *  Encrypts plaintext data using all available Visa/Meta public keys.
+     *  <p>
+     *      Creates an {@link EncryptedBundle} with terminal-specific encrypted data, using:
+     *      1. Visa public keys for terminal-specific encryption
+     *      2. Meta public key as fallback for wildcard (*) encryption
+     *  </p>
      *
-     * @param plaintext - key data
-     * @param meta      - meta for public key
-     * @param documents - visa documents for public keys
-     * @return encrypted data with terminals
+     * @param plaintext is the raw data to encrypt (usually a symmetric message key).
+     * @param meta is the user's core Meta (contains fallback public key).
+     * @param documents is the list of user Visa documents (contains terminal-specific public keys).
+     * @return an EncryptedBundle with terminal-specific encrypted data.
      */
     EncryptedBundle encryptBundle(byte[] plaintext, Meta meta, List<Document> documents);
 
     /**
-     *  Get all verify keys from documents and meta
+     *  Extracts all verification keys from Meta and Visa documents.
+     *  <p>
+     *      Collects public verification keys from:
+     *      1. User's Meta (core identity key)
+     *      2. All Visa documents (terminal-specific keys)
+     *  </p>
      *
-     * @param meta      - meta for public key
-     * @param documents - visa documents for public keys
-     * @return verify keys
+     * @param meta is the user's core Meta.
+     * @param documents is the list of user Visa documents.
+     * @return the list of {@link VerifyKey} instances for signature verification.
      */
     List<VerifyKey> getVerifyKeys(Meta meta, List<Document> documents);
 
     /**
-     *  Get all terminals from documents
+     *  Extracts all terminal identifiers from user Visa documents.
+     *  <p>
+     *      Collects unique terminal strings (e.g., "mobile", "desktop") from Visa documents,
+     *      representing all devices the user is logged into.
+     *  </p>
      *
-     * @param documents - visa documents
-     * @return terminals
+     * @param documents is the list of user Visa documents.
+     * @return the set of unique terminal identifiers (empty set if none).
      */
     Set<String> getTerminals(List<Document> documents);
 

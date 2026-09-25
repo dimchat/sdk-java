@@ -39,15 +39,47 @@ import chat.dim.mkm.User;
 import chat.dim.protocol.ID;
 
 
+// -----------------------------------------------------------------------------
+//  Facebook (Unified Entity Management)
+// -----------------------------------------------------------------------------
+
+/**
+ *  Unified manager for user/group entity operations (combines caching + data access).
+ *  <p>
+ *      Implements core entity management workflows:
+ *      1. Selects the correct local user for message decryption
+ *      2. Retrieves/creates user/group entities (combines Barrack cache + lazy creation)
+ *      3. Integrates with Archivist for persistent data access
+ *  </p>
+ *  <p>
+ *      Implements: {@link Entity.Delegate}, {@link User.DataSource}, {@link Group.DataSource}
+ *  </p>
+ */
 public abstract class Facebook implements Entity.Delegate, User.DataSource, Group.DataSource {
 
+    /**
+     *  Returns the entity cache manager (Barrack) - internal use only.
+     *  <p>
+     *      Null if the barrack is not initialized/ready for use.
+     *  </p>
+     *
+     * @return barrack
+     */
     protected abstract Barrack getBarrack();
 
     /**
-     *  Select local user for receiver
+     *  Selects a local user for decrypting messages to a user/broadcast receiver.
+     *  <p>
+     *      Core logic:
+     *      0. Validates receiver type (only user/broadcast allowed)
+     *      1. If receiver is broadcast &rarr; returns first local user (any user can decrypt)
+     *      2. If receiver is user &rarr; returns matching local user (personal message target)
+     *      3. Returns null if no matching local user is found
+     *  </p>
      *
-     * @param receiver - user/broadcast ID
-     * @return local user
+     * @param receiver is the target receiver ID (must be user or broadcast type).
+     * @return a local user ID for decryption (null if no match).
+     * @throws AssertionError if receiver is invalid (group) or local users are empty.
      */
     public ID selectUser(ID receiver) {
         assert receiver.isUser() || receiver.isBroadcast() : "user ID error: " + receiver;
@@ -74,10 +106,17 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
     }
 
     /**
-     *  Select local user for group members
+     *  Selects a local user who is a member of a specific group (for group message decryption).
+     *  <p>
+     *      Core logic:
+     *      0. Validates group member list is non-empty
+     *      1. Finds the first local user that exists in the group member list
+     *      2. Returns null if no local user is a group member
+     *  </p>
      *
-     * @param members - group members
-     * @return local user
+     * @param members is the list of group member IDs (must be non-empty).
+     * @return a local user ID who is a group member (null if no match).
+     * @throws AssertionError if members are empty or local users are empty.
      */
     public ID selectMember(List<ID> members) {
         assert members != null && !members.isEmpty() : "group members not found";
@@ -101,7 +140,9 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
         return null;
     }
 
-    //-------- Entity Delegate
+    // -------------------------------------------------------------------------
+    //  Entity Delegate Implementation (User Management)
+    // -------------------------------------------------------------------------
 
     @Override
     public User getUser(ID uid) {
@@ -122,6 +163,10 @@ public abstract class Facebook implements Entity.Delegate, User.DataSource, Grou
         }
         return user;
     }
+
+    // -------------------------------------------------------------------------
+    //  Entity Delegate Implementation (Group Management)
+    // -------------------------------------------------------------------------
 
     @Override
     public Group getGroup(ID gid) {

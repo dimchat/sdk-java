@@ -32,6 +32,7 @@ package chat.dim.core;
 
 import chat.dim.dkd.Compressor;
 import chat.dim.dkd.EncryptedBundle;
+import chat.dim.ext.MessageHandler;
 import chat.dim.ext.SharedMessageExtensions;
 import chat.dim.mkm.Entity;
 import chat.dim.mkm.User;
@@ -41,27 +42,57 @@ import chat.dim.msg.SecureMessageDelegate;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ID;
 import chat.dim.protocol.InstantMessage;
+import chat.dim.protocol.Message;
 import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 import chat.dim.protocol.SymmetricKey;
 
+// -----------------------------------------------------------------------------
+//  Message Transformer (Message Format Conversion)
+// -----------------------------------------------------------------------------
+
 /**
- *  Message Transformer
+ *  Message format transformer (converts between plain/encrypted/signed formats).
  *  <p>
- *      Converting message format between PlainMessage and NetworkMessage
+ *      Implements low-level serialization/deserialization, encryption/decryption,
+ *      and signature/verification logic for different message types.
+ *  </p>
+ *  <p>
+ *      Implements: {@link InstantMessageDelegate}, {@link SecureMessageDelegate}, {@link ReliableMessageDelegate}
  *  </p>
  */
 public abstract class Transformer implements InstantMessageDelegate, SecureMessageDelegate, ReliableMessageDelegate {
 
+    /**
+     *  Check whether the message is a broadcast message.
+     *
+     * @param msg is the message to check.
+     * @return true if the message is a broadcast message.
+     */
+    public static boolean isBroadcast(Message msg) {
+        MessageHandler helper = SharedMessageExtensions.handler;
+        return helper.isBroadcast(msg);
+    }
+
+    /**
+     *  Entity management service (user/group operations) - internal use only.
+     *
+     * @return entity delegate
+     */
     protected abstract Entity.Delegate getFacebook();
 
+    /**
+     *  Data compression service (short key + JSON + UTF8) - internal use only.
+     *
+     * @return compressor
+     */
     protected abstract Compressor getCompressor();
 
     /**
-     *  Serialize network message
+     *  Serializes a reliable message to binary data (uses compressor).
      *
-     * @param rMsg - network message
-     * @return data package
+     * @param rMsg is the reliable message to serialize.
+     * @return the binary data package (null if serialization fails).
      */
     public byte[] serializeMessage(ReliableMessage rMsg) {
         Compressor compressor = getCompressor();
@@ -69,10 +100,10 @@ public abstract class Transformer implements InstantMessageDelegate, SecureMessa
     }
 
     /**
-     *  Deserialize network message
+     *  Deserializes binary data back to a reliable message (uses compressor).
      *
-     * @param data - data package
-     * @return network message
+     * @param data is the binary data package to deserialize.
+     * @return the deserialized reliable message (null if deserialization fails).
      */
     public ReliableMessage deserializeMessage(byte[] data) {
         Compressor compressor = getCompressor();
@@ -80,7 +111,9 @@ public abstract class Transformer implements InstantMessageDelegate, SecureMessa
         return ReliableMessage.parse(info);
     }
 
-    //-------- InstantMessageDelegate
+    // -------------------------------------------------------------------------
+    //  InstantMessageDelegate Implementation
+    // -------------------------------------------------------------------------
 
     @Override
     public byte[] serializeContent(Content content, SymmetricKey password, InstantMessage iMsg) {
@@ -99,7 +132,7 @@ public abstract class Transformer implements InstantMessageDelegate, SecureMessa
     /*/
     @Override
     public Object encodeData(byte[] data, InstantMessage iMsg) {
-        if (SharedMessageExtensions.handler.isBroadcast(iMsg)) {
+        if (isBroadcast(iMsg)) {
             // broadcast message content will not be encrypted (just encoded to JsON),
             // so no need to encode to Base64 here
             return UTF8.decode(data);
@@ -112,7 +145,7 @@ public abstract class Transformer implements InstantMessageDelegate, SecureMessa
 
     @Override
     public byte[] serializeKey(SymmetricKey password, InstantMessage iMsg) {
-        if (SharedMessageExtensions.handler.isBroadcast(iMsg)) {
+        if (isBroadcast(iMsg)) {
             // broadcast message has no key
             return null;
         }
@@ -122,7 +155,7 @@ public abstract class Transformer implements InstantMessageDelegate, SecureMessa
 
     @Override
     public EncryptedBundle encryptKey(byte[] data, ID receiver, InstantMessage iMsg) {
-        assert !SharedMessageExtensions.handler.isBroadcast(iMsg) : "broadcast message has no key: " + iMsg;
+        assert !isBroadcast(iMsg) : "broadcast message has no key: " + iMsg;
         Entity.Delegate facebook = getFacebook();
         assert facebook != null : "entity delegate not set yet";
         // TODO: make sure the receiver's public key exists
@@ -139,7 +172,7 @@ public abstract class Transformer implements InstantMessageDelegate, SecureMessa
     /*/
     @Override
     public Map<String, Object> encodeKeys(EncryptedBundle bundle, ID receiver, InstantMessage iMsg) {
-        assert !SharedMessageExtensions.handler.isBroadcast(iMsg) : "broadcast message has no key: " + iMsg;
+        assert !isBroadcast(iMsg) : "broadcast message has no key: " + iMsg;
         // message key had been encrypted by a public key,
         // so the data should be encoded here (with algorithm 'base64' as default).
         return bundle.encode(receiver);
@@ -147,12 +180,14 @@ public abstract class Transformer implements InstantMessageDelegate, SecureMessa
     }
     /*/
 
-    //-------- SecureMessageDelegate
+    // -------------------------------------------------------------------------
+    //  SecureMessageDelegate Implementation
+    // -------------------------------------------------------------------------
 
     /*/
     @Override
     public EncryptedBundle decodeKeys(Map<String, Object> msgKeys, ID receiver, SecureMessage sMsg) {
-        assert !SharedMessageExtensions.handler.isBroadcast(sMsg) : "broadcast message has no key: " + sMsg;
+        assert !isBroadcast(sMsg) : "broadcast message has no key: " + sMsg;
         Entity.Delegate facebook = getFacebook();
         assert facebook != null : "entity delegate not set yet";
         assert receiver.isUser() : "receiver error: " + receiver;
@@ -171,7 +206,7 @@ public abstract class Transformer implements InstantMessageDelegate, SecureMessa
     public byte[] decryptKey(EncryptedBundle bundle, ID receiver, SecureMessage sMsg) {
         // NOTICE: the receiver must be a member ID
         //         if it's a group message
-        assert !SharedMessageExtensions.handler.isBroadcast(sMsg) : "broadcast message has no key: " + sMsg;
+        assert !isBroadcast(sMsg) : "broadcast message has no key: " + sMsg;
         Entity.Delegate facebook = getFacebook();
         assert facebook != null : "entity delegate not set yet";
         assert receiver.isUser() : "receiver error: " + receiver;
@@ -186,7 +221,7 @@ public abstract class Transformer implements InstantMessageDelegate, SecureMessa
 
     @Override
     public SymmetricKey deserializeKey(byte[] key, SecureMessage sMsg) {
-        assert !SharedMessageExtensions.handler.isBroadcast(sMsg) : "broadcast message has no key: " + sMsg.toMap();
+        assert !isBroadcast(sMsg) : "broadcast message has no key: " + sMsg.toMap();
         if (key == null) {
             assert false : "reused key? get it from local cache: "
                     + sMsg.getSender() + " => " + sMsg.getReceiver() + ", " + sMsg.getGroup();
@@ -200,7 +235,7 @@ public abstract class Transformer implements InstantMessageDelegate, SecureMessa
     /*/
     @Override
     public byte[] decodeData(Object data, SecureMessage sMsg) {
-        if (SharedMessageExtensions.handler.isBroadcast(sMsg)) {
+        if (isBroadcast(sMsg)) {
             // broadcast message content will not be encrypted (just encoded to JsON),
             // so return the string data directly
             if (data instanceof String) {
@@ -252,7 +287,9 @@ public abstract class Transformer implements InstantMessageDelegate, SecureMessa
     }
     /*/
 
-    //-------- ReliableMessageDelegate
+    // -------------------------------------------------------------------------
+    //  ReliableMessageDelegate Implementation
+    // -------------------------------------------------------------------------
 
     /*/
     @Override

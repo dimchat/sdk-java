@@ -1,6 +1,6 @@
 /* license: https://mit-license.org
  *
- *  DIMP : Decentralized Instant Messaging Protocol
+ *  DIM-SDK : Decentralized Instant Messaging Software Development Kit
  *
  *                                Written in 2023 by Moky <albert.moky@gmail.com>
  *
@@ -42,6 +42,14 @@ import chat.dim.protocol.InstantMessage;
 import chat.dim.protocol.SecureMessage;
 import chat.dim.protocol.SymmetricKey;
 
+/**
+ * Packer class for encrypting InstantMessage to SecureMessage.
+ *
+ * Implements the full encryption pipeline for instant messages, including:
+ * 1. Content serialization/encryption (symmetric key)
+ * 2. Key encryption (asymmetric, receiver's public key)
+ * 3. Format conversion to SecureMessage structure
+ */
 public class InstantMessagePacker {
 
     private final WeakReference<InstantMessageDelegate> transformerRef;
@@ -69,15 +77,15 @@ public class InstantMessagePacker {
      */
 
     /**
-     *  Encrypt personal / group message
-     *  <p>
-     *      Replace 'content' field with encrypted 'data'
-     *  </p>
+     * Encrypts an InstantMessage to a SecureMessage (supports personal/group messages).
      *
-     * @param iMsg     - plain message
-     * @param password - symmetric key
-     * @param members  - group members for group message; null for personal message
-     * @return SecureMessage object, null on visa not found
+     * Replaces the plaintext 'content' field with encrypted 'data', and encrypts the
+     * symmetric key for target recipients (personal: single user, group: multiple members).
+     *
+     * @param iMsg     the plaintext instant message to encrypt
+     * @param password the symmetric key for content encryption
+     * @param members  the optional group member IDs (required for group messages)
+     * @return the encrypted SecureMessage (null if encryption fails/Visa not found)
      */
     public SecureMessage encryptMessage(InstantMessage iMsg, SymmetricKey password, List<ID> members) {
         // TODO: check attachment for File/Image/Audio/Video message content

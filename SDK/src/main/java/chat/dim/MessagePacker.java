@@ -47,6 +47,13 @@ import chat.dim.protocol.ReliableMessage;
 import chat.dim.protocol.SecureMessage;
 import chat.dim.protocol.SymmetricKey;
 
+/**
+ *  Concrete implementation of {@link Packer} with twin dependencies (Facebook + Messenger).
+ *  <p>
+ *      Handles message encryption/decryption with directional symmetric keys,
+ *      supports both personal and group message encryption logic.
+ *  </p>
+ */
 public abstract class MessagePacker extends TwinsHelper implements Packer {
 
     protected final InstantMessagePacker instantPacker;
@@ -61,9 +68,9 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
         reliablePacker = factory.createReliableMessagePacker(messenger);
     }
 
-    //
-    //  InstantMessage -> SecureMessage -> ReliableMessage -> Data
-    //
+    // -------------------------------------------------------------------------
+    //  Packing Workflow (Instant → Secure → Reliable → Binary)
+    // -------------------------------------------------------------------------
 
     @Override
     public SecureMessage encryptMessage(InstantMessage iMsg) {
@@ -118,6 +125,7 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
         }
         if (sMsg == null) {
             // public key for encryption not found
+            assert false : "failed to encrypt message: " + iMsg;
             // TODO: suspend this message for waiting receiver's meta
             return null;
         }
@@ -147,9 +155,9 @@ public abstract class MessagePacker extends TwinsHelper implements Packer {
     }
     /*/
 
-    //
-    //  Data -> ReliableMessage -> SecureMessage -> InstantMessage
-    //
+    // -------------------------------------------------------------------------
+    //  Unpacking Workflow (Binary → Reliable → Secure → Instant)
+    // -------------------------------------------------------------------------
 
     /*/
     @Override

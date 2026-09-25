@@ -35,56 +35,93 @@ import java.util.List;
 import chat.dim.protocol.Content;
 import chat.dim.protocol.ReliableMessage;
 
+
+// -----------------------------------------------------------------------------
+//  ContentProcessor (CPU: Content Processing Unit)
+// -----------------------------------------------------------------------------
+
 /**
- *  CPU - Content Processing Unit
+ * Content processing unit (CPU) - core interface for handling message content.
+ *
+ * Defines the standard interface for processing different types of message content
+ * (e.g., text, commands, files, ...) and generating response content.
+ *
+ * Each implementation handles a specific content type or command, following the
+ * single responsibility principle.
  */
 public interface ContentProcessor {
 
     /**
-     *  Process message content
+     * Processes incoming message content and generates response contents.
      *
-     * @param content - content received
-     * @param rMsg    - reliable message
-     * @return {Content} response to sender
+     * @param content is the incoming message content to process (e.g., text, command, file, ...)
+     * @param rMsg is the original reliable message (provides context: sender, receiver, envelope)
+     * @return the list of response content items (empty list if no response is needed)
      */
     List<Content> processContent(Content content, ReliableMessage rMsg);
 
+    // -------------------------------------------------------------------------
+    //  ContentProcessorCreator (CPU Creator)
+    // -------------------------------------------------------------------------
+
     /**
-     *  CPU Creator
+     * Creator interface for instantiating content/command processors.
+     *
+     * Implements the Factory Method pattern to create specific {@link ContentProcessor}
+     * instances based on content type or command name, decoupling creation logic
+     * from usage logic.
      */
     interface Creator {
 
         /**
-         *  Create content processor with type
+         * Creates a content processor for a specific content type.
          *
-         * @param msgType - content type
-         * @return ContentProcessor
+         * @param msgType is the content type identifier (e.g., "text", "command", "file", ...)
+         * @return a specific {@link ContentProcessor} instance (null if type is unsupported)
          */
         ContentProcessor createContentProcessor(String msgType);
 
         /**
-         *  Create command processor with name
+         * Creates a command processor for a specific content type and command name.
          *
-         * @param msgType - content type
-         * @param cmdName - command name
-         * @return CommandProcessor
+         * @param msgType is the content type identifier (typically "command" for command content)
+         * @param cmdName is the command name (e.g., "meta", "documents", "group", ...)
+         * @return a specific command processor instance (null if command is unsupported)
          */
         ContentProcessor createCommandProcessor(String msgType, String cmdName);
     }
 
+    // -------------------------------------------------------------------------
+    //  ContentProcessorFactory (CPU Factory)
+    // -------------------------------------------------------------------------
+
     /**
-     *  CPU Factory
+     * Factory interface for retrieving cached content/command processors.
+     *
+     * Manages a cache of {@link ContentProcessor} instances to avoid repeated creation,
+     * and provides unified access to processors for different content types/commands.
      */
     interface Factory {
 
         /**
-         *  Get content/command processor
+         * Retrieves the appropriate processor for a given content instance.
          *
-         * @param content - Content/Command
-         * @return ContentProcessor
+         * For command content:
+         * 1. First tries to get a processor for the specific command name
+         * 2. Falls back to group command processor (if applicable)
+         * 3. Finally uses the default content processor for the content type
+         *
+         * @param content is the content instance to get processor for (can be regular content or command)
+         * @return a matching {@link ContentProcessor} instance (null if no processor found)
          */
         ContentProcessor getContentProcessor(Content content);
 
+        /**
+         * Retrieves a content processor for a specific content type.
+         *
+         * @param msgType is the content type identifier (e.g., "text", "command", "file", ...)
+         * @return the {@link ContentProcessor} instance for the type (null if type is unsupported)
+         */
         ContentProcessor getContentProcessor(String msgType);
     }
 }

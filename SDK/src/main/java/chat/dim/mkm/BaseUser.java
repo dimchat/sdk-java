@@ -47,6 +47,13 @@ import chat.dim.protocol.SignKey;
 import chat.dim.protocol.VerifyKey;
 
 
+//
+//  Base User
+//
+
+/**
+ * Base class implementation of {@link User}.
+ */
 public class BaseUser extends BaseEntity implements User {
 
     public BaseUser(ID uid) {
@@ -80,6 +87,7 @@ public class BaseUser extends BaseEntity implements User {
             assert false : "failed to get documents: " + identifier;
             return null;
         }
+        assert !documents.isEmpty() : "failed to get documents: " + identifier;
         VisaAgent agent = SharedVisaAgent.visaAgent;
         return agent.getTerminals(documents);
     }
@@ -215,6 +223,15 @@ public class BaseUser extends BaseEntity implements User {
     //  Private Keys
     //
 
+    /**
+     * Retrieves the decryption private keys for a specific terminal.
+     *
+     * Queries the {@link chat.dim.mkm.User.DataSource} for private keys paired with the public keys
+     * in the user's Visa/Meta documents, targeting the given terminal.
+     *
+     * @param terminal is the device terminal string (empty or "/" for wildcard)
+     * @return the list of decryption private keys (null if data source is missing)
+     */
     protected List<DecryptKey> getPrivateKeysForDecryption(String terminal) {
         User.DataSource facebook = getDataSource();
         if (facebook == null) {
@@ -230,6 +247,14 @@ public class BaseUser extends BaseEntity implements User {
         return facebook.getPrivateKeysForDecryption(uid);
     }
 
+    /**
+     * Retrieves the private key for message signing.
+     *
+     * Returns the private key paired with the user's Visa/Meta public key,
+     * used to generate digital signatures for outgoing messages.
+     *
+     * @return the signing key (null if data source is missing)
+     */
     protected SignKey getPrivateKeyForSignature() {
         User.DataSource facebook = getDataSource();
         if (facebook == null) {
@@ -239,6 +264,14 @@ public class BaseUser extends BaseEntity implements User {
         return facebook.getPrivateKeyForSignature(identifier);
     }
 
+    /**
+     * Retrieves the private key for Visa document signing.
+     *
+     * Returns the private key paired with the user's Meta public key (only),
+     * used to sign the user's Visa documents (identity verification).
+     *
+     * @return the signing key for Visa documents (null if data source is missing)
+     */
     protected SignKey getPrivateKeyForVisaSignature() {
         User.DataSource facebook = getDataSource();
         if (facebook == null) {

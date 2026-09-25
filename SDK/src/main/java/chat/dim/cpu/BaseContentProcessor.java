@@ -46,10 +46,24 @@ import chat.dim.protocol.Envelope;
 import chat.dim.protocol.ReliableMessage;
 
 /**
- *  CPU - Content Processing Unit
+ *  Base implementation of {@link ContentProcessor} with common response utilities.
+ *  <p>
+ *      Provides default handling for unsupported content types (returns "not supported" receipt)
+ *      and utility methods for creating receipt responses. Serves as the parent class
+ *      for all concrete content processors.
+ *  </p>
+ *  <p>
+ *      Extends {@link TwinsHelper} to access Facebook (entity management) and Messenger services.
+ *  </p>
  */
 public class BaseContentProcessor extends TwinsHelper implements ContentProcessor {
 
+    /**
+     *  Creates a {@link BaseContentProcessor} with required twin dependencies.
+     *
+     * @param facebook is the entity management service (user/group operations).
+     * @param messenger is the messaging service (packing/processing).
+     */
     public BaseContentProcessor(Facebook facebook, Messenger messenger) {
         super(facebook, messenger);
     }
@@ -65,9 +79,21 @@ public class BaseContentProcessor extends TwinsHelper implements ContentProcesso
     }
 
     //
-    //  Convenient responding
+    //  Response Utility Methods
     //
 
+    /**
+     *  Creates a list containing a single receipt command response.
+     *  <p>
+     *      Convenience method for consistent response formatting across processors.
+     *  </p>
+     *
+     * @param text is the human-readable response text.
+     * @param envelope is the original message envelope (for sender/receiver context).
+     * @param content is the original message content (optional, for additional context).
+     * @param extra is the extra key-value data to include in the receipt (optional).
+     * @return a list with one {@code ReceiptCommand} instance.
+     */
     protected List<Content> respondReceipt(String text, Envelope envelope, Content content, Map<String, Object> extra) {
         // create base receipt command with text & original envelope
         Command res = createReceipt(text, envelope, content, extra);
@@ -77,13 +103,17 @@ public class BaseContentProcessor extends TwinsHelper implements ContentProcesso
     }
 
     /**
-     *  Create receipt command with text, original envelope, serial number &amp; group
+     *  Creates a receipt command with standardized formatting.
+     *  <p>
+     *      Includes original message context (envelope, serial number, group ID)
+     *      and optional extra data. Static method for use without instantiation.
+     *  </p>
      *
-     * @param text     - text message
-     * @param head     - original envelope
-     * @param body     - original content
-     * @param extra    - extra info
-     * @return receipt command
+     * @param text is the human-readable response text.
+     * @param head is the original message envelope (provides sender/receiver/serial number).
+     * @param body is the original message content (optional, for group ID or other context).
+     * @param extra is the extra key-value data to add to the receipt (optional).
+     * @return a formatted {@code ReceiptCommand} instance.
      */
     public static Command createReceipt(String text, Envelope head, Content body, Map<String, Object> extra) {
         assert text != null && head != null : "params error";

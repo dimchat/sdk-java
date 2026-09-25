@@ -34,6 +34,13 @@ import java.util.List;
 
 import chat.dim.protocol.ID;
 
+//
+//  Base Group
+//
+
+/**
+ * Base class implementation of {@link Group}.
+ */
 public class BaseGroup extends BaseEntity implements Group {
 
     // once the group founder is set, it will never change

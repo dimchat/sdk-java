@@ -37,12 +37,26 @@ import chat.dim.protocol.Command;
 import chat.dim.protocol.Content;
 
 
+// -----------------------------------------------------------------------------
+//  GeneralContentProcessorFactory (Concrete CPU Factory)
+// -----------------------------------------------------------------------------
+
 /**
- *  General ContentProcessor Factory
+ * General implementation of {@link chat.dim.dkd.ContentProcessor.Factory} with caching support.
+ *
+ * Maintains caches for content processors and command processors to reuse instances,
+ * delegating creation to a {@link chat.dim.dkd.ContentProcessor.Creator} when cache misses occur.
  */
 public class ContentProcessorFactory implements ContentProcessor.Factory {
 
+    /**
+     * Cache of content processors (key: content type).
+     */
     private final Map<String, ContentProcessor> contentProcessors = new HashMap<>();
+
+    /**
+     * Cache of command processors (key: command name).
+     */
     private final Map<String, ContentProcessor> commandProcessors = new HashMap<>();
 
     private final ContentProcessor.Creator creator;
@@ -54,20 +68,26 @@ public class ContentProcessorFactory implements ContentProcessor.Factory {
 
     @Override
     public ContentProcessor getContentProcessor(Content content) {
-        ContentProcessor cpu;
         String msgType = content.getType();
         if (content instanceof Command) {
             String cmd = ((Command) content).getCmd();
             // assert cmd != null && !cmd.isEmpty() : "command name error: " + cmd;
-            cpu = getCommandProcessor(msgType, cmd);
+            ContentProcessor cpu = getCommandProcessor(msgType, cmd);
             if (cpu != null) {
                 return cpu;
             }
+            // TODO: check for group command
         }
         // content processor
         return getContentProcessor(msgType);
     }
 
+    /**
+     * Retrieves a content processor for a specific content type.
+     *
+     * @param msgType is the content type identifier (e.g., "text", "command", "file", ...)
+     * @return the {@link ContentProcessor} instance for the type (null if type is unsupported)
+     */
     @Override
     public ContentProcessor getContentProcessor(String msgType) {
         ContentProcessor cpu = contentProcessors.get(msgType);
@@ -80,6 +100,15 @@ public class ContentProcessorFactory implements ContentProcessor.Factory {
         return cpu;
     }
 
+    /**
+     * Retrieves a command processor from cache (or creates it).
+     *
+     * Private helper method - internal use only.
+     *
+     * @param msgType is the content type identifier (typically "command")
+     * @param cmdName is the command name (e.g., "meta", "documents", "group", ...)
+     * @return the command processor instance (null if unsupported)
+     */
     protected ContentProcessor getCommandProcessor(String msgType, String cmdName) {
         ContentProcessor cpu = commandProcessors.get(cmdName);
         if (cpu == null) {

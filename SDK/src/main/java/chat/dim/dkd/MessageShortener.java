@@ -34,10 +34,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 
+/**
+ * Concrete implementation of {@link Shortener} for message/content/key short key mapping.
+ *
+ * Implements fixed key pair conversion with new Map creation
+ * (does not modify the original one).
+ */
 public class MessageShortener implements Shortener {
 
     /**
-     *  Key maps holder (short-to-long & long-to-short)
+     * Key maps holder (short-to-long and long-to-short)
      */
     protected static class KeyMaps {
         public final Map<String, String> shortToLong;
@@ -71,18 +77,47 @@ public class MessageShortener implements Shortener {
 
     }
 
+    /**
+     * Builds the short-to-long and long-to-short maps for message keys.
+     *
+     * Uses the standard message key pairs defined in {@link Shortener#messageShortKeys}.
+     *
+     * @return a KeyMaps with (shortToLong, longToShort) mapping tables
+     */
     protected KeyMaps buildMessageKeyMaps() {
         return build(messageShortKeys);
     }
 
+    /**
+     * Builds the short-to-long and long-to-short maps for content keys.
+     *
+     * Uses the standard content key pairs defined in {@link Shortener#contentShortKeys}.
+     *
+     * @return a KeyMaps with (shortToLong, longToShort) mapping tables
+     */
     protected KeyMaps buildContentKeyMaps() {
         return build(contentShortKeys);
     }
 
+    /**
+     * Builds the short-to-long and long-to-short maps for symmetric key fields.
+     *
+     * Uses the standard crypto key pairs defined in {@link Shortener#cryptoShortKeys}.
+     *
+     * @return a KeyMaps with (shortToLong, longToShort) mapping tables
+     */
     protected KeyMaps buildCryptoKeyMaps() {
         return build(cryptoShortKeys);
     }
 
+    /**
+     * Builds two mapping tables from a list of (shortKey, longKey) pairs.
+     *
+     * The {@code keys} list must contain pairs in order: short key followed by long key.
+     *
+     * @param keys is the flattened list of (short, long) key pairs
+     * @return a KeyMaps with (shortToLong, longToShort) mapping tables
+     */
     protected static KeyMaps build(String[] keys) {
         Map<String, String> shortToLong = new HashMap<>();
         Map<String, String> longToShort = new HashMap<>();
@@ -97,6 +132,15 @@ public class MessageShortener implements Shortener {
         return new KeyMaps(shortToLong, longToShort);
     }
 
+    /**
+     * Translates the keys of {@code info} using the given {@code dictionary}.
+     *
+     * NOTICE: does not modify the original map, creates a new one instead.
+     *
+     * @param info is the source map whose keys need translation
+     * @param dictionary is the mapping table (old key → new key)
+     * @return a new map with translated keys (unmatched keys kept as-is)
+     */
     protected Map<String, Object> translate(Map<String, Object> info, Map<String, String> dictionary) {
         // NOTICE: do not modify the original map, create a new one instead
         Map<String, Object> result = new HashMap<>();
